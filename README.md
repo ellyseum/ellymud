@@ -10,7 +10,7 @@ It has a ton of features and is "playable" from the command line, or with your f
 
 Many features such as live account transfer from users trying to log in from a new connection, both a console and web based admin interface complete with live account monitoring and taking-over of a users session and giving them temporary access to admin commands while blocking out their input, to a playable telnet snake game. Basically wanted to see how far fetched I could take this project this time, and no-idea was too weird to implement. Seriously, try typing "snake" once you log in.
 
-My main goal was to sort of replicate L&F of (https://www.google.com/search?q=majormud)[majormud] and a lot of the functionality will be reminscent of that, such as the variable delay between rooms while moving around depending on "weight" or the agility stat in this case. And the overall feel of the combat system and abilities.
+My main goal was to sort of replicate L&F of https://www.google.com/search?q=majormud and a lot of the functionality will be reminscent of that, such as the variable delay between rooms while moving around depending on "weight" or the agility stat in this case. And the overall feel of the combat system and abilities.
 
 Communication, Administration, Combat, Inventory, Equipment, Stats, NPC aggression tracking (completely passive, passive but will attack back, or aggressive) Spell Effects and Abilities, and a included WebUI for players (and admins) should all be functional, with an easy to extend Command parser, and plenty of provided commands - simply type "help" to see the full list while in game.
 
