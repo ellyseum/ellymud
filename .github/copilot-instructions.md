@@ -361,8 +361,392 @@ The MCP (Model Context Protocol) server is integrated into the main EllyMUD serv
 
 **For detailed usage, API endpoints, and integration examples, see `src/mcp/README.md`**
 
-<!-- ## Testing the MUD
-<todo> -->
+## Testing the MUD
+
+EllyMUD supports multiple testing approaches to verify functionality, from manual playtesting to automated testing. This section covers the various methods and best practices for testing the MUD.
+
+### Manual Testing Approaches
+
+#### 1. Testing via Web Client
+The easiest way to test the MUD is through the web-based client:
+
+```bash
+npm start
+```
+
+- Open browser to `http://localhost:8080`
+- Create a new account or log in with existing credentials
+- The web client provides a user-friendly interface with:
+  - Command input with history (use arrow keys)
+  - Formatted output with colors
+  - Automatic reconnection
+  - Full support for all game commands
+
+#### 2. Testing via Telnet
+For a more traditional MUD experience and testing raw protocol handling:
+
+```bash
+npm start
+# In another terminal:
+telnet localhost 8023
+```
+
+- Tests raw connection handling without JavaScript
+- Useful for testing ANSI escape sequences
+- Tests prompt management and input buffering
+- Good for testing concurrent connections (open multiple telnet sessions)
+
+#### 3. Testing via Admin CLI
+For rapid testing of admin features and debugging:
+
+```bash
+npm start -- -a
+# Or for a specific user:
+npm start -- --forceSession=username
+```
+
+- **`-a` flag**: Bypasses login, starts as admin user
+- **`--forceSession=username`**: Logs in as specific user
+- Admin CLI provides server console commands:
+  - Press keys to send broadcasts, monitor users, etc.
+  - Full access to admin commands
+  - Real-time monitoring of server state
+
+#### 4. Development Mode with Hot Reload
+For active development and iterative testing:
+
+```bash
+npm run dev
+# Or with admin auto-login:
+npm run watch:admin
+```
+
+- Uses `ts-node-dev` for automatic recompilation
+- Server restarts on file changes
+- Faster iteration cycle for bug fixes
+
+### Testing Different Game Features
+
+#### Basic Movement and Navigation
+```
+look                    # View current room
+look north              # Look in a direction
+move north              # Move to adjacent room (or just 'n')
+stats                   # Check your character stats
+inventory               # Check what you're carrying
+equipment               # Check what you're wearing
+```
+
+#### Combat System Testing
+```
+attack <npc_name>       # Initiate combat
+break                   # Attempt to flee from combat
+heal <amount>           # Heal yourself (testing)
+damage <amount>         # Take damage (testing)
+effect add <effect>     # Apply status effects (testing)
+```
+
+**Testing Combat Mechanics:**
+1. Spawn an NPC: `spawn <npc_type>`
+2. Check room: `look`
+3. Attack NPC: `attack <npc_name>`
+4. Observe combat loop and damage calculations
+5. Test fleeing: `break` or move to adjacent room
+6. Verify NPC aggression persistence across sessions
+
+#### Item and Inventory Testing
+```
+pickup <item>           # Pick up item from room
+drop <item>             # Drop item in room
+get <item>              # Alias for pickup
+equip <item>            # Equip an item
+unequip <slot>          # Unequip from slot
+destroy <item>          # Permanently destroy item
+rename <item> <name>    # Give item custom name
+resetname <item>        # Restore original name
+repair <item>           # Repair damaged item
+```
+
+**Testing Gold/Currency:**
+```
+pickup gold             # Pick up all gold
+pickup 50 gold          # Pick up specific amount
+drop 100 gold           # Drop specific amount
+get g                   # Partial name matching works
+```
+
+#### Communication Testing
+```
+say <message>           # Talk in current room
+yell <message>          # Yell to adjacent rooms
+bugreport <message>     # Submit bug report
+```
+
+#### Admin Command Testing
+```
+sudo                    # Toggle admin access (if authorized)
+adminmanage             # Manage admin privileges
+giveitem <item> <user>  # Give item to player
+spawn <npc>             # Spawn NPC in room
+debug <target>          # Inspect game elements
+addflag <user> <flag>   # Add flag to user
+removeflag <user> <flag># Remove flag from user
+listflags [user]        # List flags for user
+restrict <user>         # Restrict player movement
+root <target>           # Root target (prevent movement)
+```
+
+### Testing Multiplayer Interactions
+
+#### Testing Concurrent Users
+1. Start server: `npm start`
+2. Connect multiple clients:
+   - Web client: Open multiple browser tabs to `http://localhost:8080`
+   - Telnet: Open multiple telnet sessions: `telnet localhost 8023`
+   - Mix of both for cross-protocol testing
+
+3. Test interactions:
+   - Users in same room see each other with `look`
+   - Use `list` to see online users
+   - Test `say` command - all users in room receive message
+   - Test `yell` command - users in adjacent rooms receive message
+   - One user moves rooms, verify others see departure/arrival messages
+   - Test combat with other players watching
+   - Test item drops - other players can pick up items
+
+#### Testing Real-Time Updates
+1. Player A attacks NPC
+2. Player B in same room should see combat messages
+3. Player C in adjacent room should not see combat
+4. Test NPC respawning - all players should see spawn message
+5. Test room events triggering for all occupants
+
+#### Testing Session Management
+1. Log in on one client
+2. Attempt to log in with same user on another client
+3. Verify transfer request system:
+   - Original session receives transfer request
+   - Can accept/decline transfer
+   - Proper session handoff
+4. Test disconnect/reconnect behavior
+5. Test logout preserves user state
+
+### Testing State Transitions
+
+The MUD uses a state machine for client interactions. Test transitions:
+
+```
+ConnectingState → LoginState → AuthenticatedState
+                ↓ (new user)
+             SignupState → LoginState
+```
+
+**Test Each State:**
+1. **ConnectingState**: Initial connection, MOTD display
+2. **LoginState**: Username/password entry, validation
+3. **SignupState**: New user creation, password requirements
+4. **AuthenticatedState**: Main gameplay state
+5. **SnakeGameState**: Mini-game state (type `snake`)
+6. **WaitingState**: Temporary waiting (type `wait`)
+7. **TransferRequestState**: Account transfer between sessions
+
+**State Transition Testing:**
+- Start in one state, verify proper transition to next
+- Test invalid inputs in each state
+- Verify `client.stateData` is properly managed
+- Test state-specific commands are only available in correct states
+
+### Log Analysis for Debugging
+
+EllyMUD maintains comprehensive logs for debugging and analysis.
+
+#### Log File Structure
+Logs are located in `/logs` directory with daily rotation:
+
+```
+/logs/
+├── players/{username}-{date}.log       # Player-specific actions
+├── raw-sessions/{sessionId}-{date}.log # Raw input/output
+├── error/error-{date}.log              # Server errors
+├── exceptions/exceptions-{date}.log    # Runtime exceptions
+├── rejections/rejections-{date}.log    # Unhandled promises
+├── system/system-{date}.log            # Server events
+├── mcp/mcp-{date}.log                  # MCP server logs
+└── audit/*.json                        # Log rotation audit files
+```
+
+#### Finding Session Logs
+After testing, use the "Last session info" to find relevant logs:
+
+```
+User Name: {username}
+Date Time: {ISO 8601 date time}
+Raw Log: /logs/raw-sessions/{sessionId}-{date}.log
+User Log: /logs/players/{username}-{date}.log
+```
+
+#### Log Analysis Workflow
+1. **Identify Date/Time**: Note when the issue occurred
+2. **Find Session ID**: Check `system/system-{date}.log` for session start
+3. **Analyze Raw Session**: Open `raw-sessions/{sessionId}-{date}.log`
+   - Shows exact input/output sequence
+   - Includes ANSI escape codes
+   - Shows timing of events
+4. **Check Player Log**: Open `players/{username}-{date}.log`
+   - Higher-level view of player actions
+   - Command execution records
+   - State transitions
+5. **Check Error Logs**: Review `error/`, `exceptions/`, `rejections/`
+   - Stack traces for crashes
+   - Unhandled errors
+   - Promise rejections
+
+#### Debugging Common Issues
+
+**Issue: Command not executing**
+- Check `players/{username}-{date}.log` for command parsing
+- Verify user is in correct state (AuthenticatedState)
+- Check for error messages in raw session log
+
+**Issue: Combat not working**
+- Check for NPC spawn in raw session log
+- Verify NPC data with `debug npc <name>`
+- Check combat state transitions
+- Review damage calculations in player log
+
+**Issue: Items not appearing**
+- Verify item exists with `debug item <name>`
+- Check room contents with `debug room <id>`
+- Review pickup/drop logs in player log
+
+**Issue: Connection problems**
+- Check `system/system-{date}.log` for connection events
+- Review socket errors in `error/error-{date}.log`
+- For Telnet: verify port 8023 is accessible
+- For WebSocket: verify port 8080 is accessible
+
+### Testing with MCP Server
+
+The MCP (Model Context Protocol) server on port 3100 provides read-only access to game data for testing and debugging.
+
+```bash
+# Start server
+npm start
+
+# In another terminal, test MCP endpoints:
+curl http://localhost:3100/health
+curl http://localhost:3100/api/online-users
+curl http://localhost:3100/api/rooms
+curl http://localhost:3100/api/users/admin
+curl http://localhost:3100/api/config
+
+# Search logs
+curl -X POST http://localhost:3100/api/logs/search \
+  -H "Content-Type: application/json" \
+  -d '{"logType": "system", "searchTerm": "error"}'
+```
+
+See `src/mcp/README.md` for complete MCP API documentation.
+
+### Performance Testing
+
+#### Load Testing Multiple Users
+```bash
+# Terminal 1: Start server
+npm start
+
+# Terminal 2-10: Connect multiple telnet clients
+for i in {1..10}; do
+  (sleep $i; telnet localhost 8023) &
+done
+```
+
+#### Testing Response Times
+- Monitor server logs for slow operations
+- Check command execution times in player logs
+- Verify prompt redrawing doesn't cause lag
+- Test with multiple users moving/fighting simultaneously
+
+#### Memory and Resource Testing
+- Run server for extended periods
+- Monitor memory usage: `ps aux | grep node`
+- Check for memory leaks in long sessions
+- Verify log rotation is working (daily rotation)
+- Test with many items/NPCs in rooms
+
+### Automated Testing (Future)
+
+Currently, EllyMUD doesn't have automated unit tests (the `test/` directory contains only a `.gitkeep` file). When implementing automated tests:
+
+**Recommended Testing Framework:**
+- **Jest** or **Vitest** for unit testing
+- **Supertest** for HTTP API testing
+- **Socket.io-client** for WebSocket testing
+
+**Test Coverage Priorities:**
+1. **Unit Tests:**
+   - Command parsing and execution
+   - State machine transitions
+   - Combat damage calculations
+   - Inventory management
+   - User authentication
+
+2. **Integration Tests:**
+   - Client connection and disconnection
+   - Full command workflows
+   - Multiplayer interactions
+   - Data persistence (JSON files)
+
+3. **End-to-End Tests:**
+   - Complete user journeys (login → move → combat → logout)
+   - Multi-user scenarios
+   - Admin operations
+
+**Example Test Structure:**
+```typescript
+// test/commands/look.test.ts
+describe('LookCommand', () => {
+  it('should display current room', () => {
+    // Test implementation
+  });
+  
+  it('should show exits', () => {
+    // Test implementation
+  });
+});
+```
+
+### Testing Checklist
+
+Before committing changes, verify:
+
+- [ ] Server starts without errors: `npm start`
+- [ ] Build succeeds: `npm run build`
+- [ ] Web client connects successfully
+- [ ] Telnet client connects successfully
+- [ ] Can create new account
+- [ ] Can log in with existing account
+- [ ] Basic commands work (look, move, stats, inventory)
+- [ ] Combat system functions correctly
+- [ ] Items can be picked up and dropped
+- [ ] Admin commands work (if admin testing)
+- [ ] Multiple users can connect simultaneously
+- [ ] Logs are being written correctly
+- [ ] No errors in error logs
+- [ ] MCP server responds to health check
+
+### Testing Best Practices
+
+1. **Test in isolation**: Restart server between test runs to ensure clean state
+2. **Test edge cases**: Empty inventories, invalid commands, non-existent items
+3. **Test error conditions**: Invalid input, missing data, network issues
+4. **Test concurrency**: Multiple users performing actions simultaneously
+5. **Review logs**: Always check logs after testing for unexpected errors
+6. **Test both protocols**: Verify features work on both Telnet and WebSocket
+7. **Test admin features separately**: Use sudo/admin flags appropriately
+8. **Document bugs**: Use in-game `bugreport` command or create issues
+9. **Test state persistence**: Logout and login to verify data is saved
+10. **Test with realistic data**: Create multiple NPCs, items, and rooms
 
 Keep this file up to date as the project evolves, add new sections as necessary, and ensure all team members are familiar with its contents.
 
