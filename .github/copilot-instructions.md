@@ -2,8 +2,24 @@
 
 ## Architecture & Core Concepts
 
-EllyMUD is a Node.js-based Multi-User Dungeon (MUD) supporting both Telnet and WebSocket connections.
+EllyMUD is a Node.js-based Multi-User Dungeon (MUD) supporting both Telnet and WebSocket connections. The server is structured around a state machine pattern, with core game logic encapsulated in singleton manager classes.
+User, Room, and Item data are persisted in JSON files located in the `data/` directory.
+Connections are handled via Telnet (port 8023) and WebSocket (port 8080) protocols.
+Interactions are command-driven, with commands parsed and executed based on the client's current state.
+Game events (e.g., combat, timers) are managed through an event-driven architecture.
+Combat mechanics include player vs. NPC interactions, damage calculations, and status effects.
+Players can navigate rooms, interact with objects, and engage in combat using text-based commands.
+Player stats (health, mana, experience, etc.) are tracked and updated based on in-game actions.
 
+### Game purpose
+
+EllyMUD is designed to provide a classic text-based MUD experience, allowing players to explore a fantasy world, interact with other players and NPCs, complete quests, and engage in combat. The game emphasizes role-playing elements, character progression, and community interaction.
+Players can connect via Telnet or a web-based client, making it accessible across different platforms. The game world is persistent, with player actions having lasting effects on their characters and the environment.
+Administrators have access to a web-based admin interface for managing users, rooms, and game settings.
+Running the server produces an interactive CLI console for monitoring and managing the game in real-time.
+
+
+### Core Components
 - **Entry Point**: `src/server.ts` initializes the `GameServer` class in `src/app.ts`.
 - **State Machine**: Client interactions are driven by a state machine pattern.
   - **States**: Located in `src/states/` (e.g., `LoginState`, `AuthenticatedState`, `CombatState`).
