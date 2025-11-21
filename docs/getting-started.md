@@ -306,7 +306,7 @@ Now that you're set up, here's what to explore next:
 
 5. **Read More Documentation**
    - [Commands Reference](commands.md) - Complete command list
-   - [Game Mechanics](game-mechanics.md) - Understand how the game works
+   - [Development Guide](development.md) - For developers
    - [Architecture](architecture.md) - For developers
 
 ## Troubleshooting

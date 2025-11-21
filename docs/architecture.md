@@ -685,7 +685,6 @@ src/
 - [Development Guide](development.md) - Contributing code
 - [Deployment Guide](deployment.md) - Production setup
 - [Commands Reference](commands.md) - All commands
-- [API Documentation](api.md) - Code-level API docs
 
 ---
 
