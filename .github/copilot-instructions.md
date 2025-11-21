@@ -341,7 +341,7 @@ Logs are stored in `/logs` with the following structure:
 - Server can be restarted gracefully using the CLI console or admin interface.
 
 ## Todos / Unimplemented Features
-- Refer to `todos/unimplemented_features.md` for a detailed list of planned features and their statuses. Ocassionally review and update that file as features are implemented or new ones are identified. Preferably after each sprint or development cycle. Rank and order features based on impact and complexity to guide development priorities. Keep the recommendation section updated to reflect the current development focus. Prefer implementing features that enhance core gameplay mechanics first, then multiplayer interactions between players next.
+- Refer to `todos/unimplemented_features.md` for a detailed list of planned features and their statuses. Occasionally review and update that file as features are implemented or new ones are identified. Preferably after each sprint or development cycle. Rank and order features based on impact and complexity to guide development priorities. Keep the recommendation section updated to reflect the current development focus. Prefer implementing features that enhance core gameplay mechanics first, then multiplayer interactions between players next.
 
 ## MCP Server
 
