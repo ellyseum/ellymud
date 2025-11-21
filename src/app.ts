@@ -19,6 +19,7 @@ import { WaitingState } from './states/waiting.state';
 import { GameTimerManager } from './timer/gameTimerManager';
 import { ConnectedClient, ServerStats } from './types';
 import { UserManager } from './user/userManager';
+import { MCPServer } from './mcp/mcpServer';
 import { isDebugMode } from './utils/debugUtils'; // Import the isDebugMode function
 import { clearSessionReferenceFile } from './utils/fileUtils'; // Import the clearSessionReferenceFile function
 import { systemLogger } from './utils/logger';
@@ -43,6 +44,7 @@ export class GameServer {
   private userMonitor: UserMonitor;
   private userAdminMenu: UserAdminMenu;
   private shutdownManager: ShutdownManager;
+  private mcpServer: MCPServer;
 
   constructor() {
     try {
@@ -178,6 +180,13 @@ export class GameServer {
         this.clientManager.checkForIdleClients(idleTimeoutMinutes);
       }, config.IDLE_CHECK_INTERVAL);
 
+      // Initialize MCP Server
+      this.mcpServer = new MCPServer(
+        this.userManager,
+        this.roomManager,
+        this.clientManager
+      );
+
       // Setup keyboard listeners for console commands after server is started
       // We delegate this now to the ConsoleManager
     } catch (error) {
@@ -310,6 +319,9 @@ export class GameServer {
       // Start game timer
       this.gameTimerManager.start();
 
+      // Start MCP Server
+      await this.mcpServer.start();
+
       // Initialize the ConsoleManager - this replaces the direct setupKeyListener call
       if (config.CONSOLE_MODE) {
         this.consoleManager.setupKeyListener();
@@ -344,6 +356,11 @@ export class GameServer {
 
     // Stop the game timer system
     this.gameTimerManager.stop();
+
+    // Stop MCP Server
+    this.mcpServer.stop().catch((error: unknown) => {
+      systemLogger.error('Error stopping MCP server:', error);
+    });
 
     // Clear the idle check interval
     clearInterval(this.idleCheckInterval);

@@ -12,7 +12,6 @@
     "watch": "ts-node-dev --transpile-only --respawn --watch src src/server.ts",
     "watch:admin": "ts-node-dev --transpile-only --respawn --watch src src/server.ts -- -af",
     "watch:user": "ts-node-dev --transpile-only --respawn --watch src src/server.ts -- -u",
-    "start:mcp": "ts-node-dev --transpile-only src/mcp/index.ts",
     "validate": "ts-node-dev --transpile-only src/utils/validateFiles.ts"
   },
   "dependencies": {

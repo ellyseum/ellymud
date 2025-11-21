@@ -62,14 +62,16 @@ A helpful file to analyze user sessions which has the following format
 Logs are stored in `/logs` with the following structure:
 - `/logs/players/{username}-{date}.log`: Player-specific logs.
 - `/logs/raw-sessions/{sessionId}-{date}.log`: Raw input/output for a session.
-- `/logs/error-{date}.log`: General server errors.
-- `/logs/exceptions-{date}.log`: Server runtime exceptions.
-- `/logs/rejections-{date}.log`: Server unhandled promise rejections.
-- `/logs/system-{date}.log`: General server events.
+- `/logs/error/error-{date}.log`: General server errors.
+- `/logs/exceptions/exceptions-{date}.log`: Server runtime exceptions.
+- `/logs/rejections/rejections-{date}.log`: Server unhandled promise rejections.
+- `/logs/system/system-{date}.log`: General server events.
+- `/logs/mcp/mcp-{date}.log`: MCP server logs.
+- `/logs/audit/*.json`: Winston log rotation audit files.
 
 **Log Analysis Protocol**:
 1.  **Identify Date/Time**: Use the current date/time to locate the relevant log file.
-2.  **Find Session ID**: Check `system-{date}.log` or `players/` logs to find the `sessionId` (e.g., `telnet-1763705616258-809`).
+2.  **Find Session ID**: Check `system/system-{date}.log` or `players/` logs to find the `sessionId` (e.g., `telnet-1763705616258-809`).
 3.  **Analyze Raw Session**: Open the corresponding `raw-sessions` log to see the exact input/output sequence.
 4.  **Terminal Output**: Use `#terminal_last_command` to view the exact game output the user is seeing.
 
@@ -128,6 +130,8 @@ Logs are stored in `/logs` with the following structure:
 - `public/style.css`: Web client CSS styles
 - `public/client.js`: Web client JavaScript logic
 - `public/admin/`: Admin interface files
+
+** Whenever adding new folders, keep this list updated **
 
 ## Game stats explanation
 - **Health**: Represents the player's current vitality. If it reaches zero, the player dies.
@@ -339,9 +343,26 @@ Logs are stored in `/logs` with the following structure:
 ## Todos / Unimplemented Features
 - Refer to `todos/unimplemented_features.md` for a detailed list of planned features and their statuses. Ocassionally review and update that file as features are implemented or new ones are identified. Preferably after each sprint or development cycle. Rank and order features based on impact and complexity to guide development priorities. Keep the recommendation section updated to reflect the current development focus. Prefer implementing features that enhance core gameplay mechanics first, then multiplayer interactions between players next.
 
+## MCP Server
+
+The MCP (Model Context Protocol) server is integrated into the main EllyMUD server and starts automatically on port 3100 when you run `npm start`. It provides HTTP-based access to live game data and static game configuration.
+
+**Key Points:**
+- HTTP server on port 3100 (not stdio-based)
+- All logs go to `/logs/mcp-{YYYY-MM-{DD}.log` (daily rotation)
+- Uses `systemLogger` for startup messages (not console.log)
+- Provides RESTful API endpoints for game data access
+- CORS enabled for web access
+- Read-only access to game state
+
+**Integration with Copilot:**
+- In GitHub Copilot: "Enter Server URL" → `http://localhost:3100`
+- Game server must be running
+
+**For detailed usage, API endpoints, and integration examples, see `src/mcp/README.md`**
+
 <!-- ## Testing the MUD
-- Sometimes you may need to log directly into the MUD as a player to test functionality.
-- Use the provided ellymud MCP server, ask the user to start if its not running. -->
+<todo> -->
 
 Keep this file up to date as the project evolves, add new sections as necessary, and ensure all team members are familiar with its contents.
 

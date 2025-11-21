@@ -1,0 +1,9 @@
+{
+	"servers": {
+		"ellymud-mcp-server": {
+			"url": "http://localhost:3100",
+			"type": "http"
+		}
+	},
+	"inputs": []
+}

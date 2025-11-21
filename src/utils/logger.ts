@@ -6,6 +6,11 @@ import * as config from '../config';
 
 const LOGS_DIR = path.join(__dirname, '..', '..', 'logs');
 const PLAYER_LOGS_DIR = path.join(LOGS_DIR, 'players');
+const ERROR_LOGS_DIR = path.join(LOGS_DIR, 'error');
+const EXCEPTIONS_LOGS_DIR = path.join(LOGS_DIR, 'exceptions');
+const REJECTIONS_LOGS_DIR = path.join(LOGS_DIR, 'rejections');
+const SYSTEM_LOGS_DIR = path.join(LOGS_DIR, 'system');
+const AUDIT_LOGS_DIR = path.join(LOGS_DIR, 'audit');
 
 // --- Ensure log directories exist ---
 if (!fs.existsSync(LOGS_DIR)) {
@@ -13,6 +18,21 @@ if (!fs.existsSync(LOGS_DIR)) {
 }
 if (!fs.existsSync(PLAYER_LOGS_DIR)) {
   fs.mkdirSync(PLAYER_LOGS_DIR, { recursive: true });
+}
+if (!fs.existsSync(ERROR_LOGS_DIR)) {
+  fs.mkdirSync(ERROR_LOGS_DIR, { recursive: true });
+}
+if (!fs.existsSync(EXCEPTIONS_LOGS_DIR)) {
+  fs.mkdirSync(EXCEPTIONS_LOGS_DIR, { recursive: true });
+}
+if (!fs.existsSync(REJECTIONS_LOGS_DIR)) {
+  fs.mkdirSync(REJECTIONS_LOGS_DIR, { recursive: true });
+}
+if (!fs.existsSync(SYSTEM_LOGS_DIR)) {
+  fs.mkdirSync(SYSTEM_LOGS_DIR, { recursive: true });
+}
+if (!fs.existsSync(AUDIT_LOGS_DIR)) {
+  fs.mkdirSync(AUDIT_LOGS_DIR, { recursive: true });
 }
 // Note: winston-daily-rotate-file handles the archive rotation automatically based on config.
 
@@ -35,23 +55,25 @@ const consoleFormat = winston.format.combine(
 const transports: winston.transport[] = [
   // System File Transport (Info Level)
   new winston.transports.DailyRotateFile({
-    filename: path.join(LOGS_DIR, 'system-%DATE%.log'),
+    filename: path.join(SYSTEM_LOGS_DIR, 'system-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true, // Compress rotated files
     maxSize: '20m',     // Rotate when file reaches 20MB
     maxFiles: '14d',    // Keep logs for 14 days
     level: 'info',      // Log info, warn, error to this file
-    utc: true           // Use UTC time for file rotation
+    utc: true,          // Use UTC time for file rotation
+    auditFile: path.join(AUDIT_LOGS_DIR, 'system-audit.json')
   }),
   // Error File Transport (Error Level Only)
   new winston.transports.DailyRotateFile({
-    filename: path.join(LOGS_DIR, 'error-%DATE%.log'),
+    filename: path.join(ERROR_LOGS_DIR, 'error-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '20m',
     maxFiles: '30d',
     level: 'error', // Only log errors and above to this file
-    utc: true       // Use UTC time for file rotation
+    utc: true,      // Use UTC time for file rotation
+    auditFile: path.join(AUDIT_LOGS_DIR, 'error-audit.json')
   })
 ];
 
@@ -68,12 +90,13 @@ if (!config.SILENT_MODE) {
 // Create exception handlers array
 const exceptionHandlers: winston.transport[] = [
   new winston.transports.DailyRotateFile({
-    filename: path.join(LOGS_DIR, 'exceptions-%DATE%.log'),
+    filename: path.join(EXCEPTIONS_LOGS_DIR, 'exceptions-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '10m',
     maxFiles: '30d',
-    utc: true       // Use UTC time for file rotation
+    utc: true,      // Use UTC time for file rotation
+    auditFile: path.join(AUDIT_LOGS_DIR, 'exceptions-audit.json')
   })
 ];
 
@@ -89,12 +112,13 @@ if (!config.SILENT_MODE) {
 // Create rejection handlers array
 const rejectionHandlers: winston.transport[] = [
   new winston.transports.DailyRotateFile({
-    filename: path.join(LOGS_DIR, 'rejections-%DATE%.log'),
+    filename: path.join(REJECTIONS_LOGS_DIR, 'rejections-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '10m',
     maxFiles: '30d',
-    utc: true       // Use UTC time for file rotation
+    utc: true,      // Use UTC time for file rotation
+    auditFile: path.join(AUDIT_LOGS_DIR, 'rejections-audit.json')
   })
 ];
 
@@ -135,7 +159,8 @@ function getPlayerLogger(username: string): winston.Logger {
           maxSize: '5m', // Smaller size for individual player logs
           maxFiles: '7d', // Keep player logs for 7 days
           level: 'info',
-          utc: true     // Use UTC time for file rotation
+          utc: true,     // Use UTC time for file rotation
+          auditFile: path.join(AUDIT_LOGS_DIR, `player-${sanitizedUsername}-audit.json`)
         })
       ]
     });
