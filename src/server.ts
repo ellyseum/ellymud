@@ -2,6 +2,10 @@ import { GameServer } from './app';
 import * as config from './config';
 import { JsonValidationError } from './utils/jsonUtils';
 import { systemLogger } from './utils/logger';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 // This file now acts as a simple entry point that creates and starts the game server
 let gameServer: GameServer;

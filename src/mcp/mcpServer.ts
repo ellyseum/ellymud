@@ -62,10 +62,42 @@ export class MCPServer {
     this.app.use(cors({
       origin: '*',
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
       credentials: false
     }));
     this.app.use(express.json());
+
+    // API Key Authentication Middleware
+    this.app.use((req, res, next) => {
+      // Skip authentication for health check endpoint
+      if (req.path === '/health') {
+        return next();
+      }
+
+      const apiKey = req.headers['x-api-key'] as string;
+      const expectedApiKey = process.env.ELLYMUD_MCP_API_KEY;
+
+      // If no API key is configured, allow all requests (backward compatibility)
+      if (!expectedApiKey) {
+        this.logger.warn('ELLYMUD_MCP_API_KEY not set - server is running without authentication');
+        return next();
+      }
+
+      // Validate API key
+      if (!apiKey || apiKey !== expectedApiKey) {
+        this.logger.warn(`Unauthorized access attempt from ${req.ip} to ${req.path}`);
+        return res.status(401).json({
+          jsonrpc: "2.0",
+          error: {
+            code: -32001,
+            message: "Unauthorized - Invalid or missing API key"
+          },
+          id: null
+        });
+      }
+
+      next();
+    });
 
     // Log all requests
     this.app.use((req, res, next) => {
@@ -123,12 +155,14 @@ export class MCPServer {
             protocolVersion: "2024-11-05",
             capabilities: {
               tools: {},
-              resources: {}
+              resources: {},
+              prompts: {}
             },
             serverInfo: {
               name: "EllyMUD MCP Server",
               version: "1.0.0"
-            }
+            },
+            instructions: "EllyMUD MCP Server - API Key authentication via X-API-Key header"
           }
         });
         return;
@@ -149,6 +183,30 @@ export class MCPServer {
       if (method === "tools/call") {
         this.logger.info(`Handling MCP tools/call request: ${params?.name}`);
         this.handleToolCall(params, id, res);
+        return;
+      }
+
+      if (method === "prompts/list") {
+        this.logger.info("Handling MCP prompts/list request");
+        res.json({
+          jsonrpc: "2.0",
+          id,
+          result: {
+            prompts: []
+          }
+        });
+        return;
+      }
+
+      if (method === "resources/list") {
+        this.logger.info("Handling MCP resources/list request");
+        res.json({
+          jsonrpc: "2.0",
+          id,
+          result: {
+            resources: []
+          }
+        });
         return;
       }
 
@@ -398,6 +456,9 @@ export class MCPServer {
   }
 
   private async getOnlineUsers() {
+    // Import SudoCommand to check admin status
+    const { SudoCommand } = await import("../command/commands/sudo.command.js");
+    
     const clients = Array.from(this.clientManager.getClients().values());
     const onlineUsers = clients.map((client) => ({
       username: client.user?.username || "Not logged in",
@@ -405,7 +466,7 @@ export class MCPServer {
       roomId: client.user?.currentRoomId || null,
       sessionId: client.id,
       connectedAt: client.connectedAt,
-      isAdmin: client.user?.role === "admin" || false,
+      isAdmin: client.user?.username ? SudoCommand.isAuthorizedUser(client.user.username) : false,
     }));
 
     return {
@@ -434,9 +495,32 @@ export class MCPServer {
       .filter((client) => client.user?.currentRoomId === roomId)
       .map((client) => client.user?.username);
 
+    // Convert Maps to arrays for proper JSON serialization
+    const npcsArray = Array.from(room.npcs.entries()).map(([id, npc]) => ({
+      instanceId: id,
+      templateId: npc.templateId,
+      name: npc.name,
+      health: npc.health,
+      maxHealth: npc.maxHealth,
+      isHostile: npc.isHostile,
+      experienceValue: npc.experienceValue
+    }));
+
+    const itemInstancesArray = Array.from(room.getItemInstances().entries()).map(([instanceId, templateId]) => ({
+      instanceId,
+      templateId
+    }));
+
     return {
-      ...room,
+      id: room.id,
+      name: room.name,
+      description: room.description,
+      exits: room.exits,
+      items: room.items,
+      currency: room.currency,
       currentUsers: usersInRoom,
+      npcs: npcsArray,
+      itemInstances: itemInstancesArray
     };
   }
 

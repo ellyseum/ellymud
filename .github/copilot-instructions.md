@@ -443,10 +443,35 @@ The MCP (Model Context Protocol) server is integrated into the main EllyMUD serv
 - Provides RESTful API endpoints for game data access
 - CORS enabled for web access
 - Read-only access to game state
+- **API Key Authentication**: Protected by `MCP_API_KEY` environment variable
+
+**Security Setup:**
+1. Generate API key: `openssl rand -hex 32`
+2. Create `.env` file (if not exists): `cp .env.example .env`
+3. Add to `.env`: `MCP_API_KEY=your_generated_key`
+4. Restart server to apply changes
 
 **Integration with Copilot:**
 - In GitHub Copilot: "Enter Server URL" → `http://localhost:3100`
+- API key automatically loaded from `MCP_API_KEY` environment variable
 - Game server must be running
+
+**VS Code Configuration:**
+The `.vscode/mcp.json` file is already configured to use your `MCP_API_KEY` environment variable:
+```json
+{
+  "servers": {
+    "ellymud-mcp-server": {
+      "url": "http://localhost:3100",
+      "type": "http",
+      "headers": {
+        "X-API-Key": "${env:MCP_API_KEY}"
+      }
+    }
+  }
+}
+```
+VS Code automatically reads the API key from your `.env` file - no hardcoding required!
 
 **For detailed usage, API endpoints, and integration examples, see `src/mcp/README.md`**
 

@@ -1,9 +1,19 @@
 {
+	"inputs": [
+		{
+			"type": "promptString",
+			"id": "ellymud-api-key",
+			"description": "EllyMUD MCP Server API Key",
+			"password": true
+		}
+	],
 	"servers": {
 		"ellymud-mcp-server": {
 			"url": "http://localhost:3100",
-			"type": "http"
+			"type": "http",
+			"headers": {
+				"X-API-Key": "${input:ellymud-api-key}"
+			}
 		}
-	},
-	"inputs": []
+	}
 }
