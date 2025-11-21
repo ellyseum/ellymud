@@ -310,6 +310,17 @@ Logs are stored in `/logs` with the following structure:
 - **Multiplayer Dynamics**: Understand how player actions can influence the game world and other players, fostering a dynamic and engaging multiplayer experience.
 - **Player Economy**: Players can trade items and gold with each other, creating a player-driven economy.
 
+## Understanding writing to socket
+- Game play uses a prompt-based interface over Telnet and WebSocket connections. Proper handling of redrawing this prompt using ANSI escape codes is essential for a smooth user experience.
+- Some players may be typing commands while messages are sent to them (e.g., combat updates, chat messages). To avoid disrupting their input, the prompt must be cleared, the message written, and then the prompt redrawn, providing a seamless experience.
+- Directly writing to client sockets is discouraged to maintain consistency and proper formatting, unless absolutely necessary for low-level operations. Some legacy code might be found that does this; refactor it to use the utility functions when possible.
+- Proper handling of the prompt redrawing is crucial when sending messages to clients. This involves clearing the current line, writing the message, and then redrawing the prompt along with the users input. Helper methods in `src/utils/socketWriter.ts` handle this automatically. Use them whenever possible.
+- Always use the utility functions in `src/utils/socketWriter.ts` for writing to client sockets, do not reinvent the wheel.
+- Functions include:
+  - `writeToClient(client: Client, message: string)`: Writes a raw message to the client. Does not automatically redraw the prompt. This is useful for low-level operations where prompt management is handled manually.
+  - `writeMessageToClient(client: Client, message: string)`: Writes a formatted message to the client, redrawing the prompt. 
+  - `writeFormattedMessageToClient(client: Client, message: string, formatOptions: FormatOptions)`: Clears the prompt, writes a formatted message with specified options (e.g., color, bold), and redraws the prompt, along with any user input that might be in the buffer.
+
 ## Admin mechanics
 - Different levels of admin users exist, each with varying permissions:
   - **Super Admin**: Full access to all admin features and settings.
@@ -327,6 +338,10 @@ Logs are stored in `/logs` with the following structure:
 
 ## Todos / Unimplemented Features
 - Refer to `todos/unimplemented_features.md` for a detailed list of planned features and their statuses. Ocassionally review and update that file as features are implemented or new ones are identified. Preferably after each sprint or development cycle. Rank and order features based on impact and complexity to guide development priorities. Keep the recommendation section updated to reflect the current development focus. Prefer implementing features that enhance core gameplay mechanics first, then multiplayer interactions between players next.
+
+<!-- ## Testing the MUD
+- Sometimes you may need to log directly into the MUD as a player to test functionality.
+- Use the provided ellymud MCP server, ask the user to start if its not running. -->
 
 Keep this file up to date as the project evolves, add new sections as necessary, and ensure all team members are familiar with its contents.
 
