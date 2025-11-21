@@ -24,10 +24,19 @@ export function getPromptText(client: ConnectedClient): string {
   
   // Format the HP numbers in green
   const hpNumbers = colorize(`${client.user.health}/${client.user.maxHealth}`, 'green');
+
+  // Format MP in blue when mana stats are available, otherwise show placeholders
+  const hasManaStats = typeof client.user.mana === 'number' && typeof client.user.maxMana === 'number';
+  const mpDisplay = hasManaStats
+    ? `${client.user.mana}/${client.user.maxMana}`
+    : '--/--';
+  const mpNumbers = colorize(mpDisplay, 'blue');
   
-  // Build the prompt with white base color and green HP numbers
+  // Build the prompt with white base color and stat numbers
   let prompt = colorize(`[HP=`, 'white') + 
                hpNumbers + 
+               colorize(` MP=`, 'white') +
+               mpNumbers +
                colorize(`]`, 'white');
   
   // Add combat indicator if in combat

@@ -125,6 +125,17 @@ export class UserManager {
       if (user.totalPlayTime === undefined) {
         user.totalPlayTime = 0;
       }
+
+      // Ensure mana stats are initialized and clamped
+      if (typeof user.maxMana !== 'number' || Number.isNaN(user.maxMana)) {
+        user.maxMana = 100;
+      }
+
+      if (typeof user.mana !== 'number' || Number.isNaN(user.mana)) {
+        user.mana = user.maxMana;
+      } else {
+        user.mana = Math.max(0, Math.min(user.mana, user.maxMana));
+      }
       
       // Add user to collection
       this.users.push(user);
@@ -538,6 +549,8 @@ export class UserManager {
       salt,
       health: 100,
       maxHealth: 100,
+      mana: 100,
+      maxMana: 100,
       experience: 0,
       level: 1,
       // Initialize character statistics

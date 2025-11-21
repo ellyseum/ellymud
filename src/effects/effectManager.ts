@@ -1,18 +1,16 @@
-import { v4 as uuidv4 } from 'uuid';
 import { EventEmitter } from 'events';
-import { UserManager } from '../user/userManager';
-import { RoomManager } from '../room/roomManager';
-import { 
-    ActiveEffect, 
-    EffectPayload, 
-    EffectType, 
-    StackingBehavior, 
-    effectStackingRules 
-} from '../types/effects';
-import { writeFormattedMessageToClient } from '../utils/socketWriter';
+import { v4 as uuidv4 } from 'uuid';
 import { CombatSystem } from '../combat/combatSystem';
+import { RoomManager } from '../room/roomManager';
 import { ConnectedClient } from '../types';
-import { systemLogger, createMechanicsLogger } from '../utils/logger';
+import {
+    ActiveEffect,
+    StackingBehavior,
+    effectStackingRules
+} from '../types/effects';
+import { UserManager } from '../user/userManager';
+import { createMechanicsLogger } from '../utils/logger';
+import { writeFormattedMessageToClient } from '../utils/socketWriter';
 
 // Create a specialized logger for effects
 const effectLogger = createMechanicsLogger('EffectManager');
@@ -75,7 +73,7 @@ export class EffectManager extends EventEmitter {
      */
     private startRealTimeProcessor(): void {
         if (this.realTimeProcessorIntervalId) return; // Already running
-        
+
         effectLogger.info(`Starting real-time effect processor (interval: ${this.REAL_TIME_CHECK_INTERVAL_MS}ms)`);
         this.realTimeProcessorIntervalId = setInterval(() => {
             this.processRealTimeEffects();
@@ -97,8 +95,8 @@ export class EffectManager extends EventEmitter {
      * Add a new effect to a target (player or NPC)
      */
     public addEffect(
-        targetId: string, 
-        isPlayer: boolean, 
+        targetId: string,
+        isPlayer: boolean,
         effectData: Omit<ActiveEffect, 'id' | 'remainingTicks' | 'lastTickApplied' | 'lastRealTimeApplied'>
     ): void {
         effectLogger.info(`Adding effect: ${effectData.type} to ${targetId}`);
@@ -106,11 +104,13 @@ export class EffectManager extends EventEmitter {
 
         const targetMap = isPlayer ? this.playerEffects : this.npcEffects;
         const existingEffects = targetMap.get(targetId) || [];
-        
+
         // Use the effect's specified stacking behavior or the default for its type
-        const stackingBehavior = effectData.stackingBehavior ?? 
-            effectStackingRules[effectData.type] ?? 
+        const stackingBehavior = effectData.stackingBehavior ??
+            effectStackingRules[effectData.type] ??
             StackingBehavior.REFRESH;
+
+        const isInstantEffect = this.isInstantEffect(effectData);
 
         // Create the new effect with a unique ID
         let effectToAdd: ActiveEffect | null = {
@@ -130,7 +130,7 @@ export class EffectManager extends EventEmitter {
         let updatedEffects = [...existingEffects];
 
         // Apply stacking rules if effects of the same type exist
-        if (sameTypeEffects.length > 0) {
+        if (!isInstantEffect && sameTypeEffects.length > 0) {
             switch (stackingBehavior) {
                 case StackingBehavior.REPLACE:
                 case StackingBehavior.REFRESH:
@@ -189,28 +189,41 @@ export class EffectManager extends EventEmitter {
             updatedEffects = updatedEffects.filter(e => !effectsToRemove.includes(e.id));
         }
 
-        // Add the new effect if not nullified by stacking rules
         if (effectToAdd) {
-            updatedEffects.push(effectToAdd);
-            effectLogger.info(`Applied effect ${effectToAdd.name} (${effectToAdd.id}) to ${targetId}`);
-            
-            // Notify the target if it's a player
-            if (isPlayer) {
-                const client = this.userManager.getActiveUserSession(targetId);
-                if (client) {
-                    writeFormattedMessageToClient(
-                        client, 
-                        `\r\n\x1b[1;36mYou are affected by ${effectToAdd.name}: ${effectToAdd.description}\x1b[0m\r\n`
-                    );
+            if (isInstantEffect) {
+                effectLogger.info(`Applying instant effect ${effectToAdd.name} (${effectToAdd.id}) to ${targetId}`);
+                if (isPlayer) {
+                    const client = this.userManager.getActiveUserSession(targetId);
+                    if (client) {
+                        writeFormattedMessageToClient(
+                            client,
+                            `\r\n\x1b[1;36mYou are affected by ${effectToAdd.name}: ${effectToAdd.description}\x1b[0m\r\n`
+                        );
+                    }
                 }
+                this.applyEffectPayload(effectToAdd, targetId, isPlayer);
+            } else {
+                updatedEffects.push(effectToAdd);
+                effectLogger.info(`Applied effect ${effectToAdd.name} (${effectToAdd.id}) to ${targetId}`);
+
+                // Notify the target if it's a player
+                if (isPlayer) {
+                    const client = this.userManager.getActiveUserSession(targetId);
+                    if (client) {
+                        writeFormattedMessageToClient(
+                            client,
+                            `\r\n\x1b[1;36mYou are affected by ${effectToAdd.name}: ${effectToAdd.description}\x1b[0m\r\n`
+                        );
+                    }
+                }
+
+                // Update the map and emit add event
+                targetMap.set(targetId, updatedEffects);
+                this.emit('effectAdded', { targetId, isPlayer, effect: effectToAdd });
             }
+        } else {
+            targetMap.set(targetId, updatedEffects);
         }
-
-        // Update the map
-        targetMap.set(targetId, updatedEffects);
-
-        // Emit event for external systems to react to
-        this.emit('effectAdded', { targetId, isPlayer, effect: effectToAdd });
     }
 
     /**
@@ -252,10 +265,10 @@ export class EffectManager extends EventEmitter {
                 } else {
                     this.playerEffects.delete(username);
                 }
-                
+
                 found = true;
                 effectLogger.info(`Removed effect ${effectId} from player ${username}`);
-                
+
                 // Notify the player
                 const client = this.userManager.getActiveUserSession(username);
                 if (client) {
@@ -264,7 +277,7 @@ export class EffectManager extends EventEmitter {
                         `\r\n\x1b[1;33mThe effect ${effectToRemove.name} has worn off.\x1b[0m\r\n`
                     );
                 }
-                
+
                 break;
             }
         }
@@ -277,14 +290,14 @@ export class EffectManager extends EventEmitter {
                     removedEffect = effectToRemove;
                     targetId = npcId;
                     isPlayer = false;
-                    
+
                     const filteredEffects = effects.filter(e => e.id !== effectId);
                     if (filteredEffects.length > 0) {
                         this.npcEffects.set(npcId, filteredEffects);
                     } else {
                         this.npcEffects.delete(npcId);
                     }
-                    
+
                     effectLogger.info(`Removed effect ${effectId} from NPC ${npcId}`);
                     break;
                 }
@@ -319,7 +332,7 @@ export class EffectManager extends EventEmitter {
                 }
             }
         }
-        
+
         return combinedModifiers;
     }
 
@@ -328,12 +341,12 @@ export class EffectManager extends EventEmitter {
      */
     public isActionBlocked(targetId: string, isPlayer: boolean, action: 'movement' | 'combat'): boolean {
         const effects = this.getEffectsForTarget(targetId, isPlayer);
-        
+
         for (const effect of effects) {
             if (action === 'movement' && effect.payload.blockMovement) return true;
             if (action === 'combat' && effect.payload.blockCombat) return true;
         }
-        
+
         return false;
     }
 
@@ -348,7 +361,7 @@ export class EffectManager extends EventEmitter {
         // Helper to process effects for a target
         const processTargetEffects = (targetId: string, effects: ActiveEffect[], isPlayer: boolean) => {
             effectLogger.debug(`Processing ${effects.length} effects for ${isPlayer ? 'player' : 'NPC'} ${targetId}`);
-            
+
             for (const effect of effects) {
                 // Decrement remaining duration for ALL effects
                 effect.remainingTicks--;
@@ -362,7 +375,7 @@ export class EffectManager extends EventEmitter {
                 }
 
                 // Only process tick-based periodic effects here
-                if (!effect.isTimeBased && effect.tickInterval > 0 && 
+                if (!effect.isTimeBased && effect.tickInterval > 0 &&
                     (currentTick - effect.lastTickApplied) >= effect.tickInterval) {
                     effectLogger.debug(`Applying tick-based effect ${effect.type} (${effect.id}) to ${targetId}`);
                     effect.lastTickApplied = currentTick;
@@ -401,9 +414,9 @@ export class EffectManager extends EventEmitter {
         const processTargetTimeEffects = (targetId: string, effects: ActiveEffect[], isPlayer: boolean) => {
             for (const effect of effects) {
                 // Only process time-based effects
-                if (effect.isTimeBased && effect.realTimeIntervalMs && effect.lastRealTimeApplied && 
+                if (effect.isTimeBased && effect.realTimeIntervalMs && effect.lastRealTimeApplied &&
                     (now - effect.lastRealTimeApplied >= effect.realTimeIntervalMs)) {
-                    
+
                     // Only apply if effect hasn't expired
                     if (effect.remainingTicks > 0) {
                         effect.lastRealTimeApplied = now;
@@ -445,25 +458,25 @@ export class EffectManager extends EventEmitter {
                 const newHealth = Math.max(oldHealth - damageAmount, -10); // Game's unconscious threshold
                 client.user.health = newHealth;
                 this.userManager.updateUserStats(targetId, { health: newHealth });
-                
+
                 message += `\r\n\x1b[1;31mYou take ${damageAmount} damage from ${effect.name}.\x1b[0m `;
-                
+
                 // Notify everyone in the room about the player taking damage
                 this.notifyRoom(targetId, `${client.user.username} takes ${damageAmount} damage from ${effect.name}.`, client.user.username);
-                
+
                 // Check for unconsciousness or death
                 if (newHealth <= 0 && oldHealth > 0) {
                     client.user.isUnconscious = true;
                     message += `\r\n\x1b[1;31mYou fall unconscious!\x1b[0m `;
-                    
+
                     // Notify room
                     this.notifyRoom(targetId, `${client.user.username} falls unconscious!`);
                 }
-                
+
                 // Check for death at -10 HP
                 if (newHealth <= -10) {
                     message += `\r\n\x1b[1;31mYou have died!\x1b[0m `;
-                    
+
                     // Handle player death (similar to CombatSystem)
                     this.handlePlayerDeath(client);
                 }
@@ -476,17 +489,17 @@ export class EffectManager extends EventEmitter {
                 const newHealth = Math.min(oldHealth + healAmount, maxHealth);
                 client.user.health = newHealth;
                 this.userManager.updateUserStats(targetId, { health: newHealth });
-                
+
                 message += `\r\n\x1b[1;32mYou gain ${healAmount} health from ${effect.name}.\x1b[0m `;
-                
+
                 // Notify everyone in the room about healing
                 this.notifyRoom(targetId, `${client.user.username} gains ${healAmount} health from ${effect.name}.`, client.user.username);
-                
+
                 // Check for regaining consciousness
                 if (newHealth > 0 && oldHealth <= 0) {
                     client.user.isUnconscious = false;
                     message += `\r\n\x1b[1;32mYou regain consciousness!\x1b[0m `;
-                    
+
                     // Notify room
                     this.notifyRoom(targetId, `${client.user.username} regains consciousness!`);
                 }
@@ -509,15 +522,15 @@ export class EffectManager extends EventEmitter {
             // Apply damage
             if (damageAmount > 0) {
                 npc.takeDamage(damageAmount);
-                
+
                 // Notify everyone in the room about the NPC taking damage
                 this.notifyRoom(targetId, `The ${npc.name} takes ${damageAmount} damage from ${effect.name}.`);
-                
+
                 // Check if NPC died
                 if (npc.health <= 0) {
                     // Notify room about NPC death
                     this.notifyRoom(targetId, `The ${npc.name} has died from ${effect.name}!`);
-                    
+
                     // Handle NPC death - remove from room
                     this.handleNpcDeath(npc, targetId, roomId);
                 }
@@ -527,124 +540,124 @@ export class EffectManager extends EventEmitter {
             if (healAmount > 0) {
                 const maxHealth = npc.maxHealth;
                 npc.health = Math.min(npc.health + healAmount, maxHealth);
-                
+
                 // Notify everyone in the room about the NPC healing
                 this.notifyRoom(targetId, `The ${npc.name} gains ${healAmount} health from ${effect.name}.`);
             }
         }
     }
-    
+
     /**
      * Handle player death (similar to CombatSystem logic)
      */
     private handlePlayerDeath(client: ConnectedClient): void {
         if (!client.user) return;
-        
+
         const username = client.user.username;
         const roomId = client.user.currentRoomId;
         if (!roomId) return;
-        
+
         // Remove from combat if in combat
         const combat = this.combatSystem.findClientByUsername(username);
         if (combat) {
             this.combatSystem.breakCombat(client);
         }
-        
+
         // Drop inventory items in the current room
         this.dropPlayerInventory(client, roomId);
-        
+
         // Teleport to starting room
         this.teleportToStartingRoom(client);
-        
+
         // Reset health to 50% of max
         client.user.health = Math.floor(client.user.maxHealth * 0.5);
         client.user.isUnconscious = false;
-        
+
         // Update stats
-        this.userManager.updateUserStats(username, { 
+        this.userManager.updateUserStats(username, {
             health: client.user.health,
             isUnconscious: false
         });
     }
-    
+
     /**
      * Handle NPC death (similar to CombatSystem logic)
      */
     private handleNpcDeath(npc: any, npcId: string, roomId: string): void {
         // Remove NPC from room
         this.roomManager.removeNPCFromRoom(roomId, npcId);
-        
+
         // Clean up NPC from combat system tracking
         this.combatSystem.cleanupDeadEntity(roomId, npcId);
-        
+
         effectLogger.info(`NPC ${npcId} died in room ${roomId} from an effect`);
     }
-    
+
     /**
      * Drop player's inventory in current room on death
      */
     private dropPlayerInventory(client: ConnectedClient, roomId: string): void {
         if (!client.user || !client.user.inventory) return;
-        
+
         const room = this.roomManager.getRoom(roomId);
         if (!room) return;
-        
+
         // Drop all items
         if (client.user.inventory.items && client.user.inventory.items.length > 0) {
             // Create item list message
             const itemsList = client.user.inventory.items.join(', ');
             this.notifyRoom(client.user.username, `${client.user.username}'s corpse drops: ${itemsList}.`);
-            
+
             // Add items to room
             for (const item of client.user.inventory.items) {
                 room.addItem(item);
             }
-            
+
             // Clear player's inventory
             client.user.inventory.items = [];
         }
-        
+
         // Transfer currency
         if (client.user.inventory.currency) {
             const currency = client.user.inventory.currency;
-            
+
             if (currency.gold > 0 || currency.silver > 0 || currency.copper > 0) {
                 room.currency.gold += currency.gold || 0;
                 room.currency.silver += currency.silver || 0;
                 room.currency.copper += currency.copper || 0;
-                
+
                 // Format currency for message
                 const parts = [];
                 if (currency.gold > 0) parts.push(`${currency.gold} gold`);
                 if (currency.silver > 0) parts.push(`${currency.silver} silver`);
                 if (currency.copper > 0) parts.push(`${currency.copper} copper`);
-                
+
                 if (parts.length > 0) {
                     const currencyText = parts.join(', ');
                     this.notifyRoom(client.user.username, `${client.user.username}'s corpse drops ${currencyText}.`);
                 }
-                
+
                 // Clear player's currency
                 client.user.inventory.currency = { gold: 0, silver: 0, copper: 0 };
             }
         }
-        
+
         // Update the room
         this.roomManager.updateRoom(room);
-        
+
         // Update player inventory in database
         this.userManager.updateUserStats(client.user.username, { inventory: client.user.inventory });
     }
-    
+
     /**
      * Teleport a player to the starting room
      */
     private teleportToStartingRoom(client: ConnectedClient): void {
         if (!client.user) return;
-        
+
         const startRoomId = this.roomManager.getStartingRoomId();
         const currentRoomId = client.user.currentRoomId;
-        
+
         // Remove from current room
         if (currentRoomId) {
             const currentRoom = this.roomManager.getRoom(currentRoomId);
@@ -653,29 +666,29 @@ export class EffectManager extends EventEmitter {
                 this.roomManager.updateRoom(currentRoom);
             }
         }
-        
+
         // Add to starting room
         const startRoom = this.roomManager.getRoom(startRoomId);
         if (startRoom) {
             startRoom.addPlayer(client.user.username);
             this.roomManager.updateRoom(startRoom);
-            
+
             // Update player's current room
             client.user.currentRoomId = startRoomId;
             this.userManager.updateUserStats(client.user.username, { currentRoomId: startRoomId });
-            
+
             // Show starting room to player
             writeFormattedMessageToClient(
                 client,
                 `\r\n\x1b[33mYou have been teleported to the starting area.\x1b[0m\r\n`
             );
-            
+
             // Show room description
             writeFormattedMessageToClient(
                 client,
                 startRoom.getDescriptionExcludingPlayer(client.user.username)
             );
-            
+
             // Announce to others in starting room
             this.notifyRoom(client.user.username, `${client.user.username} materializes in the room, looking disoriented.`);
         }
@@ -722,14 +735,14 @@ export class EffectManager extends EventEmitter {
     private findRoomForNpc(npcInstanceId: string): string | null {
         // Check each room for the NPC with the given instance ID
         const rooms = this.roomManager.getAllRooms();
-        
+
         for (const room of rooms) {
             // Check if the NPC exists in this room
             if (room.npcs.has(npcInstanceId) || room.getNPC(npcInstanceId)) {
                 return room.id;
             }
         }
-        
+
         effectLogger.warn(`Could not find room for NPC with instance ID: ${npcInstanceId}`);
         return null;
     }
@@ -744,8 +757,22 @@ export class EffectManager extends EventEmitter {
             effectLogger.warn(`findNpcById: Could not find room for NPC with instance ID: ${npcInstanceId}`);
             return null;
         }
-        
+
         // Get the actual NPC instance
         return this.roomManager.getNPCFromRoom(roomId, npcInstanceId);
+    }
+
+    /**
+     * Determine if an effect should be applied instantly (no scheduling)
+     */
+    private isInstantEffect(effectData: Omit<ActiveEffect, 'id' | 'remainingTicks' | 'lastTickApplied' | 'lastRealTimeApplied'>): boolean {
+        const tickInterval = effectData.tickInterval ?? 0;
+        const realTimeIntervalMs = effectData.realTimeIntervalMs ?? 0;
+        const isTimeBased = effectData.isTimeBased ?? false;
+
+        const tickless = tickInterval <= 0;
+        const timless = !isTimeBased || realTimeIntervalMs <= 0;
+
+        return tickless && timless;
     }
 }
