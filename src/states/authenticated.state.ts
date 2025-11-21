@@ -159,13 +159,19 @@ export class AuthenticatedState implements ClientState {
     if (client.user.currentRoomId) {
       // Try to use the most likely method - let's use the direct Room approach
       const room = this.roomManager.getRoom(client.user.currentRoomId);
-      if (room && room.npcs.size > 0) {
-        const npcsArray = Array.from(room.npcs.values());
-        if (npcsArray.length > 0) {
-          const firstNpc = npcsArray[0];
-          authStateLogger.debug(`Room has NPCs. First NPC: ${firstNpc.name}`);
+      
+      // Ensure player is added to the room's player list so NPCs can target them
+      if (room) {
+        room.addPlayer(client.user.username);
+        
+        if (room.npcs.size > 0) {
+          const npcsArray = Array.from(room.npcs.values());
+          if (npcsArray.length > 0) {
+            const firstNpc = npcsArray[0];
+            authStateLogger.debug(`Room has NPCs. First NPC: ${firstNpc.name}`);
+          }
+          this.checkForHostileNPCs(client, room);
         }
-        this.checkForHostileNPCs(client, room);
       }
     }
     
