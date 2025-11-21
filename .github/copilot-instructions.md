@@ -97,6 +97,90 @@ Logs are stored in `/logs` with the following structure:
 - **Admin Interface**: Familiarize yourself with the admin interface in `src/admin/`. Use it for managing users, rooms, and game settings.
 - **Public Client**: Understand the web client in `public/`. Ensure compatibility with server-side changes.
 
+## Documentation Maintenance
+
+**CRITICAL**: EllyMUD is now public and documentation must be kept up to date with all changes.
+
+### When to Update Documentation
+
+- **ALWAYS** update relevant documentation when making code changes
+- Documentation is not optional - it's part of the development process
+- Outdated documentation is worse than no documentation
+
+### Documentation Files to Maintain
+
+1. **README.md** (Project root)
+   - Update if: Installation steps change, new major features added, dependencies change
+   - Keep: Getting started instructions, feature list, basic usage accurate
+
+2. **CONTRIBUTING.md** (Project root)
+   - Update if: Contribution workflow changes, new style guidelines, commit conventions change
+   - Keep: Development setup, PR process, coding standards current
+
+3. **docs/getting-started.md**
+   - Update if: Setup process changes, new commands for starting server, port numbers change
+   - Keep: Installation steps, first-time user experience accurate
+
+4. **docs/architecture.md**
+   - Update if: New major components added, architectural patterns change, data flow changes
+   - Keep: Component diagrams, design patterns, system overview current
+   - Add: New managers, new states, new subsystems
+
+5. **docs/development.md**
+   - Update if: Development workflow changes, new tools required, testing approach changes
+   - Keep: Developer setup, debugging tips, common tasks up to date
+
+6. **docs/commands.md**
+   - Update if: New commands added, command behavior changes, aliases added/removed
+   - Keep: Complete and accurate list of all commands with examples
+
+7. **This file** (.github/copilot-instructions.md)
+   - Update if: New folders added (see "Key Directories" section), workflows change, conventions change
+   - Keep: Accurate reflection of current codebase structure and practices
+
+### Documentation Update Checklist
+
+When making changes, ask yourself:
+
+- [ ] Does this change affect user-facing behavior? → Update getting-started.md or commands.md
+- [ ] Does this add/modify/remove a command? → Update docs/commands.md
+- [ ] Does this change the architecture? → Update docs/architecture.md
+- [ ] Does this add a new directory? → Update "Key Directories" section in this file
+- [ ] Does this change how developers set up or work? → Update CONTRIBUTING.md or docs/development.md
+- [ ] Does this change security practices? → Update SECURITY.md
+- [ ] Does this add new dependencies? → Update package.json and relevant docs
+
+### Best Practices
+
+- **Update docs in the same PR** as code changes - don't defer documentation
+- **Keep docs concise but complete** - users need clarity, not verbosity
+- **Use examples** - show don't just tell, especially for commands and APIs
+- **Test documentation** - verify setup instructions actually work
+- **Cross-reference** - link related documentation files together
+- **Version compatibility** - note if features require specific versions
+- **Mark deprecations** - clearly indicate deprecated features with migration paths
+
+### Common Documentation Mistakes to Avoid
+
+- ❌ Adding features without documenting them
+- ❌ Changing command behavior without updating command docs
+- ❌ Adding new directories without updating the directory list
+- ❌ Modifying setup process without testing and updating installation docs
+- ❌ Creating new conventions without documenting them
+- ❌ Removing features without updating docs that reference them
+- ❌ Changing configuration options without documenting the changes
+
+### Documentation Quality Standards
+
+Good documentation should be:
+- **Accurate**: Reflects current code behavior
+- **Complete**: Covers all aspects of the feature
+- **Clear**: Easy to understand for the target audience
+- **Tested**: Setup instructions have been verified
+- **Maintained**: Updated promptly when code changes
+- **Discoverable**: Easy to find and well-organized
+- **Examples**: Includes practical usage examples
+
 ## Key Directories & files
 - `src/`: Main source code directory.
 - `src/app.ts`: Main application logic and server initialization.
@@ -125,11 +209,16 @@ Logs are stored in `/logs` with the following structure:
 - `src/utils/`: Utility functions and helpers.
 - `data/`: JSON persistence files (Users, Rooms, Items).
 - `logs/`: Log files for debugging and analysis
-- `public/`': Static files for the web client (HTML, CSS, JS)
+- `public/`: Static files for the web client (HTML, CSS, JS)
 - `public/index.html`: Main web client HTML file
 - `public/style.css`: Web client CSS styles
 - `public/client.js`: Web client JavaScript logic
 - `public/admin/`: Admin interface files
+- `docs/`: Comprehensive documentation for users and developers
+- `docs/getting-started.md`: Onboarding guide for new users
+- `docs/architecture.md`: System architecture and design patterns
+- `docs/development.md`: Developer guide and best practices
+- `docs/commands.md`: Complete command reference
 
 ** Whenever adding new folders, keep this list updated **
 
