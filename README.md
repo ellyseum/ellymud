@@ -1,24 +1,226 @@
-Hi!
+# EllyMUD
 
-This is Elly MUD (Multi-User Dungeon: An online, multiplayer, text-based role-playing game from the pre-internet era)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 
-It is a programming exercise I do every so often when I want to try to understand new technology, first creating it in C/C++ with WinSock way back in college, then again for understanding NodeJS and websockets when those came out, and now most recently, working with copilot and their newly released agents for various LLM's (Mainly Claude Sonnet though)
+A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript. EllyMUD brings classic text-based RPG gameplay into the modern era with support for multiple connection protocols, real-time multiplayer interaction, and a comprehensive admin system.
 
-The goal was to test just how much faster I could get work done given a limited 30ish day (non-consecutive) time-limit of work, while really getting a grasp on the new workflow enhancements that LLM's and agents could provide. It is not meant for production servers, or even as a fully functional product or anything. Just a programming exercise of how many crazy/funny/silly/essential/cool features I could add.
+## ✨ Features
 
-It has a ton of features and is "playable" from the command line, or with your favorite telnet client, or even the provided web-client over websockets. It is fully multi-player and anyone can connect using the web-ui or telnet once the server is running. It is also able to be played from the main process and automatically is flagged as an admin. (Functionality like this can be disabled with parameters, use --help to see the full list of arguments that can be passed)
+### Core Gameplay
+- 🎮 **Classic MUD Experience** - Text-based RPG gameplay with rich descriptions
+- ⚔️ **Real-Time Combat** - Turn-based combat system with NPCs and PvP support
+- 🗺️ **Room-Based Navigation** - Explore interconnected rooms with dynamic events
+- 🎒 **Inventory System** - Collect, equip, and manage items
+- 📊 **Character Progression** - Level up, gain experience, and improve stats
+- 💬 **Multi-User Chat** - Communicate with other players in real-time
+- 🎯 **Status Effects** - Buffs, debuffs, and persistent effects
 
-Many features such as live account transfer from users trying to log in from a new connection, both a console and web based admin interface complete with live account monitoring and taking-over of a users session and giving them temporary access to admin commands while blocking out their input, to a playable telnet snake game. Basically wanted to see how far fetched I could take this project this time, and no-idea was too weird to implement. Seriously, try typing "snake" once you log in.
+### Technical Features
+- 🌐 **Multiple Connection Methods**
+  - Telnet (port 8023)
+  - WebSocket (port 8080)
+  - Built-in web client
+- 🔒 **Security-First Design**
+  - Password hashing with salt
+  - Role-based access control (RBAC)
+  - Input validation and sanitization
+  - Comprehensive audit logging
+- 🏗️ **Modern Architecture**
+  - TypeScript for type safety
+  - State machine pattern for client interactions
+  - Singleton managers for core systems
+  - Event-driven combat system
+- 📝 **Advanced Logging**
+  - Per-user activity logs
+  - Raw session recordings
+  - Daily log rotation
+  - Separate error and system logs
+- 🎛️ **Admin Interface**
+  - Web-based admin panel
+  - Interactive server console
+  - Live session monitoring
+  - User management tools
 
-My main goal was to sort of replicate L&F of https://www.google.com/search?q=majormud and a lot of the functionality will be reminscent of that, such as the variable delay between rooms while moving around depending on "weight" or the agility stat in this case. And the overall feel of the combat system and abilities.
+### Fun Extras
+- 🐍 **Snake Game** - Play Snake right in the MUD! (Type `snake`)
+- 🎨 **ANSI Color Support** - Rich text formatting
+- ⚡ **Movement Delays** - Realistic movement based on character stats
+- 🤖 **NPC AI** - Enemies with different aggression levels
 
-Communication, Administration, Combat, Inventory, Equipment, Stats, NPC aggression tracking (completely passive, passive but will attack back, or aggressive) Spell Effects and Abilities, and a included WebUI for players (and admins) should all be functional, with an easy to extend Command parser, and plenty of provided commands - simply type "help" to see the full list while in game.
+## 🚀 Quick Start
 
-To get started, just clone this repo, cd into it, `npm install`, and `npm start`. The server will start and from there you can press various keys to run commands like sending a message to all users, shutting down the server in X minutes, monitoring a user, and much more. There are also various scripts like `npm run start:user` to log right in without the CLI interface.
+### Prerequisites
 
-Admin account password will be requested if starting up for the first time. (Again, this can be turned off with command line options but is turned on by default), which will be the password for the "admin" user. This will also be the password used for logging in as the admin user in the web client. Everything is stored in local sqllite database, and uses standard security practices such as salting and hashing all passwords, RBAC, privledge escalation, detail event and raw user session logging, daily log rotations, and probably a lot more that im forgetting as im writing this readme 6 months after the fact.
+- **Node.js** 18.x or higher
+- **npm** 8.x or higher
 
-If you are reading all of this it's probably to get a rough idea of my coding skills? but I actually wrote very little except fixing small mistakes returned by Claude, and heavy testing features, ocassionaly debugging if something went wrong (like how when Claude didn't really understand singletons in JavaScript very well) which was what I was testing out. (Thats why the Web UI is in plain JS) so please don't use this repo to gauge my front-end skills in particular ^_^ It was more of a server-side exercise and I would have designed a much better frontend WebUI interface in a real world app using an actual framework such as Angular, or libraries like React and Vue.
+### Installation
 
--Elly
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/ellyseum/ellymud.git
+   cd ellymud
+   ```
 
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start the server**
+   ```bash
+   npm start
+   ```
+
+4. **Connect to the game**
+   - **Web Browser**: Open `http://localhost:8080`
+   - **Telnet**: `telnet localhost 8023`
+   - **Your favorite MUD client**: Connect to `localhost:8023`
+
+That's it! On first run, you'll be prompted to create an admin password.
+
+## 📖 Documentation
+
+Comprehensive documentation is available in the [docs/](docs/) directory:
+
+- **[Getting Started Guide](docs/getting-started.md)** - New user onboarding
+- **[Commands Reference](docs/commands.md)** - Complete list of all commands
+- **[Development Guide](docs/development.md)** - For contributors
+- **[Architecture](docs/architecture.md)** - System design and patterns
+- **[Deployment Guide](docs/deployment.md)** - Production deployment
+
+## 🎮 Usage
+
+### Starting Options
+
+```bash
+# Standard start with console interface
+npm start
+
+# Auto-login as admin
+npm run start:admin
+
+# Auto-login as specific user
+npm start -- --forceSession=username
+
+# Development mode with hot reload
+npm run dev
+```
+
+### Basic Commands
+
+Once connected, try these commands:
+
+```
+look              # Look around
+help              # Show all commands
+stats             # View your character stats
+north / south     # Move between rooms
+attack goblin     # Start combat
+inventory         # Check your items
+say Hello!        # Chat with other players
+```
+
+Type `help` in-game for a complete list of commands!
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+ellymud/
+├── src/              # TypeScript source code
+│   ├── command/     # Command system
+│   ├── combat/      # Combat mechanics
+│   ├── connection/  # Network layer
+│   ├── room/        # Room management
+│   ├── state/       # State machine
+│   └── user/        # User management
+├── data/            # JSON data storage
+├── public/          # Web client
+├── docs/            # Documentation
+└── logs/            # Server logs
+```
+
+### Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+
+- Code of conduct
+- Development workflow
+- Coding standards
+- Pull request process
+
+### Building from Source
+
+```bash
+# Build TypeScript
+npm run build
+
+# Run the compiled JavaScript
+node dist/server.js
+```
+
+## 🔒 Security
+
+Security is a priority in EllyMUD. We implement:
+
+- Password hashing with bcrypt
+- Role-based access control
+- Input validation and sanitization
+- Comprehensive audit logging
+- Session management
+
+Found a security vulnerability? Please see our [Security Policy](SECURITY.md) for responsible disclosure.
+
+## 📊 System Requirements
+
+### Minimum
+- 1 CPU core
+- 512 MB RAM
+- 5 GB disk space
+- Node.js 18+
+
+### Recommended
+- 2+ CPU cores
+- 2 GB RAM
+- 20 GB disk space
+- Linux OS (Ubuntu 20.04+)
+
+## 🌟 Inspiration
+
+EllyMUD draws inspiration from classic MUDs like [MajorMUD](https://en.wikipedia.org/wiki/MajorMUD), bringing nostalgic gameplay mechanics into a modern, extensible codebase.
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Community
+
+- **Issues**: [GitHub Issues](https://github.com/ellyseum/ellymud/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ellyseum/ellymud/discussions)
+- **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Code of Conduct**: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+## 🙏 Acknowledgments
+
+EllyMUD was developed as an exploration of modern development workflows, particularly the use of AI-assisted development tools. The project demonstrates how traditional game concepts can be reimagined with contemporary technology stacks.
+
+Special thanks to the MUD community for keeping the genre alive and inspiring new generations of developers.
+
+## 📚 Additional Resources
+
+- [Complete Command List](docs/commands.md)
+- [Architecture Documentation](docs/architecture.md)
+- [Deployment Guide](docs/deployment.md)
+- [API Documentation](docs/architecture.md#key-subsystems)
+
+---
+
+**Ready to start your adventure?** Check out the [Getting Started Guide](docs/getting-started.md)!
+
+**Want to contribute?** Read the [Development Guide](docs/development.md)!
+
+**Need help?** Open an [issue](https://github.com/ellyseum/ellymud/issues/new/choose)!
