@@ -548,6 +548,55 @@ interface Room {
 **Components:**
 - `UserManager` - User CRUD operations
 - `AuthService` - Authentication logic
+
+### MCP Server (`src/mcp/`)
+
+The Model Context Protocol server provides AI tools with access to game data.
+
+**Components:**
+- `MCPServer` - HTTP server for MCP protocol
+- Express.js middleware for routing and authentication
+- API endpoints for game data access
+
+**Features:**
+- **RESTful API** - HTTP endpoints for all game data
+- **API Key Authentication** - Secure access control via `X-API-Key` header
+- **Auto-generated Keys** - First-run setup prompts for key generation
+- **Read-only Access** - All endpoints provide read-only views of game state
+- **Live Data** - Access to runtime state (online users, active combat)
+- **Static Data** - Access to configuration (rooms, items, NPCs)
+- **Log Search** - Query logs for debugging
+
+**Key Endpoints:**
+```typescript
+GET  /health              // Health check (no auth)
+GET  /tools               // List available tools
+GET  /api/online-users    // Currently connected users
+GET  /api/users/:username // Specific user data
+GET  /api/rooms/:id       // Specific room data
+GET  /api/rooms           // All rooms
+GET  /api/items           // All item templates
+GET  /api/npcs            // All NPC templates
+GET  /api/combat-state    // Active combat sessions
+POST /api/logs/search     // Search logs
+GET  /api/config          // Game configuration
+```
+
+**Integration:**
+- Starts automatically on port 3100 when game server starts
+- Requires `ELLYMUD_MCP_API_KEY` environment variable
+- Won't start if API key is missing (security feature)
+- VS Code integration via `.vscode/mcp.json`
+- Works with GitHub Copilot, Claude, and other MCP clients
+
+**Security:**
+- 256-bit API keys (64 hex characters)
+- Key validation on all requests (except `/health`)
+- Keys stored in `.env` (not version controlled)
+- All requests logged with IP addresses
+- Failed authentication attempts logged
+
+See [src/mcp/README.md](../src/mcp/README.md) for detailed documentation.
 - `StatsManager` - Character statistics
 
 **User Structure:**

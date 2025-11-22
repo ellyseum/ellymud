@@ -98,9 +98,32 @@ npm start
 
 This starts the server with an interactive console. You'll be prompted to set an admin password on first run.
 
+**First-Time Setup:**
+
+On your very first run, you'll see two setup prompts:
+
+1. **Admin Password Setup**
+   ```
+   Admin password not set. Please create one:
+   ```
+   Enter a secure password for the admin account.
+
+2. **MCP Server API Key Setup**
+   ```
+   ⚠️  EllyMUD MCP Server API key is missing.
+   Would you like to generate one? (Y/n):
+   ```
+   Press Enter or type 'y' to auto-generate a secure API key for AI tool integration.
+   
+   If you decline, the MCP server will not start and you'll see:
+   ```
+   ⚠️  MCP Server NOT started, missing API key
+   ```
+
 **What happens:**
 - Telnet server starts on port **8023**
 - HTTP/WebSocket server starts on port **8080**
+- MCP server starts on port **3100** (if API key exists)
 - Interactive console provides server management commands
 
 **Console Commands:**
@@ -308,6 +331,130 @@ Now that you're set up, here's what to explore next:
    - [Commands Reference](commands.md) - Complete command list
    - [Development Guide](development.md) - For developers
    - [Architecture](architecture.md) - For developers
+   - [MCP Server Guide](../src/mcp/README.md) - AI integration details
+
+## MCP Server (AI Integration)
+
+EllyMUD includes a built-in Model Context Protocol (MCP) server that allows AI tools like GitHub Copilot to access game data and assist with development.
+
+### What is MCP?
+
+The Model Context Protocol provides a standardized way for AI assistants to interact with your application's data. In EllyMUD, this means AI tools can:
+
+- Query online users and their status
+- Inspect room data, items, and NPCs
+- View combat state and game configuration
+- Search through logs for debugging
+- Access all game data through a consistent API
+
+### Setup
+
+On first run, EllyMUD will prompt you to generate an API key:
+
+```
+⚠️  EllyMUD MCP Server API key is missing.
+Would you like to generate one? (Y/n):
+```
+
+**Press Enter** or type `y` to automatically generate a secure 256-bit API key. The key will be:
+- Saved to your `.env` file
+- Displayed once for you to copy
+- Required for all MCP API requests
+
+**Example output:**
+```
+✅ EllyMUD MCP Server key has been added as an environment variable:
+
+   f509ee6bdc93196630fa99b818eff8cb882969576e04a675e9baf3a12bec2dc4
+
+📋 Copy this key and add it to your MCP client configuration!
+```
+
+### Using with GitHub Copilot
+
+#### Option 1: Automatic Configuration (Recommended)
+
+The `.vscode/mcp.json` file is already configured to automatically read your API key from the `.env` file:
+
+```json
+{
+  "servers": {
+    "ellymud-mcp-server": {
+      "url": "http://localhost:3100",
+      "type": "http",
+      "headers": {
+        "X-API-Key": "${env:ELLYMUD_MCP_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+GitHub Copilot will automatically use this configuration once the server is running.
+
+#### Option 2: Manual Configuration via VS Code
+
+If the automatic configuration doesn't work or you prefer manual setup:
+
+1. **Open the Command Palette** in VS Code:
+   - Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux)
+
+2. **List MCP Servers**:
+   - Type and select: `>MCP: List Servers`
+   - This shows all available MCP servers
+
+3. **Select EllyMUD Server**:
+   - Find and click on `ellymud-mcp-server` in the list
+
+4. **Start the Server**:
+   - Click the "Start Server" button
+   - You'll be prompted: **"Enter EllyMUD MCP Server API Key"**
+
+5. **Paste Your API Key**:
+   - Paste the API key that was displayed when you generated it
+   - The key should look like: `f509ee6bdc93196630fa99b818eff8cb882969576e04a675e9baf3a12bec2dc4`
+
+6. **Verify Connection**:
+   - The server status should change to "Running"
+   - You can now use GitHub Copilot with access to EllyMUD game data
+
+**Note:** If you lost your API key, you can find it in your `.env` file under `ELLYMUD_MCP_API_KEY`.
+
+### Testing the MCP Server
+
+With the server running, test the API:
+
+```bash
+# Health check (no auth required)
+curl http://localhost:3100/health
+
+# Get online users (requires API key)
+curl -H "X-API-Key: YOUR_KEY_HERE" http://localhost:3100/api/online-users
+
+# List available tools
+curl -H "X-API-Key: YOUR_KEY_HERE" http://localhost:3100/tools
+```
+
+### If You Decline API Key Generation
+
+If you choose not to generate an API key, the MCP server will not start:
+
+```
+⚠️  MCP Server NOT started, missing API key
+```
+
+This is a security feature - the MCP server requires authentication. You can generate a key later by:
+
+1. Manually adding to `.env`:
+   ```bash
+   ELLYMUD_MCP_API_KEY=$(openssl rand -hex 32)
+   ```
+2. Or restarting the server and accepting the prompt
+
+### More Information
+
+For detailed MCP server documentation, API endpoints, and integration examples, see:
+- [src/mcp/README.md](../src/mcp/README.md)
 
 ## Troubleshooting
 
@@ -358,6 +505,36 @@ npm run build
 rm -rf node_modules/
 npm install
 ```
+
+### MCP Server Issues
+
+**Problem:** MCP Server won't start
+```
+⚠️  MCP Server could not start, port already in use
+```
+
+**Solution:** Another process is using port 3100. Either:
+- Stop the other process using port 3100
+- Change MCP port in `src/mcp/mcpServer.ts` (search for `port: number = 3100`)
+
+**Problem:** MCP Server not starting (no API key)
+```
+⚠️  MCP Server NOT started, missing API key
+```
+
+**Solution:** This is expected if you declined key generation. To fix:
+```bash
+# Generate and add key manually
+echo "ELLYMUD_MCP_API_KEY=$(openssl rand -hex 32)" >> .env
+```
+Then restart the server.
+
+**Problem:** MCP API returns 401 Unauthorized
+
+**Solution:** Your API key is incorrect. Check:
+- The key in your `.env` file matches the one in your MCP client config
+- The `X-API-Key` header is being sent with requests
+- No extra spaces or newlines in the key value
 
 ## Getting Help
 

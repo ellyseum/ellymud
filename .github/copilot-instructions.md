@@ -4,12 +4,15 @@
 
 EllyMUD is a Node.js-based Multi-User Dungeon (MUD) supporting both Telnet and WebSocket connections. The server is structured around a state machine pattern, with core game logic encapsulated in singleton manager classes.
 User, Room, and Item data are persisted in JSON files located in the `data/` directory.
-Connections are handled via Telnet (port 8023) and WebSocket (port 8080) protocols.
-Interactions are command-driven, with commands parsed and executed based on the client's current state.
+Connections are handled via Telnet (port 8023) and WebSocket (port 8080) protocols, and an MCP (Model Context Protocol) server runs on port 3100 for AI integration.
+
+All interactions are command-driven, with commands parsed and executed based on the client's current state.
 Game events (e.g., combat, timers) are managed through an event-driven architecture.
 Combat mechanics include player vs. NPC interactions, damage calculations, and status effects.
 Players can navigate rooms, interact with objects, and engage in combat using text-based commands.
 Player stats (health, mana, experience, etc.) are tracked and updated based on in-game actions.
+
+As an AI model you will be primarily interacting with the MUD using the MCP server API to retrieve game data and assist users and run other commands. You will need to understand the game mechanics, commands, and data structures to provide accurate and helpful responses.
 
 ### Game purpose
 
@@ -413,6 +416,7 @@ Good documentation should be:
   - `writeToClient(client: Client, message: string)`: Writes a raw message to the client. Does not automatically redraw the prompt. This is useful for low-level operations where prompt management is handled manually.
   - `writeMessageToClient(client: Client, message: string)`: Writes a formatted message to the client, redrawing the prompt. 
   - `writeFormattedMessageToClient(client: Client, message: string, formatOptions: FormatOptions)`: Clears the prompt, writes a formatted message with specified options (e.g., color, bold), and redraws the prompt, along with any user input that might be in the buffer.
+  - Always use the colors module in `src/utils/colors.ts` for consistent color formatting. Remember to reset colors after use to avoid color bleeding.
 
 ## Admin mechanics
 - Different levels of admin users exist, each with varying permissions:
@@ -434,7 +438,26 @@ Good documentation should be:
 
 ## MCP Server
 
-The MCP (Model Context Protocol) server is integrated into the main EllyMUD server and starts automatically on port 3100 when you run `npm start`. It provides HTTP-based access to live game data and static game configuration.
+The MCP (Model Context Protocol) server is integrated into the main EllyMUD server and starts automatically on port 3100 when you run `npm start`. It provides HTTP-based access to live game data and static game configuration. It is secured by an API key mechanism to prevent unauthorized access. Starting the MUD server also starts the MCP server, and it checks for the presence of the `ELLYMUD_MCP_API_KEY` environment variable to enable API key authentication. If it's not found, the MCP server will ask the user to autogenerate one and add it to their `.env` file. If no API key is provided, the MCP server will not start.
+
+The MCP server exposes RESTful API endpoints that allow external tools (like GitHub Copilot) to query game state information, such as user stats, room details, NPC info, and more. This enables advanced integrations and automation possibilities.
+
+## MCP Server Tools
+
+**READ ONLY** (cannot change game state)
+- get_all_items: Retrieve a list of all items in the game
+- get_all_npcs: Retrieve a list of all NPCs in the game
+- get_all_rooms: Retrieve a list of all rooms in the game
+- get_combat_state: Retrieve the current combat state for a specific user
+- get_game_config: Retrieve static game configuration data
+- get_online_users: Retrieve a list of currently online users
+- get_room_data: Retrieve detailed information about a specific room
+- get_user_data: Retrieve detailed information about a specific user
+
+**MUTATORS** (can change game state)
+- NONE YET
+
+If new MCP tools are added, they should be documented in `src/mcp/README.md` and keep this section updated as well, ANDdepending if they are READ ONLY or MUTATORS.
 
 **Key Points:**
 - HTTP server on port 3100 (not stdio-based)
@@ -835,7 +858,8 @@ describe('LookCommand', () => {
 Before committing changes, verify:
 
 - [ ] Server starts without errors: `npm start`
-- [ ] Build succeeds: `npm run build`
+- [ ] Build does show errors: `npm run build` 
+   -   **IMPORTANT: running the build will sometimes return an error code even on success, you can ignore that if there are no actual errors reported in the console**
 - [ ] Web client connects successfully
 - [ ] Telnet client connects successfully
 - [ ] Can create new account
@@ -861,6 +885,7 @@ Before committing changes, verify:
 8. **Document bugs**: Use in-game `bugreport` command or create issues
 9. **Test state persistence**: Logout and login to verify data is saved
 10. **Test with realistic data**: Create multiple NPCs, items, and rooms
+
 
 Keep this file up to date as the project evolves, add new sections as necessary, and ensure all team members are familiar with its contents.
 

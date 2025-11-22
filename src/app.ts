@@ -319,8 +319,16 @@ export class GameServer {
       // Start game timer
       this.gameTimerManager.start();
 
-      // Start MCP Server
-      await this.mcpServer.start();
+      // Start MCP Server (only if API key is available)
+      const skipMCPServer = (global as any).__SKIP_MCP_SERVER;
+      if (!skipMCPServer) {
+        try {
+          await this.mcpServer.start();
+        } catch (error) {
+          // Error already logged and displayed by mcpServer.start()
+          systemLogger.warn('MCP Server failed to start, continuing without it');
+        }
+      }
 
       // Initialize the ConsoleManager - this replaces the direct setupKeyListener call
       if (config.CONSOLE_MODE) {

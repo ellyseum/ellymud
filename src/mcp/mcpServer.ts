@@ -6,9 +6,7 @@ import { RoomManager } from "../room/roomManager.js";
 import { ClientManager } from "../client/clientManager.js";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
-import winston from "winston";
-import DailyRotateFile from "winston-daily-rotate-file";
-import { systemLogger } from "../utils/logger.js";
+import { systemLogger, mcpLogger } from "../utils/logger.js";
 
 /**
  * MCP Server integrated with EllyMUD runtime
@@ -21,7 +19,6 @@ export class MCPServer {
   private roomManager: RoomManager;
   private clientManager: ClientManager;
   private port: number;
-  private logger: winston.Logger;
 
   constructor(
     userManager: UserManager,
@@ -33,24 +30,6 @@ export class MCPServer {
     this.roomManager = roomManager;
     this.clientManager = clientManager;
     this.port = port;
-
-    // Set up logger
-    this.logger = winston.createLogger({
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.printf(({ timestamp, level, message }) => {
-          return `[${timestamp}] ${level.toUpperCase()}: ${message}`;
-        })
-      ),
-      transports: [
-        new DailyRotateFile({
-          filename: join(process.cwd(), "logs", "mcp", "mcp-%DATE%.log"),
-          datePattern: "YYYY-MM-DD",
-          maxFiles: "14d",
-          auditFile: join(process.cwd(), "logs", "audit", "mcp-audit.json"),
-        }),
-      ],
-    });
 
     this.app = express();
     this.setupMiddleware();
@@ -79,13 +58,13 @@ export class MCPServer {
 
       // If no API key is configured, allow all requests (backward compatibility)
       if (!expectedApiKey) {
-        this.logger.warn('ELLYMUD_MCP_API_KEY not set - server is running without authentication');
+        mcpLogger.warn('ELLYMUD_MCP_API_KEY not set - server is running without authentication');
         return next();
       }
 
       // Validate API key
       if (!apiKey || apiKey !== expectedApiKey) {
-        this.logger.warn(`Unauthorized access attempt from ${req.ip} to ${req.path}`);
+        mcpLogger.warn(`Unauthorized access attempt from ${req.ip} to ${req.path}`);
         return res.status(401).json({
           jsonrpc: "2.0",
           error: {
@@ -101,7 +80,7 @@ export class MCPServer {
 
     // Log all requests
     this.app.use((req, res, next) => {
-      this.logger.info(`${req.method} ${req.path}`);
+      mcpLogger.info(`${req.method} ${req.path}`);
       next();
     });
   }
@@ -112,8 +91,8 @@ export class MCPServer {
       const { jsonrpc, method, params, id } = req.body;
 
       // Log the incoming request for debugging
-      this.logger.info(`MCP Request: method=${method}, jsonrpc=${jsonrpc}, id=${id}`);
-      this.logger.debug(`Full request body: ${JSON.stringify(req.body)}`);
+      mcpLogger.info(`MCP Request: method=${method}, jsonrpc=${jsonrpc}, id=${id}`);
+      mcpLogger.debug(`Full request body: ${JSON.stringify(req.body)}`);
 
       // Validate JSON-RPC 2.0 format
       if (jsonrpc !== "2.0") {
@@ -130,24 +109,24 @@ export class MCPServer {
 
       // Handle notifications (no id, no response needed)
       if (id === null || id === undefined) {
-        this.logger.info(`Handling MCP notification: ${method}`);
+        mcpLogger.info(`Handling MCP notification: ${method}`);
         
         // Acknowledge all notifications with 200 OK but no JSON-RPC response
         if (method === "notifications/initialized") {
-          this.logger.info("Client initialized notification received");
+          mcpLogger.info("Client initialized notification received");
           res.status(200).end();
           return;
         }
         
         // Other notifications
-        this.logger.info(`Received notification: ${method}`);
+        mcpLogger.info(`Received notification: ${method}`);
         res.status(200).end();
         return;
       }
 
       // Handle MCP protocol methods (requests that need responses)
       if (method === "initialize") {
-        this.logger.info("Handling MCP initialize request");
+        mcpLogger.info("Handling MCP initialize request");
         res.json({
           jsonrpc: "2.0",
           id,
@@ -169,7 +148,7 @@ export class MCPServer {
       }
 
       if (method === "tools/list") {
-        this.logger.info("Handling MCP tools/list request");
+        mcpLogger.info("Handling MCP tools/list request");
         res.json({
           jsonrpc: "2.0",
           id,
@@ -181,13 +160,13 @@ export class MCPServer {
       }
 
       if (method === "tools/call") {
-        this.logger.info(`Handling MCP tools/call request: ${params?.name}`);
+        mcpLogger.info(`Handling MCP tools/call request: ${params?.name}`);
         this.handleToolCall(params, id, res);
         return;
       }
 
       if (method === "prompts/list") {
-        this.logger.info("Handling MCP prompts/list request");
+        mcpLogger.info("Handling MCP prompts/list request");
         res.json({
           jsonrpc: "2.0",
           id,
@@ -199,7 +178,7 @@ export class MCPServer {
       }
 
       if (method === "resources/list") {
-        this.logger.info("Handling MCP resources/list request");
+        mcpLogger.info("Handling MCP resources/list request");
         res.json({
           jsonrpc: "2.0",
           id,
@@ -211,7 +190,7 @@ export class MCPServer {
       }
 
       // Unknown method
-      this.logger.warn(`Unknown MCP method: ${method}`);
+      mcpLogger.warn(`Unknown MCP method: ${method}`);
       res.status(400).json({
         jsonrpc: "2.0",
         id: id || null,
@@ -320,10 +299,10 @@ export class MCPServer {
     this.app.get("/api/online-users", async (req: Request, res: Response) => {
       try {
         const data = await this.getOnlineUsers();
-        this.logger.info(`Retrieved ${data.count} online users`);
+        mcpLogger.info(`Retrieved ${data.count} online users`);
         res.json({ success: true, data });
       } catch (error) {
-        this.logger.error(`Error getting online users: ${error}`);
+        mcpLogger.error(`Error getting online users: ${error}`);
         res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -334,10 +313,10 @@ export class MCPServer {
     this.app.get("/api/users/:username", async (req: Request, res: Response) => {
       try {
         const data = await this.getUserData(req.params.username);
-        this.logger.info(`Retrieved user data for ${req.params.username}`);
+        mcpLogger.info(`Retrieved user data for ${req.params.username}`);
         res.json({ success: true, data });
       } catch (error) {
-        this.logger.error(`Error getting user data: ${error}`);
+        mcpLogger.error(`Error getting user data: ${error}`);
         res.status(404).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -348,10 +327,10 @@ export class MCPServer {
     this.app.get("/api/rooms/:roomId", async (req: Request, res: Response) => {
       try {
         const data = await this.getRoomData(req.params.roomId);
-        this.logger.info(`Retrieved room data for ${req.params.roomId}`);
+        mcpLogger.info(`Retrieved room data for ${req.params.roomId}`);
         res.json({ success: true, data });
       } catch (error) {
-        this.logger.error(`Error getting room data: ${error}`);
+        mcpLogger.error(`Error getting room data: ${error}`);
         res.status(404).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -362,10 +341,10 @@ export class MCPServer {
     this.app.get("/api/rooms", async (req: Request, res: Response) => {
       try {
         const data = await this.getAllRooms();
-        this.logger.info(`Retrieved ${data.count} rooms`);
+        mcpLogger.info(`Retrieved ${data.count} rooms`);
         res.json({ success: true, data });
       } catch (error) {
-        this.logger.error(`Error getting all rooms: ${error}`);
+        mcpLogger.error(`Error getting all rooms: ${error}`);
         res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -376,10 +355,10 @@ export class MCPServer {
     this.app.get("/api/items", async (req: Request, res: Response) => {
       try {
         const data = await this.getAllItems();
-        this.logger.info(`Retrieved ${data.count} items`);
+        mcpLogger.info(`Retrieved ${data.count} items`);
         res.json({ success: true, data });
       } catch (error) {
-        this.logger.error(`Error getting all items: ${error}`);
+        mcpLogger.error(`Error getting all items: ${error}`);
         res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -390,10 +369,10 @@ export class MCPServer {
     this.app.get("/api/npcs", async (req: Request, res: Response) => {
       try {
         const data = await this.getAllNPCs();
-        this.logger.info(`Retrieved ${data.count} NPCs`);
+        mcpLogger.info(`Retrieved ${data.count} NPCs`);
         res.json({ success: true, data });
       } catch (error) {
-        this.logger.error(`Error getting all NPCs: ${error}`);
+        mcpLogger.error(`Error getting all NPCs: ${error}`);
         res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -404,12 +383,12 @@ export class MCPServer {
     this.app.get("/api/combat-state", async (req: Request, res: Response) => {
       try {
         const data = await this.getCombatState();
-        this.logger.info(
+        mcpLogger.info(
           `Retrieved ${data.activeCombatSessions} combat sessions`
         );
         res.json({ success: true, data });
       } catch (error) {
-        this.logger.error(`Error getting combat state: ${error}`);
+        mcpLogger.error(`Error getting combat state: ${error}`);
         res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -427,12 +406,12 @@ export class MCPServer {
           });
         }
         const data = await this.searchLogs(logType, searchTerm, username);
-        this.logger.info(
+        mcpLogger.info(
           `Searched ${logType} logs for "${searchTerm}" - found ${data.results.length} results`
         );
         res.json({ success: true, data });
       } catch (error) {
-        this.logger.error(`Error searching logs: ${error}`);
+        mcpLogger.error(`Error searching logs: ${error}`);
         res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -443,10 +422,10 @@ export class MCPServer {
     this.app.get("/api/config", async (req: Request, res: Response) => {
       try {
         const data = await this.getGameConfig();
-        this.logger.info("Retrieved game config");
+        mcpLogger.info("Retrieved game config");
         res.json({ success: true, data });
       } catch (error) {
-        this.logger.error(`Error getting game config: ${error}`);
+        mcpLogger.error(`Error getting game config: ${error}`);
         res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -805,7 +784,7 @@ export class MCPServer {
         }
       });
     } catch (error) {
-      this.logger.error(`Error calling tool ${name}: ${error}`);
+      mcpLogger.error(`Error calling tool ${name}: ${error}`);
       res.status(500).json({
         jsonrpc: "2.0",
         id,
@@ -821,11 +800,24 @@ export class MCPServer {
    * Start the MCP server
    */
   async start(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.httpServer = this.app.listen(this.port, '0.0.0.0', () => {
         systemLogger.info(`MCP Server started on http://localhost:${this.port}`);
-        this.logger.info(`MCP Server started on port ${this.port}`);
+        mcpLogger.info(`MCP Server started on port ${this.port}`);
         resolve();
+      });
+      
+      // Handle port already in use error
+      this.httpServer?.on('error', (error: NodeJS.ErrnoException) => {
+        if (error.code === 'EADDRINUSE') {
+          mcpLogger.error(`Port ${this.port} is already in use`);
+          // Yellow warning with colored message
+          console.log(`\x1b[33m⚠️  MCP Server could not start, port already in use\x1b[0m`);
+          reject(error);
+        } else {
+          mcpLogger.error(`MCP Server error: ${error.message}`);
+          reject(error);
+        }
       });
     });
   }
@@ -837,7 +829,7 @@ export class MCPServer {
     return new Promise((resolve) => {
       if (this.httpServer) {
         this.httpServer.close(() => {
-          this.logger.info("MCP Server stopped");
+          mcpLogger.info("MCP Server stopped");
           resolve();
         });
       } else {

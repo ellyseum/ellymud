@@ -2,6 +2,7 @@ import { GameServer } from './app';
 import * as config from './config';
 import { JsonValidationError } from './utils/jsonUtils';
 import { systemLogger } from './utils/logger';
+import { ensureMCPApiKey } from './utils/mcpKeySetup';
 import dotenv from 'dotenv';
 
 // Load environment variables from .env file
@@ -19,6 +20,12 @@ try {
 
 async function main() {
   try {
+    // Ensure MCP API key exists before starting server
+    const hasMCPKey = await ensureMCPApiKey();
+    
+    // Store whether to start MCP server
+    (global as any).__SKIP_MCP_SERVER = !hasMCPKey;
+    
     // Create the game server - wrap this in try/catch to handle construction errors
     gameServer = new GameServer();
     

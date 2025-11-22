@@ -10,6 +10,7 @@ const ERROR_LOGS_DIR = path.join(LOGS_DIR, 'error');
 const EXCEPTIONS_LOGS_DIR = path.join(LOGS_DIR, 'exceptions');
 const REJECTIONS_LOGS_DIR = path.join(LOGS_DIR, 'rejections');
 const SYSTEM_LOGS_DIR = path.join(LOGS_DIR, 'system');
+const MCP_LOGS_DIR = path.join(LOGS_DIR, 'mcp');
 const AUDIT_LOGS_DIR = path.join(LOGS_DIR, 'audit');
 
 // --- Ensure log directories exist ---
@@ -30,6 +31,9 @@ if (!fs.existsSync(REJECTIONS_LOGS_DIR)) {
 }
 if (!fs.existsSync(SYSTEM_LOGS_DIR)) {
   fs.mkdirSync(SYSTEM_LOGS_DIR, { recursive: true });
+}
+if (!fs.existsSync(MCP_LOGS_DIR)) {
+  fs.mkdirSync(MCP_LOGS_DIR, { recursive: true });
 }
 if (!fs.existsSync(AUDIT_LOGS_DIR)) {
   fs.mkdirSync(AUDIT_LOGS_DIR, { recursive: true });
@@ -141,6 +145,25 @@ const systemLogger = winston.createLogger({
   exitOnError: false // Prevent Winston from exiting on handled exceptions/rejections
 });
 
+// --- MCP Logger ---
+const mcpLogger = winston.createLogger({
+  level: 'info',
+  format: logFormat,
+  transports: [
+    new winston.transports.DailyRotateFile({
+      filename: path.join(MCP_LOGS_DIR, 'mcp-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize: '10m',
+      maxFiles: '14d',
+      level: 'info',
+      utc: true,
+      auditFile: path.join(AUDIT_LOGS_DIR, 'mcp-audit.json')
+    })
+  ],
+  exitOnError: false
+});
+
 // --- Player Logger Management ---
 const playerLoggers = new Map<string, winston.Logger>();
 
@@ -208,7 +231,8 @@ function createMechanicsLogger(mechanicName: string) {
 }
 
 export { 
-  systemLogger, 
+  systemLogger,
+  mcpLogger,
   getPlayerLogger,
   createContextLogger,
   createMechanicsLogger

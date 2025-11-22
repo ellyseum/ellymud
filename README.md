@@ -32,6 +32,11 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
   - State machine pattern for client interactions
   - Singleton managers for core systems
   - Event-driven combat system
+- 🤖 **AI Integration (MCP Server)**
+  - Model Context Protocol server on port 3100
+  - RESTful API for game data access
+  - GitHub Copilot integration
+  - Secure API key authentication
 - 📝 **Advanced Logging**
   - Per-user activity logs
   - Raw session recordings
@@ -125,6 +130,29 @@ say Hello!        # Chat with other players
 
 Type `help` in-game for a complete list of commands!
 
+### MCP Server (AI Integration)
+
+EllyMUD includes an integrated Model Context Protocol (MCP) server that provides AI tools (like GitHub Copilot) with access to game data:
+
+- **Automatic Startup**: MCP server starts automatically on port 3100
+- **API Key Setup**: On first run, you'll be prompted to generate a secure API key
+- **Integration**: Works with GitHub Copilot, Claude, and other MCP-compatible clients
+
+**First Run:**
+```
+⚠️  EllyMUD MCP Server API key is missing.
+Would you like to generate one? (Y/n): [Press Enter]
+
+✅ EllyMUD MCP Server key has been added as an environment variable:
+   [your-generated-key]
+
+📋 Copy this key and add it to your MCP client configuration!
+```
+
+The API key is saved to your `.env` file and can be used in `.vscode/mcp.json` or other MCP client configurations.
+
+For detailed MCP server usage, see [src/mcp/README.md](src/mcp/README.md).
+
 ## 🛠️ Development
 
 ### Project Structure
@@ -167,11 +195,16 @@ node dist/server.js
 
 Security is a priority in EllyMUD. We implement:
 
-- Password hashing with bcrypt
-- Role-based access control
-- Input validation and sanitization
-- Comprehensive audit logging
-- Session management
+- **Password hashing** with bcrypt
+- **Role-based access control** (RBAC)
+- **Input validation** and sanitization
+- **Comprehensive audit logging**
+- **Session management**
+- **MCP Server API Key** - Secure authentication for AI tool access
+  - Auto-generated 256-bit key on first run
+  - Stored in `.env` file (never committed to version control)
+  - Required for all MCP API requests (except health checks)
+  - Server refuses to start MCP without valid API key
 
 Found a security vulnerability? Please see our [Security Policy](SECURITY.md) for responsible disclosure.
 
