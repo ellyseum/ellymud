@@ -1,9 +1,5 @@
 {
-  "tasks": {
-    "build": "npm install && npm run build",
-    "test": "ls test"
-  },
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "npm install && npm run build",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -45,5 +41,5 @@
         "terminal.integrated.shell.linux": "zsh"
       }
     }
-  },
+  }
 }
