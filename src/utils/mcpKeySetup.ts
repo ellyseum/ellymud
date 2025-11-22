@@ -2,7 +2,7 @@ import { createInterface } from 'readline';
 import { randomBytes } from 'crypto';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
-import { systemLogger, mcpLogger } from './logger.js';
+import { systemLogger, mcpLogger } from './logger';
 
 /**
  * Checks if MCP API key exists, prompts user to generate if missing

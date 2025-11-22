@@ -1,12 +1,12 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { Server as HttpServer } from "http";
-import { UserManager } from "../user/userManager.js";
-import { RoomManager } from "../room/roomManager.js";
-import { ClientManager } from "../client/clientManager.js";
+import { UserManager } from "../user/userManager";
+import { RoomManager } from "../room/roomManager";
+import { ClientManager } from "../client/clientManager";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
-import { systemLogger, mcpLogger } from "../utils/logger.js";
+import { systemLogger, mcpLogger } from "../utils/logger";
 
 /**
  * MCP Server integrated with EllyMUD runtime
