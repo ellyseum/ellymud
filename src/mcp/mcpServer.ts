@@ -291,6 +291,17 @@ export class MCPServer {
             endpoint: "/api/config",
             method: "GET",
           },
+          {
+            name: "tail_user_session",
+            description:
+              "Get the last N lines of a user's raw session log to see exactly what they are seeing. If username not provided and only one user is online, uses that user automatically.",
+            endpoint: "/api/tail-session",
+            method: "POST",
+            body: {
+              username: "string (optional if only 1 user online)",
+              lines: "number (optional, default 500, max 500)",
+            },
+          },
         ],
       });
     });
@@ -426,6 +437,46 @@ export class MCPServer {
         res.json({ success: true, data });
       } catch (error) {
         mcpLogger.error(`Error getting game config: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.post("/api/tail-session", async (req: Request, res: Response) => {
+      try {
+        let { username, lines } = req.body;
+        
+        // Default to 500 lines, max 500
+        lines = lines ? Math.min(Math.max(1, parseInt(lines)), 500) : 500;
+
+        // If no username provided, check if only one user is online
+        if (!username) {
+          const onlineUsers = await this.getOnlineUsers();
+          if (onlineUsers.count === 0) {
+            return res.status(400).json({
+              success: false,
+              error: "No users currently online",
+            });
+          }
+          if (onlineUsers.count === 1) {
+            username = onlineUsers.users[0].username;
+            mcpLogger.info(`Auto-selected only online user: ${username}`);
+          } else {
+            return res.status(400).json({
+              success: false,
+              error: `Multiple users online (${onlineUsers.count}). Please specify username.`,
+              availableUsers: onlineUsers.users.map(u => u.username),
+            });
+          }
+        }
+
+        const data = await this.tailUserSession(username, lines);
+        mcpLogger.info(`Tailed ${lines} lines of session for user: ${username}`);
+        res.json({ success: true, data });
+      } catch (error) {
+        mcpLogger.error(`Error tailing session: ${error}`);
         res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -641,6 +692,102 @@ export class MCPServer {
     }
   }
 
+  private async tailUserSession(username: string | undefined, lines: number = 500) {
+    // Import SudoCommand to check admin status
+    const { SudoCommand } = await import("../command/commands/sudo.command.js");
+    
+    // Get list of online users
+    const clients = Array.from(this.clientManager.getClients().values());
+    const onlineUsers = clients
+      .filter((c) => c.user?.username)
+      .map((c) => ({
+        username: c.user!.username,
+        client: c,
+        isAdmin: SudoCommand.isAuthorizedUser(c.user!.username)
+      }));
+
+    // If no username provided, auto-select based on rules
+    if (!username) {
+      if (onlineUsers.length === 0) {
+        throw new Error("No users currently online");
+      }
+      
+      if (onlineUsers.length === 1) {
+        // Rule 1: If only 1 user online, auto-select
+        username = onlineUsers[0].username;
+        mcpLogger.info(`Auto-selected only online user: ${username}`);
+      } else {
+        // Rule 2: If multiple users, prefer admin users
+        const adminUsers = onlineUsers.filter((u) => u.isAdmin);
+        
+        if (adminUsers.length === 1) {
+          username = adminUsers[0].username;
+          mcpLogger.info(`Auto-selected only admin user: ${username}`);
+        } else if (adminUsers.length > 1) {
+          // Rule 3: Multiple admins, ask LLM to choose
+          throw new Error(
+            `Multiple admin users online. Please specify username: ${adminUsers.map(u => u.username).join(", ")}`
+          );
+        } else {
+          // No admins, multiple regular users - ask LLM to choose
+          throw new Error(
+            `Multiple users online. Please specify username: ${onlineUsers.map(u => u.username).join(", ")}`
+          );
+        }
+      }
+    }
+
+    // Find the user's session
+    const userClient = clients.find((c) => c.user?.username === username);
+    
+    if (!userClient) {
+      throw new Error(`User '${username}' is not currently online`);
+    }
+
+    // Get the connection ID (which is used for the session log filename)
+    const sessionId = (userClient.connection as any).getId ? 
+      (userClient.connection as any).getId() : 
+      'unknown';
+      
+    if (sessionId === 'unknown') {
+      throw new Error(`Unable to retrieve session ID for user '${username}'`);
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const logFilePath = join(
+      process.cwd(),
+      "logs",
+      "raw-sessions",
+      `${sessionId}-${today}.log`
+    );
+
+    // Check if log file exists
+    if (!require('fs').existsSync(logFilePath)) {
+      return {
+        username,
+        sessionId,
+        lines: 0,
+        content: "(No session log file found for today)",
+        logFile: logFilePath,
+      };
+    }
+
+    // Read the last N lines from the file
+    const content = readFileSync(logFilePath, "utf-8");
+    const allLines = content.split('\n');
+    const lastLines = allLines.slice(-lines);
+    
+    return {
+      username,
+      sessionId,
+      lines: lastLines.length,
+      requestedLines: lines,
+      content: lastLines.join('\n'),
+      logFile: logFilePath,
+      totalLines: allLines.length,
+    };
+  }
+
   /**
    * Get MCP tools list in MCP protocol format
    */
@@ -721,6 +868,24 @@ export class MCPServer {
           properties: {},
           required: []
         }
+      },
+      {
+        name: "tail_user_session",
+        description: "Get the last N lines of a user's raw session log to see exactly what they are seeing. Automatically selects user if only one is online.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            username: { 
+              type: "string", 
+              description: "Username to tail (optional if only 1 user online)" 
+            },
+            lines: { 
+              type: "number", 
+              description: "Number of lines to retrieve (default 500, max 500)" 
+            }
+          },
+          required: []
+        }
       }
     ];
   }
@@ -758,6 +923,9 @@ export class MCPServer {
           break;
         case "get_game_config":
           result = await this.getGameConfig();
+          break;
+        case "tail_user_session":
+          result = await this.tailUserSession(args.username, args.lines);
           break;
         default:
           res.status(400).json({

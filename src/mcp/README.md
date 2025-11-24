@@ -19,6 +19,7 @@ The MCP server is integrated into the main EllyMUD server and starts automatical
 - **get_combat_state** - Get information about active combat sessions in the game
 - **search_logs** - Search through player logs, system logs, error logs, or raw session logs for debugging
 - **get_game_config** - Get current game configuration settings
+- **tail_user_session** - Get the last N lines of a user's raw session log to see exactly what they are seeing (auto-selects user if only one is online, default 500 lines)
 
 ## Running the MCP Server
 
@@ -43,6 +44,7 @@ You'll see the message "MCP Server started on http://localhost:3100" in the cons
 - `GET /api/combat-state` - Get active combat sessions
 - `POST /api/logs/search` - Search logs (body: `{logType, searchTerm, username?}`)
 - `GET /api/config` - Get game configuration
+- `POST /api/tail-session` - Tail user's raw session log (body: `{username?, lines?}`)
 
 ## Integration with LLMs
 
