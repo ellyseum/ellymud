@@ -16,7 +16,7 @@ export class PlayerMovementService implements IPlayerMovementService {
     getFullDirectionName: (direction: string) => string;
   };
   private notifyPlayersInRoom: (roomId: string, message: string, excludeUsername?: string) => void;
-  private clients: Map<string, ConnectedClient>;
+  private getClients: () => Map<string, ConnectedClient>;
 
   constructor(
     roomManager: {
@@ -28,12 +28,12 @@ export class PlayerMovementService implements IPlayerMovementService {
       getFullDirectionName: (direction: string) => string;
     },
     notifyPlayersInRoom: (roomId: string, message: string, excludeUsername?: string) => void,
-    clients: Map<string, ConnectedClient>
+    getClients: () => Map<string, ConnectedClient>
   ) {
     this.roomManager = roomManager;
     this.directionHelper = directionHelper;
     this.notifyPlayersInRoom = notifyPlayersInRoom;
-    this.clients = clients;
+    this.getClients = getClients;
   }
 
   /**
@@ -189,7 +189,7 @@ export class PlayerMovementService implements IPlayerMovementService {
             const userManager = require('../../user/userManager').UserManager.getInstance();
             
             // Create a new instance of CommandHandler
-            const commandHandler = new CommandHandler(this.clients, userManager, this.roomManager);
+            const commandHandler = new CommandHandler(this.getClients(), userManager, this.roomManager);
             
             // Process only the first command in the queue
             if (commandQueue.length > 0) {

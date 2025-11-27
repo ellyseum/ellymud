@@ -111,7 +111,7 @@ export class RoomManager implements IRoomManager {
         getStartingRoomId: this.getStartingRoomId.bind(this),
         updateRoom: this.updateRoom.bind(this)
       },
-      this.clients,
+      () => this.clients,
       this.roomUINotificationService.notifyPlayersInRoom.bind(this.roomUINotificationService),
       this.teleportationService.teleportToStartingRoom.bind(this.teleportationService)
     );
@@ -123,7 +123,7 @@ export class RoomManager implements IRoomManager {
       },
       this.directionHelper,
       this.roomUINotificationService.notifyPlayersInRoom.bind(this.roomUINotificationService),
-      this.clients
+      () => this.clients
     );
   }
 

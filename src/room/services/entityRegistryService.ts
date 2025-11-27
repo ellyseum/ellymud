@@ -13,7 +13,7 @@ export class EntityRegistryService implements IEntityRegistryService {
     getStartingRoomId: () => string;
     updateRoom: (room: Room) => void;
   };
-  private clients: Map<string, ConnectedClient>;
+  private getClients: () => Map<string, ConnectedClient>;
   private npcs: Map<string, NPC> = new Map();
   private notifyPlayersInRoom: (roomId: string, message: string, excludeUsername?: string) => void;
   private teleportToStartingRoom: (client: ConnectedClient) => boolean;
@@ -24,12 +24,12 @@ export class EntityRegistryService implements IEntityRegistryService {
       getStartingRoomId: () => string;
       updateRoom: (room: Room) => void;
     },
-    clients: Map<string, ConnectedClient>,
+    getClients: () => Map<string, ConnectedClient>,
     notifyPlayersInRoom: (roomId: string, message: string, excludeUsername?: string) => void,
     teleportToStartingRoom: (client: ConnectedClient) => boolean
   ) {
     this.roomManager = roomManager;
-    this.clients = clients;
+    this.getClients = getClients;
     this.notifyPlayersInRoom = notifyPlayersInRoom;
     this.teleportToStartingRoom = teleportToStartingRoom;
   }
@@ -38,7 +38,7 @@ export class EntityRegistryService implements IEntityRegistryService {
    * Find a client by username
    */
   public findClientByUsername(username: string): ConnectedClient | undefined {
-    for (const [_, client] of this.clients.entries()) {
+    for (const [_, client] of this.getClients().entries()) {
       if (client.user && client.user.username.toLowerCase() === username.toLowerCase()) {
         return client;
       }
