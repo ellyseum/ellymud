@@ -20,6 +20,11 @@ The MCP server is integrated into the main EllyMUD server and starts automatical
 - **search_logs** - Search through player logs, system logs, error logs, or raw session logs for debugging
 - **get_game_config** - Get current game configuration settings
 - **tail_user_session** - Get the last N lines of a user's raw session log to see exactly what they are seeing (auto-selects user if only one is online, default 500 lines)
+- **virtual_session_create** - Create a new virtual game session for the LLM to play the game
+- **virtual_session_command** - Send commands to a virtual session (login, create user, play game)
+- **virtual_session_info** - Get information about a virtual session
+- **virtual_session_close** - Close a virtual game session
+- **virtual_sessions_list** - List all active virtual sessions
 
 ## Running the MCP Server
 
@@ -45,6 +50,11 @@ You'll see the message "MCP Server started on http://localhost:3100" in the cons
 - `POST /api/logs/search` - Search logs (body: `{logType, searchTerm, username?}`)
 - `GET /api/config` - Get game configuration
 - `POST /api/tail-session` - Tail user's raw session log (body: `{username?, lines?}`)
+- `POST /api/virtual-session/create` - Create a new virtual session
+- `POST /api/virtual-session/command` - Send command to virtual session (body: `{sessionId, command, waitMs?}`)
+- `GET /api/virtual-session/:sessionId` - Get virtual session info
+- `DELETE /api/virtual-session/:sessionId` - Close virtual session
+- `GET /api/virtual-sessions` - List all virtual sessions
 
 ## Integration with LLMs
 
@@ -94,15 +104,72 @@ The MCP server provides access to:
   - Error logs
   - Raw session logs
 
+## Playing the Game as an LLM
+
+The MCP server now provides virtual session tools that allow the LLM to actually play the game:
+
+### Quick Start
+
+1. **Create a session:**
+```javascript
+virtual_session_create()
+// Returns: { sessionId: "virtual-1234567890-123", ... }
+```
+
+2. **Send commands:**
+```javascript
+// Login as existing user
+virtual_session_command(sessionId, "admin")
+virtual_session_command(sessionId, "password123")
+
+// Or create new user
+virtual_session_command(sessionId, "new")
+virtual_session_command(sessionId, "myusername")
+virtual_session_command(sessionId, "mypassword")
+virtual_session_command(sessionId, "mypassword") // confirm
+
+// Play the game
+virtual_session_command(sessionId, "look")
+virtual_session_command(sessionId, "inventory")
+virtual_session_command(sessionId, "north")
+virtual_session_command(sessionId, "attack goblin")
+```
+
+3. **Check session status:**
+```javascript
+virtual_session_info(sessionId)
+// Returns: username, authenticated, state, currentRoom, etc.
+```
+
+4. **Close when done:**
+```javascript
+virtual_session_close(sessionId)
+```
+
+### How It Works
+
+- Virtual sessions simulate a real player connection
+- Commands are processed through the same state machine as real players
+- Output is captured and returned (including ANSI colors)
+- Sessions persist until explicitly closed or inactive for 1 hour
+- You can have multiple virtual sessions simultaneously
+
+### Tips
+
+- Use `waitMs` parameter to adjust response timing (default 100ms)
+- Increase wait time for commands that take longer to process
+- Virtual sessions show up in the online users list
+- Session state is tracked just like real users (authenticated, in combat, etc.)
+
 ## Security Considerations
 
-- The MCP server provides **read-only** access to game data
+- The MCP server provides **read-only** access to game data via query tools
+- Virtual sessions provide **read-write** access (can create users, modify game state)
 - Runs on localhost by default (port 3100)
 - CORS enabled for local development
-- No authentication currently implemented
+- Requires API key authentication (set `ELLYMUD_MCP_API_KEY` environment variable)
 - Suitable for local development and debugging
-- Does not expose any write operations to game state
-- For production use, add authentication and restrict CORS
+- For production use, add additional authentication and restrict CORS
 
 ## Development
 

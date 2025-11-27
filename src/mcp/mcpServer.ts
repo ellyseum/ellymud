@@ -7,6 +7,7 @@ import { ClientManager } from "../client/clientManager";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import { systemLogger, mcpLogger } from "../utils/logger";
+import { VirtualSessionManager } from "./virtualSessionManager";
 
 /**
  * MCP Server integrated with EllyMUD runtime
@@ -18,6 +19,7 @@ export class MCPServer {
   private userManager: UserManager;
   private roomManager: RoomManager;
   private clientManager: ClientManager;
+  private virtualSessionManager: VirtualSessionManager;
   private port: number;
 
   constructor(
@@ -29,11 +31,17 @@ export class MCPServer {
     this.userManager = userManager;
     this.roomManager = roomManager;
     this.clientManager = clientManager;
+    this.virtualSessionManager = new VirtualSessionManager(clientManager);
     this.port = port;
 
     this.app = express();
     this.setupMiddleware();
     this.setupRoutes();
+    
+    // Clean up inactive virtual sessions every 10 minutes
+    setInterval(() => {
+      this.virtualSessionManager.cleanupInactiveSessions();
+    }, 600000);
   }
 
   private setupMiddleware(): void {
@@ -302,6 +310,46 @@ export class MCPServer {
               lines: "number (optional, default 500, max 500)",
             },
           },
+          {
+            name: "virtual_session_create",
+            description:
+              "Create a new virtual game session for the LLM to play the game",
+            endpoint: "/api/virtual-session/create",
+            method: "POST",
+          },
+          {
+            name: "virtual_session_command",
+            description:
+              "Send a command to a virtual game session and get the response",
+            endpoint: "/api/virtual-session/command",
+            method: "POST",
+            body: {
+              sessionId: "string",
+              command: "string",
+              waitMs: "number (optional, default 100)",
+            },
+          },
+          {
+            name: "virtual_session_info",
+            description:
+              "Get information about a virtual session",
+            endpoint: "/api/virtual-session/:sessionId",
+            method: "GET",
+          },
+          {
+            name: "virtual_session_close",
+            description:
+              "Close a virtual game session",
+            endpoint: "/api/virtual-session/:sessionId",
+            method: "DELETE",
+          },
+          {
+            name: "virtual_sessions_list",
+            description:
+              "List all active virtual sessions",
+            endpoint: "/api/virtual-sessions",
+            method: "GET",
+          },
         ],
       });
     });
@@ -477,6 +525,147 @@ export class MCPServer {
         res.json({ success: true, data });
       } catch (error) {
         mcpLogger.error(`Error tailing session: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    // Virtual session endpoints
+    this.app.post("/api/virtual-session/create", async (req: Request, res: Response) => {
+      try {
+        const session = this.virtualSessionManager.createSession();
+        mcpLogger.info(`Created virtual session: ${session.getSessionId()}`);
+        res.json({ 
+          success: true, 
+          data: {
+            sessionId: session.getSessionId(),
+            message: "Virtual session created. Use session_command to interact."
+          }
+        });
+      } catch (error) {
+        mcpLogger.error(`Error creating virtual session: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.post("/api/virtual-session/command", async (req: Request, res: Response) => {
+      try {
+        const { sessionId, command, waitMs } = req.body;
+        
+        if (!sessionId || !command) {
+          return res.status(400).json({
+            success: false,
+            error: "sessionId and command are required",
+          });
+        }
+
+        const session = this.virtualSessionManager.getSession(sessionId);
+        if (!session) {
+          return res.status(404).json({
+            success: false,
+            error: `Session '${sessionId}' not found`,
+          });
+        }
+
+        // Send the command
+        session.sendCommand(command);
+        
+        // Wait a bit for the response (default 100ms)
+        const delay = waitMs !== undefined ? parseInt(waitMs) : 100;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Get the output
+        const output = session.getOutput(true);
+        
+        mcpLogger.info(`Virtual session ${sessionId} executed command: ${command}`);
+        res.json({ 
+          success: true, 
+          data: {
+            sessionId,
+            command,
+            output,
+            sessionInfo: session.getInfo()
+          }
+        });
+      } catch (error) {
+        mcpLogger.error(`Error executing virtual session command: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.get("/api/virtual-session/:sessionId", async (req: Request, res: Response) => {
+      try {
+        const { sessionId } = req.params;
+        const session = this.virtualSessionManager.getSession(sessionId);
+        
+        if (!session) {
+          return res.status(404).json({
+            success: false,
+            error: `Session '${sessionId}' not found`,
+          });
+        }
+
+        res.json({ 
+          success: true, 
+          data: session.getInfo()
+        });
+      } catch (error) {
+        mcpLogger.error(`Error getting virtual session info: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.delete("/api/virtual-session/:sessionId", async (req: Request, res: Response) => {
+      try {
+        const { sessionId } = req.params;
+        const closed = this.virtualSessionManager.closeSession(sessionId);
+        
+        if (!closed) {
+          return res.status(404).json({
+            success: false,
+            error: `Session '${sessionId}' not found`,
+          });
+        }
+
+        mcpLogger.info(`Closed virtual session: ${sessionId}`);
+        res.json({ 
+          success: true, 
+          data: { message: "Session closed" }
+        });
+      } catch (error) {
+        mcpLogger.error(`Error closing virtual session: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.get("/api/virtual-sessions", async (req: Request, res: Response) => {
+      try {
+        const sessions = Array.from(this.virtualSessionManager.getAllSessions().values())
+          .map(session => session.getInfo());
+        
+        res.json({ 
+          success: true, 
+          data: {
+            count: sessions.length,
+            sessions
+          }
+        });
+      } catch (error) {
+        mcpLogger.error(`Error listing virtual sessions: ${error}`);
         res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -886,6 +1075,74 @@ export class MCPServer {
           },
           required: []
         }
+      },
+      {
+        name: "virtual_session_create",
+        description: "Create a new virtual game session for the LLM to interact with the game as a player",
+        inputSchema: {
+          type: "object",
+          properties: {},
+          required: []
+        }
+      },
+      {
+        name: "virtual_session_command",
+        description: "Send a command to a virtual game session and receive the response. Use this to login, create users, and play the game.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            sessionId: { 
+              type: "string", 
+              description: "The virtual session ID" 
+            },
+            command: { 
+              type: "string", 
+              description: "The command to send (e.g., 'admin', 'password', 'look', 'north')" 
+            },
+            waitMs: { 
+              type: "number", 
+              description: "Milliseconds to wait for response (default 100)" 
+            }
+          },
+          required: ["sessionId", "command"]
+        }
+      },
+      {
+        name: "virtual_session_info",
+        description: "Get information about a virtual session including authentication status and current state",
+        inputSchema: {
+          type: "object",
+          properties: {
+            sessionId: { 
+              type: "string", 
+              description: "The virtual session ID" 
+            }
+          },
+          required: ["sessionId"]
+        }
+      },
+      {
+        name: "virtual_session_close",
+        description: "Close a virtual game session",
+        inputSchema: {
+          type: "object",
+          properties: {
+            sessionId: { 
+              type: "string", 
+              description: "The virtual session ID" 
+            }
+          },
+          required: ["sessionId"]
+        }
+      },
+      {
+        name: "virtual_sessions_list",
+        description: "List all active virtual sessions",
+        inputSchema: {
+          type: "object",
+          properties: {},
+          required: []
+        }
       }
     ];
   }
@@ -927,6 +1184,21 @@ export class MCPServer {
         case "tail_user_session":
           result = await this.tailUserSession(args.username, args.lines);
           break;
+        case "virtual_session_create":
+          result = this.createVirtualSession();
+          break;
+        case "virtual_session_command":
+          result = await this.sendVirtualCommand(args.sessionId, args.command, args.waitMs);
+          break;
+        case "virtual_session_info":
+          result = this.getVirtualSessionInfo(args.sessionId);
+          break;
+        case "virtual_session_close":
+          result = this.closeVirtualSession(args.sessionId);
+          break;
+        case "virtual_sessions_list":
+          result = this.listVirtualSessions();
+          break;
         default:
           res.status(400).json({
             jsonrpc: "2.0",
@@ -962,6 +1234,67 @@ export class MCPServer {
         }
       });
     }
+  }
+
+  /**
+   * Virtual session helper methods
+   */
+  private createVirtualSession() {
+    const session = this.virtualSessionManager.createSession();
+    return {
+      sessionId: session.getSessionId(),
+      message: "Virtual session created. Use virtual_session_command to interact.",
+      info: session.getInfo()
+    };
+  }
+
+  private async sendVirtualCommand(sessionId: string, command: string, waitMs?: number) {
+    const session = this.virtualSessionManager.getSession(sessionId);
+    if (!session) {
+      throw new Error(`Session '${sessionId}' not found`);
+    }
+
+    // Send the command
+    session.sendCommand(command);
+    
+    // Wait for response (default 100ms)
+    const delay = waitMs !== undefined ? parseInt(waitMs.toString()) : 100;
+    await new Promise(resolve => setTimeout(resolve, delay));
+    
+    // Get the output
+    const output = session.getOutput(true);
+    
+    return {
+      sessionId,
+      command,
+      output,
+      sessionInfo: session.getInfo()
+    };
+  }
+
+  private getVirtualSessionInfo(sessionId: string) {
+    const session = this.virtualSessionManager.getSession(sessionId);
+    if (!session) {
+      throw new Error(`Session '${sessionId}' not found`);
+    }
+    return session.getInfo();
+  }
+
+  private closeVirtualSession(sessionId: string) {
+    const closed = this.virtualSessionManager.closeSession(sessionId);
+    if (!closed) {
+      throw new Error(`Session '${sessionId}' not found`);
+    }
+    return { message: "Session closed", sessionId };
+  }
+
+  private listVirtualSessions() {
+    const sessions = Array.from(this.virtualSessionManager.getAllSessions().values())
+      .map(session => session.getInfo());
+    return {
+      count: sessions.length,
+      sessions
+    };
   }
 
   /**
