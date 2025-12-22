@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pipeline Metrics",
+  "description": "Schema for tracking agent pipeline execution metrics",
+  "type": "object",
+  "required": ["pipelineId", "task", "date", "stages", "outcome"],
+  "properties": {
+    "pipelineId": {
+      "type": "string",
+      "description": "Unique identifier for this pipeline execution",
+      "pattern": "^pipe-\\d{4}-\\d{2}-\\d{2}-\\d{3}$",
+      "examples": ["pipe-2025-12-21-001"]
+    },
+    "task": {
+      "type": "string",
+      "description": "Description of the task being executed",
+      "minLength": 5,
+      "maxLength": 200
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of pipeline start"
+    },
+    "branch": {
+      "type": "string",
+      "description": "Git branch where changes were made",
+      "examples": ["feature/npc-dialogue", "fix/combat-damage"]
+    },
+    "complexity": {
+      "type": "string",
+      "enum": ["Trivial", "Low", "Medium", "High", "Critical"],
+      "description": "Complexity level determined at triage"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["Instant", "Fast-Track", "Standard", "Full"],
+      "description": "Pipeline mode used based on complexity"
+    },
+    "stages": {
+      "type": "object",
+      "description": "Metrics for each pipeline stage",
+      "properties": {
+        "research": { "$ref": "#/definitions/stageMetrics" },
+        "planning": { "$ref": "#/definitions/stageMetrics" },
+        "implementation": { "$ref": "#/definitions/stageMetrics" },
+        "validation": { "$ref": "#/definitions/stageMetrics" },
+        "review": { "$ref": "#/definitions/stageMetrics" }
+      }
+    },
+    "totalDuration": {
+      "type": "integer",
+      "description": "Total pipeline duration in minutes",
+      "minimum": 0
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["success", "failure", "escalated", "rolled-back", "abandoned"],
+      "description": "Final pipeline outcome"
+    },
+    "tokensEstimate": {
+      "type": "integer",
+      "description": "Estimated total tokens used across all stages",
+      "minimum": 0
+    },
+    "costEstimate": {
+      "type": "number",
+      "description": "Estimated cost in USD (optional)",
+      "minimum": 0
+    },
+    "rollback": {
+      "type": "object",
+      "description": "Rollback details if pipeline was rolled back",
+      "properties": {
+        "triggered": { "type": "boolean" },
+        "reason": { "type": "string" },
+        "checkpointId": { "type": "string" },
+        "filesReverted": { "type": "integer" }
+      }
+    },
+    "issues": {
+      "type": "array",
+      "description": "Issues encountered during pipeline",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stage": { "type": "string" },
+          "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+          "description": { "type": "string" },
+          "resolved": { "type": "boolean" }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about this pipeline execution"
+    }
+  },
+  "definitions": {
+    "stageMetrics": {
+      "type": "object",
+      "properties": {
+        "duration": {
+          "type": "integer",
+          "description": "Stage duration in minutes",
+          "minimum": 0
+        },
+        "grade": {
+          "type": "string",
+          "description": "Grade from Output Review Agent",
+          "pattern": "^[A-F][+-]?$",
+          "examples": ["A", "B+", "C-"]
+        },
+        "retries": {
+          "type": "integer",
+          "description": "Number of retry attempts",
+          "minimum": 0,
+          "default": 0
+        },
+        "skipped": {
+          "type": "boolean",
+          "description": "Whether this stage was skipped (Fast-Track mode)",
+          "default": false
+        },
+        "tokensUsed": {
+          "type": "integer",
+          "description": "Estimated tokens used in this stage",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

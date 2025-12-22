@@ -84,3 +84,30 @@ backups/
 
 # Misc
 .cache/
+
+# Agent pipeline outputs (user-specific, not committed)
+# Keep README.md and AGENTS.md in each directory
+.github/agents/research/*.md
+!.github/agents/research/README.md
+!.github/agents/research/AGENTS.md
+.github/agents/planning/*.md
+!.github/agents/planning/README.md
+!.github/agents/planning/AGENTS.md
+.github/agents/implementation/*.md
+!.github/agents/implementation/README.md
+!.github/agents/implementation/AGENTS.md
+.github/agents/validation/*.md
+!.github/agents/validation/README.md
+!.github/agents/validation/AGENTS.md
+.github/agents/suggestions/*.md
+!.github/agents/suggestions/README.md
+!.github/agents/suggestions/AGENTS.md
+.github/agents/summaries/*.md
+!.github/agents/summaries/README.md
+!.github/agents/summaries/AGENTS.md
+.github/agents/metrics/*.json
+!.github/agents/metrics/pipeline-metrics-schema.json
+# Todos (session-based planning, not committed)
+todos/*.md
+!todos/README.md
+!todos/AGENTS.md
