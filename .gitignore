@@ -111,3 +111,5 @@ backups/
 todos/*.md
 !todos/README.md
 !todos/AGENTS.md
+# Agent test results
+.github/agents/agent-tests/results/

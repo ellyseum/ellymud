@@ -12,7 +12,11 @@
     "watch": "ts-node-dev --transpile-only --respawn --watch src src/server.ts",
     "watch:admin": "ts-node-dev --transpile-only --respawn --watch src src/server.ts -- -af",
     "watch:user": "ts-node-dev --transpile-only --respawn --watch src src/server.ts -- -u",
-    "validate": "ts-node-dev --transpile-only src/utils/validateFiles.ts"
+    "validate": "ts-node-dev --transpile-only src/utils/validateFiles.ts",
+    "test:agents": ".github/agents/agent-tests/run-tests.sh",
+    "test:agents:dry": ".github/agents/agent-tests/run-tests.sh --dry-run",
+    "test:agents:list": ".github/agents/agent-tests/run-tests.sh --show-tests",
+    "test:agents:validate": ".github/agents/agent-tests/run-tests.sh --validate"
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",

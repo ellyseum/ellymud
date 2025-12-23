@@ -1,0 +1,152 @@
+{
+  "version": "1.0.0",
+  "description": "Agent test definitions for automated testing",
+  "tests": [
+    {
+      "id": "TC-R01",
+      "agent": "research",
+      "name": "Basic Feature Research",
+      "prompt": "Research how the command system works in EllyMUD. Focus on how commands are registered and executed. Save output to .github/agents/research/",
+      "expected": [
+        "commandRegistry",
+        "src/command",
+        "BaseCommand",
+        "execute",
+        "file:"
+      ],
+      "antiPatterns": [
+        "I don't know",
+        "I'm not sure",
+        "let me implement"
+      ],
+      "timeout": 120
+    },
+    {
+      "id": "TC-R02",
+      "agent": "research",
+      "name": "Bug Investigation",
+      "prompt": "Research the combat system in EllyMUD. Find how damage is calculated and identify the key files involved.",
+      "expected": [
+        "combat.ts",
+        "damage",
+        "src/combat",
+        "file:"
+      ],
+      "antiPatterns": [
+        "I'll fix",
+        "implementing",
+        "here's the code"
+      ],
+      "timeout": 120
+    },
+    {
+      "id": "TC-P01",
+      "agent": "planning",
+      "name": "Simple Command Plan",
+      "prompt": "Create an implementation plan for adding a 'wave' social command. Commands are in src/command/commands/ and extend BaseCommand. Include file paths and code snippets.",
+      "expected": [
+        "Task",
+        "src/command/commands",
+        "wave",
+        "BaseCommand",
+        "Success Criteria"
+      ],
+      "antiPatterns": [
+        "need to research",
+        "investigate first",
+        "I'm not sure where"
+      ],
+      "timeout": 120
+    },
+    {
+      "id": "TC-P02",
+      "agent": "planning",
+      "name": "Multi-file Plan",
+      "prompt": "Create an implementation plan for adding player titles that display before names. This needs changes to user storage and display logic.",
+      "expected": [
+        "Phase",
+        "Task",
+        "Risk",
+        "Rollback"
+      ],
+      "antiPatterns": [
+        "research",
+        "investigate",
+        "find out"
+      ],
+      "timeout": 120
+    },
+    {
+      "id": "TC-I01",
+      "agent": "implementation",
+      "name": "File Creation",
+      "prompt": "Following the plan: Create src/command/commands/test-wave.ts implementing a 'wave' command that outputs 'You wave!' when executed. Use BaseCommand pattern.",
+      "expected": [
+        "create_file",
+        "BaseCommand",
+        "wave",
+        "execute"
+      ],
+      "antiPatterns": [
+        "let me research",
+        "need to plan",
+        "I'm not sure"
+      ],
+      "timeout": 60
+    },
+    {
+      "id": "TC-I02",
+      "agent": "implementation",
+      "name": "Build Verification",
+      "prompt": "After creating the wave command file, run npm run build to verify it compiles correctly. Document the result.",
+      "expected": [
+        "npm run build",
+        "build"
+      ],
+      "antiPatterns": [
+        "skipping build",
+        "assume it works"
+      ],
+      "timeout": 60
+    },
+    {
+      "id": "TC-V01",
+      "agent": "validation",
+      "name": "Implementation Validation",
+      "prompt": "Validate the wave command implementation. Check: 1) File exists at src/command/commands/test-wave.ts, 2) Build passes, 3) Code follows BaseCommand pattern. Provide PASS/FAIL verdict.",
+      "expected": [
+        "PASS",
+        "FAIL",
+        "verdict",
+        "npm run build"
+      ],
+      "antiPatterns": [
+        "implementing",
+        "I'll create",
+        "let me fix"
+      ],
+      "timeout": 90
+    },
+    {
+      "id": "TC-V02",
+      "agent": "validation",
+      "name": "Regression Check",
+      "prompt": "Validate that existing commands still work after changes. Run build and check for errors in the command system.",
+      "expected": [
+        "build",
+        "regression",
+        "existing"
+      ],
+      "antiPatterns": [
+        "creating new",
+        "implementing"
+      ],
+      "timeout": 90
+    }
+  ],
+  "config": {
+    "defaultTimeout": 120,
+    "resultsDir": "results",
+    "parallel": false
+  }
+}

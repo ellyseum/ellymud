@@ -6,42 +6,131 @@ A testing framework for validating agent behavior after modifications.
 
 The Agent Test Harness ensures that changes to agent definitions don't introduce regressions. By running test cases against agents, we can verify they produce expected outputs and avoid anti-patterns.
 
-## Test Case Format
+## Prerequisites (Bootstrap Checklist)
 
-Each test case file follows this structure:
+Before running automated tests, ensure the following are installed and configured:
 
-```markdown
-## Test Case: [TC-XXX] [Name]
+### 1. Node.js / npm
+```bash
+# Check if installed
+node --version
+npm --version
 
-**Description**: What this test validates
-
-**Input**:
+# Install from: https://nodejs.org/
 ```
-[Sample user request or context provided to agent]
+
+### 2. GitHub Copilot CLI
+```bash
+# Option A: Install globally
+npm install -g @githubnext/github-copilot-cli
+
+# Option B: Let the test runner use npx (auto-downloads on first run)
+# No install needed - just have Node.js/npm installed
 ```
 
-**Expected Output Patterns** (MUST include):
-- [ ] Pattern 1 that should appear
-- [ ] Pattern 2 that should appear
+> **Note**: The old `gh copilot` extension is deprecated. The test runner uses `npx` to auto-download the CLI if not installed globally.
 
-**Anti-Patterns** (MUST NOT include):
-- [ ] Pattern that should NOT appear
-- [ ] Another forbidden pattern
+### 3. jq (JSON processor)
+```bash
+# Check if installed
+jq --version
 
-**Pass Criteria**:
-- All expected patterns present
-- No anti-patterns present
-- Output follows agent's defined structure
+# Install (Ubuntu/Debian)
+sudo apt install jq
 ```
+
+### Quick Bootstrap Verification
+```bash
+# Run this to check all prerequisites
+npm run test:agents:dry
+```
+
+## Quick Start
+
+### From Project Root (Recommended)
+
+```bash
+# Run all agent tests
+npm run test:agents
+
+# Run tests for specific agent
+npm run test:agents -- research
+npm run test:agents -- validation TC-V01
+
+# Dry-run (preview without invoking)
+npm run test:agents:dry
+npm run test:agents:dry -- research TC-R01
+
+# List all test IDs
+npm run test:agents:list
+
+# Validate naming convention
+npm run test:agents:validate
+```
+
+### Direct Script Invocation
+
+```bash
+# From .github/agents/agent-tests/ directory:
+./run-tests.sh research
+./run-tests.sh --dry-run validation TC-V01
+./run-tests.sh --check-output results/my-output.md TC-V01
+```
+
+### Manual Testing
+
+For when CLI automation isn't available:
+
+1. Open test case from `test-cases/`
+2. Start chat with target agent
+3. Provide test input
+4. Save output to `results/` folder
+5. Validate: `./run-tests.sh --check-output results/output.md TC-XXX`
+
+## Command Reference
+
+| Command | Description |
+|---------|-------------|
+| `./run-tests.sh` | Run all tests |
+| `./run-tests.sh <agent>` | Run tests for specific agent |
+| `./run-tests.sh <agent> <test-id>` | Run specific test |
+| `./run-tests.sh --list` | List test files |
+| `./run-tests.sh --show-tests` | List all test IDs |
+| `./run-tests.sh --validate` | Check naming convention |
+| `./run-tests.sh --dry-run [args]` | Preview without running |
+| `./run-tests.sh --check-output <file> <test-id>` | Validate existing output |
+
+## Test Definitions
+
+Tests are defined in two formats:
+
+### JSON Format (for automation)
+
+`test-definitions.json`:
+```json
+{
+  "id": "TC-R01",
+  "agent": "research",
+  "prompt": "Research how the command system works...",
+  "expected": ["commandRegistry", "src/command"],
+  "antiPatterns": ["I don't know"]
+}
+```
+
+### Markdown Format (for documentation)
+
+Detailed test cases in `test-cases/*.md` with full context.
 
 ## Test Case Files
 
 | File | Agent Tested | Test Count |
 |------|--------------|------------|
-| `test-cases/research-agent-tests.md` | Research Agent | 5 |
-| `test-cases/planning-agent-tests.md` | Planning Agent | 5 |
-| `test-cases/implementation-agent-tests.md` | Implementation Agent | 4 |
-| `test-cases/validation-agent-tests.md` | Validation Agent | 4 |
+| `test-cases/research.agent-tests.md` | Research Agent | 5 |
+| `test-cases/planning.agent-tests.md` | Planning Agent | 5 |
+| `test-cases/implementation.agent-tests.md` | Implementation Agent | 4 |
+| `test-cases/validation.agent-tests.md` | Validation Agent | 4 |
+
+**Naming Convention**: `<agent-name>.agent-tests.md`
 
 ## How to Run Tests
 

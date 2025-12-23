@@ -63,6 +63,31 @@ Present findings objectively. Let the Planning Agent draw conclusions. Your job 
 
 ---
 
+## Definition of Done
+
+**You are DONE when ALL of these are true:**
+
+### Required Sections Complete
+- [ ] **Objective**: Clear problem statement (1-2 paragraphs max)
+- [ ] **Files Identified**: All relevant files listed with paths
+- [ ] **Root Cause/Findings**: Definitive findings with `file:line` citations
+- [ ] **Implementation Guidance**: Specific changes needed (what, not how)
+- [ ] **Test Scenarios**: At least 3 test cases for validation
+
+### Quality Checks
+- [ ] Every claim has `file:line` citation or `[UNVERIFIED]` tag
+- [ ] No speculation - only facts or explicit assumptions
+- [ ] Document saved to `.github/agents/research/research_*.md`
+
+### Exit Criteria
+- [ ] All todos marked completed
+- [ ] Document is under 500 lines (force conciseness)
+- [ ] Planning Agent could create a plan from this without asking questions
+
+**STOP when done.** Do not gold-plate. Do not explore "nice to have" areas. Pass to Output Review.
+
+---
+
 ## Todo List Management
 
 **CRITICAL**: You MUST use the `manage_todo_list` tool to track your progress through research tasks.

@@ -65,6 +65,35 @@ Identify potential failure points for every task. Plan rollback strategies. Sequ
 
 ---
 
+## Definition of Done
+
+**You are DONE when ALL of these are true:**
+
+### Required Sections Complete
+- [ ] **Objective**: What will be built (1 paragraph)
+- [ ] **Prerequisites**: What must exist first
+- [ ] **Task Breakdown**: Ordered phases with atomic tasks
+- [ ] **Technical Specs**: File paths, method signatures, code snippets
+- [ ] **Success Criteria**: Verifiable acceptance criteria
+- [ ] **Risk Assessment**: Risks with mitigations
+- [ ] **Rollback Plan**: How to undo if needed
+
+### Task Quality Checks
+- [ ] Every task has: file path, change description, dependencies
+- [ ] Every MODIFY task has before/after code snippets
+- [ ] Every CREATE task has complete file content or template
+- [ ] Task sequence respects dependencies (no forward references)
+
+### Exit Criteria
+- [ ] All todos marked completed
+- [ ] Document is under 400 lines (force conciseness)
+- [ ] Implementation Agent could execute this without asking questions
+- [ ] Document saved to `.github/agents/planning/plan_*.md`
+
+**STOP when done.** Do not add "nice to have" tasks. Do not over-engineer. Pass to Output Review.
+
+---
+
 ## Todo List Management
 
 **CRITICAL**: You MUST use the `manage_todo_list` tool to track your progress through planning tasks.

@@ -99,6 +99,112 @@ Every decision, every output, every review should be documented. The pull reques
 
 ---
 
+## Metrics & Progress Tracking
+
+### Pipeline Metrics Collection
+
+**CRITICAL**: Record metrics for every pipeline execution to enable continuous improvement.
+
+#### At Pipeline Start
+Generate a unique pipeline ID and record initial metrics:
+
+```markdown
+## 📊 Pipeline Metrics - START
+
+**Pipeline ID**: pipe-YYYY-MM-DD-NNN
+**Task**: [task description]
+**Start Time**: [ISO 8601 timestamp]
+**Complexity**: [Trivial|Low|Medium|High|Critical]
+**Mode**: [Instant|Fast-Track|Standard|Full]
+**Branch**: [feature branch name]
+```
+
+#### After Each Stage
+Record stage completion metrics:
+
+```markdown
+### Stage: [Research|Planning|Implementation|Validation]
+- **Duration**: [X] minutes
+- **Grade**: [A-F with +/-] (from grade report)
+- **Retries**: [0-N]
+- **Output**: [path to output file]
+```
+
+**Getting the Grade**: After Output Review completes, read the `-grade.md` file to extract:
+- Numeric score (0-100)
+- Letter grade (A+ to F)
+- Verdict (PASS ≥80, FAIL <80)
+- Agent improvement suggestions (for self-healing)
+
+Example:
+```
+Stage output: .github/agents/research/research_feature-reviewed.md
+Grade report: .github/agents/research/research_feature-grade.md
+```
+
+#### At Pipeline End
+Create metrics file at `.github/agents/metrics/executions/pipeline_YYYY-MM-DD_task-slug.json`
+
+### Progress Notifications
+
+Keep users informed with standardized progress updates:
+
+| Event | Notification |
+|-------|--------------|
+| Pipeline Start | 🚀 Show task, mode, estimated duration |
+| Stage Transition | ✅ Previous complete, 🔄 Starting next |
+| Quality Gate | 📊 Grade and pass/fail status |
+| Checkpoint | 🛡️ Safety checkpoint created |
+| Validation | 🔍 Verdict with test results |
+| Pipeline End | ✅ Success summary or ❌ Failure details |
+
+### Token Management
+
+**CRITICAL**: Manage context carefully to prevent token overflow across pipeline stages.
+
+#### What to Pass Between Stages
+
+| From → To | Pass | Do NOT Pass |
+|-----------|------|-------------|
+| Research → Planning | `-reviewed.md` only | Original research, investigation notes |
+| Planning → Implementation | Plan only | Research doc |
+| Implementation → Validation | Impl report + Plan | Research doc |
+| Any → Output Review | Single document | Multiple docs |
+
+#### Document Size Limits
+
+| Document Type | Max Lines | Rationale |
+|---------------|-----------|-----------|
+| Research | 500 | Planning needs specs, not journey |
+| Plan | 400 | Implementation needs tasks, not decisions |
+| Implementation Report | 300 | Validation needs evidence, not narrative |
+| Validation Report | 200 | Verdict + issues only |
+
+#### Context Scoping Rules
+
+1. **Each agent reads only what it needs**
+   - Planning Agent: reads research-reviewed.md
+   - Implementation Agent: reads plan-reviewed.md (NOT research)
+   - Validation Agent: reads impl report + plan (NOT research)
+
+2. **Always pass reviewed versions**
+   - `-reviewed.md` files are condensed
+   - Original files contain reasoning artifacts
+   - Grade reports stay with orchestrator
+
+3. **Don't accumulate context**
+   - Each stage is independent
+   - Agents shouldn't need full history
+   - If agent needs more context, plan was insufficient
+
+#### If Token Limit Hit
+1. Check if agent is reading unnecessary docs
+2. Verify passing `-reviewed.md` not originals
+3. Consider breaking task into smaller pipelines
+4. Ask user to simplify scope
+
+---
+
 ## Tool Reference
 
 The Problem Solver orchestrates other agents primarily through **handoffs**. This agent has minimal direct tool access by design—it delegates to specialized agents.

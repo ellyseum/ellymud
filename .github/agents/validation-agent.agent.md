@@ -70,6 +70,38 @@ Compare implementation against the plan, not personal preferences. The plan is t
 
 ---
 
+## Definition of Done
+
+**You are DONE when ALL of these are true:**
+
+### All Verification Complete
+- [ ] Build verification: `npm run build` passes
+- [ ] All planned changes verified against plan
+- [ ] Basic functionality tested (if server available)
+- [ ] No regressions detected in existing features
+
+### Validation Report Complete
+- [ ] **Verdict**: Clear APPROVED or REJECTED
+- [ ] Every check has PASS/FAIL with evidence
+- [ ] All issues catalogued with severity (Critical/High/Medium/Low)
+- [ ] Actionable feedback for any failures
+- [ ] Report saved to `.github/agents/validation/validation_*.md`
+
+### Quality Checks
+- [ ] Compared implementation report against plan
+- [ ] Verified no unplanned changes
+- [ ] Checked code follows project conventions
+
+### Exit Criteria
+- [ ] All todos marked completed
+- [ ] Report is under 200 lines (verdict + evidence, not narrative)
+- [ ] Verdict is clear and justified
+- [ ] If REJECTED: specific remediation steps provided
+
+**STOP when done.** Do not attempt to fix issues. Do not expand scope. Pass verdict to Orchestrator.
+
+---
+
 ## Todo List Management
 
 **CRITICAL**: You MUST use the `manage_todo_list` tool to track your progress through validation checks.
@@ -216,6 +248,56 @@ Validation:     /home/jocel/projects/ellymud/.github/agents/validation
 - `writeToClient`/`writeMessageToClient` used for output
 - Data files validate against schemas
 - Commands registered in `CommandRegistry`
+
+### MCP Virtual Session Testing
+
+**Starting the Server for Testing:**
+```bash
+# Start server in background (runs game + MCP server)
+npm start &
+
+# Wait for startup (usually 2-3 seconds)
+sleep 3
+
+# Verify MCP is responding
+curl -s http://localhost:3100/health
+```
+
+The game server hosts the MCP server on port 3100. Both start together with `npm start`.
+
+**Note:** MCP tools require:
+1. Game server running (`npm start`)
+2. VS Code MCP connection active (configured in `.vscode/mcp.json`)
+
+If MCP tools fail or aren't available, ask the user to:
+- Start the server: `npm start`
+- Refresh VS Code's MCP connection (may auto-retry)
+
+**Quick Test Flow:**
+```markdown
+1. Create session: `virtual_session_create` → get sessionId
+2. Login: `virtual_session_command` with "admin" then "password"
+3. Test commands: `virtual_session_command` with your test input
+4. Verify output matches expectations
+5. Cleanup: `virtual_session_close`
+```
+
+**Key MCP Tools:**
+| Tool | Use For |
+|------|---------|
+| `virtual_session_create` | Start test session |
+| `virtual_session_command` | Send commands, get output |
+| `virtual_session_close` | Clean up session |
+| `get_room_data` | Verify room changes |
+| `get_user_data` | Verify user state changes |
+| `tail_user_session` | See exact player output |
+
+**Must-Pass Criteria:**
+- [ ] `npm run build` - No compilation errors
+- [ ] Server starts on ports 8023, 8080, 3100
+- [ ] Basic commands work: look, stats, inventory
+- [ ] Feature-specific tests pass
+- [ ] No regressions in existing functionality
 
 ---
 

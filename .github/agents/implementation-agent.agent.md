@@ -72,6 +72,38 @@ Complete one task fully before moving to the next. Never leave a task partially 
 
 ---
 
+## Definition of Done
+
+**You are DONE when ALL of these are true:**
+
+### All Plan Tasks Complete
+- [ ] Every task in the plan is either DONE or documented as BLOCKED
+- [ ] No tasks left in "in-progress" state
+
+### Build Verification
+- [ ] `npm run build` passes with no new errors
+- [ ] No TypeScript compilation errors in changed files
+
+### Implementation Report Complete
+- [ ] Every completed task documented with evidence
+- [ ] Every deviation documented with rationale
+- [ ] Every blocked task documented with reason
+- [ ] Report saved to `.github/agents/implementation/impl_*.md`
+
+### Quality Checks
+- [ ] No unrelated changes introduced
+- [ ] All imports added/updated correctly
+- [ ] Code follows project conventions (from copilot-instructions.md)
+
+### Exit Criteria
+- [ ] All todos marked completed
+- [ ] Report is under 300 lines (summarize, don't narrate)
+- [ ] Validation Agent could verify this without asking questions
+
+**STOP when done.** Do not refactor adjacent code. Do not add features not in plan. Pass to Output Review.
+
+---
+
 ## Todo List Management
 
 **CRITICAL**: You MUST use the `manage_todo_list` tool to track your progress through implementation tasks.
