@@ -1,29 +1,29 @@
 # Game Data
 
-JSON data files for game persistence.
+JSON files containing all persistent game data including users, rooms, items, NPCs, and configuration.
 
 ## Contents
 
-| File | Description |
+| Path | Description |
 |------|-------------|
 | `users.json` | User accounts and character data |
-| `rooms.json` | Room definitions and exits |
-| `items.json` | Item templates |
-| `itemInstances.json` | Instantiated items in world |
-| `npcs.json` | NPC templates |
-| `mud-config.json` | Game configuration |
-| `gametimer-config.json` | Timer settings |
-| `admin.json` | Admin configuration |
-| `bug-reports.json` | Player bug reports |
-| `snake-scores.json` | Snake game high scores |
-| `admin/` | Admin-specific data |
+| `rooms.json` | World room definitions with exits and contents |
+| `items.json` | Item templates defining all item types |
+| `itemInstances.json` | Instantiated items in the world |
+| `npcs.json` | NPC templates and behaviors |
+| `mud-config.json` | Core game configuration |
+| `gametimer-config.json` | Timer and tick settings |
+| `admin.json` | Admin and moderation configuration |
+| `bug-reports.json` | Player-submitted bug reports |
+| `snake-scores.json` | Snake minigame high scores |
+| `admin/` | Admin-specific data files |
 
 ## Overview
 
-All game state is persisted in JSON files. Data is loaded on server start and saved periodically or on changes. Files are validated against schemas in `src/schemas/`.
+All data files are JSON format and are loaded at server startup. Data is modified during gameplay and saved periodically. Manual edits should only be made while the server is stopped.
 
 ## Related
 
-- [`../src/schemas/`](../src/schemas/) - Validation schemas
-- [`../src/user/userManager.ts`](../src/user/userManager.ts) - User data access
-- [`../src/room/roomManager.ts`](../src/room/roomManager.ts) - Room data access
+- [`../src/schemas/`](../src/schemas/) - JSON validation schemas
+- [`../src/user/`](../src/user/) - User data management
+- [`../src/room/`](../src/room/) - Room data management

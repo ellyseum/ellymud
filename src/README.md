@@ -2,40 +2,68 @@
 
 Main TypeScript source code for EllyMUD server - a modern Multi-User Dungeon built with Node.js.
 
-## Contents
+## Core Files
 
 | Path | Description |
 |------|-------------|
-| `app.ts` | Main GameServer class and application bootstrapping |
+| `app.ts` | Main GameServer class - orchestrates all components |
 | `server.ts` | Entry point - initializes and starts the server |
-| `config.ts` | Server configuration constants and settings |
-| `types.ts` | Core TypeScript type definitions |
-| `admin/` | Admin API and authentication |
-| `client/` | Client connection management |
-| `combat/` | Combat system and NPC AI |
-| `command/` | Command parsing and execution |
-| `config/` | CLI configuration handling |
+| `config.ts` | Server configuration constants (ports, timeouts, etc.) |
+| `types.ts` | Core TypeScript types and interfaces |
+
+## Directory Structure
+
+| Directory | Purpose |
+|-----------|---------|
+| `admin/` | Admin API endpoints and authentication |
+| `client/` | Client connection tracking and management |
+| `combat/` | Combat system, damage calculation, NPC AI |
+| `command/` | Command parsing, registry, and execution |
+| `config/` | CLI argument parsing |
 | `connection/` | Protocol handlers (Telnet, WebSocket, Socket.IO) |
-| `console/` | Server console interface and local sessions |
-| `effects/` | Status effects system |
+| `console/` | Server console interface for local admin |
+| `data/` | Reserved for runtime data (placeholder) |
+| `effects/` | Status effects system (buffs, debuffs) |
 | `mcp/` | Model Context Protocol server for AI integration |
-| `room/` | Room management and navigation |
-| `schemas/` | JSON validation schemas |
-| `server/` | HTTP, Telnet, and WebSocket servers |
-| `setup/` | Initial setup and admin configuration |
-| `state/` | State machine implementation |
+| `room/` | Room management and player navigation |
+| `schemas/` | JSON Schema validation definitions |
+| `server/` | Network servers (HTTP, Telnet, WebSocket) |
+| `setup/` | First-run setup and configuration |
+| `state/` | State machine controller |
 | `states/` | Client state handlers (Login, Game, Combat, etc.) |
-| `timer/` | Game timer and tick management |
-| `types/` | Additional type definitions |
+| `timer/` | Game tick system for periodic events |
+| `types/` | Additional TypeScript type modules |
 | `user/` | User management and persistence |
-| `utils/` | Utility functions and helpers |
+| `utils/` | Utility functions (logging, colors, socket writing) |
 
-## Overview
+## Architecture Patterns
 
-The codebase follows a singleton pattern for core managers (UserManager, RoomManager, ClientManager) and uses a state machine pattern for client interactions. All game logic flows through the command system.
+**Singleton Managers**: Core systems use singleton pattern for global access:
+- `UserManager.getInstance()` - User data and authentication
+- `RoomManager.getInstance()` - Room data and navigation
+- `ClientManager.getInstance()` - Active client connections
+- `CombatSystem.getInstance()` - Combat orchestration
+
+**State Machine**: Client interactions follow a state machine pattern:
+- `CONNECTING` → `LOGIN` → `AUTHENTICATED`
+- States handle their own input and transitions
+
+**Command Pattern**: All player actions go through the command system:
+- Commands registered in `CommandRegistry`
+- `CommandHandler` routes input to appropriate command
+- Each command is a class implementing the `Command` interface
+
+## Data Flow
+
+1. **Connection**: Protocol servers accept connections and create `Client` objects
+2. **State Management**: `StateMachine` manages client state transitions
+3. **Input Processing**: Input routed through current state to `CommandHandler`
+4. **Output**: All output goes through `socketWriter.ts` utilities
+5. **Persistence**: Changes saved to JSON files in `data/` directory
 
 ## Related
 
-- [`../data/`](../data/) - JSON data files for persistence
-- [`../public/`](../public/) - Web client files
-- [`../docs/`](../docs/) - Documentation
+- [data/](../data/) - JSON data files for persistence
+- [public/](../public/) - Web client static files
+- [docs/](../docs/) - Documentation
+- [AGENTS.md](../AGENTS.md) - Full project conventions

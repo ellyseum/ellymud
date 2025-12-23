@@ -5,15 +5,24 @@ infer: true
 model: claude-4.5-opus
 argument-hint: Provide the implementation plan path to execute
 tools:
-  - search
-  - read_file
-  - grep_search
-  - file_search
-  - list_dir
-  - create_file
-  - replace_string_in_file
-  - run_in_terminal
-  - get_errors
+  # Search tools
+  - search/codebase          # semantic_search - semantic code search
+  - search/textSearch        # grep_search - fast text/regex search
+  - search/fileSearch        # file_search - find files by glob
+  - search/listDirectory     # list_dir - list directory contents
+  # Read tools
+  - read                     # read_file - read file contents
+  # Edit tools
+  - edit/createFile          # create_file - create new files
+  - edit/createDirectory     # create_directory - create directories
+  - edit/replaceInFile       # replace_string_in_file - edit files
+  # Execute tools
+  - execute/runInTerminal    # run_in_terminal - run shell commands
+  - execute/getTerminalOutput # get_terminal_output - get command output
+  # Diagnostics
+  - vscode/problems          # get_errors - get compile/lint errors
+  # Task tracking
+  - todo                     # manage_todo_list - track implementation progress
 handoffs:
   - label: Review Implementation
     agent: output-review
@@ -143,59 +152,77 @@ Complete one task fully before moving to the next. Never leave a task partially 
 
 This section documents each tool available to this agent and when to use it.
 
-### `search`
+### `search/codebase` (semantic_search)
 **Purpose**: Semantic search across the workspace for relevant code snippets  
 **When to Use**: When verifying implementations match existing patterns  
 **Example**: Finding similar implementations to ensure consistency  
 **Tips**: Use to validate code style matches project conventions
 
-### `read_file`
-**Purpose**: Read contents of a specific file with line range  
-**When to Use**: Before every edit—get exact current content for replacement  
-**Example**: Reading file to get exact oldString for replace_string_in_file  
-**Tips**: ALWAYS read before editing; never guess at file contents
-
-### `grep_search`
+### `search/textSearch` (grep_search)
 **Purpose**: Fast text/regex search across files  
 **When to Use**: When finding exact code to replace or verify changes  
 **Example**: Finding exact import statement to modify  
 **Tips**: Use to locate precise insertion points specified in plan
 
-### `file_search`
+### `search/fileSearch` (file_search)
 **Purpose**: Find files by glob pattern  
 **When to Use**: When verifying file creation or finding related files  
 **Example**: Confirming new file was created at expected path  
 **Tips**: Use for post-task verification
 
-### `list_dir`
+### `search/listDirectory` (list_dir)
 **Purpose**: List contents of a directory  
 **When to Use**: When verifying directory structure before/after changes  
 **Example**: Confirming new directory was created  
 **Tips**: Use as part of verification step
 
-### `create_file`
+### `read` (read_file)
+**Purpose**: Read contents of a specific file with line range  
+**When to Use**: Before every edit—get exact current content for replacement  
+**Example**: Reading file to get exact oldString for replace_string_in_file  
+**Tips**: ALWAYS read before editing; never guess at file contents
+
+### `edit/createFile` (create_file)
 **Purpose**: Create a new file with specified content  
 **When to Use**: When plan specifies creating a new file  
 **Example**: Creating `src/combat/damageCalculator.ts` with specified content  
 **Tips**: Use exact content from plan; creates parent directories automatically
 
-### `replace_string_in_file`
+### `edit/createDirectory` (create_directory)
+**Purpose**: Create a new directory structure (like mkdir -p)  
+**When to Use**: When plan specifies creating new directory structures  
+**Example**: Creating `src/newfeature/` directory for new module  
+**Tips**: Recursively creates all directories in path; not strictly needed if using create_file
+
+### `edit/replaceInFile` (replace_string_in_file)
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When plan specifies modifying existing code  
 **Example**: Adding new method to existing class  
 **Tips**: MUST include 3-5 lines of unchanged context; oldString must match EXACTLY
 
-### `run_in_terminal`
+### `execute/runInTerminal` (run_in_terminal)
 **Purpose**: Execute shell commands in terminal  
 **When to Use**: For verification commands (build, test) and git operations  
 **Example**: Running `npm run build` after code changes  
 **Tips**: ALWAYS run build after changes; don't run parallel terminal commands
 
-### `get_errors`
+### `execute/getTerminalOutput` (get_terminal_output)
+**Purpose**: Get output from a background terminal process  
+**When to Use**: When checking results of long-running commands  
+**Example**: Getting output from a watch process  
+**Tips**: Use the terminal ID returned by `runInTerminal` with `isBackground: true`
+
+### `vscode/problems` (get_errors)
 **Purpose**: Get compile/lint errors in files  
 **When to Use**: After edits to verify no errors introduced  
 **Example**: Checking `src/combat/combat.ts` for errors after modification  
 **Tips**: Use after every file modification to catch issues early
+
+### `todo` (manage_todo_list)
+**Purpose**: Track implementation progress through plan tasks  
+**When to Use**: At START of every implementation session, update after each task  
+**Example**: Creating todos from the plan's task breakdown  
+**Tips**: Mark ONE todo in-progress at a time; NEVER skip verification before marking complete
 
 ---
 

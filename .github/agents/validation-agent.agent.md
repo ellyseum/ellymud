@@ -5,16 +5,26 @@ infer: true
 model: gemini-2.5-pro
 argument-hint: Provide the implementation report path to validate
 tools:
-  - search
-  - read_file
-  - grep_search
-  - file_search
-  - list_dir
-  - run_in_terminal
-  - get_errors
+  # Search tools
+  - search/codebase          # semantic_search - semantic code search
+  - search/textSearch        # grep_search - fast text/regex search
+  - search/fileSearch        # file_search - find files by glob
+  - search/listDirectory     # list_dir - list directory contents
+  # Read tools
+  - read                     # read_file - read file contents
+  # Edit tools (for creating validation reports)
+  - edit/createFile          # create_file - create new files
+  - edit/replaceInFile       # replace_string_in_file - edit files
+  # Execute tools
+  - execute/runInTerminal    # run_in_terminal - run shell commands
+  - execute/getTerminalOutput # get_terminal_output - get command output
+  - execute/testFailure      # test_failure - get unit test failure info
+  # Diagnostics
+  - vscode/problems          # get_errors - get compile/lint errors
+  # MCP tools for game testing
   - ellymud-mcp-server/*
-  - create_file
-  - replace_string_in_file
+  # Task tracking
+  - todo                     # manage_todo_list - track validation progress
 handoffs:
   - label: Approve & Post-Mortem
     agent: agent-post-mortem
@@ -142,43 +152,67 @@ Compare implementation against the plan, not personal preferences. The plan is t
 
 This section documents each tool available to this agent and when to use it.
 
-### `search`
+### `search/codebase` (semantic_search)
 **Purpose**: Semantic search across the workspace for relevant code snippets  
 **When to Use**: When verifying implementation patterns match specifications  
 **Example**: Finding similar code to compare implementation style  
 **Tips**: Use for consistency validation across codebase
 
-### `read_file`
-**Purpose**: Read contents of a specific file with line range  
-**When to Use**: When examining implemented code against plan specifications  
-**Example**: Reading new file to verify it matches planned content  
-**Tips**: Read complete implementations to verify nothing was missed
-
-### `grep_search`
+### `search/textSearch` (grep_search)
 **Purpose**: Fast text/regex search across files  
 **When to Use**: When verifying specific code changes were made  
 **Example**: Confirming new export was added, import was updated  
 **Tips**: Essential for change verification—find exact strings from plan
 
-### `file_search`
+### `search/fileSearch` (file_search)
 **Purpose**: Find files by glob pattern  
 **When to Use**: When verifying file creation/deletion from plan  
 **Example**: Confirming all planned files exist  
 **Tips**: Use to inventory actual changes vs planned changes
 
-### `list_dir`
+### `search/listDirectory` (list_dir)
 **Purpose**: List contents of a directory  
 **When to Use**: When verifying directory structure changes  
 **Example**: Confirming new directory has expected contents  
 **Tips**: Use as part of structural validation
 
-### `run_in_terminal`
+### `read` (read_file)
+**Purpose**: Read contents of a specific file with line range  
+**When to Use**: When examining implemented code against plan specifications  
+**Example**: Reading new file to verify it matches planned content  
+**Tips**: Read complete implementations to verify nothing was missed
+
+### `edit/createFile` (create_file)
+**Purpose**: Create a new file with specified content  
+**When to Use**: When creating the validation report document  
+**Example**: Creating `.github/agents/validation/validation_20241219_combat_feature.md`  
+**Tips**: Only use for creating validation output documents
+
+### `edit/replaceInFile` (replace_string_in_file)
+**Purpose**: Edit an existing file by replacing exact text  
+**When to Use**: When updating validation report with additional findings  
+**Example**: Adding test results to validation document  
+**Tips**: Include 3-5 lines of context around the replacement target
+
+### `execute/runInTerminal` (run_in_terminal)
 **Purpose**: Execute shell commands in terminal  
 **When to Use**: For build, test, and verification commands  
 **Example**: Running `npm run build`, `npm test`, `npm run validate`  
 **Tips**: Capture and document all command output as evidence
 
-### `get_errors`
+### `execute/getTerminalOutput` (get_terminal_output)
+**Purpose**: Get output from a background terminal process  
+**When to Use**: When checking results of long-running commands  
+**Example**: Getting output from a watch process or dev server  
+**Tips**: Use the terminal ID returned by `runInTerminal` with `isBackground: true`
+
+### `execute/testFailure` (test_failure)
+**Purpose**: Get detailed information about unit test failures  
+**When to Use**: When tests fail and you need structured failure data  
+**Example**: Getting failure details to understand what went wrong  
+**Tips**: Use after `npm test` fails to get actionable failure information
+
+### `vscode/problems` (get_errors)
 **Purpose**: Get compile/lint errors in files  
 **When to Use**: After loading context, check for any pre-existing or new errors  
 **Example**: Getting errors for all modified files  
@@ -190,17 +224,11 @@ This section documents each tool available to this agent and when to use it.
 **Example**: Checking that new command appears in game, NPC spawns correctly  
 **Tips**: Server must be running; use for functional validation
 
-### `create_file`
-**Purpose**: Create a new file with specified content  
-**When to Use**: When creating the validation report document  
-**Example**: Creating `.github/agents/validation/validation_20241219_combat_feature.md`  
-**Tips**: Only use for creating validation output documents
-
-### `replace_string_in_file`
-**Purpose**: Edit an existing file by replacing exact text  
-**When to Use**: When updating validation report with additional findings  
-**Example**: Adding test results to validation document  
-**Tips**: Include 3-5 lines of context around the replacement target
+### `todo` (manage_todo_list)
+**Purpose**: Track validation progress through verification checks  
+**When to Use**: At START of every validation session, update after each check  
+**Example**: Creating todos for each validation category (build, tests, functionality)  
+**Tips**: Mark ONE todo in-progress at a time; document PASS/FAIL evidence for each
 
 ---
 

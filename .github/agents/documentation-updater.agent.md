@@ -5,12 +5,21 @@ infer: true
 model: claude-4.5-opus
 argument-hint: Specify directories to audit or 'full' for complete scan
 tools:
-  - search
-  - read_file
-  - list_dir
-  - file_search
-  - create_file
-  - replace_string_in_file
+  # Search tools
+  - search/textSearch        # grep_search - fast text/regex search
+  - search/fileSearch        # file_search - find files by glob pattern
+  - search/listDirectory     # list_dir - list directory contents
+  - search/codebase          # semantic_search - semantic code search
+  # Read tools
+  - read                     # read_file - read file contents
+  # Edit tools
+  - edit/createFile          # create_file - create new files
+  - edit/replaceInFile       # replace_string_in_file - edit existing files
+  # Execute tools
+  - execute/runInTerminal    # run_in_terminal - run shell commands
+  - execute/getTerminalOutput # get_terminal_output - get output from background processes
+  # Task management
+  - todo                     # manage_todo_list - track progress
 ---
 
 # Documentation Updater Agent - EllyMUD
@@ -58,10 +67,27 @@ Wrong documentation is worse than no documentation. Verify every claim against a
 Documentation should be clickable. Each file links to related directories, creating a browsable documentation network.
 
 ### 4. Appropriate Detail
-READMEs are brief (max 50 lines, no code). AGENTS.md files are comprehensive (include everything an AI needs).
+READMEs are human-readable overviews without code blocks. AGENTS.md files are comprehensive (include everything an AI needs).
 
 ### 5. Maintenance-Aware
 Keep formats consistent and simple. Complex documentation becomes outdated faster.
+
+---
+
+## ⚠️ MANDATORY FIRST STEP
+
+**Before ANY documentation task, run the paired docs audit script:**
+
+```bash
+./scripts/check-paired-docs.sh --all
+```
+
+This identifies ALL directories with missing README.md or AGENTS.md files. Use this output to:
+1. Create your todo list
+2. Prioritize which directories need attention
+3. Ensure no missing pairs are overlooked
+
+**Do NOT skip this step.** Manual directory scanning is error-prone and slow.
 
 ---
 
@@ -103,41 +129,92 @@ Keep formats consistent and simple. Complex documentation becomes outdated faste
 
 This section documents each tool available to this agent and when to use it.
 
-### `search`
-**Purpose**: Semantic search across the workspace for relevant code snippets  
-**When to Use**: When understanding what code in a directory does  
-**Example**: Finding main exports and patterns in a directory  
-**Tips**: Use to gather context before writing documentation
+### `search/textSearch` (grep_search)
+**Purpose**: Fast text search in workspace with exact string or regex  
+**When to Use**: When searching for patterns within files (imports, references, TODOs)  
+**Example**: Searching for `socketWriter` usage across all documentation  
+**Tips**: Use to find all mentions of a function/class when updating related docs; supports regex with `isRegexp: true`
 
-### `read_file`
-**Purpose**: Read contents of a specific file with line range  
-**When to Use**: When examining files to document their purpose and exports  
-**Example**: Reading `src/combat/combat.ts` to document its API  
-**Tips**: Focus on exports, interfaces, and public methods
-
-### `list_dir`
-**Purpose**: List contents of a directory  
-**When to Use**: When auditing directories for missing documentation  
-**Example**: Listing `src/` to find directories without README.md  
-**Tips**: Essential first step—identify what needs documentation
-
-### `file_search`
+### `search/fileSearch` (file_search)
 **Purpose**: Find files by glob pattern  
 **When to Use**: When finding all README.md or AGENTS.md files  
 **Example**: Finding `**/README.md` to assess coverage  
 **Tips**: Use to generate documentation coverage reports
 
-### `create_file`
+### `search/listDirectory` (list_dir)
+**Purpose**: List contents of a directory  
+**When to Use**: When auditing directories for missing documentation  
+**Example**: Listing `src/` to find directories without README.md  
+**Tips**: Essential first step—identify what needs documentation
+
+### `search/codebase` (semantic_search)
+**Purpose**: Semantic search across the workspace for relevant code snippets  
+**When to Use**: When understanding what code in a directory does  
+**Example**: Finding main exports and patterns in a directory  
+**Tips**: Use to gather context before writing documentation
+
+### `read` (read_file)
+**Purpose**: Read contents of a specific file with line range  
+**When to Use**: When examining files to document their purpose and exports  
+**Example**: Reading `src/combat/combat.ts` to document its API  
+**Tips**: Focus on exports, interfaces, and public methods
+
+### `edit/createFile` (create_file)
 **Purpose**: Create a new file with specified content  
 **When to Use**: When creating new README.md or AGENTS.md files  
 **Example**: Creating `src/combat/README.md`  
-**Tips**: Follow templates exactly; create both README.md and AGENTS.md together
+**Tips**: Follow templates exactly; create both README.md and AGENTS.md together; automatically creates parent directories
 
-### `replace_string_in_file`
+### `edit/replaceInFile` (replace_string_in_file)
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When updating existing documentation  
 **Example**: Adding new file to Contents table in README.md  
 **Tips**: Include 3-5 lines of context around the replacement target; preserve existing content structure
+
+### `execute/runInTerminal` (run_in_terminal)
+**Purpose**: Run shell commands in terminal  
+**When to Use**: At the START of any documentation task to run the paired docs audit script
+
+**Commands**:
+```bash
+# Check ALL directories for missing README.md or AGENTS.md pairs
+./scripts/check-paired-docs.sh --all
+
+# Check only staged files (for pre-commit validation)
+./scripts/check-paired-docs.sh --staged
+```
+
+**Output Example**:
+```
+Scanning for README.md and AGENTS.md pairs...
+
+Missing AGENTS.md: ./src/
+   Has README.md but no AGENTS.md
+Missing README.md: ./src/newfeature/
+   Has AGENTS.md but no README.md
+
+Summary:
+  Valid pairs:      41
+  Missing AGENTS.md: 1
+  Missing README.md: 1
+```
+
+**Tips**: 
+- Run `--all` mode FIRST before any documentation work to get a complete picture
+- Use the output to create your todo list
+- Re-run after completing work to verify all pairs are complete
+
+### `execute/getTerminalOutput` (get_terminal_output)
+**Purpose**: Get output from a background terminal process  
+**When to Use**: When checking results of long-running commands  
+**Example**: Getting output from a watch process  
+**Tips**: Use the terminal ID returned by `runInTerminal` with `isBackground: true`
+
+### `todo` (manage_todo_list)
+**Purpose**: Manage and track todo items for task planning  
+**When to Use**: At the START of every documentation session to plan work  
+**Example**: Creating todos for each directory needing documentation  
+**Tips**: Mark ONE todo as in-progress at a time; mark completed IMMEDIATELY when done
 
 ---
 
@@ -148,7 +225,6 @@ This section documents each tool available to this agent and when to use it.
 **Purpose**: Help developers understand and navigate the directory
 
 **Characteristics**:
-- Maximum 50 lines
 - No code snippets
 - High-level explanations only
 - Focus on "what" and "why"
@@ -274,7 +350,15 @@ import { Thing } from './{filename}';
 
 ### Phase 1: Directory Audit
 
-Scan the project to identify documentation status:
+**Start by running the check-paired-docs script to identify gaps:**
+
+```bash
+./scripts/check-paired-docs.sh --all
+```
+
+This will output all directories with missing README.md or AGENTS.md files, giving you a complete picture before starting.
+
+Then create a structured audit report:
 
 ```markdown
 ## Documentation Audit Report
@@ -345,9 +429,8 @@ For AGENTS.md, determine:
 
 #### 3.1 Generate README.md
 Apply human documentation template:
-- Keep under 50 lines
 - No code snippets
-- Brief descriptions only
+- Clear, comprehensive descriptions
 - Include navigation links
 
 #### 3.2 Generate AGENTS.md
@@ -385,6 +468,24 @@ Apply LLM documentation template:
 - [ ] All subdirectories mentioned
 - [ ] Conventions explained
 - [ ] Gotchas documented
+
+#### 4.3 Final Verification
+
+**Re-run the check-paired-docs script to confirm all pairs are complete:**
+
+```bash
+./scripts/check-paired-docs.sh --all
+```
+
+Expected output for a complete documentation update:
+```
+Summary:
+  Valid pairs:      {N}
+  Missing AGENTS.md: 0
+  Missing README.md: 0
+```
+
+If any pairs are still missing, go back and create them before marking the task complete.
 
 ---
 
@@ -504,7 +605,6 @@ After PR merges:
 ## Quality Standards
 
 ### README.md Quality Gate
-- [ ] Under 50 lines
 - [ ] No code blocks
 - [ ] All links work
 - [ ] Covers all contents
@@ -526,8 +626,7 @@ After PR merges:
 
 ### README.md
 - ❌ Code snippets (reference files instead)
-- ❌ Implementation details
-- ❌ Over 50 lines
+- ❌ Excessive implementation details
 - ❌ Absolute paths
 - ❌ Stale file lists
 

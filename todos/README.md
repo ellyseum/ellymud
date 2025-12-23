@@ -1,21 +1,19 @@
-# Todos & Planning
+# Todos
 
-Development planning documents and feature tracking.
-
-## Contents
-
-| File | Description |
-|------|-------------|
-| `unimplemented_features.md` | Planned features |
-| `refactoring_roadmap.md` | Refactoring plans |
-| `agent-ecosystem-*.md` | Agent system analysis |
-| `prompt-*.md` | Agent prompts |
+Ephemeral scratch pad for developers and agents working on the codebase.
 
 ## Overview
 
-Planning documents for development. Review and update after each sprint or development cycle.
+This directory holds brainstorming sessions, planning notes, and working documents that are **not meant to be committed**. Each developer or agent may have different content in their local copy of this folder.
 
-## Related
+## Usage
 
-- [`../.github/agents/`](../.github/agents/) - Agent system
-- [`../CONTRIBUTING.md`](../CONTRIBUTING.md) - Contribution process
+Use this directory for:
+- Temporary planning documents
+- Research notes while investigating issues
+- Agent pipeline working files
+- Draft ideas before formalizing elsewhere
+
+## Note
+
+Contents of this directory are personal/local and should typically be in `.gitignore`. Do not rely on files here being present in other clones of the repository.

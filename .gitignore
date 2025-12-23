@@ -32,6 +32,9 @@ data/bug-reports.json
 memory.md
 last-session.md
 
+# Server PID file
+.server.pid
+
 # OS files
 .DS_Store
 .DS_Store?

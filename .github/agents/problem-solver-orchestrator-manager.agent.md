@@ -4,6 +4,22 @@ description: Master orchestration agent that manages the full development pipeli
 infer: false
 model: claude-4.5-opus
 argument-hint: Describe the problem, bug, or feature you want to implement
+tools:
+  # Search tools (for reviewing agent outputs)
+  - search/fileSearch        # file_search - find pipeline output files
+  - search/listDirectory     # list_dir - list agent output directories
+  # Read tools (for reviewing outputs and grades)
+  - read                     # read_file - read agent outputs and grade reports
+  # Edit tools (for creating metrics)
+  - edit/createFile          # create_file - create metrics files
+  - edit/replaceInFile       # replace_string_in_file - update metrics
+  # Execute tools (for git commands and PR creation)
+  - execute/runInTerminal    # run_in_terminal - git checkout, commit, push
+  - execute/getTerminalOutput # get_terminal_output - check command results
+  # Agent delegation (CORE FUNCTION)
+  - agent/runSubagent        # runSubagent - delegate to specialized agents
+  # Task tracking
+  - todo                     # manage_todo_list - track pipeline progress
 handoffs:
   - label: Start Research
     agent: research-agent
@@ -207,7 +223,61 @@ Keep users informed with standardized progress updates:
 
 ## Tool Reference
 
-The Problem Solver orchestrates other agents primarily through **handoffs**. This agent has minimal direct tool access by design—it delegates to specialized agents.
+The Problem Solver orchestrates other agents through **handoffs** but also needs direct tools for reviewing outputs, tracking progress, and managing metrics.
+
+### `search/fileSearch` (file_search)
+**Purpose**: Find pipeline output files by glob pattern  
+**When to Use**: When locating agent outputs across pipeline directories  
+**Example**: Finding `*-reviewed.md` or `*-grade.md` files  
+**Tips**: Use to find all outputs from a specific pipeline stage
+
+### `search/listDirectory` (list_dir)
+**Purpose**: List contents of agent output directories  
+**When to Use**: When inventorying outputs before review or handoff  
+**Example**: Listing `.github/agents/research/` to find latest outputs  
+**Tips**: Use to verify expected outputs exist before proceeding
+
+### `read` (read_file)
+**Purpose**: Read agent outputs and grade reports  
+**When to Use**: To review outputs before quality gates, extract grades from grade reports  
+**Example**: Reading `research_feature-reviewed.md` before planning handoff  
+**Tips**: Read `-reviewed.md` versions (condensed), read `-grade.md` for scores
+
+### `edit/createFile` (create_file)
+**Purpose**: Create pipeline metrics and tracking files  
+**When to Use**: When recording pipeline execution metrics  
+**Example**: Creating `.github/agents/metrics/executions/pipeline_2024-12-19_feature.json`  
+**Tips**: Use for metrics collection at pipeline end
+
+### `edit/replaceInFile` (replace_string_in_file)
+**Purpose**: Update existing metrics or tracking files  
+**When to Use**: When adding stage completion data to metrics  
+**Example**: Adding stage duration and grade to pipeline metrics  
+**Tips**: Include 3-5 lines of context around the replacement target
+
+### `execute/runInTerminal` (run_in_terminal)
+**Purpose**: Run git commands for branch management and PR creation  
+**When to Use**: Phase 0 (branch creation), Phase 10 (commit, push), checkpoint operations  
+**Example**: `git checkout -b feature/...`, `git add .`, `git commit`, `git push`  
+**Tips**: Don't run parallel git commands; always verify command success before proceeding
+
+### `execute/getTerminalOutput` (get_terminal_output)
+**Purpose**: Get output from terminal commands  
+**When to Use**: When checking git command results or verifying operations  
+**Example**: Checking if push succeeded, verifying branch status  
+**Tips**: Use the terminal ID returned by `runInTerminal` with `isBackground: true`
+
+### `agent/runSubagent` (runSubagent)
+**Purpose**: Delegate tasks to specialized agents in the pipeline  
+**When to Use**: For ALL pipeline phases - Research, Planning, Implementation, Validation, Post-Mortem, Documentation  
+**Example**: Invoking Research Agent with a detailed brief, then Planning Agent with research output  
+**Tips**: Provide explicit instructions (subagents don't inherit context); specify output location; request summary back
+
+### `todo` (manage_todo_list)
+**Purpose**: Track pipeline progress through all stages  
+**When to Use**: At START of every pipeline, update after each stage  
+**Example**: Creating todos for Research → Planning → Implementation → Validation  
+**Tips**: Mark ONE todo in-progress at a time; mark completed IMMEDIATELY when stage finishes
 
 ### Handoff: Research Agent
 **Purpose**: Investigate codebase and gather comprehensive information  
@@ -1655,7 +1725,7 @@ Do NOT run a full project audit.
 ### Documentation Requirements
 
 #### README.md (Human Documentation)
-- Brief, high-level (max 50 lines)
+- Human-readable overview
 - No code snippets
 - Update file/directory listings if contents changed
 - Focus on "what" and "why"
@@ -1686,7 +1756,6 @@ Invoke Documentation Updater Agent with the brief.
 #### 12.4 Process Documentation Output
 
 1. **Verify README.md Quality**
-   - Under 50 lines
    - No code blocks
    - Accurate file listings
    - Working relative links
@@ -1724,7 +1793,6 @@ Invoke Documentation Updater Agent with the brief.
 |-------|----------|------------------|
 | All affected directories have README.md | Yes | Create missing files |
 | All affected directories have AGENTS.md | Yes | Create missing files |
-| README.md under 50 lines each | Yes | Trim excess content |
 | AGENTS.md has code examples | Recommended | Accept, note for improvement |
 | All links working | Yes | Fix broken links |
 

@@ -2,6 +2,69 @@
 
 > **This is the single source of truth** for core conventions and navigation to detailed context.
 
+## ⚠️ CRITICAL: Paired Documentation Rule
+
+**STOP! Before editing ANY `README.md` or `AGENTS.md` file:**
+
+README.md and AGENTS.md in the same directory **MUST be updated together**.
+
+```
+✅ CORRECT: Edit both make/README.md AND make/AGENTS.md
+❌ WRONG:   Edit only make/AGENTS.md (forgetting README.md)
+```
+
+| When you edit... | You MUST also edit... |
+|------------------|----------------------|
+| `foo/README.md` | `foo/AGENTS.md` |
+| `foo/AGENTS.md` | `foo/README.md` |
+
+This rule exists because:
+- README.md = for humans (brief, no code)
+- AGENTS.md = for LLMs (detailed, with code)
+- Both must stay synchronized
+
+**A pre-commit hook will warn you, but YOU must remember this rule.**
+
+---
+
+## ⚠️ CRITICAL: Terminal Command Best Practices
+
+**STOP re-running commands blindly!** Always check output before retrying.
+
+### After Running a Terminal Command
+
+1. **Check the output first** using `execute/terminalLastCommand` (`terminal_last_command`) tool
+2. **Read the exit code** - 0 means success, non-zero means error
+3. **Only re-run if** there was an actual error that needs retry
+
+```
+✅ CORRECT workflow:
+   1. execute/runInTerminal (run_in_terminal) → command executes
+   2. execute/terminalLastCommand (terminal_last_command) → read the output
+   3. Analyze results → decide next action
+
+❌ WRONG workflow:
+   1. execute/runInTerminal (run_in_terminal) → command executes
+   2. execute/runInTerminal (run_in_terminal) → same command again
+   3. execute/runInTerminal (run_in_terminal) → same command again (spamming!)
+```
+
+### Available Tools for Terminal Output
+
+| Tool Alias | Actual Tool | When to Use |
+|------------|-------------|-------------|
+| `execute/terminalLastCommand` | `terminal_last_command` | Get output, exit code, and directory of last command |
+| `execute/getTerminalOutput` | `get_terminal_output` | Get output from a specific terminal by ID |
+
+### Common Mistakes to Avoid
+
+- ❌ Re-running commands without checking if they succeeded
+- ❌ Assuming a command failed because output wasn't immediately visible
+- ❌ Running multiple terminal commands in rapid succession without reading results
+- ✅ Slow down, check output, then decide next action
+
+---
+
 ## Project Overview
 
 EllyMUD is a Node.js/TypeScript Multi-User Dungeon (MUD) supporting Telnet (port 8023) and WebSocket (port 8080) connections. An MCP server runs on port 3100 for AI integration.
@@ -23,6 +86,21 @@ GameServer (src/app.ts)
 
 ## Quick Start
 
+### Fresh System Bootstrap
+```bash
+./scripts/bootstrap.sh     # Full setup from scratch
+make help                  # Show all available commands
+```
+
+### Daily Development
+```bash
+make dev                   # Start dev server with hot reload
+make build                 # Compile TypeScript
+make test                  # Run tests
+make agent-test            # Run agent tests
+```
+
+### Using npm directly
 ```bash
 npm start                          # Standard start
 npm start -- -a                    # Admin auto-login
@@ -135,22 +213,10 @@ getPlayerLogger(username).info('Player action');
 
 ### Documentation Standards
 
-- `README.md`: Max 50 lines, no code, for humans
+- `README.md`: Human-readable overview, no code blocks, clear and concise
 - `AGENTS.md`: Comprehensive with code examples, for LLMs
 
-### Paired Documentation Rule (CRITICAL)
-
-**README.md and AGENTS.md MUST be updated together.**
-
-When editing either file in a directory:
-1. ✅ Edit BOTH `README.md` and `AGENTS.md` in the same commit
-2. ✅ Keep content synchronized (same features, same structure)
-3. ❌ NEVER edit one without checking if the other needs updates
-
-| File | Audience | Content |
-|------|----------|---------|
-| `README.md` | Humans | Brief, no code, quick reference |
-| `AGENTS.md` | LLMs/Agents | Detailed, code examples, full context |
+See **"CRITICAL: Paired Documentation Rule"** at the top of this file.
 
 ---
 

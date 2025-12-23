@@ -1,0 +1,5 @@
+# Check paired documentation (README.md + AGENTS.md)
+./scripts/check-paired-docs.sh --staged
+
+# Run lint-staged
+npx lint-staged

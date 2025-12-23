@@ -6,18 +6,48 @@ The command parsing and execution system for EllyMUD. All player actions are pro
 
 | Path | Description |
 |------|-------------|
-| `commandHandler.ts` | Main command processor and input router |
+| `commandHandler.ts` | Main processor that routes input to commands |
 | `commandRegistry.ts` | Singleton registry of all available commands |
-| `command.interface.ts` | Command interface definition |
-| `baseCommand.ts` | Base class for command implementations |
+| `command.interface.ts` | Interface that all commands must implement |
+| `baseCommand.ts` | Base class providing common command functionality |
 | `commands/` | Individual command implementations (40+ commands) |
 
-## Overview
+## How Commands Work
 
-Commands are text-based actions players type to interact with the game. The system uses a registry pattern where all commands are registered on startup, then matched and executed when players type input.
+1. **Registration**: On startup, all commands register with `CommandRegistry`
+2. **Input**: Player types text (e.g., "look north")
+3. **Parsing**: `CommandHandler` parses input into command and arguments
+4. **Matching**: Registry finds command by name or alias
+5. **Execution**: Command's `execute()` method is called
+6. **Output**: Command sends response via `socketWriter` utilities
+
+## Command Structure
+
+Each command implements:
+- `name` - Primary command name
+- `aliases` - Alternative names (e.g., 'l' for 'look')
+- `description` - Help text
+- `usage` - Syntax example
+- `execute(client, args)` - Main logic
+
+## Adding New Commands
+
+1. Create file in `commands/` directory
+2. Extend `BaseCommand` or implement `Command` interface
+3. Import and register in `commandRegistry.ts`
+4. Update `docs/commands.md` with documentation
+
+## Command Categories
+
+- **Navigation**: look, move, north/south/east/west
+- **Combat**: attack, flee, defend
+- **Communication**: say, yell, whisper, tell
+- **Inventory**: inventory, get, drop, equip, unequip
+- **Character**: stats, score, level
+- **Admin**: teleport, spawn, kick, ban
 
 ## Related
 
-- [`../states/`](../states/) - State machine that routes input to commands
-- [`../combat/`](../combat/) - Combat commands interact with combat system
-- [`../room/`](../room/) - Movement and look commands use room manager
+- [src/states/](../states/) - State machine routes input to commands
+- [docs/commands.md](../../docs/commands.md) - User-facing command documentation
+- [commands/](./commands/) - Individual command implementations

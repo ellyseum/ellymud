@@ -1,51 +1,35 @@
-# Todos & Planning - LLM Context
+# Todos Directory - LLM Context
+
+> **For LLMs**: This file provides context for the todos scratch pad.
+> **For humans**: See [README.md](README.md) for a brief overview.
 
 ## Overview
 
-Development planning documents. Contains feature roadmaps, refactoring plans, and agent system analysis.
+This is an **ephemeral scratch pad** for developers and agents working on the codebase. Contents are temporary, local, and **not meant to be committed** to version control.
 
-## File Reference
+## Purpose
 
-### `unimplemented_features.md`
-
-**Purpose**: Planned features not yet implemented
-
-Review this file to understand what features are planned. Update as features are completed or new ones identified.
-
-### `refactoring_roadmap.md`
-
-**Purpose**: Code refactoring plans
-
-Technical debt and architecture improvements. Prioritized by impact and complexity.
-
-### `agent-ecosystem-*.md`
-
-**Purpose**: Analysis of the agent system
-
-Evaluations and recommendations for the AI agent ecosystem.
-
-### `prompt-*.md`
-
-**Purpose**: Agent prompt templates
-
-Prompts for specialized agents.
+Use this directory for:
+- Brainstorming sessions and rough notes
+- Planning data while working on tasks
+- Agent pipeline working files and drafts
+- Temporary research before formalizing elsewhere
 
 ## Conventions
 
-### Updating Todos
+### For Agents
+- Feel free to create working files here during tasks
+- Do not assume any specific files exist—each clone may differ
+- Clean up files when work is complete
+- Do not reference files in this directory from permanent documentation
 
-After completing a feature:
-1. Mark as completed in `unimplemented_features.md`
-2. Update recommendation section
-3. Re-prioritize remaining features
+### For Developers  
+- Use for personal notes and scratch work
+- Contents are not shared across team members
+- Consider adding `todos/` to `.gitignore` if not already present
 
-### Adding New Features
+## Gotchas & Warnings
 
-1. Add to `unimplemented_features.md`
-2. Estimate complexity and impact
-3. Position in priority order
-
-## Related Context
-
-- [`../.github/agents/`](../.github/agents/) - Agent definitions
-- [`../CONTRIBUTING.md`](../CONTRIBUTING.md) - Contribution guidelines
+- ⚠️ **Not Persistent**: Files here may be deleted or differ between clones
+- ⚠️ **Not Tracked**: Do not rely on these files being in version control
+- ⚠️ **Personal Space**: Each developer/agent has their own contents

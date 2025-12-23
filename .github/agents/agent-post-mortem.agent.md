@@ -5,12 +5,18 @@ infer: true
 model: gemini-2.5-pro
 argument-hint: Provide the task name or 'latest' to analyze most recent pipeline
 tools:
-  - search
-  - read_file
-  - list_dir
-  - file_search
-  - create_file
-  - replace_string_in_file
+  # Search tools
+  - search/codebase          # semantic_search - semantic code search
+  - search/textSearch        # grep_search - fast text/regex search
+  - search/fileSearch        # file_search - find files by glob
+  - search/listDirectory     # list_dir - list directory contents
+  # Read tools
+  - read                     # read_file - read file contents
+  # Edit tools (for creating post-mortem reports)
+  - edit/createFile          # create_file - create new files
+  - edit/replaceInFile       # replace_string_in_file - edit files
+  # Task tracking
+  - todo                     # manage_todo_list - track analysis progress
 handoffs:
   - label: Update Docs
     agent: documentation-updater
@@ -102,41 +108,53 @@ Every finding must have a concrete action item. "Could be better" is not actiona
 
 This section documents each tool available to this agent and when to use it.
 
-### `search`
+### `search/codebase` (semantic_search)
 **Purpose**: Semantic search across the workspace for relevant code snippets  
 **When to Use**: When searching for related patterns across agent files  
 **Example**: Finding similar issues across multiple agent definitions  
 **Tips**: Use to identify consistent patterns or inconsistencies
 
-### `read_file`
-**Purpose**: Read contents of a specific file with line range  
-**When to Use**: To load pipeline outputs (research, planning, implementation docs)  
-**Example**: Reading `.github/agents/research/research_combat-reviewed.md`  
-**Tips**: Read complete documents to understand full context
+### `search/textSearch` (grep_search)
+**Purpose**: Fast text search in workspace with exact string or regex  
+**When to Use**: When searching for patterns across pipeline outputs (recurring issues, common phrases)  
+**Example**: Finding all occurrences of `BLOCKED` across implementation reports  
+**Tips**: Use regex with alternation (`error|fail|blocked`) to find multiple issue types at once
 
-### `list_dir`
-**Purpose**: List contents of a directory  
-**When to Use**: When finding all outputs from a pipeline run  
-**Example**: Listing `.github/agents/research/`, `.github/agents/planning/`  
-**Tips**: Use to inventory all documents to analyze
-
-### `file_search`
+### `search/fileSearch` (file_search)
 **Purpose**: Find files by glob pattern  
 **When to Use**: When finding all related documents across directories  
 **Example**: Finding all `*-reviewed.md` files  
 **Tips**: Use to ensure no pipeline outputs are missed
 
-### `create_file`
+### `search/listDirectory` (list_dir)
+**Purpose**: List contents of a directory  
+**When to Use**: When finding all outputs from a pipeline run  
+**Example**: Listing `.github/agents/research/`, `.github/agents/planning/`  
+**Tips**: Use to inventory all documents to analyze
+
+### `read` (read_file)
+**Purpose**: Read contents of a specific file with line range  
+**When to Use**: To load pipeline outputs (research, planning, implementation docs)  
+**Example**: Reading `.github/agents/research/research_combat-reviewed.md`  
+**Tips**: Read complete documents to understand full context
+
+### `edit/createFile` (create_file)
 **Purpose**: Create a new file with specified content  
 **When to Use**: When creating post-mortem report and suggestions  
 **Example**: Creating `.github/agents/suggestions/post-mortem-2024-12-19.md`  
 **Tips**: Use for post-mortem output and recommended agent updates
 
-### `replace_string_in_file`
+### `edit/replaceInFile` (replace_string_in_file)
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When updating agent definitions with improvements  
 **Example**: Adding new examples or fixing issues in agent files  
 **Tips**: Include 3-5 lines of context; test changes don't break agent functionality
+
+### `todo` (manage_todo_list)
+**Purpose**: Track post-mortem analysis progress through pipeline stages  
+**When to Use**: At START of every post-mortem analysis, update after each stage  
+**Example**: Creating todos for each pipeline stage analysis + recommendations  
+**Tips**: Mark ONE todo in-progress at a time; additional todos can be added as patterns emerge
 
 ---
 

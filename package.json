@@ -1,22 +1,44 @@
 {
-  "name": "lemud",
+  "name": "ellymud",
   "version": "1.0.0",
   "description": "Elly Mud / LLM Engineered Multi User Dungeon",
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc --build --verbose",
-    "start": "tsc --sourceMap && node --enable-source-maps dist/server.js",
-    "start:admin": "tsc --sourceMap && node --enable-source-maps dist/server.js -af",
-    "start:user": "tsc --sourceMap && node --enable-source-maps dist/server.js -u",
+    "build-watch": "tsc --build --watch",
+    "clean": "rm -rf dist",
+    "clean-all": "rm -rf dist node_modules",
+    "prebuild": "npm run clean",
+    "start": "node --enable-source-maps dist/server.js",
+    "prestart": "npm run build",
+    "start-admin": "npm run build && node --enable-source-maps dist/server.js -af",
+    "start-user": "npm run build && node --enable-source-maps dist/server.js -u",
+    "prod": "npm run build && NODE_ENV=production node --enable-source-maps dist/server.js",
     "dev": "ts-node-dev --transpile-only --respawn src/server.ts",
-    "watch": "ts-node-dev --transpile-only --respawn --watch src src/server.ts",
-    "watch:admin": "ts-node-dev --transpile-only --respawn --watch src src/server.ts -- -af",
-    "watch:user": "ts-node-dev --transpile-only --respawn --watch src src/server.ts -- -u",
+    "dev-admin": "ts-node-dev --transpile-only --respawn src/server.ts -- -af",
+    "dev-user": "ts-node-dev --transpile-only --respawn src/server.ts -- -u",
+    "watch": "tsc --watch",
     "validate": "ts-node-dev --transpile-only src/utils/validateFiles.ts",
-    "test:agents": ".github/agents/agent-tests/run-tests.sh",
-    "test:agents:dry": ".github/agents/agent-tests/run-tests.sh --dry-run",
-    "test:agents:list": ".github/agents/agent-tests/run-tests.sh --show-tests",
-    "test:agents:validate": ".github/agents/agent-tests/run-tests.sh --validate"
+    "typecheck": "tsc --noEmit",
+    "test": "npm run typecheck && npm run validate",
+    "test-agents": ".github/agents/agent-tests/run-tests.sh",
+    "test-agents-dry": ".github/agents/agent-tests/run-tests.sh --dry-run",
+    "test-agents-list": ".github/agents/agent-tests/run-tests.sh --show-tests",
+    "test-agents-validate": ".github/agents/agent-tests/run-tests.sh --validate",
+    "lint": "eslint 'src/**/*.ts' --max-warnings 0",
+    "lint-fix": "eslint 'src/**/*.ts' --fix",
+    "check-paired-docs": "./scripts/check-paired-docs.sh --all",
+    "check-paired-docs-staged": "./scripts/check-paired-docs.sh --staged",
+    "format": "prettier --write 'src/**/*.ts'",
+    "format-check": "prettier --check 'src/**/*.ts'",
+    "ci": "npm run lint && npm run typecheck && npm run validate && npm run build",
+    "outdated": "npm outdated",
+    "deps-check": "npx depcheck",
+    "version-patch": "npm version patch",
+    "version-minor": "npm version minor",
+    "version-major": "npm version major",
+    "release": "npm run ci && npm version patch && git push --follow-tags",
+    "prepare": "husky"
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",
@@ -50,7 +72,22 @@
     "@types/uuid": "^9.0.1",
     "@types/ws": "^8.5.4",
     "@types/yargs": "^17.0.33",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.2.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --max-warnings 0",
+      "prettier --check"
+    ],
+    "data/*.json": [
+      "prettier --check"
+    ]
   }
 }

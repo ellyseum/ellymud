@@ -5,14 +5,18 @@ infer: true
 model: claude-4.5-opus
 argument-hint: Provide the research document path or describe the task to plan
 tools:
-  - search
-  - read_file
-  - grep_search
-  - semantic_search
-  - file_search
-  - list_dir
-  - create_file
-  - replace_string_in_file
+  # Search tools
+  - search/codebase          # semantic_search - semantic code search
+  - search/textSearch        # grep_search - fast text/regex search
+  - search/fileSearch        # file_search - find files by glob
+  - search/listDirectory     # list_dir - list directory contents
+  # Read tools
+  - read                     # read_file - read file contents
+  # Edit tools (for creating plans)
+  - edit/createFile          # create_file - create new files
+  - edit/replaceInFile       # replace_string_in_file - edit files
+  # Task tracking
+  - todo                     # manage_todo_list - track planning progress
 handoffs:
   - label: Review Plan
     agent: output-review
@@ -131,53 +135,53 @@ Identify potential failure points for every task. Plan rollback strategies. Sequ
 
 This section documents each tool available to this agent and when to use it.
 
-### `search`
+### `search/codebase` (semantic_search)
 **Purpose**: Semantic search across the workspace for relevant code snippets  
-**When to Use**: When verifying research findings or checking existing implementations  
+**When to Use**: When verifying research findings or exploring related areas not covered in research  
 **Example**: Confirming patterns described in research document exist  
-**Tips**: Use to validate research claims before basing decisions on them
+**Tips**: Use to validate research claims before basing decisions on them; use sparingly—prefer targeted textSearch when you know what to look for
 
-### `read_file`
-**Purpose**: Read contents of a specific file with line range  
-**When to Use**: When examining files referenced in research or verifying code structure  
-**Example**: Reading exact implementation to plan precise modifications  
-**Tips**: Read complete functions/classes to understand full context for planning
-
-### `grep_search`
+### `search/textSearch` (grep_search)
 **Purpose**: Fast text/regex search across files  
 **When to Use**: When finding all occurrences of patterns that need modification  
 **Example**: Finding all files that import a module being changed  
 **Tips**: Essential for impact analysis—find everything that might be affected
 
-### `semantic_search`
-**Purpose**: AI-powered semantic search for concepts and related code  
-**When to Use**: When exploring related areas not covered in research  
-**Example**: Finding similar patterns that should be consistent with new code  
-**Tips**: Use sparingly—prefer targeted grep_search when you know what to look for
-
-### `file_search`
+### `search/fileSearch` (file_search)
 **Purpose**: Find files by glob pattern  
 **When to Use**: When mapping all files that match a pattern for bulk operations  
 **Example**: Finding all command files to understand registration pattern  
 **Tips**: Use to verify scope of planned changes
 
-### `list_dir`
+### `search/listDirectory` (list_dir)
 **Purpose**: List contents of a directory  
 **When to Use**: When planning file placement or understanding existing structure  
 **Example**: Listing `src/command/commands/` before planning new command location  
 **Tips**: Verify planned file paths exist and follow project conventions
 
-### `create_file`
+### `read` (read_file)
+**Purpose**: Read contents of a specific file with line range  
+**When to Use**: When examining files referenced in research or verifying code structure  
+**Example**: Reading exact implementation to plan precise modifications  
+**Tips**: Read complete functions/classes to understand full context for planning
+
+### `edit/createFile` (create_file)
 **Purpose**: Create a new file with specified content  
 **When to Use**: When creating the implementation plan document  
 **Example**: Creating `.github/agents/planning/plan_20241219_combat_feature.md`  
 **Tips**: Only use for creating planning output documents, not for code
 
-### `replace_string_in_file`
+### `edit/replaceInFile` (replace_string_in_file)
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When updating existing plan documents with additional details  
 **Example**: Adding task specifications to an in-progress plan  
 **Tips**: Include 3-5 lines of context around the replacement target
+
+### `todo` (manage_todo_list)
+**Purpose**: Track planning progress through design phases  
+**When to Use**: At START of every planning session, update after each phase  
+**Example**: Creating todos for architecture design, task breakdown, verification criteria  
+**Tips**: Mark ONE todo in-progress at a time; keep todos aligned with planning phases
 
 ---
 

@@ -5,11 +5,17 @@ infer: true
 model: claude-4.5-opus
 argument-hint: Provide the document path to review and grade
 tools:
-  - read_file
-  - create_file
-  - replace_string_in_file
-  - file_search
-  - list_dir
+  # Read tools
+  - read                     # read_file - read file contents
+  # Search tools
+  - search/textSearch        # grep_search - fast text/regex search
+  - search/fileSearch        # file_search - find files by glob
+  - search/listDirectory     # list_dir - list directory contents
+  # Edit tools (for creating review reports)
+  - edit/createFile          # create_file - create new files
+  - edit/replaceInFile       # replace_string_in_file - edit files
+  # Task tracking
+  - todo                     # manage_todo_list - track review progress
 ---
 
 # Output Review Agent - EllyMUD
@@ -178,23 +184,47 @@ Never alter factual findings. Remove speculation and reasoning artifacts. Conver
 
 This section documents each tool available to this agent and when to use it.
 
-### `read_file`
+### `read` (read_file)
 **Purpose**: Read contents of a specific file with line range  
 **When to Use**: To load the document being reviewed  
 **Example**: Reading `.github/agents/research/research_combat_system.md`  
 **Tips**: Read entire document first to assess scope; read in large chunks
 
-### `create_file`
+### `search/textSearch` (grep_search)
+**Purpose**: Fast text search in workspace with exact string or regex  
+**When to Use**: When searching for patterns, quality issues, or specific phrases in documents  
+**Example**: Finding all `[UNVERIFIED]` tags in a research document  
+**Tips**: Use regex to find anti-patterns like speculation words ("might", "probably", "could be")
+
+### `search/fileSearch` (file_search)
+**Purpose**: Find files by glob pattern  
+**When to Use**: When finding related documents or reviewing multiple outputs  
+**Example**: Finding all `*-reviewed.md` files  
+**Tips**: Use to ensure no documents are missed during batch reviews
+
+### `search/listDirectory` (list_dir)
+**Purpose**: List contents of a directory  
+**When to Use**: When finding all outputs from a pipeline run to review  
+**Example**: Listing `.github/agents/research/` to find documents needing review  
+**Tips**: Use to inventory all documents to review
+
+### `edit/createFile` (create_file)
 **Purpose**: Create a new file with specified content  
 **When to Use**: When creating the reviewed version of the document  
 **Example**: Creating `.github/agents/research/research_combat_system-reviewed.md`  
 **Tips**: Use `-reviewed` suffix; preserve original document untouched
 
-### `replace_string_in_file`
+### `edit/replaceInFile` (replace_string_in_file)
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When iteratively improving the reviewed document  
 **Example**: Fixing a section that needs further refinement  
 **Tips**: Include 3-5 lines of context around the replacement target; useful for iterative improvements
+
+### `todo` (manage_todo_list)
+**Purpose**: Track review progress through document sections  
+**When to Use**: At START of every review session, update after each phase  
+**Example**: Creating todos for structure assessment, grading, rewriting, output generation  
+**Tips**: Mark ONE todo in-progress at a time; document findings as you go
 
 ---
 

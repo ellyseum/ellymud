@@ -5,10 +5,19 @@ infer: true
 model: claude-4.5-opus
 argument-hint: "Operation: CREATE, LIST, ROLLBACK, or EMERGENCY_ROLLBACK"
 tools:
-  - run_in_terminal
-  - get_changed_files
-  - create_file
-  - replace_string_in_file
+  # Execute tools (for git commands)
+  - execute/runInTerminal    # run_in_terminal - run shell commands
+  - execute/getTerminalOutput # get_terminal_output - get command output
+  # Search tools
+  - search/changes           # get_changed_files - get git diffs
+  - search/listDirectory     # list_dir - list directory contents
+  # Read tools
+  - read                     # read_file - read file contents
+  # Edit tools (for creating checkpoint logs)
+  - edit/createFile          # create_file - create new files
+  - edit/replaceInFile       # replace_string_in_file - edit files
+  # Task tracking
+  - todo                     # manage_todo_list - track rollback progress
 handoffs:
   - label: Resume Planning
     agent: planning-agent
@@ -80,29 +89,53 @@ The Rollback Agent provides safety checkpoints and recovery mechanisms for the m
 
 This section documents each tool available to this agent and when to use it.
 
-### `run_in_terminal`
+### `execute/runInTerminal` (run_in_terminal)
 **Purpose**: Execute shell commands in terminal (primarily git commands)  
 **When to Use**: For ALL git operations—stash, checkout, diff, status  
 **Example**: `git stash push -m "checkpoint-name"`, `git stash pop`  
 **Tips**: Never run parallel git commands; always wait for completion; capture output for verification
 
-### `get_changed_files`
+### `execute/getTerminalOutput` (get_terminal_output)
+**Purpose**: Get output from a background terminal process  
+**When to Use**: When checking results of long-running git operations  
+**Example**: Getting output from a large diff operation  
+**Tips**: Use the terminal ID returned by `runInTerminal` with `isBackground: true`
+
+### `search/changes` (get_changed_files)
 **Purpose**: Get git diffs of current file changes  
 **When to Use**: To preview what will be rolled back before executing  
 **Example**: Getting list of staged, unstaged, or all changed files  
 **Tips**: Use to show user exactly what they're about to lose; ALWAYS preview before destructive rollback
 
-### `create_file`
+### `search/listDirectory` (list_dir)
+**Purpose**: List contents of a directory  
+**When to Use**: To see what files exist in checkpoint directories or verify directory state  
+**Example**: Listing `.github/rollback/` to see all checkpoint logs  
+**Tips**: Use to inventory checkpoint history and verify rollback targets exist
+
+### `read` (read_file)
+**Purpose**: Read contents of a specific file  
+**When to Use**: To verify checkpoint contents, read rollback logs, or inspect specific files before/after rollback  
+**Example**: Reading a file to confirm its state matches expectations  
+**Tips**: Read before and after rollback to verify correct restoration
+
+### `edit/createFile` (create_file)
 **Purpose**: Create a new file with specified content  
 **When to Use**: When creating checkpoint logs or rollback reports  
 **Example**: Creating `.github/rollback/checkpoint_log.md`  
 **Tips**: Use to document checkpoint history for the session
 
-### `replace_string_in_file`
+### `edit/replaceInFile` (replace_string_in_file)
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When updating checkpoint log with new entries  
 **Example**: Adding new checkpoint entry to log file  
 **Tips**: Include 3-5 lines of context around the replacement target
+
+### `todo` (manage_todo_list)
+**Purpose**: Track rollback/recovery progress through operations  
+**When to Use**: At START of any multi-step recovery operation  
+**Example**: Creating todos for status check, preview, rollback, verify  
+**Tips**: Mark ONE todo in-progress at a time; ALWAYS verify success before marking complete
 
 ---
 
