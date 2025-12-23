@@ -34,6 +34,7 @@ POST /api/admin/ban/:user    // Ban user
 GET  /api/admin/config       // Game config
 POST /api/admin/config       // Update config
 GET  /api/admin/bugs         // Bug reports
+GET  /api/admin/pipeline-metrics  // Agent pipeline metrics
 ```
 
 ### `mock-api/`

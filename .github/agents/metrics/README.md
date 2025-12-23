@@ -46,6 +46,16 @@ Pipeline metrics provide visibility into:
 
 Each agent has its own stats template inlined in its `.agent.md` file.
 
+## Pipeline Aggregation
+
+The Problem Solver aggregates individual stats files into a single metrics JSON:
+
+1. Read all stats files from `metrics/stats/` for the current pipeline
+2. Extract durations, token usage, tool calls from each
+3. Sum totals across all stages
+4. Include grade reports and output file references
+5. Create `executions/pipeline_*.json`
+
 ## File Naming Convention
 
 ```
@@ -54,15 +64,18 @@ pipeline_{YYYY-MM-DD}_{task-slug}.json
 
 Example: `pipeline_2025-12-21_npc-dialogue-trees.json`
 
-## Creating Metrics Records
+## Key Schema Fields
 
-After each pipeline execution, create a metrics file:
+### Stage Metrics
+Each stage includes: duration, grade, score, verdict, retries, tokensUsed, statsFile path
 
-1. Copy the schema structure from `pipeline-metrics-schema.json`
-2. Fill in execution data
-3. Save to `executions/` directory
+### Output Files
+Each stage tracks: original output, reviewed version, grade report, summary, change suggestions
 
-### Sample Metrics Record
+### Aggregated Metrics
+Totals from all stats files: tool calls, files processed, token breakdown, quality scores
+
+## Sample Metrics Record
 
 ```json
 {
@@ -72,15 +85,28 @@ After each pipeline execution, create a metrics file:
   "branch": "feature/npc-dialogue",
   "complexity": "Medium",
   "stages": {
-    "research": { "duration": 15, "grade": "A", "retries": 0 },
-    "planning": { "duration": 10, "grade": "A-", "retries": 0 },
-    "implementation": { "duration": 35, "grade": "B+", "retries": 1 },
-    "validation": { "duration": 12, "grade": "A", "retries": 0 }
+    "research": { 
+      "duration": 15, 
+      "grade": "A", 
+      "score": 92,
+      "verdict": "PASS",
+      "retries": 0,
+      "statsFile": ".github/agents/metrics/stats/research_2025-12-21_npc-dialogue-stats.md"
+    }
+  },
+  "outputs": {
+    "research": {
+      "original": ".github/agents/research/research_npc-dialogue.md",
+      "reviewed": ".github/agents/research/research_npc-dialogue-reviewed.md",
+      "gradeReport": ".github/agents/research/research_npc-dialogue-grade.md"
+    }
+  },
+  "aggregatedFromStats": {
+    "totalToolCalls": 145,
+    "tokenBreakdown": { "research": 15000, "planning": 8000 }
   },
   "totalDuration": 72,
-  "outcome": "success",
-  "tokensEstimate": 45000,
-  "notes": "Implementation needed one retry due to missing error handling"
+  "outcome": "success"
 }
 ```
 
@@ -111,6 +137,9 @@ cat executions/*.json | jq -s 'map(.totalDuration) | add / length'
 
 # Count outcomes
 cat executions/*.json | jq -s 'group_by(.outcome) | map({outcome: .[0].outcome, count: length})'
+
+# Total tokens per stage
+cat executions/*.json | jq -s '[.[] | .aggregatedFromStats.tokenBreakdown] | add'
 ```
 
 ## Integration with Post-Mortem Agent

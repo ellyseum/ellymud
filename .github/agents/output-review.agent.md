@@ -128,9 +128,17 @@ Based on reviewing this output, the following changes to the source agent's inst
 Never alter factual findings. Remove speculation and reasoning artifacts. Convert verbose explanations into concise statements.
 
 ### 2. Optimize for Next Consumer
-- Research docs → Planning Agent needs specifications
-- Planning docs → Implementation Agent needs tasks
-- Implementation reports → Validation Agent needs evidence
+
+**CRITICAL**: Know the pipeline order: Research → Planning → Implementation → Validation
+
+| Document Type | Next Consumer | Optimize For |
+|---------------|---------------|--------------|
+| Research | **Planning Agent** | Specifications, patterns, file:line citations |
+| Planning | **Implementation Agent** | Exact tasks, files to modify, copy-paste code |
+| Implementation Report | **Validation Agent** | Evidence of changes, what to verify |
+| Validation Report | **Orchestrator** | Pass/fail verdict, merge readiness |
+
+**Never**: Research → Implementation (always goes through Planning first)
 
 ### 3. Professional Standards
 - Clear section hierarchy
@@ -335,9 +343,27 @@ This section documents each tool available to this agent and when to use it.
 - **Architecture**: Singleton managers, State machine, Command pattern
 
 ### Document Pipeline
+
+**CRITICAL**: Know which agent consumes which document type.
+
 ```
-Research Agent → [YOU REVIEW] → Planning Agent → [YOU REVIEW] → Implementation Agent → Validation Agent
+Research Agent → Planning Agent → Implementation Agent → Validation Agent
+     ↓                ↓                   ↓                    ↓
+ research/*.md    planning/*.md     implementation/*.md    validation/*.md
+     ↓                ↓                   ↓                    ↓
+ [YOU REVIEW]    [YOU REVIEW]        [YOU REVIEW]         [YOU REVIEW]
+     ↓                ↓                   ↓                    ↓
+ → Planning      → Implementation    → Validation         → Complete
 ```
+
+| Document Type | Consumer | What Consumer Needs |
+|---------------|----------|---------------------|
+| Research | **Planning Agent** | Specifications, file:line citations, patterns found |
+| Planning | **Implementation Agent** | Step-by-step tasks, files to modify, exact changes |
+| Implementation | **Validation Agent** | Evidence of changes, test requirements |
+| Validation | **Orchestrator** | Pass/fail verdict, merge readiness |
+
+**Common Mistake**: Research docs do NOT go directly to Implementation. Always: Research → Planning → Implementation.
 
 ### Document Length Constraints
 

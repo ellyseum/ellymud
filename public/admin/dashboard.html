@@ -37,6 +37,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#" data-tab-target="#config-tab" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Configure game settings">Config</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab-target="#pipeline-tab" data-bs-toggle="tooltip" data-bs-placement="bottom" title="View agent pipeline metrics">Pipeline</a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
@@ -392,6 +395,126 @@
                                     </div>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pipeline Metrics Tab -->
+        <div class="tab-pane fade" id="pipeline-tab">
+            <div class="row">
+                <div class="col-md-12 mb-4">
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-diagram-3 me-2"></i>
+                                <h5 class="mb-0">Agent Pipeline Metrics</h5>
+                            </div>
+                            <button class="btn btn-sm btn-primary" id="refresh-pipeline-metrics" data-bs-toggle="tooltip" data-bs-placement="top" title="Refresh metrics">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <!-- Summary Cards -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card bg-secondary text-white">
+                                        <div class="card-body text-center">
+                                            <h3 id="pipeline-total" class="mb-0">0</h3>
+                                            <small>Total Executions</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body text-center">
+                                            <h3 id="pipeline-success" class="mb-0">0</h3>
+                                            <small>Successful</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-danger text-white">
+                                        <div class="card-body text-center">
+                                            <h3 id="pipeline-failed" class="mb-0">0</h3>
+                                            <small>Failed</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-info text-white">
+                                        <div class="card-body text-center">
+                                            <h3 id="pipeline-success-rate" class="mb-0">0%</h3>
+                                            <small>Success Rate</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stage Performance -->
+                            <h6 class="text-light border-bottom border-secondary pb-2 mb-3">Stage Performance</h6>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Stage</th>
+                                            <th>Avg Duration</th>
+                                            <th>Avg Grade</th>
+                                            <th>Failure Rate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stage-performance-body">
+                                        <tr>
+                                            <td>Research</td>
+                                            <td id="research-avg-duration">-</td>
+                                            <td id="research-avg-grade">-</td>
+                                            <td id="research-failure-rate">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Planning</td>
+                                            <td id="planning-avg-duration">-</td>
+                                            <td id="planning-avg-grade">-</td>
+                                            <td id="planning-failure-rate">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Implementation</td>
+                                            <td id="implementation-avg-duration">-</td>
+                                            <td id="implementation-avg-grade">-</td>
+                                            <td id="implementation-failure-rate">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Validation</td>
+                                            <td id="validation-avg-duration">-</td>
+                                            <td id="validation-avg-grade">-</td>
+                                            <td id="validation-failure-rate">-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Recent Executions -->
+                            <h6 class="text-light border-bottom border-secondary pb-2 mb-3">Recent Executions</h6>
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Pipeline ID</th>
+                                            <th>Task</th>
+                                            <th>Date</th>
+                                            <th>Complexity</th>
+                                            <th>Mode</th>
+                                            <th>Duration</th>
+                                            <th>Outcome</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pipeline-executions-body">
+                                        <tr id="no-executions-row">
+                                            <td colspan="7" class="text-center text-muted">No pipeline executions recorded yet</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
