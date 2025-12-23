@@ -9,6 +9,7 @@ This directory holds brainstorming sessions, planning notes, and working documen
 ## Usage
 
 Use this directory for:
+
 - Temporary planning documents
 - Research notes while investigating issues
 - Agent pipeline working files

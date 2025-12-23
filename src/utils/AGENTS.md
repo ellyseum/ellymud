@@ -12,26 +12,27 @@ Utilities are shared helper functions used throughout the codebase. The most cri
 
 ```typescript
 // Simple message
-export function writeToClient(client: ConnectedClient, data: string): void
+export function writeToClient(client: ConnectedClient, data: string): void;
 
 // Message with prompt redraw
-export function writeMessageToClient(client: ConnectedClient, message: string): void
+export function writeMessageToClient(client: ConnectedClient, message: string): void;
 
 // Formatted message with prompt handling
 export function writeFormattedMessageToClient(
-  client: ConnectedClient, 
+  client: ConnectedClient,
   message: string,
   drawPrompt?: boolean
-): void
+): void;
 
 // Flush buffered output
-export function stopBuffering(client: ConnectedClient): void
+export function stopBuffering(client: ConnectedClient): void;
 
 // Draw command prompt
-export function drawCommandPrompt(client: ConnectedClient): void
+export function drawCommandPrompt(client: ConnectedClient): void;
 ```
 
 **Why Use These**:
+
 - Handles prompt redrawing (players typing while receiving messages)
 - Handles output buffering
 - Handles admin monitoring
@@ -50,17 +51,31 @@ client.connection.write('Hello!\r\n');
 **Purpose**: ANSI color codes for terminal output
 
 ```typescript
-export type ColorType = 
-  | 'red' | 'green' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'white'
-  | 'brightRed' | 'brightGreen' | 'brightYellow' | 'brightBlue'
-  | 'brightMagenta' | 'brightCyan' | 'brightWhite'
-  | 'bold' | 'dim' | 'reset';
+export type ColorType =
+  | 'red'
+  | 'green'
+  | 'yellow'
+  | 'blue'
+  | 'magenta'
+  | 'cyan'
+  | 'white'
+  | 'brightRed'
+  | 'brightGreen'
+  | 'brightYellow'
+  | 'brightBlue'
+  | 'brightMagenta'
+  | 'brightCyan'
+  | 'brightWhite'
+  | 'bold'
+  | 'dim'
+  | 'reset';
 
-export function colorize(color: ColorType, text: string): string
-export const colors: Record<ColorType, string>
+export function colorize(color: ColorType, text: string): string;
+export const colors: Record<ColorType, string>;
 ```
 
 **Usage**:
+
 ```typescript
 import { colorize } from '../utils/colors';
 
@@ -73,14 +88,15 @@ const message = colorize('red', 'Error!') + ' Something went wrong\r\n';
 **Purpose**: Winston-based logging system
 
 ```typescript
-export const systemLogger: Logger      // System events
-export function getPlayerLogger(username: string): Logger  // Per-player logs
-export function createContextLogger(context: string): Logger  // Context-specific
+export const systemLogger: Logger; // System events
+export function getPlayerLogger(username: string): Logger; // Per-player logs
+export function createContextLogger(context: string): Logger; // Context-specific
 ```
 
 **Log Levels**: error, warn, info, debug
 
 **Log Files**:
+
 - `logs/system/system-{date}.log`
 - `logs/players/{username}-{date}.log`
 - `logs/error/error-{date}.log`
@@ -90,10 +106,10 @@ export function createContextLogger(context: string): Logger  // Context-specifi
 **Purpose**: Text formatting utilities
 
 ```typescript
-export function formatUsername(username: string): string
-export function standardizeUsername(username: string): string
-export function formatNumber(num: number): string
-export function formatDuration(seconds: number): string
+export function formatUsername(username: string): string;
+export function standardizeUsername(username: string): string;
+export function formatNumber(num: number): string;
+export function formatDuration(seconds: number): string;
 ```
 
 ### `promptFormatter.ts`
@@ -101,8 +117,8 @@ export function formatDuration(seconds: number): string
 **Purpose**: Render command prompts
 
 ```typescript
-export function drawCommandPrompt(client: ConnectedClient): void
-export function getPromptText(client: ConnectedClient): string
+export function drawCommandPrompt(client: ConnectedClient): void;
+export function getPromptText(client: ConnectedClient): string;
 ```
 
 **Prompt Format**: `[HP:100/100 MP:50/50] > `
@@ -112,12 +128,9 @@ export function getPromptText(client: ConnectedClient): string
 **Purpose**: File I/O helpers
 
 ```typescript
-export function loadAndValidateJsonFile<T>(
-  filePath: string, 
-  schema?: any
-): T | null
+export function loadAndValidateJsonFile<T>(filePath: string, schema?: any): T | null;
 
-export function saveJsonFile(filePath: string, data: any): void
+export function saveJsonFile(filePath: string, data: any): void;
 ```
 
 ### `jsonUtils.ts`
@@ -126,9 +139,9 @@ export function saveJsonFile(filePath: string, data: any): void
 
 ```typescript
 export function parseAndValidateJson<T>(
-  json: string, 
+  json: string,
   schema: any
-): { valid: boolean; data?: T; errors?: string[] }
+): { valid: boolean; data?: T; errors?: string[] };
 ```
 
 ### `itemNameColorizer.ts`
@@ -136,7 +149,7 @@ export function parseAndValidateJson<T>(
 **Purpose**: Color item names by rarity
 
 ```typescript
-export function colorizeItemName(item: Item): string
+export function colorizeItemName(item: Item): string;
 // Common = white, Uncommon = green, Rare = blue, Epic = purple, Legendary = orange
 ```
 
@@ -145,8 +158,8 @@ export function colorizeItemName(item: Item): string
 **Purpose**: Log raw I/O for debugging
 
 ```typescript
-export function logRawInput(sessionId: string, input: string): void
-export function logRawOutput(sessionId: string, output: string): void
+export function logRawInput(sessionId: string, input: string): void;
+export function logRawOutput(sessionId: string, output: string): void;
 ```
 
 ## Conventions
@@ -155,19 +168,19 @@ export function logRawOutput(sessionId: string, output: string): void
 
 ```typescript
 // Errors in red
-colorize('red', 'Error: ')
+colorize('red', 'Error: ');
 
 // Success in green
-colorize('green', 'Success!')
+colorize('green', 'Success!');
 
 // Important info in yellow
-colorize('yellow', 'Warning: ')
+colorize('yellow', 'Warning: ');
 
 // Player names in cyan
-colorize('cyan', username)
+colorize('cyan', username);
 
 // NPC names in yellow
-colorize('yellow', npcName)
+colorize('yellow', npcName);
 ```
 
 ### Logging Conventions

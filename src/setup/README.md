@@ -4,8 +4,8 @@ First-run server setup and initial configuration utilities.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
+| File            | Description                      |
+| --------------- | -------------------------------- |
 | `adminSetup.ts` | First-run admin account creation |
 
 ## First-Run Experience

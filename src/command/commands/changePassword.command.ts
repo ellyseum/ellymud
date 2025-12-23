@@ -16,7 +16,10 @@ export class ChangePasswordCommand implements Command {
     const [oldPassword, newPassword] = args.split(' ');
 
     if (!oldPassword || !newPassword) {
-      writeToClient(client, colorize('Usage: changepassword <oldPassword> <newPassword>\r\n', 'yellow'));
+      writeToClient(
+        client,
+        colorize('Usage: changepassword <oldPassword> <newPassword>\r\n', 'yellow')
+      );
       return;
     }
 

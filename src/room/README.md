@@ -4,12 +4,12 @@ Room data management, navigation, and room-scoped interactions for the MUD world
 
 ## Contents
 
-| Path | Description |
-|------|-------------|
-| `roomManager.ts` | Singleton managing all room data and operations |
-| `room.ts` | Room class definition with properties and methods |
-| `interfaces.ts` | Room-related TypeScript interfaces |
-| `services/` | Modular room services for specific functionality |
+| Path             | Description                                       |
+| ---------------- | ------------------------------------------------- |
+| `roomManager.ts` | Singleton managing all room data and operations   |
+| `room.ts`        | Room class definition with properties and methods |
+| `interfaces.ts`  | Room-related TypeScript interfaces                |
+| `services/`      | Modular room services for specific functionality  |
 
 ## What Rooms Do
 
@@ -31,6 +31,7 @@ Rooms are the spatial containers of the MUD world:
 ## Room Structure
 
 Each room has:
+
 - `id` - Unique identifier
 - `name` - Display name
 - `description` - Full room description
@@ -42,6 +43,7 @@ Each room has:
 ## Services
 
 Room functionality is decomposed into services:
+
 - **DirectionHelper**: Normalize direction strings
 - **PlayerMovementService**: Handle navigation logic
 - **EntityRegistryService**: Track entities per room

@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Combat notifier uses dynamic typing for message formatting
 import { ConnectedClient } from '../../types';
 import { CombatEntity } from '../combatEntity.interface';
 import { colorize, ColorType } from '../../utils/colors';
-import { writeFormattedMessageToClient, drawCommandPrompt, writeToClient } from '../../utils/socketWriter';
+import { writeFormattedMessageToClient, writeToClient } from '../../utils/socketWriter';
 import { RoomManager } from '../../room/roomManager';
 import { formatUsername } from '../../utils/formatters';
 
@@ -15,24 +17,27 @@ export class CombatNotifier {
    * Notify player and room about an attack result
    */
   notifyAttackResult(
-    attacker: CombatEntity, 
-    target: ConnectedClient, 
-    roomId: string, 
-    hit: boolean, 
+    attacker: CombatEntity,
+    target: ConnectedClient,
+    roomId: string,
+    hit: boolean,
     damage: number = 0
   ): void {
     if (!target.user) return;
-    
+
     // Format the target name for broadcast messages
     const targetNameFormatted = formatUsername(target.user.username);
-    
+
     if (hit) {
       // Send message to the targeted player
       writeFormattedMessageToClient(
         target,
-        colorize(`The ${attacker.name} ${attacker.getAttackText('you')} for ${damage} damage.\r\n`, 'red')
+        colorize(
+          `The ${attacker.name} ${attacker.getAttackText('you')} for ${damage} damage.\r\n`,
+          'red'
+        )
       );
-      
+
       // Broadcast to ALL players in room except the target
       this.broadcastRoomMessage(
         roomId,
@@ -46,7 +51,7 @@ export class CombatNotifier {
         target,
         colorize(`The ${attacker.name} ${attacker.getAttackText('you')} and misses!\r\n`, 'cyan')
       );
-      
+
       // Broadcast to ALL players in room except the target
       this.broadcastRoomMessage(
         roomId,
@@ -62,17 +67,17 @@ export class CombatNotifier {
    */
   notifyPlayerDeath(player: ConnectedClient, roomId: string): void {
     if (!player.user) return;
-    
+
     // Send death message to player
     writeFormattedMessageToClient(
       player,
       colorize(`You have died! Your body will be transported to the starting area.\r\n`, 'red')
     );
-    
+
     // Broadcast to others using the default boldYellow for status messages
     const username = formatUsername(player.user.username);
     const message = `${username} has died!\r\n`;
-    
+
     // Broadcast to all other players in the room
     this.broadcastRoomMessage(roomId, message, 'boldYellow', player.user.username);
   }
@@ -82,17 +87,20 @@ export class CombatNotifier {
    */
   notifyPlayerUnconscious(player: ConnectedClient, roomId: string): void {
     if (!player.user) return;
-    
+
     // Send unconscious message to player
     writeFormattedMessageToClient(
       player,
-      colorize(`You collapse to the ground unconscious! You are bleeding out and will die at -10 HP.\r\n`, 'red')
+      colorize(
+        `You collapse to the ground unconscious! You are bleeding out and will die at -10 HP.\r\n`,
+        'red'
+      )
     );
-    
+
     // Broadcast to others using the default boldYellow for status messages
     const username = formatUsername(player.user.username);
     const message = `${username} has fallen unconscious!\r\n`;
-    
+
     // Broadcast to all other players in the room
     this.broadcastRoomMessage(roomId, message, 'boldYellow', player.user.username);
   }
@@ -102,17 +110,17 @@ export class CombatNotifier {
    */
   notifyPlayerTeleported(player: ConnectedClient, startingRoom: any): void {
     if (!player.user) return;
-    
+
     // Show the starting room to the player
     writeFormattedMessageToClient(
       player,
       colorize(`You have been teleported to the starting area.\r\n`, 'yellow')
     );
-    
+
     // Show the room description
     const roomDescription = startingRoom.getDescriptionExcludingPlayer(player.user.username);
     writeToClient(player, roomDescription);
-    
+
     // Announce to others in the starting room
     const username = formatUsername(player.user.username);
     this.broadcastRoomMessage(
@@ -128,18 +136,18 @@ export class CombatNotifier {
    */
   broadcastCombatStart(player: ConnectedClient, target: CombatEntity): void {
     if (!player.user || !player.user.currentRoomId) return;
-    
+
     const room = this.roomManager.getRoom(player.user.currentRoomId);
     if (!room) return;
-    
+
     const username = formatUsername(player.user.username);
     // Don't add extra line breaks - they will be handled by the writeMessageToClient function
     const message = colorize(`${username} moves to attack ${target.name}!\r\n`, 'boldYellow');
-    
+
     for (const playerName of room.players) {
       // Skip the player who started combat
       if (playerName === player.user.username) continue;
-      
+
       // Find client for this player
       const client = this.findClientByUsername(playerName);
       if (client) {
@@ -152,20 +160,20 @@ export class CombatNotifier {
    * Broadcast a message to all players in a room regarding combat
    */
   broadcastRoomMessage(
-    roomId: string, 
-    message: string, 
-    color: ColorType = 'boldYellow', 
+    roomId: string,
+    message: string,
+    color: ColorType = 'boldYellow',
     excludeUsername?: string
   ): void {
     const room = this.roomManager.getRoom(roomId);
     if (!room) return;
 
     const formattedMessage = colorize(message, color as any);
-    
+
     for (const playerName of room.players) {
       // Skip excluded player if specified
       if (excludeUsername && playerName === excludeUsername) continue;
-      
+
       const client = this.findClientByUsername(playerName);
       if (client) {
         writeFormattedMessageToClient(client, formattedMessage);

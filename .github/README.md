@@ -4,11 +4,11 @@ GitHub-specific configuration including issue templates, pull request templates,
 
 ## Contents
 
-| Path | Description |
-|------|-------------|
-| `PULL_REQUEST_TEMPLATE.md` | Standard PR template with checklist |
-| `ISSUE_TEMPLATE/` | Issue templates for bugs, features, docs, and questions |
-| `agents/` | AI agent ecosystem for automated development tasks |
+| Path                       | Description                                             |
+| -------------------------- | ------------------------------------------------------- |
+| `PULL_REQUEST_TEMPLATE.md` | Standard PR template with checklist                     |
+| `ISSUE_TEMPLATE/`          | Issue templates for bugs, features, docs, and questions |
+| `agents/`                  | AI agent ecosystem for automated development tasks      |
 
 ## Overview
 

@@ -9,6 +9,7 @@ Tests for validating the Planning Agent behavior.
 **Description**: Verify agent creates actionable implementation plan from research.
 
 **Input**:
+
 ```
 Based on the research for NPC dialogue trees, create an implementation plan.
 
@@ -20,6 +21,7 @@ Research findings:
 ```
 
 **Expected Output Patterns** (MUST include):
+
 - [ ] "## Implementation Plan" header
 - [ ] Numbered task list with clear ordering
 - [ ] Time/effort estimates per task
@@ -29,6 +31,7 @@ Research findings:
 - [ ] "## Acceptance Criteria" defining done state
 
 **Anti-Patterns** (MUST NOT include):
+
 - [ ] Actual code implementation
 - [ ] Vague tasks like "implement the feature"
 - [ ] Missing file path specifications
@@ -36,6 +39,7 @@ Research findings:
 - [ ] Contradictory task ordering
 
 **Pass Criteria**:
+
 - Plan is actionable by Implementation Agent
 - Clear sequence of tasks
 - Risks identified and mitigated
@@ -48,6 +52,7 @@ Research findings:
 **Description**: Verify agent creates targeted fix plan for a bug.
 
 **Input**:
+
 ```
 Plan a fix for negative damage calculations.
 
@@ -59,6 +64,7 @@ Research findings:
 ```
 
 **Expected Output Patterns** (MUST include):
+
 - [ ] Specific file and function to modify
 - [ ] Exact change to make (add minimum check)
 - [ ] Test cases to verify fix
@@ -66,12 +72,14 @@ Research findings:
 - [ ] Estimated effort (should be small for bug fix)
 
 **Anti-Patterns** (MUST NOT include):
+
 - [ ] Suggesting complete rewrite for simple bug
 - [ ] Missing test verification step
 - [ ] No rollback consideration
 - [ ] Over-engineering the solution
 
 **Pass Criteria**:
+
 - Fix is minimal and targeted
 - Test plan included
 - Rollback path clear
@@ -83,6 +91,7 @@ Research findings:
 **Description**: Verify agent handles complex features spanning multiple files.
 
 **Input**:
+
 ```
 Plan implementation of a guild system.
 
@@ -95,6 +104,7 @@ Research findings:
 ```
 
 **Expected Output Patterns** (MUST include):
+
 - [ ] Phased implementation approach
 - [ ] Data model design first
 - [ ] Manager class creation
@@ -105,12 +115,14 @@ Research findings:
 - [ ] MVP vs full feature distinction
 
 **Anti-Patterns** (MUST NOT include):
+
 - [ ] Single monolithic task
 - [ ] Missing data model step
 - [ ] Commands before manager exists
 - [ ] No phasing for complex feature
 
 **Pass Criteria**:
+
 - Logical phase ordering
 - Dependencies respected
 - MVP clearly defined
@@ -123,6 +135,7 @@ Research findings:
 **Description**: Verify agent respects stated constraints.
 
 **Input**:
+
 ```
 Plan a performance optimization for room lookups.
 
@@ -138,6 +151,7 @@ Constraints:
 ```
 
 **Expected Output Patterns** (MUST include):
+
 - [ ] Explicit acknowledgment of constraints
 - [ ] Solution that respects data format constraint
 - [ ] Backward compatibility verification step
@@ -145,12 +159,14 @@ Constraints:
 - [ ] Trade-offs explained given constraints
 
 **Anti-Patterns** (MUST NOT include):
+
 - [ ] Solutions requiring data format changes
 - [ ] Plans exceeding time constraint
 - [ ] Ignoring backward compatibility
 - [ ] No constraint acknowledgment
 
 **Pass Criteria**:
+
 - All constraints respected
 - Feasible within stated limits
 - Trade-offs transparent
@@ -162,6 +178,7 @@ Constraints:
 **Description**: Verify agent stays within planning scope.
 
 **Input**:
+
 ```
 Plan and implement a new "emote" command.
 
@@ -171,17 +188,20 @@ Research shows:
 ```
 
 **Expected Output Patterns** (MUST include):
+
 - [ ] Detailed task breakdown
 - [ ] File specifications
 - [ ] Clear statement that implementation is next phase
 - [ ] Handoff notes for Implementation Agent
 
 **Anti-Patterns** (MUST NOT include):
+
 - [ ] Actual TypeScript/JavaScript code
 - [ ] Creating the emotes.json file
 - [ ] Modifying any source files
 
 **Pass Criteria**:
+
 - Pure planning output
 - Clear handoff to Implementation
 - No code generation

@@ -7,7 +7,7 @@ export class HistoryCommand implements Command {
   name = 'history';
   description = 'Show your command history';
 
-  execute(client: ConnectedClient, args: string): void {
+  execute(client: ConnectedClient, _args: string): void {
     if (!client.user) return;
 
     // Ensure the commandHistory array exists
@@ -17,7 +17,7 @@ export class HistoryCommand implements Command {
     }
 
     writeToClient(client, colorize('=== Command History ===\r\n', 'cyan'));
-    
+
     if (client.user.commandHistory.length === 0) {
       writeToClient(client, colorize('No commands in history.\r\n', 'yellow'));
     } else {
@@ -25,7 +25,7 @@ export class HistoryCommand implements Command {
         writeToClient(client, colorize(`${index + 1}. ${cmd}\r\n`, 'white'));
       });
     }
-    
+
     writeToClient(client, colorize('======================\r\n', 'cyan'));
   }
 }

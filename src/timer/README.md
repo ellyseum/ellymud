@@ -4,8 +4,8 @@ Game tick system for periodic events and time-based game mechanics.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
+| File                  | Description                                 |
+| --------------------- | ------------------------------------------- |
 | `gameTimerManager.ts` | Singleton managing game ticks and intervals |
 
 ## What the Timer Does

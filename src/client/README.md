@@ -4,8 +4,8 @@ Active client connection tracking and session management.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
+| File               | Description                              |
+| ------------------ | ---------------------------------------- |
 | `clientManager.ts` | Singleton managing all connected clients |
 
 ## Purpose
@@ -28,6 +28,7 @@ The `ClientManager` singleton provides centralized tracking of all connected cli
 ## Client Object
 
 Each client contains:
+
 - `id` - Unique connection identifier
 - `connection` - Protocol-specific connection object
 - `state` - Current client state (LOGIN, AUTHENTICATED, etc.)

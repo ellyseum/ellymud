@@ -8,18 +8,25 @@ import { AuthenticatedState } from '../states/authenticated.state';
 import { TransferRequestState } from '../states/transfer-request.state';
 import { SnakeGameState } from '../states/snake-game.state';
 import { WaitingState } from '../states/waiting.state';
-import { systemLogger, createContextLogger } from '../utils/logger';
+import { createContextLogger } from '../utils/logger';
 
 // Create a context-specific logger for StateMachine
 const stateLogger = createContextLogger('StateMachine');
 
 // List of commands that might contain sensitive information like passwords
-const sensitiveCommands = ['password', 'passwd', 'changepassword', 'setpassword', 'login', 'register'];
+const sensitiveCommands = [
+  'password',
+  'passwd',
+  'changepassword',
+  'setpassword',
+  'login',
+  'register',
+];
 
 export class StateMachine {
   private states: Map<ClientStateType, ClientState> = new Map();
   private userManager: UserManager;
-  
+
   // Create instances of each state
   private connectingState: ConnectingState;
   private loginState: LoginState;
@@ -30,9 +37,12 @@ export class StateMachine {
   private snakeGameState: SnakeGameState;
   private waitingState: WaitingState;
 
-  constructor(userManager: UserManager, private clients: Map<string, ConnectedClient>) {
+  constructor(
+    userManager: UserManager,
+    private clients: Map<string, ConnectedClient>
+  ) {
     this.userManager = userManager;
-    
+
     // Initialize state objects
     this.connectingState = new ConnectingState();
     this.loginState = new LoginState(userManager);
@@ -42,7 +52,7 @@ export class StateMachine {
     this.transferRequestState = new TransferRequestState(userManager);
     this.snakeGameState = new SnakeGameState(); // Initialize snake game state
     this.waitingState = new WaitingState(); // Initialize waiting state
-    
+
     // Register states
     this.registerState(this.connectingState);
     this.registerState(this.loginState);
@@ -72,7 +82,7 @@ export class StateMachine {
     if (state) {
       state.enter(client);
     }
-    
+
     // Special case for CONNECTING state - automatically transition to LOGIN
     if (stateName === ClientStateType.CONNECTING) {
       this.transitionTo(client, ClientStateType.LOGIN);
@@ -82,23 +92,29 @@ export class StateMachine {
   public handleInput(client: ConnectedClient, input: string): void {
     // Ensure input is trimmed
     const trimmedInput = input.trim();
-    
+
     // Don't log any input in login state at all to prevent password leaks
     if (client.state !== ClientStateType.LOGIN) {
       // Check if the input contains sensitive information that should not be logged
       const isSensitive = this.containsSensitiveCommand(trimmedInput);
-      
+
       // Log the input, but mask it if it's sensitive
       if (isSensitive) {
-        stateLogger.debug(`Handling input in state ${client.state}: "******" (sensitive content hidden)`);
+        stateLogger.debug(
+          `Handling input in state ${client.state}: "******" (sensitive content hidden)`
+        );
       } else {
         stateLogger.debug(`Handling input in state ${client.state}: "${trimmedInput}"`);
       }
     }
     // No else clause - don't log anything for login state inputs
-    
+
     // Special case for login state with password input
-    if (client.state === ClientStateType.LOGIN && client.stateData.awaitingPassword && !client.stateData.awaitingTransferRequest) {
+    if (
+      client.state === ClientStateType.LOGIN &&
+      client.stateData.awaitingPassword &&
+      !client.stateData.awaitingTransferRequest
+    ) {
       if (this.loginState.handlePassword(client, trimmedInput)) {
         this.transitionTo(client, ClientStateType.AUTHENTICATED);
       }
@@ -108,7 +124,7 @@ export class StateMachine {
     const state = this.states.get(client.state);
     if (state) {
       state.handle(client, trimmedInput);
-      
+
       // Check if a state transition was requested
       if (client.stateData.transitionTo) {
         const nextState = client.stateData.transitionTo;
@@ -128,12 +144,11 @@ export class StateMachine {
    */
   private containsSensitiveCommand(input: string): boolean {
     const lowerInput = input.toLowerCase();
-    
+
     // Check if the input starts with any of the sensitive commands
-    return sensitiveCommands.some(cmd => 
-      lowerInput === cmd || 
-      lowerInput.startsWith(`${cmd} `) || 
-      lowerInput.startsWith(`/${cmd} `)
+    return sensitiveCommands.some(
+      (cmd) =>
+        lowerInput === cmd || lowerInput.startsWith(`${cmd} `) || lowerInput.startsWith(`/${cmd} `)
     );
   }
 

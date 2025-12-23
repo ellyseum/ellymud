@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Logger utilities use dynamic typing for flexible log metadata
 import winston from 'winston';
 import 'winston-daily-rotate-file';
 import path from 'path';
@@ -51,8 +53,8 @@ const logFormat = winston.format.combine(
 );
 
 const consoleFormat = winston.format.combine(
-    winston.format.colorize(),
-    logFormat // Reuse the base format but add color
+  winston.format.colorize(),
+  logFormat // Reuse the base format but add color
 );
 
 // Create transports array based on configurations
@@ -62,11 +64,11 @@ const transports: winston.transport[] = [
     filename: path.join(SYSTEM_LOGS_DIR, 'system-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true, // Compress rotated files
-    maxSize: '20m',     // Rotate when file reaches 20MB
-    maxFiles: '14d',    // Keep logs for 14 days
-    level: 'info',      // Log info, warn, error to this file
-    utc: true,          // Use UTC time for file rotation
-    auditFile: path.join(AUDIT_LOGS_DIR, 'system-audit.json')
+    maxSize: '20m', // Rotate when file reaches 20MB
+    maxFiles: '14d', // Keep logs for 14 days
+    level: 'info', // Log info, warn, error to this file
+    utc: true, // Use UTC time for file rotation
+    auditFile: path.join(AUDIT_LOGS_DIR, 'system-audit.json'),
   }),
   // Error File Transport (Error Level Only)
   new winston.transports.DailyRotateFile({
@@ -76,9 +78,9 @@ const transports: winston.transport[] = [
     maxSize: '20m',
     maxFiles: '30d',
     level: 'error', // Only log errors and above to this file
-    utc: true,      // Use UTC time for file rotation
-    auditFile: path.join(AUDIT_LOGS_DIR, 'error-audit.json')
-  })
+    utc: true, // Use UTC time for file rotation
+    auditFile: path.join(AUDIT_LOGS_DIR, 'error-audit.json'),
+  }),
 ];
 
 // Add console transport only if silent mode is not enabled
@@ -86,7 +88,7 @@ if (!config.SILENT_MODE) {
   transports.push(
     new winston.transports.Console({
       format: consoleFormat, // Use the colorful format for the console
-      level: config.LOG_LEVEL // Use the level from config
+      level: config.LOG_LEVEL, // Use the level from config
     })
   );
 }
@@ -99,16 +101,16 @@ const exceptionHandlers: winston.transport[] = [
     zippedArchive: true,
     maxSize: '10m',
     maxFiles: '30d',
-    utc: true,      // Use UTC time for file rotation
-    auditFile: path.join(AUDIT_LOGS_DIR, 'exceptions-audit.json')
-  })
+    utc: true, // Use UTC time for file rotation
+    auditFile: path.join(AUDIT_LOGS_DIR, 'exceptions-audit.json'),
+  }),
 ];
 
 // Add console exception handler only if silent mode is not enabled
 if (!config.SILENT_MODE) {
   exceptionHandlers.push(
     new winston.transports.Console({
-      format: consoleFormat
+      format: consoleFormat,
     })
   );
 }
@@ -121,16 +123,16 @@ const rejectionHandlers: winston.transport[] = [
     zippedArchive: true,
     maxSize: '10m',
     maxFiles: '30d',
-    utc: true,      // Use UTC time for file rotation
-    auditFile: path.join(AUDIT_LOGS_DIR, 'rejections-audit.json')
-  })
+    utc: true, // Use UTC time for file rotation
+    auditFile: path.join(AUDIT_LOGS_DIR, 'rejections-audit.json'),
+  }),
 ];
 
 // Add console rejection handler only if silent mode is not enabled
 if (!config.SILENT_MODE) {
   rejectionHandlers.push(
     new winston.transports.Console({
-      format: consoleFormat
+      format: consoleFormat,
     })
   );
 }
@@ -142,7 +144,7 @@ const systemLogger = winston.createLogger({
   transports,
   exceptionHandlers,
   rejectionHandlers,
-  exitOnError: false // Prevent Winston from exiting on handled exceptions/rejections
+  exitOnError: false, // Prevent Winston from exiting on handled exceptions/rejections
 });
 
 // --- MCP Logger ---
@@ -158,10 +160,10 @@ const mcpLogger = winston.createLogger({
       maxFiles: '14d',
       level: 'info',
       utc: true,
-      auditFile: path.join(AUDIT_LOGS_DIR, 'mcp-audit.json')
-    })
+      auditFile: path.join(AUDIT_LOGS_DIR, 'mcp-audit.json'),
+    }),
   ],
-  exitOnError: false
+  exitOnError: false,
 });
 
 // --- Player Logger Management ---
@@ -182,10 +184,10 @@ function getPlayerLogger(username: string): winston.Logger {
           maxSize: '5m', // Smaller size for individual player logs
           maxFiles: '7d', // Keep player logs for 7 days
           level: 'info',
-          utc: true,     // Use UTC time for file rotation
-          auditFile: path.join(AUDIT_LOGS_DIR, `player-${sanitizedUsername}-audit.json`)
-        })
-      ]
+          utc: true, // Use UTC time for file rotation
+          auditFile: path.join(AUDIT_LOGS_DIR, `player-${sanitizedUsername}-audit.json`),
+        }),
+      ],
     });
     playerLoggers.set(sanitizedUsername, logger);
     systemLogger.debug(`Created logger for player: ${sanitizedUsername}`);
@@ -201,14 +203,14 @@ function getPlayerLogger(username: string): winston.Logger {
  */
 function createContextLogger(context: string) {
   return {
-    debug: (message: string, metadata?: any) => 
+    debug: (message: string, metadata?: any) =>
       systemLogger.debug(`[${context}] ${message}`, metadata),
-    info: (message: string, metadata?: any) => 
+    info: (message: string, metadata?: any) =>
       systemLogger.info(`[${context}] ${message}`, metadata),
-    warn: (message: string, metadata?: any) => 
+    warn: (message: string, metadata?: any) =>
       systemLogger.warn(`[${context}] ${message}`, metadata),
-    error: (message: string, metadata?: any) => 
-      systemLogger.error(`[${context}] ${message}`, metadata)
+    error: (message: string, metadata?: any) =>
+      systemLogger.error(`[${context}] ${message}`, metadata),
   };
 }
 
@@ -218,22 +220,20 @@ function createContextLogger(context: string) {
  */
 function createMechanicsLogger(mechanicName: string) {
   const mechLogger = createContextLogger(mechanicName);
-  
+
   return {
     ...mechLogger,
     // Log both to system and to player logs
-    playerAction: (username: string, message: string, level: 'info' | 'warn' | 'error' = 'info') => {
+    playerAction: (
+      username: string,
+      message: string,
+      level: 'info' | 'warn' | 'error' = 'info'
+    ) => {
       const playerLogger = getPlayerLogger(username);
       mechLogger[level](`Player ${username}: ${message}`);
       playerLogger[level](`[${mechanicName}] ${message}`);
-    }
+    },
   };
 }
 
-export { 
-  systemLogger,
-  mcpLogger,
-  getPlayerLogger,
-  createContextLogger,
-  createMechanicsLogger
-};
+export { systemLogger, mcpLogger, getPlayerLogger, createContextLogger, createMechanicsLogger };

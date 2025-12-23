@@ -4,14 +4,14 @@ User and developer documentation for EllyMUD.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `getting-started.md` | Quick start guide |
-| `architecture.md` | System architecture overview |
-| `development.md` | Developer guide |
-| `commands.md` | Complete command reference |
-| `deployment.md` | Deployment instructions |
-| `README.md` | Documentation index |
+| File                 | Description                  |
+| -------------------- | ---------------------------- |
+| `getting-started.md` | Quick start guide            |
+| `architecture.md`    | System architecture overview |
+| `development.md`     | Developer guide              |
+| `commands.md`        | Complete command reference   |
+| `deployment.md`      | Deployment instructions      |
+| `README.md`          | Documentation index          |
 
 ## Overview
 

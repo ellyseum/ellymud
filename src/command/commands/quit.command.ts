@@ -30,18 +30,18 @@ export class QuitCommand implements Command {
     }
 
     writeToClient(client, colorize('Thank you for playing! Goodbye.\r\n', 'yellow'));
-    
+
     // Remove player from all rooms before disconnecting
     this.roomManager.removePlayerFromAllRooms(client.user.username);
-    
+
     // Save user state before disconnecting
     this.userManager.updateUserStats(client.user.username, {
-      lastLogin: new Date()
+      lastLogin: new Date(),
     });
-    
+
     // Unregister the session
     this.userManager.unregisterUserSession(client.user.username);
-    
+
     // Disconnect after a brief delay so the goodbye message is seen
     setTimeout(() => {
       client.connection.end();

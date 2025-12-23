@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Server entry point uses dynamic typing for error handling
 import { GameServer } from './app';
 import * as config from './config';
 import { JsonValidationError } from './utils/jsonUtils';
@@ -22,16 +24,16 @@ async function main() {
   try {
     // Ensure MCP API key exists before starting server
     const hasMCPKey = await ensureMCPApiKey();
-    
+
     // Store whether to start MCP server
     (global as any).__SKIP_MCP_SERVER = !hasMCPKey;
-    
+
     // Create the game server - wrap this in try/catch to handle construction errors
     gameServer = new GameServer();
-    
+
     // Start the server
     await gameServer.start();
-    
+
     // If auto sessions are enabled, start them after server initialization
     if (config.AUTO_ADMIN_SESSION) {
       await gameServer.startAutoAdminSession();
@@ -48,18 +50,20 @@ async function main() {
 
 /**
  * Start a session as a specific user
+ * NOTE: This function is currently unused but kept for potential future use
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function startForcedUserSession(server: GameServer, username: string): Promise<void> {
   console.log(`Starting forced session as user: ${username}`);
-  
+
   // Suppress normal console output for a cleaner experience
   const originalConsole = console.log;
   console.log = () => {}; // No-op function
-  
+
   try {
     // Use the new specialized method for forced sessions
     await server.startForcedSession(server.getTelnetPort(), username);
-    
+
     // Add auto-exit handler for when the session ends
     process.on('SIGINT', () => {
       process.exit(0);
@@ -81,7 +85,7 @@ function handleError(error: any): void {
     // Display a user-friendly error message
     console.error('\x1b[31m✗ DATA VALIDATION ERROR\x1b[0m');
     console.error('\x1b[31mCannot start server: Invalid data format detected.\x1b[0m');
-    
+
     // Show the specific validation failures
     if (error.errors && error.errors.length > 0) {
       console.error('\nProblems that need to be fixed:');
@@ -89,7 +93,7 @@ function handleError(error: any): void {
         const path = err.instancePath || 'root';
         console.error(`- ${path}: ${err.message}`);
       });
-      
+
       // Suggest which file likely needs fixing based on the error message
       const fileHint = getFileHintFromError(error.message);
       if (fileHint) {
@@ -99,9 +103,9 @@ function handleError(error: any): void {
       // Generic message if detailed errors aren't available
       console.error(error.message);
     }
-    
+
     console.error('\nFix the data files according to the schema and try again.');
-    
+
     // Log to system log but don't show the stack trace to the user
     systemLogger.error(`Server startup aborted: ${error.message}`);
     process.exit(1);
@@ -128,17 +132,25 @@ function handleUnexpectedError(error: any): void {
  */
 function getFileHintFromError(errorMessage: string): string | null {
   if (!errorMessage) return null;
-  
+
   const lowerMsg = errorMessage.toLowerCase();
   if (lowerMsg.includes('room') || lowerMsg.includes('exit')) {
     return 'data/rooms.json';
   } else if (lowerMsg.includes('user') || lowerMsg.includes('player')) {
     return 'data/users.json';
-  } else if (lowerMsg.includes('item') || lowerMsg.includes('weapon') || lowerMsg.includes('armor')) {
+  } else if (
+    lowerMsg.includes('item') ||
+    lowerMsg.includes('weapon') ||
+    lowerMsg.includes('armor')
+  ) {
     return 'data/items.json';
-  } else if (lowerMsg.includes('npc') || lowerMsg.includes('monster') || lowerMsg.includes('creature')) {
+  } else if (
+    lowerMsg.includes('npc') ||
+    lowerMsg.includes('monster') ||
+    lowerMsg.includes('creature')
+  ) {
     return 'data/npcs.json';
   }
-  
+
   return null;
 }

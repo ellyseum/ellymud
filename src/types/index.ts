@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Core types use any for flexible state data handling
 export enum ClientStateType {
   CONNECTING = 'connecting',
   LOGIN = 'login',
   SIGNUP = 'signup',
-  AUTHENTICATED = 'authenticated'
+  AUTHENTICATED = 'authenticated',
 }
 
 export interface ClientState {

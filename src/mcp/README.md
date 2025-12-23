@@ -111,39 +111,43 @@ The MCP server now provides virtual session tools that allow the LLM to actually
 ### Quick Start
 
 1. **Create a session:**
+
 ```javascript
-virtual_session_create()
+virtual_session_create();
 // Returns: { sessionId: "virtual-1234567890-123", ... }
 ```
 
 2. **Send commands:**
+
 ```javascript
 // Login as existing user
-virtual_session_command(sessionId, "admin")
-virtual_session_command(sessionId, "password123")
+virtual_session_command(sessionId, 'admin');
+virtual_session_command(sessionId, 'password123');
 
 // Or create new user
-virtual_session_command(sessionId, "new")
-virtual_session_command(sessionId, "myusername")
-virtual_session_command(sessionId, "mypassword")
-virtual_session_command(sessionId, "mypassword") // confirm
+virtual_session_command(sessionId, 'new');
+virtual_session_command(sessionId, 'myusername');
+virtual_session_command(sessionId, 'mypassword');
+virtual_session_command(sessionId, 'mypassword'); // confirm
 
 // Play the game
-virtual_session_command(sessionId, "look")
-virtual_session_command(sessionId, "inventory")
-virtual_session_command(sessionId, "north")
-virtual_session_command(sessionId, "attack goblin")
+virtual_session_command(sessionId, 'look');
+virtual_session_command(sessionId, 'inventory');
+virtual_session_command(sessionId, 'north');
+virtual_session_command(sessionId, 'attack goblin');
 ```
 
 3. **Check session status:**
+
 ```javascript
-virtual_session_info(sessionId)
+virtual_session_info(sessionId);
 // Returns: username, authenticated, state, currentRoom, etc.
 ```
 
 4. **Close when done:**
+
 ```javascript
-virtual_session_close(sessionId)
+virtual_session_close(sessionId);
 ```
 
 ### How It Works
@@ -183,9 +187,9 @@ To add new tools:
 ## Architecture
 
 The MCP server:
+
 - Integrates with the main GameServer as a component
 - Receives references to UserManager, RoomManager, and ClientManager
 - Accesses live runtime state directly from the managers
 - Runs on stdio transport for MCP protocol compatibility
 - Starts and stops with the main game server lifecycle
-

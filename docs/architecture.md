@@ -75,11 +75,11 @@ All manager classes use the Singleton pattern to ensure a single source of truth
 ```typescript
 class UserManager {
   private static instance: UserManager;
-  
+
   private constructor() {
     // Private constructor prevents direct instantiation
   }
-  
+
   public static getInstance(): UserManager {
     if (!UserManager.instance) {
       UserManager.instance = new UserManager();
@@ -93,6 +93,7 @@ const userManager = UserManager.getInstance();
 ```
 
 **Key Managers:**
+
 - `UserManager` - User data and authentication
 - `RoomManager` - Room data and navigation
 - `ClientManager` - Active connections
@@ -113,6 +114,7 @@ interface State {
 ```
 
 **State Transitions:**
+
 ```
 ConnectingState → LoginState → AuthenticatedState ⇄ CombatState
                                        ↓
@@ -130,7 +132,7 @@ interface Command {
   description: string;
   usage: string;
   requiredRole?: Role;
-  
+
   execute(client: Client, args: string[]): Promise<void>;
 }
 ```
@@ -143,12 +145,20 @@ Event-driven architecture for game events:
 
 ```typescript
 // Combat events
-client.on('combatStart', (npc) => { /* ... */ });
-client.on('combatEnd', (result) => { /* ... */ });
+client.on('combatStart', (npc) => {
+  /* ... */
+});
+client.on('combatEnd', (result) => {
+  /* ... */
+});
 
 // Connection events
-socket.on('data', (data) => { /* ... */ });
-socket.on('close', () => { /* ... */ });
+socket.on('data', (data) => {
+  /* ... */
+});
+socket.on('close', () => {
+  /* ... */
+});
 ```
 
 ## Component Overview
@@ -171,7 +181,7 @@ class GameServer {
   private webSocketServer: WebSocketServer;
   private clientManager: ClientManager;
   private gameTimerManager: GameTimerManager;
-  
+
   async start(): Promise<void> {
     // Initialize all subsystems
   }
@@ -276,13 +286,13 @@ Shared TypeScript interfaces and types:
 ```typescript
 interface State {
   name: string;
-  
+
   // Called when entering this state
   onEnter(client: Client): Promise<void>;
-  
+
   // Called for each line of input
   handleInput(client: Client, input: string): Promise<void>;
-  
+
   // Called when leaving this state
   onExit(client: Client): Promise<void>;
 }
@@ -291,23 +301,27 @@ interface State {
 ### State Descriptions
 
 #### ConnectingState
+
 - Initial state when client connects
 - Displays welcome banner
 - Transitions to LoginState
 
 #### LoginState
+
 - Handles username/password entry
 - Creates new accounts
 - Authenticates existing users
 - Transitions to AuthenticatedState on success
 
 #### AuthenticatedState
+
 - Main gameplay state
 - Processes commands
 - Handles movement, combat initiation, item use
 - Can transition to CombatState
 
 #### CombatState
+
 - Active combat with NPCs or players
 - Turn-based combat loop
 - Combat commands only
@@ -322,7 +336,7 @@ Each state can store temporary data in `client.stateData`:
 client.stateData = {
   opponent: npc,
   combatStartTime: Date.now(),
-  turnCount: 0
+  turnCount: 0,
 };
 ```
 
@@ -397,8 +411,8 @@ export const userSchema = {
     id: { type: 'string' },
     username: { type: 'string' },
     password: { type: 'string' },
-    stats: { type: 'object' }
-  }
+    stats: { type: 'object' },
+  },
 };
 ```
 
@@ -409,7 +423,7 @@ Managers load data on initialization:
 ```typescript
 class UserManager {
   private users: Map<string, User> = new Map();
-  
+
   async loadUsers(): Promise<void> {
     const files = await fs.readdir('data/users');
     for (const file of files) {
@@ -436,6 +450,7 @@ async saveUser(user: User): Promise<void> {
 ### Command System (`src/command/`)
 
 **Components:**
+
 - `CommandRegistry` - Stores all available commands
 - `CommandHandler` - Parses input and dispatches commands
 - `commands/` - Individual command implementations
@@ -449,7 +464,7 @@ export class MyCommand implements Command {
   aliases = ['mc'];
   description = 'Does something cool';
   usage = 'mycommand <argument>';
-  
+
   async execute(client: Client, args: string[]): Promise<void> {
     writeToClient(client, 'Doing something cool!');
   }
@@ -462,12 +477,14 @@ CommandRegistry.register(new MyCommand());
 ### Combat System (`src/combat/`)
 
 **Components:**
+
 - `CombatManager` - Manages combat instances
 - `CombatState` - State for active combat
 - `NPCAIManager` - AI for NPC behavior
 - `DamageCalculator` - Damage formulas
 
 **Combat Flow:**
+
 1. Player initiates combat (attack command)
 2. Transition to CombatState
 3. Turn-based loop:
@@ -486,7 +503,7 @@ Manages periodic events:
 ```typescript
 class GameTimerManager {
   private timers: Map<string, NodeJS.Timer> = new Map();
-  
+
   registerTimer(id: string, callback: () => void, interval: number): void {
     const timer = setInterval(callback, interval);
     this.timers.set(id, timer);
@@ -495,6 +512,7 @@ class GameTimerManager {
 ```
 
 **Common Timers:**
+
 - Health regeneration
 - Mana regeneration
 - NPC respawning
@@ -516,6 +534,7 @@ interface Effect {
 ```
 
 **Effect Types:**
+
 - Buffs (increased stats)
 - Debuffs (decreased stats)
 - Damage over time
@@ -525,6 +544,7 @@ interface Effect {
 ### Room System (`src/room/`)
 
 **Components:**
+
 - `RoomManager` - Manages all rooms
 - `RoomService` - Room operations
 - `NPCSpawner` - Spawns NPCs in rooms
@@ -537,15 +557,16 @@ interface Room {
   name: string;
   description: string;
   exits: { [direction: string]: string };
-  players: string[];  // User IDs
-  npcs: string[];     // NPC IDs
-  items: string[];    // Item IDs
+  players: string[]; // User IDs
+  npcs: string[]; // NPC IDs
+  items: string[]; // Item IDs
 }
 ```
 
 ### User System (`src/user/`)
 
 **Components:**
+
 - `UserManager` - User CRUD operations
 - `AuthService` - Authentication logic
 
@@ -554,11 +575,13 @@ interface Room {
 The Model Context Protocol server provides AI tools with access to game data.
 
 **Components:**
+
 - `MCPServer` - HTTP server for MCP protocol
 - Express.js middleware for routing and authentication
 - API endpoints for game data access
 
 **Features:**
+
 - **RESTful API** - HTTP endpoints for all game data
 - **API Key Authentication** - Secure access control via `X-API-Key` header
 - **Auto-generated Keys** - First-run setup prompts for key generation
@@ -568,6 +591,7 @@ The Model Context Protocol server provides AI tools with access to game data.
 - **Log Search** - Query logs for debugging
 
 **Key Endpoints:**
+
 ```typescript
 GET  /health              // Health check (no auth)
 GET  /tools               // List available tools
@@ -583,6 +607,7 @@ GET  /api/config          // Game configuration
 ```
 
 **Integration:**
+
 - Starts automatically on port 3100 when game server starts
 - Requires `ELLYMUD_MCP_API_KEY` environment variable
 - Won't start if API key is missing (security feature)
@@ -590,6 +615,7 @@ GET  /api/config          // Game configuration
 - Works with GitHub Copilot, Claude, and other MCP clients
 
 **Security:**
+
 - 256-bit API keys (64 hex characters)
 - Key validation on all requests (except `/health`)
 - Keys stored in `.env` (not version controlled)
@@ -597,6 +623,7 @@ GET  /api/config          // Game configuration
 - Failed authentication attempts logged
 
 See [src/mcp/README.md](../src/mcp/README.md) for detailed documentation.
+
 - `StatsManager` - Character statistics
 
 **User Structure:**
@@ -605,7 +632,7 @@ See [src/mcp/README.md](../src/mcp/README.md) for detailed documentation.
 interface User {
   id: string;
   username: string;
-  password: string;  // Hashed
+  password: string; // Hashed
   role: Role;
   stats: Stats;
   inventory: Item[];
@@ -626,26 +653,30 @@ Multiple log types with daily rotation:
 - `mcpLogger` - MCP server events
 
 **Player Logs:**
+
 - `logs/players/{username}-{date}.log` - Player actions
 - `logs/raw-sessions/{sessionId}-{date}.log` - Raw I/O
 
 ## Security Architecture
 
 ### Password Security
+
 - Passwords are hashed using bcrypt
 - Salt is generated per password
 - Plaintext passwords never stored or logged
 
 ### Input Validation
+
 - All user input is validated
 - Command arguments are sanitized
 - File paths are validated
 
 ### Role-Based Access Control (RBAC)
+
 ```typescript
 enum Role {
   USER = 'user',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
 }
 
 // Commands can require specific roles
@@ -656,6 +687,7 @@ if (command.requiredRole && client.user.role !== command.requiredRole) {
 ```
 
 ### Session Management
+
 - Sessions stored in memory
 - Session IDs are UUIDs
 - Timeout mechanisms prevent stale sessions
@@ -680,21 +712,25 @@ if (command.requiredRole && client.user.role !== command.requiredRole) {
 ## Performance Considerations
 
 ### Memory Management
+
 - Singleton pattern reduces object creation
 - Connection pooling for active clients
 - Periodic cleanup of inactive sessions
 
 ### I/O Optimization
+
 - Async file operations
 - Batched writes for high-frequency updates
 - Log rotation prevents disk space issues
 
 ### Scalability Limitations
+
 - Single-process architecture
 - In-memory data storage
 - File-based persistence
 
 **For Production:**
+
 - Consider database backend (PostgreSQL, MongoDB)
 - Implement horizontal scaling with Redis for sessions
 - Use message queue for inter-process communication

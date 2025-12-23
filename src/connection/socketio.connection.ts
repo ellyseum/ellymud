@@ -24,7 +24,7 @@ export class SocketIOConnection extends EventEmitter implements IConnection {
       if (this.rawLoggingEnabled && !this.maskInput) {
         const logger = getSessionLogger(this.id);
         logger.logInput(data);
-      } 
+      }
       // For password input, log a single message indicating password entry
       else if (this.rawLoggingEnabled && this.maskInput && !this.passwordMessageLogged) {
         const logger = getSessionLogger(this.id);
@@ -38,7 +38,7 @@ export class SocketIOConnection extends EventEmitter implements IConnection {
     // Handle special key events
     this.socket.on('special', (data) => {
       let keyCode = '';
-      
+
       // For arrow keys and other special inputs
       if (data.key === 'up') {
         keyCode = '\u001b[A';
@@ -49,13 +49,13 @@ export class SocketIOConnection extends EventEmitter implements IConnection {
       } else if (data.key === 'right') {
         keyCode = '\u001b[C';
       }
-      
+
       // Only log special keys for non-password input
       if (keyCode && this.rawLoggingEnabled && !this.maskInput) {
         const logger = getSessionLogger(this.id);
         logger.logInput(`[SPECIAL:${data.key}]`);
       }
-      
+
       if (keyCode) {
         this.emit('data', keyCode);
       }
@@ -85,7 +85,7 @@ export class SocketIOConnection extends EventEmitter implements IConnection {
       const logger = getSessionLogger(this.id);
       logger.logOutput(data);
     }
-    
+
     // Now that we're using xterm.js, we can send raw ANSI codes directly
     // without converting to HTML - xterm.js will handle them natively
     this.socket.emit('output', { data });
@@ -111,18 +111,18 @@ export class SocketIOConnection extends EventEmitter implements IConnection {
     if (mask && !this.maskInput) {
       this.maskInput = true;
       this.passwordMessageLogged = false;
-    } 
+    }
     // If we're turning masking off (exiting password mode)
     else if (!mask && this.maskInput) {
       this.maskInput = false;
-      
+
       // Log that password entry is complete
       if (this.rawLoggingEnabled) {
         const logger = getSessionLogger(this.id);
         logger.logInput('[PASSWORD INPUT COMPLETE]');
       }
     }
-    
+
     this.socket.emit('mask', { mask });
   }
 

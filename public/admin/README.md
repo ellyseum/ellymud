@@ -4,14 +4,14 @@ Web-based admin dashboard for EllyMUD server management and monitoring.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `index.html` | Admin portal entry page |
-| `login.html` | Admin authentication form |
-| `dashboard.html` | Main dashboard with session monitoring |
-| `dashboard.js` | Dashboard logic and API interactions |
-| `styles.css` | Admin interface styling |
-| `config-test.html` | Configuration testing utility |
+| File               | Description                            |
+| ------------------ | -------------------------------------- |
+| `index.html`       | Admin portal entry page                |
+| `login.html`       | Admin authentication form              |
+| `dashboard.html`   | Main dashboard with session monitoring |
+| `dashboard.js`     | Dashboard logic and API interactions   |
+| `styles.css`       | Admin interface styling                |
+| `config-test.html` | Configuration testing utility          |
 
 ## Features
 
@@ -44,6 +44,7 @@ Admin access requires:
 The dashboard communicates with backend endpoints defined in `src/admin/adminApi.ts`. All API calls require authentication.
 
 Key endpoints used:
+
 - `GET /api/admin/users` - List all users
 - `GET /api/admin/sessions` - Active sessions
 - `GET /api/admin/stats` - Server statistics

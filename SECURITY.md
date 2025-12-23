@@ -4,10 +4,10 @@
 
 EllyMUD is currently in active development. Security updates are provided for the latest version only.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| latest  | :white_check_mark: |
-| < latest| :x:                |
+| Version  | Supported          |
+| -------- | ------------------ |
+| latest   | :white_check_mark: |
+| < latest | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -136,6 +136,7 @@ When running EllyMUD, follow these security best practices:
 ### Future Security Enhancements
 
 We're working on:
+
 - [ ] Optional TLS/SSL support for all connections
 - [ ] Two-factor authentication (2FA) for admin accounts
 - [ ] Enhanced rate limiting
@@ -148,26 +149,31 @@ We're working on:
 EllyMUD includes several built-in security features:
 
 ### 1. Password Security
+
 - Passwords are salted and hashed using industry-standard algorithms
 - Password attempt limits prevent brute force attacks
 - No passwords are logged or displayed
 
 ### 2. Input Sanitization
+
 - User input is validated against expected patterns
 - Command parsing includes injection prevention
 - File paths are validated to prevent directory traversal
 
 ### 3. Role-Based Access Control (RBAC)
+
 - Clear separation between user and admin privileges
 - Admin commands require proper authorization
 - User actions are logged for audit trails
 
 ### 4. Session Management
+
 - Secure session handling
 - Session timeout mechanisms
 - Prevention of session hijacking
 
 ### 5. Logging
+
 - Comprehensive logging of user actions
 - Separate logs for different event types
 - Daily log rotation to manage disk space
@@ -190,7 +196,7 @@ We appreciate researchers who help improve EllyMUD's security:
 
 <!-- Contributors who report security issues will be listed here -->
 
-*No security issues have been reported yet.*
+_No security issues have been reported yet._
 
 ## Additional Resources
 

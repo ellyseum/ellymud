@@ -9,15 +9,18 @@ export class ConnectingState implements ClientState {
     // Use writeToClient utility instead of directly accessing socket
     writeToClient(client, colors.clear);
     writeToClient(client, colorize('========================================\r\n', 'bright'));
-    writeToClient(client, colorize('       ', 'bright') + rainbow('WELCOME TO THE TEXT ADVENTURE') + '\r\n');
+    writeToClient(
+      client,
+      colorize('       ', 'bright') + rainbow('WELCOME TO THE TEXT ADVENTURE') + '\r\n'
+    );
     writeToClient(client, colorize('========================================\r\n\r\n', 'bright'));
   }
 
-  handle(client: ConnectedClient, input: string): void {
+  handle(_client: ConnectedClient, _input: string): void {
     // This state automatically transitions to LOGIN in StateMachine
   }
-  
-  exit(client: ConnectedClient): void {
+
+  exit(_client: ConnectedClient): void {
     // No specific cleanup needed for connecting state
   }
 }

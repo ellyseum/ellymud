@@ -4,19 +4,19 @@ import { IConnection } from './interfaces/connection.interface';
 import { getSessionLogger, closeSessionLogger } from '../utils/rawSessionLogger';
 
 // Telnet control codes
-const IAC = 255;  // Interpret As Command
+const IAC = 255; // Interpret As Command
 const WILL = 251;
-const WONT = 252;
+// const WONT = 252; // Unused but kept for reference
 const DO = 253;
 const DONT = 254;
-const SB = 250;   // Subnegotiation Begin
-const SE = 240;   // Subnegotiation End
+const SB = 250; // Subnegotiation Begin
+const SE = 240; // Subnegotiation End
 
 // Telnet options
 const ECHO = 1;
 const SUPPRESS_GO_AHEAD = 3;
 const TERMINAL_TYPE = 24;
-const NAWS = 31;  // Negotiate About Window Size
+const NAWS = 31; // Negotiate About Window Size
 const LINEMODE = 34;
 
 export class TelnetConnection extends EventEmitter implements IConnection {
@@ -33,10 +33,10 @@ export class TelnetConnection extends EventEmitter implements IConnection {
     super();
     this.socket = socket;
     this.id = `telnet-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
+
     // Start telnet negotiations immediately
     this.negotiateTelnetOptions();
-    
+
     // Set up socket listeners
     this.setupListeners();
   }
@@ -66,17 +66,17 @@ export class TelnetConnection extends EventEmitter implements IConnection {
   private negotiateTelnetOptions(): void {
     // Tell the client we will handle echo (disables client-side echo)
     this.sendCommand([IAC, WILL, ECHO]);
-    
+
     // Disable linemode - we want character-at-a-time mode
     this.sendCommand([IAC, DONT, LINEMODE]);
-    
+
     // Suppress GA to enable character-at-a-time processing
     this.sendCommand([IAC, WILL, SUPPRESS_GO_AHEAD]);
     this.sendCommand([IAC, DO, SUPPRESS_GO_AHEAD]);
-    
+
     // Request terminal type for better compatibility
     this.sendCommand([IAC, DO, TERMINAL_TYPE]);
-    
+
     // Request window size
     this.sendCommand([IAC, DO, NAWS]);
 
@@ -97,48 +97,54 @@ export class TelnetConnection extends EventEmitter implements IConnection {
     // Process telnet commands and escape sequences
     let i = 0;
     let processedData = '';
-    
+
     // Debug - uncomment to see what's being received
     // console.log('Raw data:', Array.from(data).map(b => b.toString(16)).join(' '));
-    
+
     while (i < data.length) {
       // Check for IAC (Interpret As Command)
       if (data[i] === IAC) {
         // Debug telnet commands
         // console.log('TELNET CMD:', data[i], data[i+1], data[i+2]);
-        
+
         // Skip the telnet command sequence (at least IAC + command code)
         i += 2;
         // If it's a subnegotiation, skip until the end (IAC SE)
-        if (i < data.length && data[i-1] === SB) {
-          while (i < data.length && !(data[i-1] === IAC && data[i] === SE)) {
+        if (i < data.length && data[i - 1] === SB) {
+          while (i < data.length && !(data[i - 1] === IAC && data[i] === SE)) {
             i++;
           }
           i++;
         }
         continue;
       }
-      
+
       // Handle ASCII control characters
       if (data[i] < 32) {
         // Special handling for common control chars
-        if (data[i] === 8 || data[i] === 127) {  // Backspace or Delete
+        if (data[i] === 8 || data[i] === 127) {
+          // Backspace or Delete
           processedData += '\b';
-        } else if (data[i] === 13) {  // Carriage Return
+        } else if (data[i] === 13) {
+          // Carriage Return
           processedData += '\r';
           // Skip LF if it follows CR (CRLF sequence)
           if (i + 1 < data.length && data[i + 1] === 10) {
             i++;
           }
-        } else if (data[i] === 10) {  // Line Feed
+        } else if (data[i] === 10) {
+          // Line Feed
           processedData += '\n';
-        } else if (data[i] === 27) {  // Escape (start of escape sequence)
+        } else if (data[i] === 27) {
+          // Escape (start of escape sequence)
           // Handle common arrow key sequences
-          if (i + 2 < data.length && data[i+1] === 91) {
-            if (data[i+2] === 65) {  // Up arrow
+          if (i + 2 < data.length && data[i + 1] === 91) {
+            if (data[i + 2] === 65) {
+              // Up arrow
               processedData += '\u001b[A';
               i += 2;
-            } else if (data[i+2] === 66) {  // Down arrow
+            } else if (data[i + 2] === 66) {
+              // Down arrow
               processedData += '\u001b[B';
               i += 2;
             }
@@ -150,21 +156,21 @@ export class TelnetConnection extends EventEmitter implements IConnection {
       }
       i++;
     }
-    
+
     // If we have processed data, emit it
     if (processedData.length > 0) {
       // Log input only if we're not in password input mode
       if (this.rawLoggingEnabled && !this.maskInput) {
         const logger = getSessionLogger(this.id);
         logger.logInput(processedData);
-      } 
+      }
       // For password input, log a single message indicating password entry
       else if (this.rawLoggingEnabled && this.maskInput && !this.passwordMessageLogged) {
         const logger = getSessionLogger(this.id);
         logger.logInput('[PASSWORD INPUT MASKED]');
         this.passwordMessageLogged = true;
       }
-      
+
       this.emit('data', processedData);
     }
   }
@@ -200,11 +206,11 @@ export class TelnetConnection extends EventEmitter implements IConnection {
     if (mask && !this.maskInput) {
       this.maskInput = true;
       this.passwordMessageLogged = false;
-    } 
+    }
     // If we're turning masking off (exiting password mode)
     else if (!mask && this.maskInput) {
       this.maskInput = false;
-      
+
       // Log that password entry is complete
       if (this.rawLoggingEnabled) {
         const logger = getSessionLogger(this.id);

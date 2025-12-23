@@ -4,8 +4,8 @@ VS Code Dev Container setup for a consistent development environment across mach
 
 ## Contents
 
-| Path | Description |
-|------|-------------|
+| Path                | Description                                          |
+| ------------------- | ---------------------------------------------------- |
 | `devcontainer.json` | Container configuration with extensions and settings |
 
 ## Overview

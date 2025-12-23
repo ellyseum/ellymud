@@ -24,23 +24,23 @@ export class CommandParser {
         parserLogger.debug(`Converting empty input to attack command for player in combat`);
         return {
           command: 'attack',
-          args: []
+          args: [],
         };
       }
-      
+
       return {
         command: '',
-        args: []
+        args: [],
       };
     }
-    
+
     const parts = input.trim().split(/\s+/);
     const command = parts.shift()?.toLowerCase() || '';
     const args = parts;
 
     return {
       command,
-      args
+      args,
     };
   }
 }

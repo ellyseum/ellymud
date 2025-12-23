@@ -18,21 +18,21 @@ export function standardizeUsername(username: string): string {
  * - Only alphabetic characters (a-z, A-Z)
  * - No special characters or whitespace
  * - Less than 13 characters long
- * 
+ *
  * @returns Object containing validation result and optional error message
  */
 export function validateUsername(username: string): { isValid: boolean; message?: string } {
   if (!username || username.trim().length === 0) {
     return { isValid: false, message: 'Username cannot be empty' };
   }
-  
+
   if (username.length >= 13) {
     return { isValid: false, message: 'Username must be less than 13 characters long' };
   }
-  
+
   if (!/^[a-zA-Z]+$/.test(username)) {
     return { isValid: false, message: 'Username must contain only letters (a-z)' };
   }
-  
+
   return { isValid: true };
 }

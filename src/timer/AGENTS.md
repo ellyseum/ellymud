@@ -12,35 +12,33 @@ The `GameTimerManager` singleton runs the game loop. It triggers periodic proces
 
 ```typescript
 export class GameTimerManager {
-  static getInstance(
-    userManager: UserManager, 
-    roomManager: RoomManager
-  ): GameTimerManager
-  
-  start(): void
-  stop(): void
-  getCombatSystem(): CombatSystem
-  
+  static getInstance(userManager: UserManager, roomManager: RoomManager): GameTimerManager;
+
+  start(): void;
+  stop(): void;
+  getCombatSystem(): CombatSystem;
+
   // Tick interval in milliseconds
   readonly tickInterval: number;
 }
 ```
 
 **Tick Processing**:
+
 ```typescript
 private processTick(): void {
   // 1. Process combat
   this.combatSystem.processCombatTick();
-  
+
   // 2. Process effects
   this.effectManager.processEffectTick();
-  
+
   // 3. Process NPC AI
   this.processNPCAI();
-  
+
   // 4. Regeneration (health, mana)
   this.processRegeneration();
-  
+
   // 5. Auto-save
   this.checkAutoSave();
 }

@@ -13,12 +13,12 @@ Client management utilities for tracking connected clients and performing operat
 ```typescript
 export class ClientManager {
   constructor(private clients: Map<string, ConnectedClient>)
-  
+
   getClient(id: string): ConnectedClient | undefined
   getClientByUsername(username: string): ConnectedClient | undefined
   getAllClients(): ConnectedClient[]
   getAuthenticatedClients(): ConnectedClient[]
-  
+
   broadcast(message: string, exclude?: string[]): void
   broadcastToRoom(roomId: string, message: string, exclude?: string[]): void
 }
@@ -28,18 +28,18 @@ export class ClientManager {
 
 ```typescript
 interface ConnectedClient {
-  id: string;                    // Unique connection ID
-  connection: Connection;        // Protocol-specific connection
-  user?: User;                   // Set after authentication
-  state: ClientStateType;        // Current state
-  stateData: any;                // State-specific data
-  authenticated: boolean;        // Is logged in
-  buffer: string;                // Input buffer
-  outputBuffer: string[];        // Pending output
-  isTyping: boolean;             // Currently typing
-  commandHistory: string[];      // Recent commands
-  isBeingMonitored: boolean;     // Admin monitoring
-  adminMonitorSocket?: any;      // Monitor socket
+  id: string; // Unique connection ID
+  connection: Connection; // Protocol-specific connection
+  user?: User; // Set after authentication
+  state: ClientStateType; // Current state
+  stateData: any; // State-specific data
+  authenticated: boolean; // Is logged in
+  buffer: string; // Input buffer
+  outputBuffer: string[]; // Pending output
+  isTyping: boolean; // Currently typing
+  commandHistory: string[]; // Recent commands
+  isBeingMonitored: boolean; // Admin monitoring
+  adminMonitorSocket?: any; // Monitor socket
 }
 ```
 

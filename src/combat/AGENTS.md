@@ -24,25 +24,27 @@ CombatSystem (Singleton)
 **Purpose**: Core singleton that orchestrates all combat interactions
 
 **Key Exports**:
+
 ```typescript
 export class CombatSystem {
-  static getInstance(userManager: UserManager, roomManager: RoomManager): CombatSystem
-  
+  static getInstance(userManager: UserManager, roomManager: RoomManager): CombatSystem;
+
   // Start combat between player and NPC
-  startCombat(client: ConnectedClient, npcName: string): void
-  
+  startCombat(client: ConnectedClient, npcName: string): void;
+
   // Get active combat for player
-  getCombatForPlayer(username: string): Combat | undefined
-  
+  getCombatForPlayer(username: string): Combat | undefined;
+
   // Process all active combats (called on tick)
-  processCombatTick(): void
-  
+  processCombatTick(): void;
+
   // Remove combat instance
-  removeCombatForPlayer(username: string): void
+  removeCombatForPlayer(username: string): void;
 }
 ```
 
 **Singleton Pattern**:
+
 ```typescript
 // ✅ Correct
 const combat = CombatSystem.getInstance(userManager, roomManager);
@@ -56,18 +58,15 @@ const combat = new CombatSystem(userManager, roomManager);
 **Purpose**: Individual combat instance between a player and one or more NPCs
 
 **Key Exports**:
+
 ```typescript
 export class Combat {
-  constructor(
-    player: ConnectedClient,
-    opponents: CombatEntity[],
-    roomManager: RoomManager
-  )
-  
-  processTurn(): CombatResult
-  addOpponent(npc: CombatEntity): void
-  removeOpponent(id: string): void
-  isOver(): boolean
+  constructor(player: ConnectedClient, opponents: CombatEntity[], roomManager: RoomManager);
+
+  processTurn(): CombatResult;
+  addOpponent(npc: CombatEntity): void;
+  removeOpponent(id: string): void;
+  isOver(): boolean;
 }
 ```
 
@@ -94,6 +93,7 @@ export interface CombatEntity {
 **Purpose**: NPC class implementing CombatEntity
 
 **Key Exports**:
+
 ```typescript
 export class NPC implements CombatEntity {
   id: string;
@@ -103,15 +103,15 @@ export class NPC implements CombatEntity {
   attack: number;
   defense: number;
   roomId: string;
-  
+
   // Combat methods
-  isAlive(): boolean
-  takeDamage(amount: number): void
-  dealDamage(): number
-  
+  isAlive(): boolean;
+  takeDamage(amount: number): void;
+  dealDamage(): number;
+
   // Respawn handling
-  shouldRespawn(): boolean
-  getRespawnTime(): number
+  shouldRespawn(): boolean;
+  getRespawnTime(): number;
 }
 ```
 
@@ -119,15 +119,15 @@ export class NPC implements CombatEntity {
 
 Modular combat subsystems:
 
-| File | Purpose |
-|------|---------|
-| `EntityTracker.ts` | Tracks combat entities per room |
-| `CombatProcessor.ts` | Processes combat turns and damage |
-| `CombatNotifier.ts` | Sends combat messages to players |
-| `PlayerDeathHandler.ts` | Handles player death and respawn |
-| `CombatEventBus.ts` | Event pub/sub for combat events |
-| `CombatCommand.ts` | Command pattern for combat actions |
-| `CombatState.ts` | State pattern for combat phases |
+| File                    | Purpose                            |
+| ----------------------- | ---------------------------------- |
+| `EntityTracker.ts`      | Tracks combat entities per room    |
+| `CombatProcessor.ts`    | Processes combat turns and damage  |
+| `CombatNotifier.ts`     | Sends combat messages to players   |
+| `PlayerDeathHandler.ts` | Handles player death and respawn   |
+| `CombatEventBus.ts`     | Event pub/sub for combat events    |
+| `CombatCommand.ts`      | Command pattern for combat actions |
+| `CombatState.ts`        | State pattern for combat phases    |
 
 ## Combat Flow
 
@@ -206,7 +206,7 @@ const npc = new NPC({
   maxHealth: 30,
   attack: 5,
   defense: 2,
-  roomId: 'forest-1'
+  roomId: 'forest-1',
 });
 ```
 
@@ -221,6 +221,7 @@ const npc = new NPC({
 ### Modifying Damage Formula
 
 Edit `CombatProcessor.calculateDamage()`:
+
 ```typescript
 calculateDamage(attacker: CombatEntity, defender: CombatEntity): number {
   // Modify formula here

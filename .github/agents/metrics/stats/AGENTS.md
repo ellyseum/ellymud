@@ -7,6 +7,7 @@ This directory stores stats files created by agents after each execution. Every 
 ## Directory Purpose
 
 Stats files provide observability into agent performance:
+
 - **Timing**: How long each agent takes
 - **Tokens**: Estimated token consumption
 - **Tool Calls**: Which tools were used and how often
@@ -20,17 +21,17 @@ Stats files provide observability into agent performance:
 
 ### Prefixes by Agent
 
-| Agent | Prefix | Stats File |
-|-------|--------|------------|
-| Problem Solver | `pipeline` | `pipeline_*-stats.md` |
-| Research | `research` | `research_*-stats.md` |
-| Planning | `plan` | `plan_*-stats.md` |
-| Implementation | `impl` | `impl_*-stats.md` |
-| Validation | `validation` | `validation_*-stats.md` |
-| Output Review | `review` | `review_*-stats.md` |
-| Post-Mortem | `postmortem` | `postmortem_*-stats.md` |
-| Documentation Updater | `docs` | `docs_*-stats.md` |
-| Rollback | `rollback` | `rollback_*-stats.md` |
+| Agent                 | Prefix       | Stats File              |
+| --------------------- | ------------ | ----------------------- |
+| Problem Solver        | `pipeline`   | `pipeline_*-stats.md`   |
+| Research              | `research`   | `research_*-stats.md`   |
+| Planning              | `plan`       | `plan_*-stats.md`       |
+| Implementation        | `impl`       | `impl_*-stats.md`       |
+| Validation            | `validation` | `validation_*-stats.md` |
+| Output Review         | `review`     | `review_*-stats.md`     |
+| Post-Mortem           | `postmortem` | `postmortem_*-stats.md` |
+| Documentation Updater | `docs`       | `docs_*-stats.md`       |
+| Rollback              | `rollback`   | `rollback_*-stats.md`   |
 
 ## Stats File Structure
 
@@ -40,40 +41,46 @@ All stats files follow a consistent structure:
 # [Stage] Stats: [Task Name]
 
 ## Timing
-| Metric | Value |
-|--------|-------|
-| Start Time | YYYY-MM-DD HH:MM:SS UTC |
-| End Time | YYYY-MM-DD HH:MM:SS UTC |
-| Duration | X minutes |
-| Status | completed/failed/blocked |
+
+| Metric     | Value                    |
+| ---------- | ------------------------ |
+| Start Time | YYYY-MM-DD HH:MM:SS UTC  |
+| End Time   | YYYY-MM-DD HH:MM:SS UTC  |
+| Duration   | X minutes                |
+| Status     | completed/failed/blocked |
 
 ## Token Usage (Estimated)
-| Type | Count |
-|------|-------|
-| Input | ~X,XXX |
-| Output | ~X,XXX |
+
+| Type      | Count      |
+| --------- | ---------- |
+| Input     | ~X,XXX     |
+| Output    | ~X,XXX     |
 | **Total** | **~X,XXX** |
 
 ## Tool Calls
-| Tool | Count |
-|------|-------|
-| [tool_name] | X |
-| **Total** | **X** |
+
+| Tool        | Count |
+| ----------- | ----- |
+| [tool_name] | X     |
+| **Total**   | **X** |
 
 ## Output
-| Metric | Value |
-|--------|-------|
-| Output File | path |
-| Line Count | X |
+
+| Metric      | Value |
+| ----------- | ----- |
+| Output File | path  |
+| Line Count  | X     |
 
 ## Quality Indicators
+
 [Stage-specific metrics]
 
 ## Agent Info
-| Field | Value |
-|-------|-------|
-| Agent Version | X.X.X |
-| Model | model-name |
+
+| Field         | Value      |
+| ------------- | ---------- |
+| Agent Version | X.X.X      |
+| Model         | model-name |
 ```
 
 ## How Agents Create Stats
@@ -84,13 +91,13 @@ All stats files follow a consistent structure:
 
 ## Token Estimation Guidelines
 
-| Content Type | Estimate |
-|--------------|----------|
-| Short message (~100 words) | ~150 tokens |
-| File read (~100 lines) | ~500 tokens |
-| File read (~500 lines) | ~2500 tokens |
-| Tool call input | ~100-200 tokens |
-| Tool result | ~200-1000 tokens |
+| Content Type               | Estimate         |
+| -------------------------- | ---------------- |
+| Short message (~100 words) | ~150 tokens      |
+| File read (~100 lines)     | ~500 tokens      |
+| File read (~500 lines)     | ~2500 tokens     |
+| Tool call input            | ~100-200 tokens  |
+| Tool result                | ~200-1000 tokens |
 
 **Formula**: `tokens ≈ words × 1.3` for text, `tokens ≈ lines × 5` for code
 

@@ -24,8 +24,8 @@ client.connection.write('Hello!');
 Always use `\r\n` for Telnet compatibility:
 
 ```typescript
-writeMessageToClient(client, 'Message\r\n');  // ✅
-writeMessageToClient(client, 'Message\n');    // ❌
+writeMessageToClient(client, 'Message\r\n'); // ✅
+writeMessageToClient(client, 'Message\n'); // ❌
 ```
 
 ### 3. Singleton Access
@@ -50,33 +50,34 @@ getPlayerLogger(username).info('Player action');
 
 ## Directory Map
 
-| Directory | Purpose | Key Files |
-|-----------|---------|-----------|
-| `admin/` | Admin API | `adminApi.ts`, `adminAuth.ts` |
-| `client/` | Client tracking | `clientManager.ts` |
-| `combat/` | Combat system | `combatSystem.ts`, `npc.ts` |
-| `command/` | Command system | `commandHandler.ts`, `commandRegistry.ts` |
-| `config/` | CLI parsing | `cliConfig.ts` |
+| Directory     | Purpose           | Key Files                                         |
+| ------------- | ----------------- | ------------------------------------------------- |
+| `admin/`      | Admin API         | `adminApi.ts`, `adminAuth.ts`                     |
+| `client/`     | Client tracking   | `clientManager.ts`                                |
+| `combat/`     | Combat system     | `combatSystem.ts`, `npc.ts`                       |
+| `command/`    | Command system    | `commandHandler.ts`, `commandRegistry.ts`         |
+| `config/`     | CLI parsing       | `cliConfig.ts`                                    |
 | `connection/` | Protocol handlers | `telnet.connection.ts`, `websocket.connection.ts` |
-| `console/` | Server console | `consoleInterface.ts` |
-| `effects/` | Status effects | `effectManager.ts` |
-| `mcp/` | AI integration | `mcpServer.ts` |
-| `room/` | Room management | `roomManager.ts` |
-| `schemas/` | JSON validation | `index.ts` |
-| `server/` | Network servers | `telnetServer.ts`, `webSocketServer.ts` |
-| `setup/` | First-run setup | `adminSetup.ts` |
-| `state/` | State machine | `stateMachine.ts` |
-| `states/` | Client states | `authenticated.state.ts`, `login.state.ts` |
-| `timer/` | Game timer | `gameTimerManager.ts` |
-| `types/` | Type modules | `effects.ts` |
-| `user/` | User management | `userManager.ts` |
-| `utils/` | Utilities | `socketWriter.ts`, `colors.ts`, `logger.ts` |
+| `console/`    | Server console    | `consoleInterface.ts`                             |
+| `effects/`    | Status effects    | `effectManager.ts`                                |
+| `mcp/`        | AI integration    | `mcpServer.ts`                                    |
+| `room/`       | Room management   | `roomManager.ts`                                  |
+| `schemas/`    | JSON validation   | `index.ts`                                        |
+| `server/`     | Network servers   | `telnetServer.ts`, `webSocketServer.ts`           |
+| `setup/`      | First-run setup   | `adminSetup.ts`                                   |
+| `state/`      | State machine     | `stateMachine.ts`                                 |
+| `states/`     | Client states     | `authenticated.state.ts`, `login.state.ts`        |
+| `timer/`      | Game timer        | `gameTimerManager.ts`                             |
+| `types/`      | Type modules      | `effects.ts`                                      |
+| `user/`       | User management   | `userManager.ts`                                  |
+| `utils/`      | Utilities         | `socketWriter.ts`, `colors.ts`, `logger.ts`       |
 
 ## Core Files
 
 ### app.ts - GameServer Class
 
 Main application class that:
+
 - Initializes all singleton managers
 - Starts all network servers
 - Sets up signal handlers
@@ -85,6 +86,7 @@ Main application class that:
 ### server.ts - Entry Point
 
 Simple entry that:
+
 - Loads environment variables
 - Creates GameServer instance
 - Starts the server
@@ -92,6 +94,7 @@ Simple entry that:
 ### config.ts - Configuration
 
 Server constants:
+
 - Port numbers (Telnet: 8023, WebSocket: 8080, MCP: 3100)
 - Timeouts and intervals
 - Default values
@@ -99,6 +102,7 @@ Server constants:
 ### types.ts - Core Types
 
 Key types:
+
 - `Client` - Connected client object
 - `User` - User data structure
 - `ClientStateType` - State enum
@@ -125,18 +129,21 @@ socketWriter → Client Output
 ## Adding New Features
 
 ### New Command
+
 1. Create `src/command/commands/yourcommand.command.ts`
 2. Extend `BaseCommand`
 3. Register in `commandRegistry.ts`
 4. Update `docs/commands.md`
 
 ### New State
+
 1. Create `src/states/yourstate.state.ts`
 2. Implement `ClientState` interface
 3. Register in `stateMachine.ts`
 4. Add to `ClientStateType` enum
 
 ### New Utility
+
 1. Create in `src/utils/`
 2. Export from module
 3. Document usage in this file

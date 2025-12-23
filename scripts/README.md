@@ -4,11 +4,11 @@ Shell scripts for project setup, maintenance, and automation tasks.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `bootstrap.sh` | Fresh system setup - installs dependencies and configures environment |
-| `check-paired-docs.sh` | Validates README.md and AGENTS.md pairs across all directories |
-| `generate-pipeline-report.sh` | Generates markdown report from agent pipeline metrics |
+| File                          | Description                                                           |
+| ----------------------------- | --------------------------------------------------------------------- |
+| `bootstrap.sh`                | Fresh system setup - installs dependencies and configures environment |
+| `check-paired-docs.sh`        | Validates README.md and AGENTS.md pairs across all directories        |
+| `generate-pipeline-report.sh` | Generates markdown report from agent pipeline metrics                 |
 
 ## Usage
 

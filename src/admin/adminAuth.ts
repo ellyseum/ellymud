@@ -39,10 +39,12 @@ export class AdminAuth {
       // Check if the admin.json file exists
       if (!fs.existsSync(ADMIN_FILE)) {
         const currentTime = Date.now();
-        
+
         // Only log the warning if the cooldown period has passed
-        if (!AdminAuth.fileWarningLogged || 
-            (currentTime - AdminAuth.warningTimestamp) > AdminAuth.WARNING_COOLDOWN_MS) {
+        if (
+          !AdminAuth.fileWarningLogged ||
+          currentTime - AdminAuth.warningTimestamp > AdminAuth.WARNING_COOLDOWN_MS
+        ) {
           systemLogger.warn(`Admin file not found: ${ADMIN_FILE}`);
           AdminAuth.fileWarningLogged = true;
           AdminAuth.warningTimestamp = currentTime;
@@ -71,23 +73,23 @@ export class AdminAuth {
     // Prevent setting invalid values
     if (cooldownTimeMs > 0) {
       Object.defineProperty(AdminAuth, 'WARNING_COOLDOWN_MS', {
-        value: cooldownTimeMs
+        value: cooldownTimeMs,
       });
     }
   }
 
   // Check if a user is an admin (super or admin level, not mod)
   private isAdminOrSuperAdmin(username: string): boolean {
-    const admin = this.admins.find(a => a.username.toLowerCase() === username.toLowerCase());
+    const admin = this.admins.find((a) => a.username.toLowerCase() === username.toLowerCase());
     if (!admin) return false;
-    
+
     // Only allow super and admin levels, not mod
     return admin.level === 'super' || admin.level === 'admin';
   }
 
   /**
    * Authenticate an admin for web UI access
-   * 
+   *
    * This checks:
    * 1. If the user exists in users.json
    * 2. If the user has admin or superadmin privileges in admin.json
@@ -98,7 +100,7 @@ export class AdminAuth {
     if (!this.isAdminOrSuperAdmin(username)) {
       return false;
     }
-    
+
     // Then check if the user exists and the password is correct
     // using the main UserManager authentication
     return this.userManager.authenticateUser(username, password);

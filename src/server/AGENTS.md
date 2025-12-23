@@ -16,13 +16,14 @@ export class TelnetServer {
     private clients: Map<string, ConnectedClient>,
     private stateMachine: StateMachine
   )
-  
+
   start(port: number): void
   stop(): void
 }
 ```
 
 **Connection Flow**:
+
 1. Accept TCP connection
 2. Create `TelnetConnection` wrapper
 3. Create `ConnectedClient` object
@@ -40,12 +41,13 @@ export class WebSocketServer {
     private clients: Map<string, ConnectedClient>,
     private stateMachine: StateMachine
   )
-  
+
   initialize(): void
 }
 ```
 
 **Connection Flow**:
+
 1. Receive HTTP upgrade request
 2. Accept WebSocket connection
 3. Create `WebSocketConnection` wrapper
@@ -60,12 +62,13 @@ export class WebSocketServer {
 ```typescript
 export class APIServer {
   constructor(private userManager: UserManager)
-  
+
   getExpressApp(): Express
 }
 ```
 
 **Endpoints**:
+
 - `GET /api/users` - List users (admin)
 - `GET /api/rooms` - List rooms (admin)
 - `POST /api/admin/login` - Admin authentication
@@ -82,13 +85,14 @@ export class ShutdownManager {
     private clients: Map<string, ConnectedClient>,
     private userManager: UserManager
   )
-  
+
   registerShutdownHandlers(): void
   initiateShutdown(reason: string): Promise<void>
 }
 ```
 
 **Shutdown Sequence**:
+
 1. Stop accepting new connections
 2. Notify all connected clients
 3. Save all user data
@@ -99,6 +103,7 @@ export class ShutdownManager {
 ## Port Configuration
 
 Default ports (configurable in `config.ts`):
+
 - **8023**: Telnet
 - **8080**: HTTP/WebSocket
 - **3100**: MCP Server

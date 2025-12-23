@@ -24,33 +24,35 @@ RoomManager (Singleton)
 **Purpose**: Singleton managing all room data and operations
 
 **Key Exports**:
+
 ```typescript
 export class RoomManager implements IRoomManager {
-  static getInstance(clients: Map<string, ConnectedClient>): RoomManager
-  
+  static getInstance(clients: Map<string, ConnectedClient>): RoomManager;
+
   // Room access
-  getRoom(roomId: string): Room | undefined
-  getAllRooms(): Map<string, Room>
-  getStartingRoomId(): string
-  
+  getRoom(roomId: string): Room | undefined;
+  getAllRooms(): Map<string, Room>;
+  getStartingRoomId(): string;
+
   // Player operations
-  lookRoom(client: ConnectedClient): void
-  briefLookRoom(client: ConnectedClient): void
-  movePlayer(client: ConnectedClient, direction: string): boolean
-  teleportToStartingRoom(client: ConnectedClient): void
-  
+  lookRoom(client: ConnectedClient): void;
+  briefLookRoom(client: ConnectedClient): void;
+  movePlayer(client: ConnectedClient, direction: string): boolean;
+  teleportToStartingRoom(client: ConnectedClient): void;
+
   // Entity management
-  addNPCToRoom(roomId: string, npc: NPC): void
-  removeNPCFromRoom(roomId: string, npcId: string): void
-  getNPCsInRoom(roomId: string): NPC[]
-  
+  addNPCToRoom(roomId: string, npc: NPC): void;
+  removeNPCFromRoom(roomId: string, npcId: string): void;
+  getNPCsInRoom(roomId: string): NPC[];
+
   // Item management
-  addItemToRoom(roomId: string, item: Item): void
-  removeItemFromRoom(roomId: string, itemId: string): void
+  addItemToRoom(roomId: string, item: Item): void;
+  removeItemFromRoom(roomId: string, itemId: string): void;
 }
 ```
 
 **Singleton Pattern**:
+
 ```typescript
 // ✅ Correct
 const roomManager = RoomManager.getInstance(clients);
@@ -72,12 +74,12 @@ export class Room {
   exits: Exit[];
   items: Item[];
   npcs: NPC[];
-  players: string[];  // usernames
+  players: string[]; // usernames
   currency: Currency;
-  
-  getExit(direction: string): Exit | undefined
-  addPlayer(username: string): void
-  removePlayer(username: string): void
+
+  getExit(direction: string): Exit | undefined;
+  addPlayer(username: string): void;
+  removePlayer(username: string): void;
 }
 ```
 
@@ -102,14 +104,14 @@ export interface Exit {
 
 Modular services for room operations:
 
-| File | Purpose |
-|------|---------|
-| `directionHelper.ts` | Normalize direction input (n→north, etc.) |
-| `entityRegistryService.ts` | Track entities in rooms |
-| `npcInteractionService.ts` | Find/target NPCs in rooms |
-| `playerMovementService.ts` | Handle player movement |
-| `roomUINotificationService.ts` | Send room messages |
-| `teleportationService.ts` | Teleport operations |
+| File                           | Purpose                                   |
+| ------------------------------ | ----------------------------------------- |
+| `directionHelper.ts`           | Normalize direction input (n→north, etc.) |
+| `entityRegistryService.ts`     | Track entities in rooms                   |
+| `npcInteractionService.ts`     | Find/target NPCs in rooms                 |
+| `playerMovementService.ts`     | Handle player movement                    |
+| `roomUINotificationService.ts` | Send room messages                        |
+| `teleportationService.ts`      | Teleport operations                       |
 
 ## Room Data
 
@@ -144,6 +146,7 @@ Also: NE, NW, SE, SW, UP, DOWN
 ```
 
 Direction aliases:
+
 - `n` → `north`
 - `s` → `south`
 - `e` → `east`
@@ -194,7 +197,7 @@ roomManager.notifyRoom(roomId, 'Something happens!', [excludeUsername]);
 // Notify on player arrival
 roomManager.notifyPlayerArrival(client, fromDirection);
 
-// Notify on player departure  
+// Notify on player departure
 roomManager.notifyPlayerDeparture(client, direction);
 ```
 

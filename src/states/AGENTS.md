@@ -33,12 +33,12 @@ SIGNUP ──→ CONFIRMATION   │
 ```typescript
 export class ConnectingState implements ClientState {
   name = ClientStateType.CONNECTING;
-  
+
   enter(client: ConnectedClient): void {
     // Display MOTD
     // Auto-transition to LOGIN
   }
-  
+
   handleInput(client: ConnectedClient, input: string): void {
     // No input handling—immediately transitions
   }
@@ -52,11 +52,11 @@ export class ConnectingState implements ClientState {
 ```typescript
 export class LoginState implements ClientState {
   name = ClientStateType.LOGIN;
-  
+
   enter(client: ConnectedClient): void {
     // Prompt for username
   }
-  
+
   handleInput(client: ConnectedClient, input: string): void {
     // Phase 1: Receive username
     // Phase 2: Receive password
@@ -67,6 +67,7 @@ export class LoginState implements ClientState {
 ```
 
 **State Data**:
+
 ```typescript
 client.stateData = {
   loginPhase: 'username' | 'password',
@@ -81,11 +82,11 @@ client.stateData = {
 ```typescript
 export class SignupState implements ClientState {
   name = ClientStateType.SIGNUP;
-  
+
   enter(client: ConnectedClient): void {
     // Prompt for new username
   }
-  
+
   handleInput(client: ConnectedClient, input: string): void {
     // Phase 1: Receive username (validate unique)
     // Phase 2: Receive password
@@ -103,7 +104,7 @@ export class SignupState implements ClientState {
 ```typescript
 export class ConfirmationState implements ClientState {
   name = ClientStateType.CONFIRMATION;
-  
+
   handleInput(client: ConnectedClient, input: string): void {
     // Validate confirmation input
     // Execute confirmed action
@@ -119,23 +120,23 @@ export class ConfirmationState implements ClientState {
 ```typescript
 export class AuthenticatedState implements ClientState {
   name = ClientStateType.AUTHENTICATED;
-  
+
   constructor(
     private clients: Map<string, ConnectedClient>,
     private stateMachine: StateMachine
   ) {}
-  
+
   enter(client: ConnectedClient): void {
     // Show welcome message
     // Place player in starting room
     // Initialize CommandHandler
   }
-  
+
   handleInput(client: ConnectedClient, input: string): void {
     // Route all input to CommandHandler
     this.commandHandler.handleCommand(client, input);
   }
-  
+
   exit(client: ConnectedClient): void {
     // Save user data
     // Clean up resources
@@ -150,7 +151,7 @@ export class AuthenticatedState implements ClientState {
 ```typescript
 export class TransferRequestState implements ClientState {
   name = ClientStateType.TRANSFER_REQUEST;
-  
+
   handleInput(client: ConnectedClient, input: string): void {
     // 'yes' - Transfer session to new connection
     // 'no' - Keep current session, reject new
@@ -165,7 +166,7 @@ export class TransferRequestState implements ClientState {
 ```typescript
 export class SnakeGameState implements ClientState {
   name = ClientStateType.SNAKE_GAME;
-  
+
   handleInput(client: ConnectedClient, input: string): void {
     // WASD movement
     // 'q' to quit game
@@ -181,7 +182,7 @@ export class SnakeGameState implements ClientState {
 ```typescript
 export class WaitingState implements ClientState {
   name = ClientStateType.WAITING;
-  
+
   handleInput(client: ConnectedClient, input: string): void {
     // Any input returns to AUTHENTICATED
   }
@@ -216,15 +217,15 @@ import { writeToClient } from '../utils/socketWriter';
 
 export class NewState implements ClientState {
   name = ClientStateType.NEW_STATE;
-  
+
   enter(client: ConnectedClient): void {
     writeToClient(client, 'Entered new state\r\n');
   }
-  
+
   handleInput(client: ConnectedClient, input: string): void {
     // Handle input
   }
-  
+
   exit(client: ConnectedClient): void {
     // Cleanup
   }

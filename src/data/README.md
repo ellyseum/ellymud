@@ -9,8 +9,9 @@ This `src/data/` directory exists as a placeholder. All actual game data files a
 ## Actual Data Location
 
 Game data is stored in:
+
 - `data/users.json` - User accounts
-- `data/rooms.json` - Room definitions  
+- `data/rooms.json` - Room definitions
 - `data/items.json` - Item templates
 - `data/npcs.json` - NPC templates
 - etc.

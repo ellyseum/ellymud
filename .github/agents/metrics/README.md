@@ -5,6 +5,7 @@ Track pipeline health and performance over time.
 ## Purpose
 
 Pipeline metrics provide visibility into:
+
 - How long each stage takes
 - Quality scores across executions
 - Retry frequency and failure patterns
@@ -32,17 +33,17 @@ Pipeline metrics provide visibility into:
 
 **Every agent creates a stats file** in `metrics/stats/` with timing, token usage, and quality metrics.
 
-| Agent | Stats File Pattern |
-|-------|-------------------|
-| Problem Solver | `pipeline_YYYY-MM-DD_task-stats.md` |
-| Research | `research_YYYY-MM-DD_task-stats.md` |
-| Planning | `plan_YYYY-MM-DD_task-stats.md` |
-| Implementation | `impl_YYYY-MM-DD_task-stats.md` |
-| Validation | `validation_YYYY-MM-DD_task-stats.md` |
-| Output Review | `review_YYYY-MM-DD_task-stats.md` |
-| Post-Mortem | `postmortem_YYYY-MM-DD_task-stats.md` |
-| Documentation | `docs_YYYY-MM-DD_task-stats.md` |
-| Rollback | `rollback_YYYY-MM-DD_task-stats.md` |
+| Agent          | Stats File Pattern                    |
+| -------------- | ------------------------------------- |
+| Problem Solver | `pipeline_YYYY-MM-DD_task-stats.md`   |
+| Research       | `research_YYYY-MM-DD_task-stats.md`   |
+| Planning       | `plan_YYYY-MM-DD_task-stats.md`       |
+| Implementation | `impl_YYYY-MM-DD_task-stats.md`       |
+| Validation     | `validation_YYYY-MM-DD_task-stats.md` |
+| Output Review  | `review_YYYY-MM-DD_task-stats.md`     |
+| Post-Mortem    | `postmortem_YYYY-MM-DD_task-stats.md` |
+| Documentation  | `docs_YYYY-MM-DD_task-stats.md`       |
+| Rollback       | `rollback_YYYY-MM-DD_task-stats.md`   |
 
 Each agent has its own stats template inlined in its `.agent.md` file.
 
@@ -67,12 +68,15 @@ Example: `pipeline_2025-12-21_npc-dialogue-trees.json`
 ## Key Schema Fields
 
 ### Stage Metrics
+
 Each stage includes: duration, grade, score, verdict, retries, tokensUsed, statsFile path
 
 ### Output Files
+
 Each stage tracks: original output, reviewed version, grade report, summary, change suggestions
 
 ### Aggregated Metrics
+
 Totals from all stats files: tool calls, files processed, token breakdown, quality scores
 
 ## Sample Metrics Record
@@ -85,9 +89,9 @@ Totals from all stats files: tool calls, files processed, token breakdown, quali
   "branch": "feature/npc-dialogue",
   "complexity": "Medium",
   "stages": {
-    "research": { 
-      "duration": 15, 
-      "grade": "A", 
+    "research": {
+      "duration": 15,
+      "grade": "A",
       "score": 92,
       "verdict": "PASS",
       "retries": 0,
@@ -114,12 +118,12 @@ Totals from all stats files: tool calls, files processed, token breakdown, quali
 
 ### Key Metrics to Track
 
-| Metric | What It Shows | Target |
-|--------|---------------|--------|
-| Average duration | Pipeline efficiency | < 60 min for Medium tasks |
-| Grade distribution | Quality consistency | 80%+ at B or higher |
-| Retry rate | First-pass quality | < 20% retry rate |
-| Success rate | Overall reliability | > 90% success |
+| Metric             | What It Shows       | Target                    |
+| ------------------ | ------------------- | ------------------------- |
+| Average duration   | Pipeline efficiency | < 60 min for Medium tasks |
+| Grade distribution | Quality consistency | 80%+ at B or higher       |
+| Retry rate         | First-pass quality  | < 20% retry rate          |
+| Success rate       | Overall reliability | > 90% success             |
 
 ### Aggregation Queries
 
@@ -145,6 +149,7 @@ cat executions/*.json | jq -s '[.[] | .aggregatedFromStats.tokenBreakdown] | add
 ## Integration with Post-Mortem Agent
 
 The Post-Mortem Agent should:
+
 1. Read recent metrics files
 2. Identify patterns (slow stages, frequent retries)
 3. Suggest improvements based on trends
@@ -153,6 +158,7 @@ The Post-Mortem Agent should:
 ## Token Usage Estimation
 
 Token estimates are rough calculations:
+
 - Research: ~10,000-20,000 tokens
 - Planning: ~5,000-15,000 tokens
 - Implementation: ~15,000-40,000 tokens

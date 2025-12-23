@@ -10,10 +10,10 @@ This directory stores implementation reports produced by the Implementation Agen
 
 ## File Naming Convention
 
-| Pattern | Description | Example |
-|---------|-------------|---------|
-| `impl_{topic}.md` | Raw implementation report | `impl_npc_hostility.md` |
-| `impl_{topic}-reviewed.md` | After Output Review | `impl_npc_hostility-reviewed.md` |
+| Pattern                    | Description               | Example                          |
+| -------------------------- | ------------------------- | -------------------------------- |
+| `impl_{topic}.md`          | Raw implementation report | `impl_npc_hostility.md`          |
+| `impl_{topic}-reviewed.md` | After Output Review       | `impl_npc_hostility-reviewed.md` |
 
 ## Expected Document Structure
 
@@ -33,6 +33,7 @@ Implementation reports should contain:
 ## Quality Criteria
 
 Implementation reports must:
+
 - ✅ Document every task outcome
 - ✅ Include verification command outputs
 - ✅ Explain all deviations from plan
@@ -40,6 +41,7 @@ Implementation reports must:
 - ✅ Reference specific commits/changes
 
 Implementation reports must NOT:
+
 - ❌ Skip verification steps
 - ❌ Make undocumented changes
 - ❌ Deviate without justification
@@ -66,4 +68,4 @@ Major deviations: Different approach, skipped tasks, new dependencies
 
 ---
 
-*Last updated: 2025-01-11*
+_Last updated: 2025-01-11_

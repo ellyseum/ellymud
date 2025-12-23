@@ -11,11 +11,21 @@ JSON Schema definitions for validating data files. Ensures data integrity when l
 **Purpose**: Export schemas and validation functions
 
 ```typescript
-export const userSchema = { /* ... */ };
-export const roomSchema = { /* ... */ };
-export const itemSchema = { /* ... */ };
-export const npcSchema = { /* ... */ };
-export const configSchema = { /* ... */ };
+export const userSchema = {
+  /* ... */
+};
+export const roomSchema = {
+  /* ... */
+};
+export const itemSchema = {
+  /* ... */
+};
+export const npcSchema = {
+  /* ... */
+};
+export const configSchema = {
+  /* ... */
+};
 
 export function validateUser(data: unknown): ValidationResult;
 export function validateRoom(data: unknown): ValidationResult;

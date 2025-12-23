@@ -1,11 +1,11 @@
 import { ConnectedClient } from '../types';
-import { drawCommandPrompt, getPromptText } from './promptFormatter';
+import { drawCommandPrompt } from './promptFormatter';
 
 // Write directly to the client without buffering
 export function writeToClient(client: ConnectedClient, data: string): void {
   // Write directly to the connection
   client.connection.write(data);
-  
+
   // If this client is being monitored, also send to the admin
   if (client.isBeingMonitored && client.adminMonitorSocket) {
     client.adminMonitorSocket.emit('monitor-output', { data });
@@ -18,20 +18,20 @@ export function writeMessageToClient(client: ConnectedClient, message: string): 
     writeToClient(client, message);
     return;
   }
-  
+
   // If user is actively typing (has something in buffer), buffer the output
   if (client.isTyping && client.buffer.length > 0) {
     // Add to output buffer
     client.outputBuffer.push(message);
     return;
   }
-  
+
   // Improved combat message detection
-  const isCombatMessage = 
-    message.includes('Combat') || 
+  const isCombatMessage =
+    message.includes('Combat') ||
     message.includes('combat') ||
-    message.includes('swing') || 
-    message.includes('hit') || 
+    message.includes('swing') ||
+    message.includes('hit') ||
     message.includes('attacks') ||
     message.includes('miss') ||
     message.includes('damage') ||
@@ -41,16 +41,16 @@ export function writeMessageToClient(client: ConnectedClient, message: string): 
     message.includes('dies') ||
     message.includes('sad meow') ||
     message.includes('moves to attack');
-  
+
   // Always clear the line for combat messages
   if (isCombatMessage || client.user.inCombat) {
     const clearLineSequence = '\r\x1B[K';
     writeToClient(client, clearLineSequence);
   }
-  
+
   // Write the actual message
   writeToClient(client, message);
-  
+
   // For combat messages or if in combat, always redraw the prompt
   if (isCombatMessage || client.user.inCombat) {
     // Use our new utility function to draw the prompt
@@ -65,18 +65,18 @@ export function stopBuffering(client: ConnectedClient): void {
     client.isTyping = false;
     return;
   }
-  
+
   // Process all buffered messages
   for (const message of client.outputBuffer) {
     writeToClient(client, message);
   }
-  
+
   // Clear the buffer
   client.outputBuffer = [];
-  
+
   // Reset isTyping flag
   client.isTyping = false;
-  
+
   // Always draw prompt if user is authenticated
   if (client.user) {
     drawCommandPrompt(client);
@@ -91,7 +91,7 @@ export function stopBuffering(client: ConnectedClient): void {
  * @param drawPrompt Whether to redraw the prompt after writing the message (default: true)
  */
 export function writeFormattedMessageToClient(
-  client: ConnectedClient, 
+  client: ConnectedClient,
   message: string,
   drawPrompt: boolean = true
 ): void {
@@ -100,20 +100,20 @@ export function writeFormattedMessageToClient(
     writeToClient(client, message);
     return;
   }
-  
+
   // If user is actively typing (has something in buffer), buffer the output
   if (client.isTyping && client.buffer.length > 0) {
     // Add to output buffer
     client.outputBuffer.push(message);
     return;
   }
-  
+
   // First clear the current line
   client.connection.write('\r\x1B[K');
-  
+
   // Write the message
   client.connection.write(message);
-  
+
   // Only draw the prompt if requested
   if (drawPrompt) {
     // Use our utility function to draw the prompt

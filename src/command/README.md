@@ -4,13 +4,13 @@ The command parsing and execution system for EllyMUD. All player actions are pro
 
 ## Contents
 
-| Path | Description |
-|------|-------------|
-| `commandHandler.ts` | Main processor that routes input to commands |
-| `commandRegistry.ts` | Singleton registry of all available commands |
-| `command.interface.ts` | Interface that all commands must implement |
-| `baseCommand.ts` | Base class providing common command functionality |
-| `commands/` | Individual command implementations (40+ commands) |
+| Path                   | Description                                       |
+| ---------------------- | ------------------------------------------------- |
+| `commandHandler.ts`    | Main processor that routes input to commands      |
+| `commandRegistry.ts`   | Singleton registry of all available commands      |
+| `command.interface.ts` | Interface that all commands must implement        |
+| `baseCommand.ts`       | Base class providing common command functionality |
+| `commands/`            | Individual command implementations (40+ commands) |
 
 ## How Commands Work
 
@@ -24,6 +24,7 @@ The command parsing and execution system for EllyMUD. All player actions are pro
 ## Command Structure
 
 Each command implements:
+
 - `name` - Primary command name
 - `aliases` - Alternative names (e.g., 'l' for 'look')
 - `description` - Help text

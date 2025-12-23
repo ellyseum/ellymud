@@ -38,6 +38,7 @@ GitHub-specific configuration files that enhance the development workflow. Conta
 **Purpose**: Standard PR template ensuring contributors provide complete information
 
 **Sections**:
+
 - Description and linked issue
 - Type of change (bug fix, feature, breaking change, etc.)
 - Testing methodology and configuration
@@ -50,12 +51,12 @@ GitHub-specific configuration files that enhance the development workflow. Conta
 
 **Purpose**: Structured templates for different issue types
 
-| Template | Use Case | Required Fields |
-|----------|----------|-----------------|
-| `bug_report.md` | Reporting bugs | Steps to reproduce, expected behavior, actual behavior |
-| `feature_request.md` | Proposing features | Problem statement, proposed solution, alternatives |
-| `documentation.md` | Doc issues | Location, current content, suggested improvement |
-| `question.md` | Questions | Context, what you've tried |
+| Template             | Use Case           | Required Fields                                        |
+| -------------------- | ------------------ | ------------------------------------------------------ |
+| `bug_report.md`      | Reporting bugs     | Steps to reproduce, expected behavior, actual behavior |
+| `feature_request.md` | Proposing features | Problem statement, proposed solution, alternatives     |
+| `documentation.md`   | Doc issues         | Location, current content, suggested improvement       |
+| `question.md`        | Questions          | Context, what you've tried                             |
 
 ### `agents/`
 
@@ -83,23 +84,28 @@ GitHub-specific configuration files that enhance the development workflow. Conta
 ## Working with Templates
 
 ### Creating Issues
+
 Templates auto-populate when creating issues. Ensure:
+
 - Use appropriate template for issue type
 - Fill all required sections
 - Include reproduction steps for bugs
 - Add relevant labels if access permits
 
 ### Creating PRs
+
 The PR template includes checklists:
 
 ```markdown
 ### Code Quality
+
 - [ ] My code follows the style guidelines
 - [ ] I have performed self-review
 - [ ] My changes generate no new warnings
 - [ ] I have checked my code builds successfully
 
 ### Testing
+
 - [ ] I have tested manually
 - [ ] I have tested Telnet and WebSocket (if applicable)
 - [ ] I have tested as user and admin (if applicable)
@@ -108,12 +114,15 @@ The PR template includes checklists:
 ## Working with Agents
 
 ### Invoking the Pipeline
+
 ```
 "Using the agent pipeline, implement [feature]"
 ```
 
 ### Direct Agent Invocation
+
 Each agent can be invoked directly via VS Code's agent system:
+
 - `@Research` - Investigate codebase
 - `@Plan` - Create implementation plan
 - `@Implementation` - Execute plan
@@ -121,7 +130,9 @@ Each agent can be invoked directly via VS Code's agent system:
 - `@Documentation Updater` - Update docs
 
 ### Pipeline Outputs
+
 Agents produce structured outputs in their directories:
+
 - `research/research_YYYY-MM-DD_slug.md`
 - `planning/plan_YYYY-MM-DD_slug.md`
 - `implementation/impl_YYYY-MM-DD_slug.md`
@@ -130,7 +141,9 @@ Agents produce structured outputs in their directories:
 ## Conventions
 
 ### Template Maintenance
+
 When modifying templates:
+
 ```yaml
 # ✅ Correct - Include YAML frontmatter
 ---
@@ -138,13 +151,14 @@ name: Bug Report
 about: Report a bug
 labels: ['bug', 'triage']
 ---
-
 # ❌ Incorrect - Missing frontmatter
 ## Bug Report
 ```
 
 ### Agent Modifications
+
 When modifying agent definitions:
+
 - Test with the agent test framework
 - Update AGENTS.md if behavior changes
 - Ensure prompts are unambiguous

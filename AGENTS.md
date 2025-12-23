@@ -24,12 +24,12 @@ kill <specific-pid>                # Kill only the PID you identified
 3. **Kill only those PIDs**: `kill <pid>` or `kill -9 <pid>` if needed
 4. **NEVER use broad kill commands** like `pkill -f node`
 
-| Port | Service | Safe Kill Command |
-|------|---------|-------------------|
-| 8023 | Telnet Server | `lsof -i :8023 -t \| xargs kill` |
+| Port | Service          | Safe Kill Command                |
+| ---- | ---------------- | -------------------------------- |
+| 8023 | Telnet Server    | `lsof -i :8023 -t \| xargs kill` |
 | 8080 | WebSocket Server | `lsof -i :8080 -t \| xargs kill` |
-| 3100 | MCP Server | `lsof -i :3100 -t \| xargs kill` |
-| 3000 | Admin API | `lsof -i :3000 -t \| xargs kill` |
+| 3100 | MCP Server       | `lsof -i :3100 -t \| xargs kill` |
+| 3000 | Admin API        | `lsof -i :3000 -t \| xargs kill` |
 
 ---
 
@@ -45,12 +45,14 @@ kill <specific-pid>                # Kill only the PID you identified
 ```
 
 **Why this matters:**
+
 - The `todos/` folder contains human planning notes, brainstorms, and outdated analysis
 - Content may be **weeks or months out of date**
 - Implementation details may have changed significantly since those files were written
 - Using stale information leads to incorrect implementations
 
 **Source of truth hierarchy:**
+
 1. **Actual source code** (`src/`, `data/`, config files)
 2. **AGENTS.md files** in each directory
 3. **User's explicit instructions** in the current conversation
@@ -64,18 +66,19 @@ kill <specific-pid>                # Kill only the PID you identified
 
 The `.gitignore` excludes these automatically, but be aware:
 
-| Directory/File | Content | Why Excluded |
-|----------------|---------|---------------|
-| `.github/agents/research/*.md` | Research documents | Session-specific outputs |
-| `.github/agents/planning/*.md` | Implementation plans | Session-specific outputs |
-| `.github/agents/implementation/*.md` | Impl reports | Session-specific outputs |
-| `.github/agents/validation/*.md` | Validation reports | Session-specific outputs |
-| `.github/agents/suggestions/*.md` | Post-mortem suggestions | Session-specific outputs |
-| `.github/agents/metrics/executions/*.json` | Pipeline metrics | Execution telemetry |
-| `.github/agents/metrics/pipeline-report.md` | Generated report | Derived from metrics |
-| `todos/*.md` | Human planning notes | Personal brainstorms |
+| Directory/File                              | Content                 | Why Excluded             |
+| ------------------------------------------- | ----------------------- | ------------------------ |
+| `.github/agents/research/*.md`              | Research documents      | Session-specific outputs |
+| `.github/agents/planning/*.md`              | Implementation plans    | Session-specific outputs |
+| `.github/agents/implementation/*.md`        | Impl reports            | Session-specific outputs |
+| `.github/agents/validation/*.md`            | Validation reports      | Session-specific outputs |
+| `.github/agents/suggestions/*.md`           | Post-mortem suggestions | Session-specific outputs |
+| `.github/agents/metrics/executions/*.json`  | Pipeline metrics        | Execution telemetry      |
+| `.github/agents/metrics/pipeline-report.md` | Generated report        | Derived from metrics     |
+| `todos/*.md`                                | Human planning notes    | Personal brainstorms     |
 
 **What IS committed:**
+
 - `README.md` and `AGENTS.md` in each directory (documentation)
 - `pipeline-metrics-schema.json` (schema definition)
 - Agent prompt files (`*.agent.md`)
@@ -96,11 +99,12 @@ README.md and AGENTS.md in the same directory **MUST be updated together**.
 ```
 
 | When you edit... | You MUST also edit... |
-|------------------|----------------------|
-| `foo/README.md` | `foo/AGENTS.md` |
-| `foo/AGENTS.md` | `foo/README.md` |
+| ---------------- | --------------------- |
+| `foo/README.md`  | `foo/AGENTS.md`       |
+| `foo/AGENTS.md`  | `foo/README.md`       |
 
 This rule exists because:
+
 - README.md = for humans (brief, no code)
 - AGENTS.md = for LLMs (detailed, with code)
 - Both must stay synchronized
@@ -133,10 +137,10 @@ This rule exists because:
 
 ### Available Tools for Terminal Output
 
-| Tool Alias | Actual Tool | When to Use |
-|------------|-------------|-------------|
+| Tool Alias                    | Actual Tool             | When to Use                                          |
+| ----------------------------- | ----------------------- | ---------------------------------------------------- |
 | `execute/terminalLastCommand` | `terminal_last_command` | Get output, exit code, and directory of last command |
-| `execute/getTerminalOutput` | `get_terminal_output` | Get output from a specific terminal by ID |
+| `execute/getTerminalOutput`   | `get_terminal_output`   | Get output from a specific terminal by ID            |
 
 ### Common Mistakes to Avoid
 
@@ -169,12 +173,14 @@ GameServer (src/app.ts)
 ## Quick Start
 
 ### Fresh System Bootstrap
+
 ```bash
 ./scripts/bootstrap.sh     # Full setup from scratch
 make help                  # Show all available commands
 ```
 
 ### Daily Development
+
 ```bash
 make dev                   # Start dev server with hot reload
 make build                 # Compile TypeScript
@@ -183,6 +189,7 @@ make agent-test            # Run agent tests
 ```
 
 ### Using npm directly
+
 ```bash
 npm start                          # Standard start
 npm start -- -a                    # Admin auto-login
@@ -208,6 +215,7 @@ client.connection.write('Hello!');
 ```
 
 Functions:
+
 - `writeToClient()` - Raw message, no prompt redraw
 - `writeMessageToClient()` - Message with prompt redraw
 - `writeFormattedMessageToClient()` - Formatted with color options
@@ -302,6 +310,7 @@ function handle(input: unknown) {
 ```
 
 **Rules enforced by ESLint:**
+
 - `@typescript-eslint/no-explicit-any` - No `any` type
 - `@typescript-eslint/ban-types` - No `Function`, `Object`, `{}` types
 - `@typescript-eslint/no-unused-vars` - Prefix unused params with `_`
@@ -312,12 +321,12 @@ function handle(input: unknown) {
 
 **ALWAYS** update documentation when making changes:
 
-| Change | Update |
-|--------|--------|
-| New command | `docs/commands.md` + `src/command/commands/AGENTS.md` |
-| New directory | Create `README.md` + `AGENTS.md` |
-| Architecture change | Relevant `AGENTS.md` files |
-| API change | `src/mcp/README.md` |
+| Change              | Update                                                |
+| ------------------- | ----------------------------------------------------- |
+| New command         | `docs/commands.md` + `src/command/commands/AGENTS.md` |
+| New directory       | Create `README.md` + `AGENTS.md`                      |
+| Architecture change | Relevant `AGENTS.md` files                            |
+| API change          | `src/mcp/README.md`                                   |
 
 ### Documentation Standards
 
@@ -331,6 +340,7 @@ See **"CRITICAL: Paired Documentation Rule"** at the top of this file.
 ## Debugging & Logging
 
 ### Log Files
+
 - `logs/system/system-{date}.log` - Server events
 - `logs/players/{username}-{date}.log` - Player actions
 - `logs/raw-sessions/{sessionId}-{date}.log` - Exact I/O
@@ -338,6 +348,7 @@ See **"CRITICAL: Paired Documentation Rule"** at the top of this file.
 - `logs/mcp/mcp-{date}.log` - MCP server logs
 
 ### Debug Workflow
+
 1. Identify date/time of issue
 2. Find session ID in system log
 3. Analyze raw session log for exact sequence
@@ -348,6 +359,7 @@ See **"CRITICAL: Paired Documentation Rule"** at the top of this file.
 ## Testing Checklist
 
 Before committing:
+
 - [ ] `npm run build` completes (ignore exit code if no errors shown)
 - [ ] Server starts: `npm start`
 - [ ] Basic commands work: look, move, stats
@@ -361,53 +373,53 @@ Find detailed information in these AGENTS.md files:
 
 ### Core Systems
 
-| System | Location | What You'll Find |
-|--------|----------|------------------|
-| **Commands** | [src/command/AGENTS.md](src/command/AGENTS.md) | Command parsing, registry, handler |
-| **Command Implementations** | [src/command/commands/AGENTS.md](src/command/commands/AGENTS.md) | All 40+ commands, how to add new ones |
-| **Combat** | [src/combat/AGENTS.md](src/combat/AGENTS.md) | Combat mechanics, damage, NPC AI |
-| **States** | [src/states/AGENTS.md](src/states/AGENTS.md) | Client states, login flow, game states |
-| **Rooms** | [src/room/AGENTS.md](src/room/AGENTS.md) | Room navigation, exits, contents |
-| **Users** | [src/user/AGENTS.md](src/user/AGENTS.md) | Authentication, stats, inventory |
+| System                      | Location                                                         | What You'll Find                       |
+| --------------------------- | ---------------------------------------------------------------- | -------------------------------------- |
+| **Commands**                | [src/command/AGENTS.md](src/command/AGENTS.md)                   | Command parsing, registry, handler     |
+| **Command Implementations** | [src/command/commands/AGENTS.md](src/command/commands/AGENTS.md) | All 40+ commands, how to add new ones  |
+| **Combat**                  | [src/combat/AGENTS.md](src/combat/AGENTS.md)                     | Combat mechanics, damage, NPC AI       |
+| **States**                  | [src/states/AGENTS.md](src/states/AGENTS.md)                     | Client states, login flow, game states |
+| **Rooms**                   | [src/room/AGENTS.md](src/room/AGENTS.md)                         | Room navigation, exits, contents       |
+| **Users**                   | [src/user/AGENTS.md](src/user/AGENTS.md)                         | Authentication, stats, inventory       |
 
 ### Infrastructure
 
-| System | Location | What You'll Find |
-|--------|----------|------------------|
-| **Connections** | [src/connection/AGENTS.md](src/connection/AGENTS.md) | Telnet, WebSocket, Virtual connections |
-| **Servers** | [src/server/AGENTS.md](src/server/AGENTS.md) | Server components, shutdown |
-| **Utilities** | [src/utils/AGENTS.md](src/utils/AGENTS.md) | **socketWriter (CRITICAL)**, colors, logger |
-| **MCP Server** | [src/mcp/AGENTS.md](src/mcp/AGENTS.md) | AI integration API |
+| System          | Location                                             | What You'll Find                            |
+| --------------- | ---------------------------------------------------- | ------------------------------------------- |
+| **Connections** | [src/connection/AGENTS.md](src/connection/AGENTS.md) | Telnet, WebSocket, Virtual connections      |
+| **Servers**     | [src/server/AGENTS.md](src/server/AGENTS.md)         | Server components, shutdown                 |
+| **Utilities**   | [src/utils/AGENTS.md](src/utils/AGENTS.md)           | **socketWriter (CRITICAL)**, colors, logger |
+| **MCP Server**  | [src/mcp/AGENTS.md](src/mcp/AGENTS.md)               | AI integration API                          |
 
 ### Data & Config
 
-| System | Location | What You'll Find |
-|--------|----------|------------------|
-| **Game Data** | [data/AGENTS.md](data/AGENTS.md) | JSON files, persistence, data formats |
-| **Documentation** | [docs/AGENTS.md](docs/AGENTS.md) | Human-readable docs index |
+| System            | Location                         | What You'll Find                      |
+| ----------------- | -------------------------------- | ------------------------------------- |
+| **Game Data**     | [data/AGENTS.md](data/AGENTS.md) | JSON files, persistence, data formats |
+| **Documentation** | [docs/AGENTS.md](docs/AGENTS.md) | Human-readable docs index             |
 
 ### Supporting Systems
 
-| System | Location |
-|--------|----------|
-| Admin API | [src/admin/AGENTS.md](src/admin/AGENTS.md) |
-| Client Manager | [src/client/AGENTS.md](src/client/AGENTS.md) |
+| System            | Location                                       |
+| ----------------- | ---------------------------------------------- |
+| Admin API         | [src/admin/AGENTS.md](src/admin/AGENTS.md)     |
+| Client Manager    | [src/client/AGENTS.md](src/client/AGENTS.md)   |
 | Console Interface | [src/console/AGENTS.md](src/console/AGENTS.md) |
-| Effects System | [src/effects/AGENTS.md](src/effects/AGENTS.md) |
-| Game Timer | [src/timer/AGENTS.md](src/timer/AGENTS.md) |
-| State Machine | [src/state/AGENTS.md](src/state/AGENTS.md) |
+| Effects System    | [src/effects/AGENTS.md](src/effects/AGENTS.md) |
+| Game Timer        | [src/timer/AGENTS.md](src/timer/AGENTS.md)     |
+| State Machine     | [src/state/AGENTS.md](src/state/AGENTS.md)     |
 
 ---
 
 ## Key Files Reference
 
-| File | Purpose |
-|------|---------|
-| `src/app.ts` | Main GameServer class |
-| `src/types.ts` | Core TypeScript types |
-| `src/config.ts` | Server configuration |
+| File                        | Purpose                     |
+| --------------------------- | --------------------------- |
+| `src/app.ts`                | Main GameServer class       |
+| `src/types.ts`              | Core TypeScript types       |
+| `src/config.ts`             | Server configuration        |
 | `src/utils/socketWriter.ts` | **MUST use for all output** |
-| `src/utils/colors.ts` | ANSI color formatting |
+| `src/utils/colors.ts`       | ANSI color formatting       |
 
 ---
 
@@ -416,21 +428,21 @@ Find detailed information in these AGENTS.md files:
 AI integration server on port 3100:
 
 - **Config**: `.vscode/mcp.json`
-- **API Key**: `MCP_API_KEY` environment variable  
+- **API Key**: `MCP_API_KEY` environment variable
 - **Full docs**: `src/mcp/README.md`
 
 ---
 
 ## Common Tasks
 
-| Task | Start Here |
-|------|------------|
-| Add a command | [src/command/commands/AGENTS.md](src/command/commands/AGENTS.md) |
-| Modify combat | [src/combat/AGENTS.md](src/combat/AGENTS.md) |
-| Change login flow | [src/states/AGENTS.md](src/states/AGENTS.md) |
-| Add room features | [src/room/AGENTS.md](src/room/AGENTS.md) |
-| Modify user stats | [src/user/AGENTS.md](src/user/AGENTS.md) |
-| Add MCP endpoint | [src/mcp/AGENTS.md](src/mcp/AGENTS.md) |
+| Task              | Start Here                                                       |
+| ----------------- | ---------------------------------------------------------------- |
+| Add a command     | [src/command/commands/AGENTS.md](src/command/commands/AGENTS.md) |
+| Modify combat     | [src/combat/AGENTS.md](src/combat/AGENTS.md)                     |
+| Change login flow | [src/states/AGENTS.md](src/states/AGENTS.md)                     |
+| Add room features | [src/room/AGENTS.md](src/room/AGENTS.md)                         |
+| Modify user stats | [src/user/AGENTS.md](src/user/AGENTS.md)                         |
+| Add MCP endpoint  | [src/mcp/AGENTS.md](src/mcp/AGENTS.md)                           |
 
 ---
 
@@ -438,12 +450,12 @@ AI integration server on port 3100:
 
 Specialized agents are available in `.github/agents/`:
 
-| Agent | Purpose |
-|-------|---------|
-| Research | Codebase investigation |
-| Plan | Implementation planning |
-| Implementation | Execute plans |
-| Validation | Verify implementations |
+| Agent                 | Purpose                      |
+| --------------------- | ---------------------------- |
+| Research              | Codebase investigation       |
+| Plan                  | Implementation planning      |
+| Implementation        | Execute plans                |
+| Validation            | Verify implementations       |
 | Documentation Updater | Maintain README/AGENTS files |
 
 See [.github/agents/AGENTS.md](.github/agents/AGENTS.md) for full agent documentation.

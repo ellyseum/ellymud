@@ -4,12 +4,12 @@ GitHub issue templates for standardized bug reports, feature requests, documenta
 
 ## Contents
 
-| Path | Description |
-|------|-------------|
-| `bug_report.md` | Template for reporting bugs with reproduction steps |
-| `feature_request.md` | Template for proposing new features |
-| `documentation.md` | Template for documentation issues and improvements |
-| `question.md` | Template for asking questions about the project |
+| Path                 | Description                                         |
+| -------------------- | --------------------------------------------------- |
+| `bug_report.md`      | Template for reporting bugs with reproduction steps |
+| `feature_request.md` | Template for proposing new features                 |
+| `documentation.md`   | Template for documentation issues and improvements  |
+| `question.md`        | Template for asking questions about the project     |
 
 ## Overview
 

@@ -8,20 +8,22 @@ import path from 'path';
  */
 function formatDate(date: Date, format: string): string {
   const pad = (num: number, size: number = 2) => String(num).padStart(size, '0');
-  
+
   if (format === 'yyyy-MM-dd') {
     return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
   }
-  
+
   if (format === 'yyyy-MM-dd HH:mm:ss') {
-    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ` +
-           `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+    return (
+      `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ` +
+      `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`
+    );
   }
-  
+
   if (format === 'HH:mm:ss') {
     return `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
   }
-  
+
   return date.toISOString();
 }
 
@@ -42,10 +44,10 @@ export class RawSessionLogger {
     this.sessionId = sessionId;
     this.logDir = path.join(__dirname, '..', '..', 'logs', 'raw-sessions');
     this.currentDate = formatDate(new Date(), 'yyyy-MM-dd');
-    
+
     // Ensure log directory exists
     this.ensureLogDirectoryExists();
-    
+
     // Initialize log file
     this.createLogStream();
   }
@@ -64,17 +66,17 @@ export class RawSessionLogger {
    */
   private createLogStream(): void {
     const today = formatDate(new Date(), 'yyyy-MM-dd');
-    
+
     // If date has changed, close the current stream and create a new one
     if (this.currentDate !== today || !this.logStream) {
       this.closeStream();
-      
+
       this.currentDate = today;
       this.logFilePath = path.join(this.logDir, `${this.sessionId}-${this.currentDate}.log`);
-      
+
       // Create new write stream in append mode
       this.logStream = fs.createWriteStream(this.logFilePath, { flags: 'a' });
-      
+
       // Log session start
       const startMessage = `\n--- Session started/resumed at ${formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss')} ---\n`;
       this.logStream.write(startMessage);
@@ -90,11 +92,11 @@ export class RawSessionLogger {
     if (active && !this.maskingActive) {
       this.maskingActive = true;
       this.passwordMessageLogged = false;
-    } 
+    }
     // If we're turning masking off and it was previously on
     else if (!active && this.maskingActive) {
       this.maskingActive = false;
-      
+
       if (this.logStream && this.logStream.writable) {
         const timestamp = formatDate(new Date(), 'HH:mm:ss');
         this.logStream.write(`[${timestamp}] >> [PASSWORD INPUT COMPLETE]\n`);
@@ -108,7 +110,7 @@ export class RawSessionLogger {
    */
   public logInput(data: string): void {
     this.checkDate();
-    
+
     // If input masking is active (password input), don't log individual keystrokes
     if (this.maskingActive) {
       // Only log the masking notice once per password entry session
@@ -119,7 +121,7 @@ export class RawSessionLogger {
       }
       return;
     }
-    
+
     // Otherwise log normal input
     if (this.logStream && this.logStream.writable) {
       const timestamp = formatDate(new Date(), 'HH:mm:ss');
@@ -160,7 +162,7 @@ export class RawSessionLogger {
       this.logStream = null;
     }
   }
-  
+
   /**
    * Check if masking is currently active
    */

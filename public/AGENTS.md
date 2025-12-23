@@ -21,13 +21,14 @@ Browser-based client for EllyMUD. Connects via WebSocket and renders game output
 
 ```javascript
 // Key functions
-function connect() { }        // WebSocket connection
-function send(message) { }    // Send command
-function receive(data) { }    // Handle server message
-function formatOutput(text) { } // Format ANSI codes
+function connect() {} // WebSocket connection
+function send(message) {} // Send command
+function receive(data) {} // Handle server message
+function formatOutput(text) {} // Format ANSI codes
 ```
 
 **Features**:
+
 - WebSocket connection management
 - ANSI code to HTML conversion
 - Command history (arrow keys)
@@ -47,13 +48,13 @@ function formatOutput(text) { } // Format ANSI codes
 
 Admin interface files:
 
-| File | Purpose |
-|------|---------|
-| `index.html` | Admin dashboard entry |
-| `login.html` | Admin login form |
-| `dashboard.html` | Main dashboard |
-| `dashboard.js` | Dashboard JavaScript |
-| `styles.css` | Admin styles |
+| File             | Purpose               |
+| ---------------- | --------------------- |
+| `index.html`     | Admin dashboard entry |
+| `login.html`     | Admin login form      |
+| `dashboard.html` | Main dashboard        |
+| `dashboard.js`   | Dashboard JavaScript  |
+| `styles.css`     | Admin styles          |
 
 ## ANSI to HTML
 
@@ -61,9 +62,9 @@ The client converts ANSI escape codes to styled spans:
 
 ```javascript
 // Example conversion
-'\x1b[31mRed text\x1b[0m'
+'\x1b[31mRed text\x1b[0m';
 // becomes
-'<span class="ansi-red">Red text</span>'
+'<span class="ansi-red">Red text</span>';
 ```
 
 ## Conventions
@@ -82,8 +83,8 @@ Admin pages call API endpoints in `src/admin/adminApi.ts`:
 ```javascript
 // Example API call
 fetch('/api/admin/users', {
-  headers: { 'Authorization': 'Bearer ' + token }
-})
+  headers: { Authorization: 'Bearer ' + token },
+});
 ```
 
 ## Gotchas & Warnings

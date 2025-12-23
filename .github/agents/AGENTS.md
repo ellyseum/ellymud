@@ -34,9 +34,11 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 ### Core Pipeline Agents
 
 #### Problem Solver Orchestrator
+
 **File**: `problem-solver-orchestrator-manager.agent.md`
 **Role**: Main coordinator
 **Responsibilities**:
+
 - Analyze incoming tasks
 - Decide which agents to invoke
 - Manage quality gates
@@ -44,15 +46,18 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 - Handle failures and rollbacks
 
 **Invocation**: Automatic when tasks require multi-step coordination, or explicit:
+
 ```
 "Using the agent pipeline, implement [feature]"
 ```
 
 #### Research Agent
+
 **File**: `research-agent.agent.md`
 **Role**: Deep codebase investigation
 **Output**: `research/research_YYYY-MM-DD_slug.md`
 **Capabilities**:
+
 - Semantic search across codebase
 - File reading and analysis
 - Pattern identification
@@ -61,63 +66,75 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 **When to use**: Understanding existing code before making changes
 
 #### Planning Agent
+
 **File**: `planning-agent.agent.md`
 **Role**: Detailed implementation planning
 **Output**: `planning/plan_YYYY-MM-DD_slug.md`
 **Capabilities**:
+
 - Breaking tasks into steps
 - Identifying files to modify
 - Specifying exact changes
 - Risk assessment
 
 **Plan format**:
+
 ```markdown
 ## Implementation Steps
 
 ### Step 1: [Description]
+
 - [ ] File: `path/to/file.ts`
 - [ ] Change: [Specific modification]
 - [ ] Rationale: [Why this change]
 ```
 
 #### Implementation Agent
+
 **File**: `implementation-agent.agent.md`
 **Role**: Execute implementation plans
 **Output**: `implementation/impl_YYYY-MM-DD_slug.md`
 **Capabilities**:
+
 - Code editing (replace_string_in_file)
 - File creation (create_file)
 - Terminal commands (run_in_terminal)
 - Build verification
 
 **Critical rules**:
+
 - Follow plan exactly
 - Create checkpoint before changes
 - Verify build after each file
 - Document all changes made
 
 #### Validation Agent
+
 **File**: `validation-agent.agent.md`
 **Role**: Quality verification
 **Output**: `validation/validation_YYYY-MM-DD_slug.md`
 **Capabilities**:
+
 - Build verification
 - MCP virtual session testing
 - Regression detection
 - Merge readiness assessment
 
 **Server Testing (Fully Autonomous)**:
+
 - Start server: `npm start -- --noConsole --silent &`
 - Wait for ready: `sleep 3 && curl -s http://localhost:3100/health`
 - Test via MCP virtual sessions (no user intervention)
 - Cleanup: `pkill -f "node.*dist/server.js"`
 
 **Isolated Testing** (avoid affecting real data):
+
 - `--dataDir=PATH` - Use custom data directory
 - `--roomsFile=PATH` / `--usersFile=PATH` - Override specific files
 - `--rooms='[...]'` / `--users='[...]'` - Pass JSON data directly
 
 **Validation checklist**:
+
 ```markdown
 - [ ] npm run build passes
 - [ ] Server starts successfully
@@ -129,35 +146,42 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 ### Support Agents
 
 #### Rollback Agent
+
 **File**: `rollback.agent.md`
 **Role**: Safety checkpoint management
 **Capabilities**:
+
 - Create git stash checkpoints
 - List available checkpoints
 - Restore previous states
 - Emergency rollback
 
 **Checkpoint format**:
+
 ```bash
 git stash push -m "CHECKPOINT: [pipeline-id] - [description]"
 ```
 
 #### Post-Mortem Agent
+
 **File**: `agent-post-mortem.agent.md`
 **Role**: Pipeline analysis
 **When invoked**: After pipeline completion (success or failure)
 **Output**: Analysis of what worked, what didn't, improvements
 
 #### Output Review Agent
+
 **File**: `output-review.agent.md`
 **Role**: Document quality assurance
 **Capabilities**:
+
 - Grade documents (A-F)
 - Identify missing sections
 - Suggest improvements
 - Rewrite for clarity
 
 #### Documentation Updater
+
 **File**: `documentation-updater.agent.md`
 **Role**: Maintain README/AGENTS files
 **When invoked**: After code changes, or explicit request
@@ -170,7 +194,9 @@ git stash push -m "CHECKPOINT: [pipeline-id] - [description]"
 Located in `agent-tests/` directory:
 
 ### Test Runner (`agent-tests/run-tests.sh`)
+
 Automated agent testing framework:
+
 ```bash
 ./run-tests.sh                    # Run all tests
 ./run-tests.sh validation TC-V01  # Run specific test
@@ -188,7 +214,9 @@ See `agent-tests/AGENTS.md` for full documentation.
 ## Quality Gates
 
 ### Gate 1: Research Quality
+
 **Criteria**:
+
 - Relevant files identified
 - Dependencies mapped
 - Patterns understood
@@ -197,7 +225,9 @@ See `agent-tests/AGENTS.md` for full documentation.
 **Fail action**: Request more research or clarification
 
 ### Gate 2: Plan Quality
+
 **Criteria**:
+
 - All steps specified
 - Files and changes identified
 - Risks assessed
@@ -206,7 +236,9 @@ See `agent-tests/AGENTS.md` for full documentation.
 **Fail action**: Return to planning with feedback
 
 ### Gate 3: Implementation Quality
+
 **Criteria**:
+
 - Build passes
 - All planned changes made
 - No unintended modifications
@@ -214,7 +246,9 @@ See `agent-tests/AGENTS.md` for full documentation.
 **Fail action**: Fix issues or rollback
 
 ### Gate 4: Validation Quality
+
 **Criteria**:
+
 - All tests pass
 - No regressions
 - Feature works as specified
@@ -227,6 +261,7 @@ See `agent-tests/AGENTS.md` for full documentation.
 ## Pipeline Execution Flow
 
 ### Standard Flow
+
 ```
 1. Task received
 2. Orchestrator analyzes complexity
@@ -244,6 +279,7 @@ See `agent-tests/AGENTS.md` for full documentation.
 ```
 
 ### Failure Flow
+
 ```
 1. Gate fails
 2. Determine if recoverable
@@ -257,25 +293,27 @@ See `agent-tests/AGENTS.md` for full documentation.
 
 ## File Naming Conventions
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Research | `research_YYYY-MM-DD_slug.md` | `research_2024-12-22_combat-system.md` |
-| Plan | `plan_YYYY-MM-DD_slug.md` | `plan_2024-12-22_add-dance-command.md` |
-| Implementation | `impl_YYYY-MM-DD_slug.md` | `impl_2024-12-22_add-dance-command.md` |
-| Validation | `validation_YYYY-MM-DD_slug.md` | `validation_2024-12-22_add-dance-command.md` |
-| Metrics | `pipeline_YYYY-MM-DD_slug.json` | `pipeline_2024-12-22_add-dance-command.json` |
+| Type           | Pattern                         | Example                                      |
+| -------------- | ------------------------------- | -------------------------------------------- |
+| Research       | `research_YYYY-MM-DD_slug.md`   | `research_2024-12-22_combat-system.md`       |
+| Plan           | `plan_YYYY-MM-DD_slug.md`       | `plan_2024-12-22_add-dance-command.md`       |
+| Implementation | `impl_YYYY-MM-DD_slug.md`       | `impl_2024-12-22_add-dance-command.md`       |
+| Validation     | `validation_YYYY-MM-DD_slug.md` | `validation_2024-12-22_add-dance-command.md` |
+| Metrics        | `pipeline_YYYY-MM-DD_slug.json` | `pipeline_2024-12-22_add-dance-command.json` |
 
 ---
 
 ## Integration with EllyMUD
 
 ### Key Conventions (from copilot-instructions.md)
+
 - **ALWAYS** use `writeMessageToClient()` for socket output
 - **ALWAYS** use `\r\n` line endings
 - **NEVER** use `console.log` - use logger utilities
 - Access managers via `getInstance()`
 
 ### Testing Changes
+
 1. Run `npm run build` - must pass
 2. Start server: `npm start`
 3. Use MCP virtual sessions to test commands
@@ -283,35 +321,40 @@ See `agent-tests/AGENTS.md` for full documentation.
 
 ### Common Tasks
 
-| Task | Agent Flow |
-|------|------------|
-| Add command | Research → Plan → Implement → Validate |
-| Fix bug | Research (investigate) → Plan → Implement → Validate |
-| Refactor | Research → Plan → Implement → Validate |
-| Documentation | Documentation Updater only |
+| Task          | Agent Flow                                           |
+| ------------- | ---------------------------------------------------- |
+| Add command   | Research → Plan → Implement → Validate               |
+| Fix bug       | Research (investigate) → Plan → Implement → Validate |
+| Refactor      | Research → Plan → Implement → Validate               |
+| Documentation | Documentation Updater only                           |
 
 ---
 
 ## Debugging Agent Issues
 
 ### Agent Not Invoked
+
 - Check if task complexity warrants pipeline
 - Try explicit invocation: "Using the agent pipeline..."
 
 ### Research Insufficient
+
 - Agent may need more specific guidance
 - Check if relevant files are in expected locations
 
 ### Plan Not Actionable
+
 - Ensure research document is comprehensive
 - Check for ambiguous requirements
 
 ### Implementation Fails
+
 - Check TypeScript errors carefully
 - Verify plan was followed exactly
 - Check for missing imports/dependencies
 
 ### Validation Fails
+
 - Use `tail_user_session` to see actual output
 - Check MCP server is running for virtual sessions
 - Review test criteria against implementation
@@ -321,21 +364,24 @@ See `agent-tests/AGENTS.md` for full documentation.
 ## Extending the Ecosystem
 
 ### Adding New Agent
+
 1. Create `new-agent.agent.md` with prompt
 2. Add output directory if needed
 3. Update orchestrator to invoke
 4. Document in this file
 
 ### Adding New Tool
+
 1. Create `tools/new-tool.md`
 2. Update `tools/README.md`
 3. Reference from relevant agents
 
 ### Adding Metrics
+
 1. Update `metrics/pipeline-metrics-schema.json`
 2. Update metrics collector documentation
 3. Update orchestrator recording procedures
 
 ---
 
-*Version: 1.0.0-agents | Last Updated: December 2024*
+_Version: 1.0.0-agents | Last Updated: December 2024_

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Virtual connection uses any for raw connection compatibility
 import { EventEmitter } from 'events';
 import { IConnection } from './interfaces/connection.interface';
 
@@ -64,7 +66,7 @@ export class VirtualConnection extends EventEmitter implements IConnection {
     if (!this.isConnected) {
       throw new Error('Cannot send input to disconnected virtual connection');
     }
-    
+
     // Process each character individually to simulate real terminal input
     // This ensures proper handling of control characters and command processing
     for (const char of data) {

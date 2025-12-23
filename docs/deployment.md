@@ -17,12 +17,14 @@ This guide covers deploying EllyMUD to production environments.
 ### System Requirements
 
 **Minimum:**
+
 - 1 CPU core
 - 512 MB RAM
 - 5 GB disk space
 - Linux OS (Ubuntu 20.04+ recommended)
 
 **Recommended:**
+
 - 2+ CPU cores
 - 2 GB+ RAM
 - 20 GB+ disk space
@@ -43,11 +45,13 @@ This guide covers deploying EllyMUD to production environments.
 Deploy on a VPS or dedicated server (DigitalOcean, Linode, AWS EC2, etc.).
 
 **Pros:**
+
 - Full control
 - Predictable costs
 - Easy to manage
 
 **Cons:**
+
 - Manual server management
 - No auto-scaling
 
@@ -56,11 +60,13 @@ Deploy on a VPS or dedicated server (DigitalOcean, Linode, AWS EC2, etc.).
 Deploy using Docker containers.
 
 **Pros:**
+
 - Consistent environment
 - Easy to scale
 - Portable
 
 **Cons:**
+
 - Requires Docker knowledge
 - Slightly more complex setup
 
@@ -69,11 +75,13 @@ Deploy using Docker containers.
 Deploy on platforms like Heroku, Render, or Railway.
 
 **Pros:**
+
 - Minimal setup
 - Automatic scaling
 - Built-in monitoring
 
 **Cons:**
+
 - Higher cost
 - Less control
 - Platform-specific limitations
@@ -139,6 +147,7 @@ nano .env
 ```
 
 Set production values:
+
 ```
 NODE_ENV=production
 MAX_PASSWORD_ATTEMPTS=3
@@ -161,23 +170,25 @@ nano ecosystem.config.js
 
 ```javascript
 module.exports = {
-  apps: [{
-    name: 'ellymud',
-    script: './dist/server.js',
-    instances: 1,
-    exec_mode: 'fork',
-    env: {
-      NODE_ENV: 'production'
+  apps: [
+    {
+      name: 'ellymud',
+      script: './dist/server.js',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+      },
+      error_file: './logs/pm2-error.log',
+      out_file: './logs/pm2-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+      merge_logs: true,
+      autorestart: true,
+      max_restarts: 10,
+      min_uptime: '10s',
+      max_memory_restart: '500M',
     },
-    error_file: './logs/pm2-error.log',
-    out_file: './logs/pm2-out.log',
-    log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-    merge_logs: true,
-    autorestart: true,
-    max_restarts: 10,
-    min_uptime: '10s',
-    max_memory_restart: '500M'
-  }]
+  ],
 };
 ```
 
@@ -303,6 +314,7 @@ sudo nano /etc/ssh/sshd_config
 ```
 
 Set:
+
 ```
 PermitRootLogin no
 PasswordAuthentication no
@@ -310,6 +322,7 @@ PubkeyAuthentication yes
 ```
 
 Restart SSH:
+
 ```bash
 sudo systemctl restart sshd
 ```
@@ -526,6 +539,7 @@ pm2 start ellymud
 For production, use off-site backups:
 
 **Options:**
+
 - AWS S3
 - Google Cloud Storage
 - Backblaze B2
@@ -543,12 +557,14 @@ rsync -avz --delete $BACKUP_DIR user@backup-server:/backups/ellymud/
 ### Application Won't Start
 
 Check logs:
+
 ```bash
 pm2 logs ellymud
 cat logs/error/error-$(date +%Y-%m-%d).log
 ```
 
 Common issues:
+
 - Port already in use
 - Permissions issues
 - Missing dependencies
@@ -570,6 +586,7 @@ max_memory_restart: '500M'
 ### Connection Issues
 
 Test ports:
+
 ```bash
 # Telnet port
 telnet localhost 8023
@@ -579,6 +596,7 @@ curl http://localhost:8080
 ```
 
 Check firewall:
+
 ```bash
 sudo ufw status
 ```
@@ -586,6 +604,7 @@ sudo ufw status
 ### Performance Issues
 
 Monitor:
+
 ```bash
 # CPU and memory
 htop
@@ -598,6 +617,7 @@ nethogs
 ```
 
 Optimize:
+
 - Increase server resources
 - Enable caching
 - Optimize database queries
@@ -653,6 +673,7 @@ EllyMUD currently uses in-memory state. For horizontal scaling:
 ### Vertical Scaling
 
 Increase server resources:
+
 - More CPU cores
 - More RAM
 - Faster disk (SSD)
@@ -684,6 +705,7 @@ Increase server resources:
 ## Support
 
 For deployment help:
+
 - [GitHub Issues](https://github.com/ellyseum/ellymud/issues)
 - [Documentation](README.md)
 - Community forums (if available)

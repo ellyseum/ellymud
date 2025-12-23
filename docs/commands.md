@@ -34,42 +34,49 @@ command [arguments]
 ### Basic Movement
 
 **north / n** - Move north
+
 ```
 north
 n
 ```
 
 **south / s** - Move south
+
 ```
 south
 s
 ```
 
 **east / e** - Move east
+
 ```
 east
 e
 ```
 
 **west / w** - Move west
+
 ```
 west
 w
 ```
 
 **up / u** - Move up
+
 ```
 up
 u
 ```
 
 **down / d** - Move down
+
 ```
 down
 d
 ```
 
 **Diagonal Movement**
+
 - `northeast` / `ne` - Move northeast
 - `northwest` / `nw` - Move northwest
 - `southeast` / `se` - Move southeast
@@ -90,6 +97,7 @@ d
 Look at your surroundings or examine something specific.
 
 **Usage:**
+
 ```
 look
 look <item>
@@ -98,6 +106,7 @@ look <npc>
 ```
 
 **Examples:**
+
 ```
 look
 look sword
@@ -105,6 +114,7 @@ look goblin
 ```
 
 **Shows:**
+
 - Room description
 - Visible exits
 - Players in the room
@@ -116,11 +126,13 @@ look goblin
 View your character statistics.
 
 **Usage:**
+
 ```
 stats
 ```
 
 **Shows:**
+
 - Health and mana
 - Level and experience
 - Strength, dexterity, intelligence, etc.
@@ -132,12 +144,14 @@ stats
 Check your inventory.
 
 **Usage:**
+
 ```
 inventory
 i
 ```
 
 **Shows:**
+
 - All items you're carrying
 - Item quantities
 - Total inventory count
@@ -147,11 +161,13 @@ i
 View your equipped items.
 
 **Usage:**
+
 ```
 equipment
 ```
 
 **Shows:**
+
 - Weapon
 - Armor pieces
 - Accessories
@@ -162,11 +178,13 @@ equipment
 View your character score and ranking.
 
 **Usage:**
+
 ```
 scores
 ```
 
 **Shows:**
+
 - Total score
 - Kills and deaths
 - Experience gained
@@ -177,11 +195,13 @@ scores
 Check the current game time.
 
 **Usage:**
+
 ```
 time
 ```
 
 **Shows:**
+
 - Current game time
 - Time of day
 - Day/night cycle information
@@ -191,11 +211,13 @@ time
 See how long you've been playing.
 
 **Usage:**
+
 ```
 played
 ```
 
 **Shows:**
+
 - Total playtime
 - Session duration
 - Login/logout history
@@ -205,11 +227,13 @@ played
 View your command history.
 
 **Usage:**
+
 ```
 history
 ```
 
 **Shows:**
+
 - Recent commands executed
 - Timestamps
 - Command count
@@ -221,17 +245,20 @@ history
 Speak to players in the same room.
 
 **Usage:**
+
 ```
 say <message>
 ```
 
 **Examples:**
+
 ```
 say Hello everyone!
 say Has anyone seen the blacksmith?
 ```
 
 **Notes:**
+
 - Only players in the same room can hear you
 - NPCs may respond to certain keywords
 
@@ -240,18 +267,21 @@ say Has anyone seen the blacksmith?
 Wave at someone or everyone in the room.
 
 **Usage:**
+
 ```
 wave
 wave <player>
 ```
 
 **Examples:**
+
 ```
 wave
 wave alice
 ```
 
 **Notes:**
+
 - Only visible to players in the same room
 - If targeting a player, they see a personalized message
 
@@ -260,17 +290,20 @@ wave alice
 Shout to all players in nearby areas.
 
 **Usage:**
+
 ```
 yell <message>
 ```
 
 **Examples:**
+
 ```
 yell Help! I'm under attack!
 yell Selling rare items at the marketplace!
 ```
 
 **Notes:**
+
 - Can be heard by players in adjacent rooms
 - May have a cooldown period
 - May alert hostile NPCs
@@ -280,17 +313,20 @@ yell Selling rare items at the marketplace!
 Report a bug to the administrators.
 
 **Usage:**
+
 ```
 bugreport <description>
 ```
 
 **Examples:**
+
 ```
 bugreport The dragon boss is invisible
 bugreport Game crashes when using heal spell
 ```
 
 **Notes:**
+
 - Helps improve the game
 - Include as much detail as possible
 - Bug reports are reviewed by admins
@@ -302,12 +338,14 @@ bugreport Game crashes when using heal spell
 Pick up an item from the ground.
 
 **Usage:**
+
 ```
 get <item>
 pickup <item>
 ```
 
 **Examples:**
+
 ```
 get sword
 get all
@@ -315,6 +353,7 @@ pickup potion
 ```
 
 **Notes:**
+
 - Item must be in the current room
 - You need space in your inventory
 - Some items may be too heavy or locked
@@ -324,12 +363,14 @@ pickup potion
 Drop an item from your inventory.
 
 **Usage:**
+
 ```
 drop <item>
 drop all
 ```
 
 **Examples:**
+
 ```
 drop sword
 drop torch
@@ -337,6 +378,7 @@ drop all
 ```
 
 **Notes:**
+
 - Item will appear in the current room
 - Other players can pick it up
 - Be careful with valuable items
@@ -346,11 +388,13 @@ drop all
 Equip an item from your inventory.
 
 **Usage:**
+
 ```
 equip <item>
 ```
 
 **Examples:**
+
 ```
 equip sword
 equip leather armor
@@ -358,6 +402,7 @@ equip ring
 ```
 
 **Notes:**
+
 - Item must be in your inventory
 - Item must be equippable
 - Replaces currently equipped item in that slot
@@ -368,17 +413,20 @@ equip ring
 Remove an equipped item.
 
 **Usage:**
+
 ```
 unequip <item>
 ```
 
 **Examples:**
+
 ```
 unequip sword
 unequip armor
 ```
 
 **Notes:**
+
 - Item returns to your inventory
 - Stat bonuses are removed
 - You need space in your inventory
@@ -388,17 +436,20 @@ unequip armor
 Repair a damaged item.
 
 **Usage:**
+
 ```
 repair <item>
 ```
 
 **Examples:**
+
 ```
 repair sword
 repair armor
 ```
 
 **Notes:**
+
 - Costs gold based on damage
 - Some items cannot be repaired
 - May need to find a blacksmith
@@ -408,16 +459,19 @@ repair armor
 Intentionally break an item (testing/debugging).
 
 **Usage:**
+
 ```
 break <item>
 ```
 
 **Examples:**
+
 ```
 break sword
 ```
 
 **Notes:**
+
 - Primarily for testing purposes
 - Item becomes damaged
 - Can be repaired afterward
@@ -429,11 +483,13 @@ break sword
 Attack an enemy to start combat.
 
 **Usage:**
+
 ```
 attack <target>
 ```
 
 **Examples:**
+
 ```
 attack goblin
 attack orc
@@ -441,6 +497,7 @@ attack player_name
 ```
 
 **Notes:**
+
 - Target must be in the same room
 - Enters combat mode
 - Combat is turn-based
@@ -451,11 +508,13 @@ attack player_name
 Attempt to flee from combat.
 
 **Usage:**
+
 ```
 flee
 ```
 
 **Or simply move in a direction:**
+
 ```
 north
 south
@@ -464,6 +523,7 @@ west
 ```
 
 **Notes:**
+
 - May fail based on your stats
 - Moves you to a random adjacent room
 - Enemies may pursue you
@@ -474,18 +534,21 @@ west
 Use a healing ability or item.
 
 **Usage:**
+
 ```
 heal
 heal <target>
 ```
 
 **Examples:**
+
 ```
 heal
 heal player_name
 ```
 
 **Notes:**
+
 - Restores health points
 - May cost mana or items
 - Cannot use while in active combat (depends on implementation)
@@ -496,17 +559,20 @@ heal player_name
 Deal direct damage (admin/testing).
 
 **Usage:**
+
 ```
 damage <target> <amount>
 ```
 
 **Examples:**
+
 ```
 damage goblin 50
 damage self 10
 ```
 
 **Notes:**
+
 - Admin or testing command
 - Bypasses normal combat mechanics
 - Useful for testing
@@ -518,16 +584,19 @@ damage self 10
 Change your account password.
 
 **Usage:**
+
 ```
 changePassword
 ```
 
 **Process:**
+
 1. Enter current password
 2. Enter new password
 3. Confirm new password
 
 **Notes:**
+
 - Passwords are hashed and secure
 - Old password required
 - Follow password strength requirements
@@ -537,16 +606,19 @@ changePassword
 Reset your character name (admin only).
 
 **Usage:**
+
 ```
 resetname <player>
 ```
 
 **Examples:**
+
 ```
 resetname player_name
 ```
 
 **Notes:**
+
 - Admin command only
 - Allows player to choose new name
 - Cannot duplicate existing names
@@ -556,16 +628,19 @@ resetname player_name
 Rename your character or an item.
 
 **Usage:**
+
 ```
 rename <old_name> <new_name>
 ```
 
 **Examples:**
+
 ```
 rename MyCharacter NewCharacter
 ```
 
 **Notes:**
+
 - May have restrictions
 - Cannot duplicate existing names
 - May cost gold or require special item
@@ -577,17 +652,20 @@ rename MyCharacter NewCharacter
 Add a flag to a user (admin only).
 
 **Usage:**
+
 ```
 addflag <player> <flag>
 ```
 
 **Examples:**
+
 ```
 addflag player_name admin
 addflag player_name immortal
 ```
 
 **Notes:**
+
 - Admin command only
 - Grants special permissions or attributes
 - Use carefully
@@ -597,11 +675,13 @@ addflag player_name immortal
 Remove a flag from a user (admin only).
 
 **Usage:**
+
 ```
 removeflag <player> <flag>
 ```
 
 **Examples:**
+
 ```
 removeflag player_name admin
 ```
@@ -611,16 +691,19 @@ removeflag player_name admin
 List all flags on a user (admin only).
 
 **Usage:**
+
 ```
 listflags <player>
 ```
 
 **Examples:**
+
 ```
 listflags player_name
 ```
 
 **Shows:**
+
 - All active flags
 - Flag descriptions
 - When flags were added
@@ -630,17 +713,20 @@ listflags player_name
 Execute a command as another user (admin only).
 
 **Usage:**
+
 ```
 sudo <player> <command>
 ```
 
 **Examples:**
+
 ```
 sudo player_name look
 sudo player_name attack goblin
 ```
 
 **Notes:**
+
 - Admin command only
 - Executes command as if the target player typed it
 - Useful for testing and troubleshooting
@@ -650,11 +736,13 @@ sudo player_name attack goblin
 Elevate to root admin privileges (admin only).
 
 **Usage:**
+
 ```
 root
 ```
 
 **Notes:**
+
 - Highest level of administrative access
 - Use with extreme caution
 - All actions are logged
@@ -664,11 +752,13 @@ root
 Manage admin settings and users (admin only).
 
 **Usage:**
+
 ```
 adminmanage <action> <args>
 ```
 
 **Examples:**
+
 ```
 adminmanage list
 adminmanage promote player_name
@@ -676,6 +766,7 @@ adminmanage demote player_name
 ```
 
 **Actions:**
+
 - `list` - List all admins
 - `promote` - Grant admin privileges
 - `demote` - Remove admin privileges
@@ -685,17 +776,20 @@ adminmanage demote player_name
 Spawn an NPC or item (admin only).
 
 **Usage:**
+
 ```
 spawn <type> <id>
 ```
 
 **Examples:**
+
 ```
 spawn npc goblin
 spawn item sword
 ```
 
 **Notes:**
+
 - Admin command only
 - Creates new instances
 - Useful for testing and events
@@ -705,17 +799,20 @@ spawn item sword
 Destroy an NPC or item (admin only).
 
 **Usage:**
+
 ```
 destroy <target>
 ```
 
 **Examples:**
+
 ```
 destroy goblin
 destroy sword
 ```
 
 **Notes:**
+
 - Admin command only
 - Permanently removes the target
 - Use carefully
@@ -725,16 +822,19 @@ destroy sword
 Give an item to a player (admin only).
 
 **Usage:**
+
 ```
 giveitem <player> <item>
 ```
 
 **Examples:**
+
 ```
 giveitem player_name legendary_sword
 ```
 
 **Notes:**
+
 - Admin command only
 - Creates item in player's inventory
 - Useful for rewards and testing
@@ -744,11 +844,13 @@ giveitem player_name legendary_sword
 Restrict a player's access (admin only).
 
 **Usage:**
+
 ```
 restrict <player> <duration>
 ```
 
 **Examples:**
+
 ```
 restrict player_name 1h
 restrict player_name 24h
@@ -756,6 +858,7 @@ restrict player_name permanent
 ```
 
 **Notes:**
+
 - Admin command only
 - Temporarily or permanently bans player
 - Duration can be: minutes (m), hours (h), days (d), permanent
@@ -765,17 +868,20 @@ restrict player_name permanent
 Apply a status effect (admin/testing).
 
 **Usage:**
+
 ```
 effect <target> <effect_type> <duration>
 ```
 
 **Examples:**
+
 ```
 effect self poison 30
 effect player_name buff 60
 ```
 
 **Notes:**
+
 - Admin or testing command
 - Effects have various behaviors
 - Duration in seconds
@@ -785,11 +891,13 @@ effect player_name buff 60
 List various game entities (admin only).
 
 **Usage:**
+
 ```
 list <type>
 ```
 
 **Examples:**
+
 ```
 list players
 list npcs
@@ -798,6 +906,7 @@ list items
 ```
 
 **Shows:**
+
 - All entities of the specified type
 - IDs and names
 - Current status
@@ -807,12 +916,14 @@ list items
 Toggle debug mode or show debug info (admin only).
 
 **Usage:**
+
 ```
 debug
 debug <option>
 ```
 
 **Examples:**
+
 ```
 debug
 debug on
@@ -820,6 +931,7 @@ debug off
 ```
 
 **Notes:**
+
 - Admin command only
 - Shows additional game information
 - Useful for development and troubleshooting
@@ -831,12 +943,14 @@ debug off
 Show available commands or help for a specific command.
 
 **Usage:**
+
 ```
 help
 help <command>
 ```
 
 **Examples:**
+
 ```
 help
 help attack
@@ -844,6 +958,7 @@ help move
 ```
 
 **Shows:**
+
 - List of all commands (no args)
 - Detailed help for specific command
 
@@ -852,17 +967,20 @@ help move
 Wait for a period of time.
 
 **Usage:**
+
 ```
 wait <seconds>
 ```
 
 **Examples:**
+
 ```
 wait 5
 wait 30
 ```
 
 **Notes:**
+
 - Character waits in place
 - Useful for regeneration
 - Can be interrupted by combat
@@ -872,11 +990,13 @@ wait 30
 Log out and disconnect from the game.
 
 **Usage:**
+
 ```
 quit
 ```
 
 **Notes:**
+
 - Saves your character automatically
 - Cannot quit during combat in some situations
 - Session is logged
@@ -888,11 +1008,13 @@ quit
 Play the classic Snake game!
 
 **Usage:**
+
 ```
 snake
 ```
 
 **Notes:**
+
 - Fun mini-game within the MUD
 - Use arrow keys or WASD to move
 - Try to get the highest score!
@@ -934,14 +1056,18 @@ snake
 ## Role-Specific Commands
 
 ### User Commands
+
 All players have access to:
+
 - Movement, information, communication
 - Item management
 - Combat commands
 - Character management
 
 ### Admin Commands
+
 Admins additionally have access to:
+
 - User management (`addflag`, `removeflag`, `restrict`)
 - World manipulation (`spawn`, `destroy`, `giveitem`)
 - Debugging (`debug`, `sudo`, `list`)
@@ -974,6 +1100,7 @@ Check each command's notes for permission requirements.
 ### Command Not Found
 
 If a command isn't recognized:
+
 1. Check spelling
 2. Use `help` to see available commands
 3. You may not have permission
@@ -982,6 +1109,7 @@ If a command isn't recognized:
 ### Command Not Working
 
 If a command doesn't work as expected:
+
 1. Check the syntax with `help <command>`
 2. Ensure you have the required items/permissions
 3. Check if you're in the right state (combat vs. normal)
@@ -1011,7 +1139,7 @@ Check the repository for upcoming features.
 
 ---
 
-**Need more help?** 
+**Need more help?**
 
 - [Getting Started Guide](getting-started.md) - New player guide
 - [Development Guide](development.md) - For contributors

@@ -9,25 +9,25 @@ import config from '../config';
 export class AdminSetup {
   public static async checkAndCreateAdminUser(userManager: UserManager): Promise<boolean> {
     systemLogger.info('Checking for admin user...');
-    
+
     // Check if admin user exists
     if (!userManager.userExists('admin')) {
       // Check if the force flag is set
       if (config.FORCE) {
         console.log('No admin user found. Creating admin account with default password...');
-        
+
         // Create admin user with default password
         const success = userManager.createUser('admin', 'admin');
-        
+
         if (success) {
           console.log('Admin user created successfully with default password!');
-          
+
           // Create admin directory if it doesn't exist
           const adminDir = path.join(config.DATA_DIR, 'admin');
           if (!fs.existsSync(adminDir)) {
             fs.mkdirSync(adminDir, { recursive: true });
           }
-          
+
           // Create admin.json file with admin user as super admin
           const adminFilePath = path.join(config.DATA_DIR, 'admin.json');
           const adminData = {
@@ -36,11 +36,11 @@ export class AdminSetup {
                 username: 'admin',
                 level: AdminLevel.SUPER,
                 addedBy: 'system',
-                addedOn: new Date().toISOString()
-              }
-            ]
+                addedOn: new Date().toISOString(),
+              },
+            ],
           };
-          
+
           try {
             fs.writeFileSync(adminFilePath, JSON.stringify(adminData, null, 2), 'utf8');
             console.log('Admin privileges configured.');
@@ -62,42 +62,44 @@ export class AdminSetup {
         // These messages should be shown even in silent mode
         console.log('No admin user found. Creating admin account...');
         console.log('Server startup will halt until admin setup is complete.');
-        
+
         let adminCreated = false;
-        
+
         // Keep trying until the admin is successfully created
         while (!adminCreated) {
           try {
             // Use custom password input that masks the password
             const password = await readPasswordFromConsole('Enter password for new admin user: ');
-            
+
             // Validate password - show this message even in silent mode
             if (password.length < config.MIN_PASSWORD_LENGTH) {
-              console.log(`Password must be at least ${config.MIN_PASSWORD_LENGTH} characters long. Please try again.`);
+              console.log(
+                `Password must be at least ${config.MIN_PASSWORD_LENGTH} characters long. Please try again.`
+              );
               continue; // Skip the rest of this iteration and try again
             }
-            
+
             // Confirm password with masking
             const confirmPassword = await readPasswordFromConsole('Confirm password: ');
-            
+
             // Check if passwords match - show this message even in silent mode
             if (password !== confirmPassword) {
               console.log('Passwords do not match. Please try again.');
               continue; // Skip the rest of this iteration and try again
             }
-            
+
             // Create admin user
             const success = userManager.createUser('admin', password);
-            
+
             if (success) {
               console.log('Admin user created successfully!');
-              
+
               // Create admin directory if it doesn't exist
               const adminDir = path.join(config.DATA_DIR, 'admin');
               if (!fs.existsSync(adminDir)) {
                 fs.mkdirSync(adminDir, { recursive: true });
               }
-              
+
               // Create admin.json file with admin user as super admin
               const adminFilePath = path.join(config.DATA_DIR, 'admin.json');
               const adminData = {
@@ -106,11 +108,11 @@ export class AdminSetup {
                     username: 'admin',
                     level: AdminLevel.SUPER,
                     addedBy: 'system',
-                    addedOn: new Date().toISOString()
-                  }
-                ]
+                    addedOn: new Date().toISOString(),
+                  },
+                ],
               };
-              
+
               try {
                 fs.writeFileSync(adminFilePath, JSON.stringify(adminData, null, 2), 'utf8');
                 console.log('Admin privileges configured.');
@@ -136,23 +138,23 @@ export class AdminSetup {
             // Continue the loop to try again
           }
         }
-        
+
         return true; // Return true since we don't exit the loop until admin is created
       }
     } else {
       systemLogger.info('Admin user already exists.');
-      
+
       // Ensure admin.json exists with the admin user
       const adminFilePath = path.join(config.DATA_DIR, 'admin.json');
       if (!fs.existsSync(adminFilePath)) {
         systemLogger.warn('Creating admin.json file...');
-        
+
         // Create admin directory if it doesn't exist
         const adminDir = path.join(config.DATA_DIR, 'admin');
         if (!fs.existsSync(adminDir)) {
           fs.mkdirSync(adminDir, { recursive: true });
         }
-        
+
         // Create admin.json with admin user as super admin
         const adminData = {
           admins: [
@@ -160,11 +162,11 @@ export class AdminSetup {
               username: 'admin',
               level: AdminLevel.SUPER,
               addedBy: 'system',
-              addedOn: new Date().toISOString()
-            }
-          ]
+              addedOn: new Date().toISOString(),
+            },
+          ],
         };
-        
+
         try {
           fs.writeFileSync(adminFilePath, JSON.stringify(adminData, null, 2), 'utf8');
           systemLogger.info('Admin privileges configured.');

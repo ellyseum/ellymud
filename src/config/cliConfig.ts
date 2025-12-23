@@ -2,7 +2,7 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import fs from 'fs';
 import path from 'path';
-import { parseAndValidateJson, parseJsonArg } from '../utils/jsonUtils';
+import { parseAndValidateJson } from '../utils/jsonUtils';
 
 // Define the configuration interface
 export interface CLIConfig {
@@ -11,10 +11,10 @@ export interface CLIConfig {
   userSession: boolean;
   forceSession: string | null; // Add forced user session option
   force: boolean; // Add force flag
-  
+
   // Security flags
   disableRemoteAdmin: boolean;
-  
+
   // Data directory flags
   dataDir: string;
   roomsFile: string;
@@ -22,13 +22,13 @@ export interface CLIConfig {
   itemsFile: string;
   npcsFile: string;
   mudConfigFile: string;
-  
+
   // Direct data input
   rooms: string | null;
   users: string | null;
   items: string | null;
   npcs: string | null;
-  
+
   // Additional server options
   port: number;
   wsPort: number;
@@ -43,137 +43,137 @@ export interface CLIConfig {
 // Parse command line arguments
 export function parseCommandLineArgs(): CLIConfig {
   const defaultDataDir = path.join(__dirname, '..', '..', 'data');
-  
+
   const argv = yargs(hideBin(process.argv))
     // Session flags
     .option('adminSession', {
       type: 'boolean',
       description: 'Start and immediately connect to an admin session',
       default: false,
-      alias: 'a'
+      alias: 'a',
     })
     .option('userSession', {
       type: 'boolean',
       description: 'Start and immediately connect to a user session',
       default: false,
-      alias: 'u'
+      alias: 'u',
     })
     .option('forceSession', {
       type: 'string',
       description: 'Start and immediately connect as a specific user (e.g. --forceSession=asdf)',
-      default: null
+      default: null,
     })
     .option('force', {
       type: 'boolean',
       description: 'Force create admin user with default password',
       default: false,
-      alias: 'f'
+      alias: 'f',
     })
-    
+
     // Security flags
     .option('disableRemoteAdmin', {
       type: 'boolean',
       description: 'Disable remote admin access',
       default: false,
-      alias: 'r'
+      alias: 'r',
     })
-    
+
     // Data directory flags
     .option('dataDir', {
       type: 'string',
       description: 'Base directory for data files',
       default: defaultDataDir,
-      alias: 'd'
+      alias: 'd',
     })
     .option('roomsFile', {
       type: 'string',
-      description: 'Path to rooms file'
+      description: 'Path to rooms file',
     })
     .option('usersFile', {
       type: 'string',
-      description: 'Path to users file'
+      description: 'Path to users file',
     })
     .option('itemsFile', {
       type: 'string',
-      description: 'Path to items file'
+      description: 'Path to items file',
     })
     .option('npcsFile', {
       type: 'string',
-      description: 'Path to npcs file'
+      description: 'Path to npcs file',
     })
     .option('mudConfigFile', {
       type: 'string',
-      description: 'Path to MUD configuration file'
+      description: 'Path to MUD configuration file',
     })
-    
+
     // Direct data input
     .option('rooms', {
       type: 'string',
-      description: 'JSON string with room data'
+      description: 'JSON string with room data',
     })
     .option('users', {
       type: 'string',
-      description: 'JSON string with user data'
+      description: 'JSON string with user data',
     })
     .option('items', {
       type: 'string',
-      description: 'JSON string with item data'
+      description: 'JSON string with item data',
     })
     .option('npcs', {
       type: 'string',
-      description: 'JSON string with NPC data'
+      description: 'JSON string with NPC data',
     })
-    
+
     // Additional server options
     .option('port', {
       type: 'number',
       description: 'Telnet server port',
       default: 8023,
-      alias: 'p'
+      alias: 'p',
     })
     .option('wsPort', {
       type: 'number',
       description: 'WebSocket server port',
       default: 8080,
-      alias: 'w'
+      alias: 'w',
     })
     .option('httpPort', {
       type: 'number',
-      description: 'HTTP server port'
+      description: 'HTTP server port',
     })
     .option('logLevel', {
       type: 'string',
       description: 'Log level (debug, info, warn, error)',
       default: 'info',
-      alias: 'l'
+      alias: 'l',
     })
     .option('noColor', {
       type: 'boolean',
       description: 'Disable colored output',
       default: false,
-      alias: 'n'
+      alias: 'n',
     })
     .option('silent', {
       type: 'boolean',
       description: 'Suppress all console logging',
       default: false,
-      alias: 's'
+      alias: 's',
     })
     .option('noConsole', {
       type: 'boolean',
       description: 'Disable interactive console commands and help messages',
       default: false,
-      alias: 'c'
+      alias: 'c',
     })
     .option('debug', {
       type: 'boolean',
       description: 'Enable debug mode with additional logging and diagnostics',
-      default: false
+      default: false,
     })
     .help()
     .alias('help', 'h')
     .parseSync();
-  
+
   // Set default file paths if not provided
   const config: CLIConfig = {
     adminSession: argv.adminSession,
@@ -198,15 +198,16 @@ export function parseCommandLineArgs(): CLIConfig {
     noColor: argv.noColor,
     // Auto-enable silent and noConsole if an auto-session is requested
     silent: argv.silent || argv.adminSession || argv.userSession || Boolean(argv.forceSession),
-    noConsole: argv.noConsole || argv.adminSession || argv.userSession || Boolean(argv.forceSession),
-    debug: argv.debug // Updated to use the debug flag from command line arguments
+    noConsole:
+      argv.noConsole || argv.adminSession || argv.userSession || Boolean(argv.forceSession),
+    debug: argv.debug, // Updated to use the debug flag from command line arguments
   };
-  
+
   // Ensure data directory exists
   if (!fs.existsSync(config.dataDir)) {
     fs.mkdirSync(config.dataDir, { recursive: true });
   }
-  
+
   return config;
 }
 

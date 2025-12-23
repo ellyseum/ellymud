@@ -4,19 +4,19 @@ JSON files containing all persistent game data including users, rooms, items, NP
 
 ## Contents
 
-| Path | Description |
-|------|-------------|
-| `users.json` | User accounts and character data |
-| `rooms.json` | World room definitions with exits and contents |
-| `items.json` | Item templates defining all item types |
-| `itemInstances.json` | Instantiated items in the world |
-| `npcs.json` | NPC templates and behaviors |
-| `mud-config.json` | Core game configuration |
-| `gametimer-config.json` | Timer and tick settings |
-| `admin.json` | Admin and moderation configuration |
-| `bug-reports.json` | Player-submitted bug reports |
-| `snake-scores.json` | Snake minigame high scores |
-| `admin/` | Admin-specific data files |
+| Path                    | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| `users.json`            | User accounts and character data               |
+| `rooms.json`            | World room definitions with exits and contents |
+| `items.json`            | Item templates defining all item types         |
+| `itemInstances.json`    | Instantiated items in the world                |
+| `npcs.json`             | NPC templates and behaviors                    |
+| `mud-config.json`       | Core game configuration                        |
+| `gametimer-config.json` | Timer and tick settings                        |
+| `admin.json`            | Admin and moderation configuration             |
+| `bug-reports.json`      | Player-submitted bug reports                   |
+| `snake-scores.json`     | Snake minigame high scores                     |
+| `admin/`                | Admin-specific data files                      |
 
 ## Overview
 

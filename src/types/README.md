@@ -4,10 +4,10 @@ TypeScript type definitions and interfaces for specialized modules.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
+| File         | Description                         |
+| ------------ | ----------------------------------- |
 | `effects.ts` | Effect-related types and interfaces |
-| `index.ts` | Barrel exports for all types |
+| `index.ts`   | Barrel exports for all types        |
 
 ## Type Organization
 
@@ -27,11 +27,13 @@ EllyMUD organizes types in two places:
 ## When to Add Types Here
 
 Add types to this directory when:
+
 - They're specific to one module
 - They're complex (many properties)
 - They would clutter `src/types.ts`
 
 Keep in `src/types.ts`:
+
 - Core types used everywhere
 - Simple, widely-used interfaces
 - Enums

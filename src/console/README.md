@@ -4,14 +4,14 @@ Server console for local administration, monitoring, and direct game access.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `consoleInterface.ts` | Interactive CLI interface with keyboard handling |
-| `consoleManager.ts` | Console command processing |
-| `autoSessionHandler.ts` | Auto-login session handling for `-a` flag |
-| `localSessionManager.ts` | Local session management |
-| `userAdminMenu.ts` | User administration menu system |
-| `userMonitor.ts` | Real-time user session monitoring |
+| File                     | Description                                      |
+| ------------------------ | ------------------------------------------------ |
+| `consoleInterface.ts`    | Interactive CLI interface with keyboard handling |
+| `consoleManager.ts`      | Console command processing                       |
+| `autoSessionHandler.ts`  | Auto-login session handling for `-a` flag        |
+| `localSessionManager.ts` | Local session management                         |
+| `userAdminMenu.ts`       | User administration menu system                  |
+| `userMonitor.ts`         | Real-time user session monitoring                |
 
 ## Features
 
@@ -40,6 +40,7 @@ The server console provides:
 ## Auto-Login
 
 Start with auto-login:
+
 ```bash
 npm start -- -a              # Login as admin
 npm start -- --forceSession=user  # Login as specific user

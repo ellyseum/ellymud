@@ -42,7 +42,10 @@ export class RoomUINotificationService implements IRoomUINotificationService {
     const room = this.roomManager.getRoom(roomId);
 
     if (!room) {
-      writeFormattedMessageToClient(client, colorize(`You seem to be lost in the void. Teleporting to safety...\r\n`, 'red'));
+      writeFormattedMessageToClient(
+        client,
+        colorize(`You seem to be lost in the void. Teleporting to safety...\r\n`, 'red')
+      );
       return this.teleportService.teleportToStartingRoom(client);
     }
 
@@ -62,7 +65,10 @@ export class RoomUINotificationService implements IRoomUINotificationService {
     const room = this.roomManager.getRoom(roomId);
 
     if (!room) {
-      writeFormattedMessageToClient(client, colorize(`You seem to be lost in the void. Teleporting to safety...\r\n`, 'red'));
+      writeFormattedMessageToClient(
+        client,
+        colorize(`You seem to be lost in the void. Teleporting to safety...\r\n`, 'red')
+      );
       return this.teleportService.teleportToStartingRoom(client);
     }
 
@@ -83,7 +89,7 @@ export class RoomUINotificationService implements IRoomUINotificationService {
       if (excludeUsername && playerName.toLowerCase() === excludeUsername.toLowerCase()) {
         continue;
       }
-      
+
       const playerClient = this.findClientByUsername(playerName);
       if (playerClient) {
         writeFormattedMessageToClient(playerClient, message);
@@ -97,7 +103,7 @@ export class RoomUINotificationService implements IRoomUINotificationService {
   public announcePlayerEntrance(roomId: string, username: string): void {
     const room = this.roomManager.getRoom(roomId);
     if (!room) return;
-    
+
     // Announce to all other players in the room that this player has entered
     this.notifyPlayersInRoom(
       roomId,

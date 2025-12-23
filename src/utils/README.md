@@ -4,25 +4,25 @@ Shared utility functions used throughout EllyMUD. Contains critical infrastructu
 
 ## Contents
 
-| File | Purpose |
-|------|---------|  
-| `socketWriter.ts` | **CRITICAL** - All client output must use this |
-| `colors.ts` | ANSI color formatting and colorize function |
-| `logger.ts` | Winston-based logging system |
-| `formatters.ts` | Text formatting utilities |
-| `promptFormatter.ts` | Command prompt rendering |
-| `messageFormatter.ts` | Game message formatting |
-| `fileUtils.ts` | File I/O helpers |
-| `jsonUtils.ts` | JSON parsing and validation |
-| `debugUtils.ts` | Debug helpers |
-| `itemManager.ts` | Item instance management |
-| `itemNameColorizer.ts` | Item name coloring by rarity |
-| `rawSessionLogger.ts` | Raw session I/O logging |
-| `mcpKeySetup.ts` | MCP API key generation |
-| `validateFiles.ts` | Data file validation |
-| `consoleUtils.ts` | Console output utilities |
-| `commandHandler.ts` | Command parsing helpers |
-| `commandParser.ts` | Input tokenization |
+| File                   | Purpose                                        |
+| ---------------------- | ---------------------------------------------- |
+| `socketWriter.ts`      | **CRITICAL** - All client output must use this |
+| `colors.ts`            | ANSI color formatting and colorize function    |
+| `logger.ts`            | Winston-based logging system                   |
+| `formatters.ts`        | Text formatting utilities                      |
+| `promptFormatter.ts`   | Command prompt rendering                       |
+| `messageFormatter.ts`  | Game message formatting                        |
+| `fileUtils.ts`         | File I/O helpers                               |
+| `jsonUtils.ts`         | JSON parsing and validation                    |
+| `debugUtils.ts`        | Debug helpers                                  |
+| `itemManager.ts`       | Item instance management                       |
+| `itemNameColorizer.ts` | Item name coloring by rarity                   |
+| `rawSessionLogger.ts`  | Raw session I/O logging                        |
+| `mcpKeySetup.ts`       | MCP API key generation                         |
+| `validateFiles.ts`     | Data file validation                           |
+| `consoleUtils.ts`      | Console output utilities                       |
+| `commandHandler.ts`    | Command parsing helpers                        |
+| `commandParser.ts`     | Input tokenization                             |
 
 ## Critical: Socket Writing
 

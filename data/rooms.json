@@ -20,11 +20,7 @@
         "templateId": "sword-rare"
       }
     ],
-    "npcs": [
-      "cat",
-      "dog",
-      "cat"
-    ],
+    "npcs": ["cat", "dog", "cat"],
     "currency": {
       "gold": 0,
       "silver": 3,
@@ -41,9 +37,7 @@
         "roomId": "start"
       }
     ],
-    "items": [
-      "crystal ball"
-    ],
+    "items": ["crystal ball"],
     "itemInstances": [],
     "npcs": [],
     "currency": {

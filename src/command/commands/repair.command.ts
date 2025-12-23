@@ -1,46 +1,46 @@
-import { Command } from "../command.interface";
-import { ConnectedClient } from "../../types";
-import { colorize } from "../../utils/colors";
-import { ItemManager } from "../../utils/itemManager";
-import { writeToClient } from "../../utils/socketWriter";
-import { stripColorCodes, colorizeItemName } from "../../utils/itemNameColorizer";
+import { Command } from '../command.interface';
+import { ConnectedClient } from '../../types';
+import { colorize } from '../../utils/colors';
+import { ItemManager } from '../../utils/itemManager';
+import { writeToClient } from '../../utils/socketWriter';
+import { stripColorCodes, colorizeItemName } from '../../utils/itemNameColorizer';
 
 export class RepairCommand implements Command {
-  name = "repair";
-  description = "Repair a damaged item";
-  
+  name = 'repair';
+  description = 'Repair a damaged item';
+
   private itemManager: ItemManager;
-  
+
   constructor() {
     this.itemManager = ItemManager.getInstance();
   }
 
   execute(client: ConnectedClient, args: string): void {
     if (!client.user) {
-      writeToClient(client, colorize("You must be logged in to use this command.\r\n", "red"));
+      writeToClient(client, colorize('You must be logged in to use this command.\r\n', 'red'));
       return;
     }
 
     const argArray = args.trim().split(/\s+/);
-    
+
     if (argArray.length === 0 || args.trim() === '') {
-      writeToClient(client, colorize("Which item would you like to repair?\r\n", "yellow"));
+      writeToClient(client, colorize('Which item would you like to repair?\r\n', 'yellow'));
       return;
     }
 
     const itemName = args.trim();
-    
+
     // Ensure inventory structure exists
     if (!client.user.inventory) {
       client.user.inventory = { items: [], currency: { gold: 0, silver: 0, copper: 0 } };
     }
-    
+
     // First check if player tried to repair all items
-    if (itemName.toLowerCase() === "all") {
+    if (itemName.toLowerCase() === 'all') {
       // Repair all damaged items in inventory
       let itemsFound = 0;
       let itemsRepaired = 0;
-      let responseMessage = "";
+      let responseMessage = '';
 
       for (const itemId of client.user.inventory.items) {
         const instance = this.itemManager.getItemInstance(itemId);
@@ -48,115 +48,148 @@ export class RepairCommand implements Command {
           itemsFound++;
           const maxDurability = instance.properties.durability.max;
           const currentDurability = instance.properties.durability.current;
-          
+
           if (currentDurability < maxDurability) {
             // Repair the item (costs gold based on item value)
             const template = this.itemManager.getItem(instance.templateId);
             if (!template) continue;
-            
+
             const repairCost = Math.ceil((template.value || 10) * 0.1); // 10% of item value
-            
+
             if (client.user.inventory.currency.gold >= repairCost) {
               // Deduct gold and repair the item
               client.user.inventory.currency.gold -= repairCost;
-              
+
               // Use the repairItem method from ItemManager to repair the item to max
               const repairAmount = maxDurability - currentDurability;
               this.itemManager.repairItem(itemId, repairAmount);
-              
+
               itemsRepaired++;
               // Get the raw item name
               const rawItemName = this.itemManager.getItemDisplayName(itemId);
               // Apply color formatting using colorizeItemName
               const colorizedName = colorizeItemName(rawItemName);
-              responseMessage += colorize("Repaired ", "green") + colorizedName + colorize(` for ${repairCost} gold.\r\n`, "green");
+              responseMessage +=
+                colorize('Repaired ', 'green') +
+                colorizedName +
+                colorize(` for ${repairCost} gold.\r\n`, 'green');
             } else {
               // Get the raw item name
               const rawItemName = this.itemManager.getItemDisplayName(itemId);
               // Apply color formatting using colorizeItemName
               const colorizedName = colorizeItemName(rawItemName);
-              responseMessage += colorize("You need ", "red") + colorize(`${repairCost} gold`, "yellow") + colorize(" to repair ", "red") + colorizedName + colorize(".\r\n", "red");
+              responseMessage +=
+                colorize('You need ', 'red') +
+                colorize(`${repairCost} gold`, 'yellow') +
+                colorize(' to repair ', 'red') +
+                colorizedName +
+                colorize('.\r\n', 'red');
             }
           }
         }
       }
-      
+
       if (itemsFound === 0) {
-        writeToClient(client, colorize("You don't have any items that can be repaired.\r\n", "yellow"));
+        writeToClient(
+          client,
+          colorize("You don't have any items that can be repaired.\r\n", 'yellow')
+        );
         return;
       }
-      
+
       if (itemsRepaired === 0) {
-        writeToClient(client, colorize("You couldn't afford to repair any of your items.\r\n", "red"));
+        writeToClient(
+          client,
+          colorize("You couldn't afford to repair any of your items.\r\n", 'red')
+        );
         return;
       }
-      
-      responseMessage += colorize(`Repaired ${itemsRepaired} out of ${itemsFound} items.\r\n`, "green");
+
+      responseMessage += colorize(
+        `Repaired ${itemsRepaired} out of ${itemsFound} items.\r\n`,
+        'green'
+      );
       writeToClient(client, responseMessage);
       return;
     }
-    
+
     // Find the specific item to repair
     let itemFound = false;
     for (const itemId of client.user.inventory.items) {
       // Get the display name and strip color codes before comparison
       const displayName = this.itemManager.getItemDisplayName(itemId);
       const plainDisplayName = stripColorCodes(displayName).toLowerCase();
-      
+
       if (plainDisplayName.includes(itemName.toLowerCase())) {
         itemFound = true;
         const instance = this.itemManager.getItemInstance(itemId);
-        
+
         if (!instance || !instance.properties?.durability) {
-          writeToClient(client, colorize("That item cannot be repaired.\r\n", "yellow"));
+          writeToClient(client, colorize('That item cannot be repaired.\r\n', 'yellow'));
           return;
         }
-        
+
         const maxDurability = instance.properties.durability.max;
         const currentDurability = instance.properties.durability.current;
-        
+
         if (currentDurability >= maxDurability) {
           // Get the raw item name and apply color formatting
           const rawItemName = this.itemManager.getItemDisplayName(itemId);
           const colorizedName = colorizeItemName(rawItemName);
-          writeToClient(client, colorize("", "green") + colorizedName + colorize(" is already in perfect condition.\r\n", "green"));
+          writeToClient(
+            client,
+            colorize('', 'green') +
+              colorizedName +
+              colorize(' is already in perfect condition.\r\n', 'green')
+          );
           return;
         }
-        
+
         // Calculate repair cost (10% of item value)
         const template = this.itemManager.getItem(instance.templateId);
         if (!template) {
-          writeToClient(client, colorize("Cannot find template for this item.\r\n", "red"));
+          writeToClient(client, colorize('Cannot find template for this item.\r\n', 'red'));
           return;
         }
-        
+
         const repairCost = Math.ceil((template.value || 10) * 0.1); // 10% of item value
-        
+
         if (client.user.inventory.currency.gold < repairCost) {
-          writeToClient(client, colorize(`You need ${repairCost} gold to repair this item.\r\n`, "red"));
+          writeToClient(
+            client,
+            colorize(`You need ${repairCost} gold to repair this item.\r\n`, 'red')
+          );
           return;
         }
-        
+
         // Deduct gold and repair the item
         client.user.inventory.currency.gold -= repairCost;
-        
+
         // Use the repairItem method from ItemManager to repair to max
         const repairAmount = maxDurability - currentDurability;
         this.itemManager.repairItem(itemId, repairAmount);
-        
+
         // Get the raw item name and apply color formatting
         const rawItemName = this.itemManager.getItemDisplayName(itemId);
         const colorizedName = colorizeItemName(rawItemName);
-        writeToClient(client, colorize("You repaired ", "green") + colorizedName + colorize(` for ${repairCost} gold.\r\n`, "green"));
+        writeToClient(
+          client,
+          colorize('You repaired ', 'green') +
+            colorizedName +
+            colorize(` for ${repairCost} gold.\r\n`, 'green')
+        );
         return;
       }
     }
-    
+
     if (!itemFound) {
-      writeToClient(client, colorize(`You don't have an item called "${itemName}" in your inventory.\r\n`, "yellow"));
+      writeToClient(
+        client,
+        colorize(`You don't have an item called "${itemName}" in your inventory.\r\n`, 'yellow')
+      );
       return;
     }
 
-    writeToClient(client, colorize("Something went wrong with the repair process.\r\n", "red"));
+    writeToClient(client, colorize('Something went wrong with the repair process.\r\n', 'red'));
   }
 }

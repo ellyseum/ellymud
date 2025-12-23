@@ -25,14 +25,14 @@ export class MoveCommand implements Command {
       writeFormattedMessageToClient(client, colorize(`You must be logged in to move.\r\n`, 'red'));
       return;
     }
-    
+
     const playerLogger = getPlayerLogger(client.user.username);
-    
+
     // Check if the player is in a valid room first
     this.roomManager.teleportToStartingRoomIfNeeded(client);
-    
+
     const direction = args.trim().toLowerCase();
-    
+
     if (!direction) {
       return;
     }
@@ -40,20 +40,24 @@ export class MoveCommand implements Command {
     // Get current room info before moving
     const currentRoomId = client.user.currentRoomId || this.roomManager.getStartingRoomId();
     const currentRoom = this.roomManager.getRoom(currentRoomId);
-    const currentRoomName = currentRoom ? currentRoom.name : "unknown location";
+    const currentRoomName = currentRoom ? currentRoom.name : 'unknown location';
 
     // Log player's attempt to move
-    playerLogger.info(`Attempting to move ${direction} from room ${currentRoomId} (${currentRoomName})`);
+    playerLogger.info(
+      `Attempting to move ${direction} from room ${currentRoomId} (${currentRoomName})`
+    );
 
     // Simply proceed with movement regardless of combat state
     // Combat system will handle checking rooms during next tick
     const success = this.roomManager.movePlayer(client, direction);
-    
+
     // Log the result of movement attempt
     if (success && client.user.currentRoomId !== currentRoomId) {
       const newRoom = this.roomManager.getRoom(client.user.currentRoomId);
-      const newRoomName = newRoom ? newRoom.name : "unknown location";
-      playerLogger.info(`Successfully moved ${direction} to room ${client.user.currentRoomId} (${newRoomName})`);
+      const newRoomName = newRoom ? newRoom.name : 'unknown location';
+      playerLogger.info(
+        `Successfully moved ${direction} to room ${client.user.currentRoomId} (${newRoomName})`
+      );
     } else if (!success) {
       playerLogger.info(`Failed to move ${direction} - no exit available`);
     }

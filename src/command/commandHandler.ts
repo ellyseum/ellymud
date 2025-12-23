@@ -16,10 +16,32 @@ export class CommandHandler {
   private historySize = 30;
   // Commands that unconscious players cannot use
   private restrictedCommandsWhileUnconscious = [
-    'move', 'attack', 'north', 'south', 'east', 'west', 
-    'northeast', 'northwest', 'southeast', 'southwest',
-    'n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw', 'up', 'down', 'u', 'd',
-    'spawn', 'get', 'pickup', 'drop'
+    'move',
+    'attack',
+    'north',
+    'south',
+    'east',
+    'west',
+    'northeast',
+    'northwest',
+    'southeast',
+    'southwest',
+    'n',
+    's',
+    'e',
+    'w',
+    'ne',
+    'nw',
+    'se',
+    'sw',
+    'up',
+    'down',
+    'u',
+    'd',
+    'spawn',
+    'get',
+    'pickup',
+    'drop',
   ];
 
   constructor(
@@ -31,12 +53,13 @@ export class CommandHandler {
   ) {
     // Get the room manager instance
     const roomMgr = this.roomManager || RoomManager.getInstance(this.clients);
-    
+
     // Get or create the combat system
-    const combatSys = this.combatSystem || 
-      (GameTimerManager.getInstance(this.userManager, roomMgr)?.getCombatSystem() || 
-      CombatSystem.getInstance(this.userManager, roomMgr));
-    
+    const combatSys =
+      this.combatSystem ||
+      GameTimerManager.getInstance(this.userManager, roomMgr)?.getCombatSystem() ||
+      CombatSystem.getInstance(this.userManager, roomMgr);
+
     // Get the singleton instance of CommandRegistry instead of creating a new one
     this.commands = CommandRegistry.getInstance(
       this.clients,
@@ -52,7 +75,7 @@ export class CommandHandler {
 
     // Ensure input is trimmed
     const cleanInput = input.trim();
-    
+
     // Skip empty commands and don't add them to history
     if (cleanInput === '') {
       // Do a brief look when user hits enter with no command
@@ -79,21 +102,21 @@ export class CommandHandler {
 
       // Get the most recent command
       const lastCommand = client.user.commandHistory[client.user.commandHistory.length - 1];
-      
+
       // Display what we're executing
       writeToClient(client, colorize(`Repeating: ${lastCommand}\r\n`, 'dim'));
-      
+
       // Add the repeated command to history
       client.user.commandHistory.push(lastCommand);
-      
+
       // Keep only the most recent 30 commands
       if (client.user.commandHistory.length > this.historySize) {
         client.user.commandHistory.shift(); // Remove oldest command
       }
-      
+
       // Execute the last command
       this.executeCommand(client, lastCommand);
-      
+
       return;
     }
 
@@ -117,12 +140,12 @@ export class CommandHandler {
 
     // Add command to history
     client.user.commandHistory.push(command);
-    
+
     // Keep only the most recent commands
     if (client.user.commandHistory.length > this.historySize) {
       client.user.commandHistory.shift(); // Remove oldest command
     }
-    
+
     // Reset history browsing state
     client.user.currentHistoryIndex = -1;
     client.user.savedCurrentCommand = '';
@@ -136,14 +159,14 @@ export class CommandHandler {
       this.executeCommand(client, `say ${text}`);
       return;
     }
-    
+
     // Double quote shortcut for yell: "hello -> yell hello
     if (input.startsWith('"') && input.length > 1) {
       const text = input.substring(1);
       this.executeCommand(client, `yell ${text}`);
       return;
     }
-    
+
     // No shortcuts matched, execute as normal command
     this.executeCommand(client, input);
   }
@@ -155,8 +178,15 @@ export class CommandHandler {
     const args = parts.slice(1).join(' ').trim(); // Also trim arguments
 
     // Check if player is unconscious and trying to use a restricted command
-    if (client.user && client.user.isUnconscious && this.isRestrictedWhileUnconscious(commandName)) {
-      writeToClient(client, colorize('You are unconscious and cannot perform that action.\r\n', 'red'));
+    if (
+      client.user &&
+      client.user.isUnconscious &&
+      this.isRestrictedWhileUnconscious(commandName)
+    ) {
+      writeToClient(
+        client,
+        colorize('You are unconscious and cannot perform that action.\r\n', 'red')
+      );
       drawCommandPrompt(client);
       return;
     }
@@ -170,7 +200,7 @@ export class CommandHandler {
 
     // Find and execute command
     const command = this.commands.getCommand(commandName);
-    
+
     if (command) {
       try {
         command.execute(client, args);
@@ -184,10 +214,12 @@ export class CommandHandler {
         if (client.user) {
           // Fix: Safely handle error.message when error is of type 'unknown'
           const errorMessage = error instanceof Error ? error.message : String(error);
-          getPlayerLogger(client.user.username).error(`Error with command ${commandName}: ${errorMessage}`);
+          getPlayerLogger(client.user.username).error(
+            `Error with command ${commandName}: ${errorMessage}`
+          );
         }
       }
-      
+
       // Display the command prompt after command execution
       // (many commands will draw the prompt themselves, but this ensures it always happens)
       drawCommandPrompt(client);
@@ -199,17 +231,17 @@ export class CommandHandler {
         getPlayerLogger(client.user.username).info(`Attempted unknown command: ${commandName}`);
       }
       this.commands.executeCommand(client, commandText);
-      
+
       // Display the command prompt after
       drawCommandPrompt(client);
     }
   }
-  
+
   // Check if a command is restricted for unconscious players
   private isRestrictedWhileUnconscious(commandName: string): boolean {
     return this.restrictedCommandsWhileUnconscious.includes(commandName.toLowerCase());
   }
-  
+
   /**
    * Get the command registry instance
    * @returns The CommandRegistry instance

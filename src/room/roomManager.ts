@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Room manager uses dynamic typing for flexible room data handling
 import fs from 'fs';
 import path from 'path';
 import { Room } from './room';
-import { ConnectedClient, Currency, Exit, Item } from '../types';
+import { ConnectedClient, Currency, Exit } from '../types';
 import { systemLogger } from '../utils/logger';
 import { NPC } from '../combat/npc';
 import { IRoomManager } from './interfaces';
@@ -36,7 +38,7 @@ interface RoomData {
 export class RoomManager implements IRoomManager {
   private rooms: Map<string, Room> = new Map();
   private clients: Map<string, ConnectedClient>;
-  
+
   // Services - use definite assignment assertions to tell TypeScript they will be initialized
   private directionHelper!: DirectionHelper;
   private entityRegistryService!: EntityRegistryService;
@@ -44,7 +46,7 @@ export class RoomManager implements IRoomManager {
   private playerMovementService!: PlayerMovementService;
   private roomUINotificationService!: RoomUINotificationService;
   private teleportationService!: TeleportationService;
-  
+
   // Add static instance for singleton pattern
   private static instance: RoomManager | null = null;
 
@@ -52,14 +54,14 @@ export class RoomManager implements IRoomManager {
   private constructor(clients: Map<string, ConnectedClient>) {
     systemLogger.info('Creating RoomManager instance');
     this.clients = clients;
-    
+
     // Initialize services
     this.initializeServices();
-    
+
     // Load rooms
     this.loadRooms();
   }
-  
+
   // Static method to get the singleton instance
   public static getInstance(clients: Map<string, ConnectedClient>): RoomManager {
     if (!RoomManager.instance) {
@@ -77,49 +79,47 @@ export class RoomManager implements IRoomManager {
   private initializeServices(): void {
     // Create direction helper first as it's used by other services
     this.directionHelper = new DirectionHelper();
-    
+
     // Create the notification service first since it's used by other services
     this.roomUINotificationService = new RoomUINotificationService(
       {
         getRoom: this.getRoom.bind(this),
-        getStartingRoomId: this.getStartingRoomId.bind(this)
+        getStartingRoomId: this.getStartingRoomId.bind(this),
       },
       this.findClientByUsername.bind(this),
       {
-        teleportToStartingRoom: this.teleportToStartingRoom.bind(this)
+        teleportToStartingRoom: this.teleportToStartingRoom.bind(this),
       }
     );
-    
+
     this.teleportationService = new TeleportationService(
       {
         getRoom: this.getRoom.bind(this),
         getStartingRoomId: this.getStartingRoomId.bind(this),
-        getAllRooms: this.getAllRooms.bind(this)
+        getAllRooms: this.getAllRooms.bind(this),
       },
       this.roomUINotificationService.notifyPlayersInRoom.bind(this.roomUINotificationService)
     );
-    
-    this.npcInteractionService = new NPCInteractionService(
-      {
-        updateRoom: this.updateRoom.bind(this)
-      }
-    );
-    
+
+    this.npcInteractionService = new NPCInteractionService({
+      updateRoom: this.updateRoom.bind(this),
+    });
+
     this.entityRegistryService = new EntityRegistryService(
       {
         getRoom: this.getRoom.bind(this),
         getStartingRoomId: this.getStartingRoomId.bind(this),
-        updateRoom: this.updateRoom.bind(this)
+        updateRoom: this.updateRoom.bind(this),
       },
       () => this.clients,
       this.roomUINotificationService.notifyPlayersInRoom.bind(this.roomUINotificationService),
       this.teleportationService.teleportToStartingRoom.bind(this.teleportationService)
     );
-    
+
     this.playerMovementService = new PlayerMovementService(
       {
         getRoom: this.getRoom.bind(this),
-        getStartingRoomId: this.getStartingRoomId.bind(this)
+        getStartingRoomId: this.getStartingRoomId.bind(this),
       },
       this.directionHelper,
       this.roomUINotificationService.notifyPlayersInRoom.bind(this.roomUINotificationService),
@@ -131,25 +131,25 @@ export class RoomManager implements IRoomManager {
    * Load prevalidated room data
    * @param roomDataArray An array of validated room data objects
    */
-  public loadPrevalidatedRooms(roomDataArray: any[]): void {
+  public loadPrevalidatedRooms(roomDataArray: RoomData[]): void {
     systemLogger.info(`Loading ${roomDataArray.length} pre-validated rooms...`);
-    
+
     // Clear existing rooms to prevent duplicates
     this.rooms.clear();
-    
+
     // Load all NPC templates first
     const npcData = NPC.loadNPCData();
-    
-    roomDataArray.forEach(roomData => {
+
+    roomDataArray.forEach((roomData) => {
       const room = new Room(roomData);
       this.rooms.set(room.id, room);
-      
+
       // Instantiate NPCs from templates after room is created
       if (Array.isArray(roomData.npcs)) {
         this.npcInteractionService.instantiateNpcsFromTemplates(room, roomData.npcs, npcData);
       }
     });
-    
+
     systemLogger.info('Pre-validated rooms loaded successfully');
   }
 
@@ -158,7 +158,7 @@ export class RoomManager implements IRoomManager {
     if (config.DIRECT_ROOMS_DATA) {
       try {
         const roomDataArray = parseAndValidateJson<any[]>(config.DIRECT_ROOMS_DATA, 'rooms');
-        
+
         if (roomDataArray && Array.isArray(roomDataArray)) {
           this.loadPrevalidatedRooms(roomDataArray);
           return; // Successfully loaded from command line
@@ -167,16 +167,16 @@ export class RoomManager implements IRoomManager {
         systemLogger.error('Failed to load rooms from command line:', error);
       }
     }
-    
+
     // If no rooms from command line, try loading from file
     this.loadRoomsFromFile();
   }
-  
+
   private loadRoomsFromFile(): void {
     // Validate file data using our validation system
     if (fs.existsSync(ROOMS_FILE)) {
       const roomDataArray = loadAndValidateJsonFile<any[]>(ROOMS_FILE, 'rooms');
-      
+
       if (roomDataArray && Array.isArray(roomDataArray)) {
         this.loadPrevalidatedRooms(roomDataArray);
       } else {
@@ -191,18 +191,18 @@ export class RoomManager implements IRoomManager {
   private saveRooms(): void {
     try {
       // Convert rooms to storable format (without players)
-      const roomsData = Array.from(this.rooms.values()).map(room => {
+      const roomsData = Array.from(this.rooms.values()).map((room) => {
         // Convert NPC Map to an array of template IDs for storage
         const npcTemplateIds: string[] = [];
-        
+
         // For each NPC in the room, store its template ID
-        room.npcs.forEach(npc => {
+        room.npcs.forEach((npc) => {
           npcTemplateIds.push(npc.templateId);
         });
-        
+
         // Serialize item instances to a format suitable for storage
         const serializedItemInstances = room.serializeItemInstances();
-        
+
         return {
           id: room.id,
           name: room.name,
@@ -210,11 +210,11 @@ export class RoomManager implements IRoomManager {
           exits: room.exits,
           items: room.items, // Keep legacy items for backward compatibility
           itemInstances: serializedItemInstances, // Add new item instances
-          npcs: npcTemplateIds,  // Use the array of template IDs
-          currency: room.currency
+          npcs: npcTemplateIds, // Use the array of template IDs
+          currency: room.currency,
         };
       });
-      
+
       fs.writeFileSync(ROOMS_FILE, JSON.stringify(roomsData, null, 2));
     } catch (error) {
       systemLogger.error('Error saving rooms:', error);
@@ -241,14 +241,14 @@ export class RoomManager implements IRoomManager {
   public getStartingRoomId(): string {
     return DEFAULT_ROOM_ID;
   }
-  
+
   // Get all rooms (used by some systems like combat)
   public getAllRooms(): Room[] {
     return Array.from(this.rooms.values());
   }
 
   // Service delegation methods - these delegate to specialized services
-  
+
   // Movement methods
   public movePlayer(client: ConnectedClient, direction: string): boolean {
     return this.playerMovementService.movePlayer(client, direction);
@@ -257,54 +257,54 @@ export class RoomManager implements IRoomManager {
   public movePlayerWithDelay(client: ConnectedClient, direction: string): boolean {
     return this.playerMovementService.movePlayerWithDelay(client, direction);
   }
-  
+
   // Entity methods
   public findClientByUsername(username: string): ConnectedClient | undefined {
     return this.entityRegistryService.findClientByUsername(username);
   }
-  
+
   public getNPCFromRoom(roomId: string, npcId: string): NPC | null {
     return this.entityRegistryService.getNPCFromRoom(roomId, npcId);
   }
-  
+
   public removeNPCFromRoom(roomId: string, npcInstanceId: string): boolean {
     return this.entityRegistryService.removeNPCFromRoom(roomId, npcInstanceId);
   }
-  
+
   public storeNPC(npcId: string, npc: NPC): void {
     this.entityRegistryService.storeNPC(npcId, npc);
   }
-  
+
   public lookAtEntity(client: ConnectedClient, entityName: string): boolean {
     return this.entityRegistryService.lookAtEntity(client, entityName);
   }
-  
+
   // UI methods
   public lookRoom(client: ConnectedClient): boolean {
     return this.roomUINotificationService.lookRoom(client);
   }
-  
+
   public briefLookRoom(client: ConnectedClient): boolean {
     return this.roomUINotificationService.briefLookRoom(client);
   }
-  
+
   public notifyPlayersInRoom(roomId: string, message: string, excludeUsername?: string): void {
     this.roomUINotificationService.notifyPlayersInRoom(roomId, message, excludeUsername);
   }
-  
+
   public announcePlayerEntrance(roomId: string, username: string): void {
     this.roomUINotificationService.announcePlayerEntrance(roomId, username);
   }
-  
+
   // Teleportation methods
   public teleportToStartingRoom(client: ConnectedClient): boolean {
     return this.teleportationService.teleportToStartingRoom(client);
   }
-  
+
   public teleportToStartingRoomIfNeeded(client: ConnectedClient): boolean {
     return this.teleportationService.teleportToStartingRoomIfNeeded(client);
   }
-  
+
   public removePlayerFromAllRooms(username: string): void {
     this.teleportationService.removePlayerFromAllRooms(username);
   }
@@ -313,7 +313,7 @@ export class RoomManager implements IRoomManager {
   public getOppositeDirection(direction: string): string {
     return this.directionHelper.getOppositeDirection(direction);
   }
-  
+
   public getFullDirectionName(direction: string): string {
     return this.directionHelper.getFullDirectionName(direction);
   }

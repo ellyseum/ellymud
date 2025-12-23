@@ -16,9 +16,9 @@ export class BreakCommand implements Command {
     private userManager: UserManager
   ) {}
 
-  execute(client: ConnectedClient, args: string): void {
+  execute(client: ConnectedClient, _args: string): void {
     if (!client.user) return;
-    
+
     // Get player-specific logger
     const playerLogger = getPlayerLogger(client.user.username);
 
@@ -31,7 +31,9 @@ export class BreakCommand implements Command {
     const opponents = this.combatSystem.getOpponents(client.user.username);
     if (!opponents || opponents.length === 0) {
       writeToClient(client, colorize('You have no opponents to break away from.\r\n', 'yellow'));
-      playerLogger.info(`Player ${client.user.username} tried to break from combat but had no opponents`);
+      playerLogger.info(
+        `Player ${client.user.username} tried to break from combat but had no opponents`
+      );
       return;
     }
 
@@ -43,10 +45,12 @@ export class BreakCommand implements Command {
         // Fix accessing instanceId which doesn't exist on CombatEntity
         // Use only the name property which is more likely to exist on all CombatEntity instances
         const opponentId = opponent.name;
-        
+
         // Add null check for client.user
         if (client.user) {
-          playerLogger.info(`Player ${client.user.username} successfully broke away from ${opponent.name} (${opponentId})`);
+          playerLogger.info(
+            `Player ${client.user.username} successfully broke away from ${opponent.name} (${opponentId})`
+          );
         } else {
           playerLogger.info(`Player successfully broke away from ${opponent.name} (${opponentId})`);
         }

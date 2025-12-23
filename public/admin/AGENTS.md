@@ -18,6 +18,7 @@ Web-based admin dashboard. Allows administrators to manage users, view sessions,
 ### `dashboard.html` + `dashboard.js`
 
 **Features**:
+
 - Online user list
 - User management (kick, ban)
 - Session monitoring
@@ -25,6 +26,7 @@ Web-based admin dashboard. Allows administrators to manage users, view sessions,
 - Bug report viewing
 
 **API Calls**:
+
 ```javascript
 // Endpoints used
 GET  /api/admin/users        // List users
@@ -49,8 +51,8 @@ Mock API responses for frontend development without running server.
 // All API calls include token
 fetch('/api/admin/users', {
   headers: {
-    'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
-  }
+    Authorization: 'Bearer ' + localStorage.getItem('adminToken'),
+  },
 });
 ```
 

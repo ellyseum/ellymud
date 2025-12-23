@@ -14,6 +14,7 @@ The `ISSUE_TEMPLATE/` directory contains GitHub issue templates that standardize
 **Purpose**: Structured bug report template
 
 **Frontmatter**:
+
 ```yaml
 ---
 name: Bug Report
@@ -25,6 +26,7 @@ assignees: ''
 ```
 
 **Key Sections**:
+
 - Bug description
 - Steps to reproduce
 - Expected vs actual behavior
@@ -36,6 +38,7 @@ assignees: ''
 **Purpose**: Feature proposal template
 
 **Frontmatter**:
+
 ```yaml
 ---
 name: Feature Request
@@ -47,6 +50,7 @@ assignees: ''
 ```
 
 **Key Sections**:
+
 - Feature description
 - Problem statement
 - Proposed and alternative solutions
@@ -58,6 +62,7 @@ assignees: ''
 **Purpose**: Documentation issue reporting
 
 **Frontmatter**:
+
 ```yaml
 ---
 name: Documentation Issue
@@ -69,6 +74,7 @@ assignees: ''
 ```
 
 **Key Sections**:
+
 - Documentation issue description
 - Location (file, section, line)
 - Issue type checklist (incorrect, outdated, missing, unclear, typo, broken link)
@@ -80,6 +86,7 @@ assignees: ''
 **Purpose**: General questions about using or developing EllyMUD
 
 **Frontmatter**:
+
 ```yaml
 ---
 name: Question
@@ -91,6 +98,7 @@ assignees: ''
 ```
 
 **Key Sections**:
+
 - Clear question statement
 - Context
 - What has been tried (docs checked, issues searched)
@@ -122,12 +130,12 @@ Additional context requests...
 
 ### Label Conventions
 
-| Template | Auto-Label |
-|----------|------------|
-| Bug Report | `bug` |
-| Feature Request | `enhancement` |
-| Documentation | `documentation` |
-| Question | `question` |
+| Template        | Auto-Label      |
+| --------------- | --------------- |
+| Bug Report      | `bug`           |
+| Feature Request | `enhancement`   |
+| Documentation   | `documentation` |
+| Question        | `question`      |
 
 ## Common Tasks
 

@@ -10,7 +10,7 @@ export class WaitCommand implements Command {
 
   constructor(private stateMachine: StateMachine) {}
 
-  execute(client: ConnectedClient, args: string): void {
+  execute(client: ConnectedClient, _args: string): void {
     if (!client.user) {
       writeToClient(client, colorize('You must be logged in to use the wait command.\r\n', 'red'));
       return;
@@ -18,13 +18,13 @@ export class WaitCommand implements Command {
 
     // Store current state to return to
     client.stateData.previousState = client.state;
-    
+
     // Store the clients map in the client's stateData so waiting state can access it
     client.stateData.clientsMap = this.stateMachine.getClients();
-    
+
     // Notify player that they are entering the waiting state
     writeToClient(client, colorize('Entering waiting state...\r\n', 'green'));
-    
+
     // Set the transition flag
     client.stateData.transitionTo = ClientStateType.WAITING;
 

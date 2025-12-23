@@ -55,13 +55,13 @@ Most types are in `src/types.ts`:
 
 ```typescript
 // Key types defined there:
-export interface ConnectedClient { }
-export interface User { }
-export interface Room { }
-export interface Item { }
-export interface Exit { }
-export enum ClientStateType { }
-export interface ClientState { }
+export interface ConnectedClient {}
+export interface User {}
+export interface Room {}
+export interface Item {}
+export interface Exit {}
+export enum ClientStateType {}
+export interface ClientState {}
 ```
 
 ## Related Context

@@ -2,7 +2,7 @@ import { ConnectedClient } from '../../types';
 import { Command } from '../command.interface';
 import { RoomManager } from '../../room/roomManager';
 import { colorize } from '../../utils/colors';
-import { writeToClient, writeMessageToClient, writeFormattedMessageToClient } from '../../utils/socketWriter';
+import { writeToClient, writeFormattedMessageToClient } from '../../utils/socketWriter';
 import { formatUsername } from '../../utils/formatters';
 import { getPlayerLogger } from '../../utils/logger';
 
@@ -24,16 +24,16 @@ export class LookCommand implements Command {
     const playerLogger = getPlayerLogger(client.user.username);
     const roomId = client.user.currentRoomId || this.roomManager.getStartingRoomId();
     const room = this.roomManager.getRoom(roomId);
-    const roomName = room ? room.name : "unknown location";
+    const roomName = room ? room.name : 'unknown location';
 
     // If no arguments, look at the current room
     if (!args.trim()) {
       // Log that player is looking around the room
       playerLogger.info(`Looked around in room ${roomId} (${roomName})`);
-      
+
       // Look at the current room
       this.roomManager.lookRoom(client);
-      
+
       // Notify other players in the room that this player is looking around
       this.notifyLookingAround(client);
       return;
@@ -65,9 +65,26 @@ export class LookCommand implements Command {
 
   private parseDirection(input: string): string | null {
     const directions = [
-      'north', 'south', 'east', 'west', 'up', 'down',
-      'northeast', 'northwest', 'southeast', 'southwest',
-      'n', 's', 'e', 'w', 'u', 'd', 'ne', 'nw', 'se', 'sw'
+      'north',
+      'south',
+      'east',
+      'west',
+      'up',
+      'down',
+      'northeast',
+      'northwest',
+      'southeast',
+      'southwest',
+      'n',
+      's',
+      'e',
+      'w',
+      'u',
+      'd',
+      'ne',
+      'nw',
+      'se',
+      'sw',
     ];
 
     if (directions.includes(input)) {
@@ -92,7 +109,10 @@ export class LookCommand implements Command {
     // Check if exit exists
     const nextRoomId = room.getExit(direction);
     if (!nextRoomId) {
-      writeToClient(client, colorize(`You don't see anything special in that direction.\r\n`, 'yellow'));
+      writeToClient(
+        client,
+        colorize(`You don't see anything special in that direction.\r\n`, 'yellow')
+      );
       return;
     }
 
@@ -110,13 +130,17 @@ export class LookCommand implements Command {
 
     // Get the opposite direction for the proper "looking from" message
     const oppositeDirection = this.getOppositeDirection(direction);
-    
+
     // Notify other players in the current room that this player is looking in a direction
     this.notifyPlayersInCurrentRoom(roomId, client.user.username, fullDirectionName);
-    
+
     // Notify players in the target room that someone is peeking in
-    this.notifyPlayersInTargetRoom(nextRoomId, client.user.username, this.getFullDirectionName(oppositeDirection));
-    
+    this.notifyPlayersInTargetRoom(
+      nextRoomId,
+      client.user.username,
+      this.getFullDirectionName(oppositeDirection)
+    );
+
     // Show a version of the room description specifically for peeking
     writeToClient(client, nextRoom.getDescriptionForPeeking(oppositeDirection));
   }
@@ -127,11 +151,11 @@ export class LookCommand implements Command {
   private notifyPlayersInCurrentRoom(roomId: string, username: string, direction: string): void {
     const room = this.roomManager.getRoom(roomId);
     if (!room) return;
-    
+
     for (const playerName of room.players) {
       // Skip the player who is looking
       if (playerName.toLowerCase() === username.toLowerCase()) continue;
-      
+
       const playerClient = this.findClientByUsername(playerName);
       if (playerClient) {
         writeFormattedMessageToClient(
@@ -148,13 +172,16 @@ export class LookCommand implements Command {
   private notifyPlayersInTargetRoom(roomId: string, username: string, fromDirection: string): void {
     const room = this.roomManager.getRoom(roomId);
     if (!room) return;
-    
+
     for (const playerName of room.players) {
       const playerClient = this.findClientByUsername(playerName);
       if (playerClient) {
         writeFormattedMessageToClient(
           playerClient,
-          colorize(`${formatUsername(username)} peeks into the room from the ${fromDirection}.\r\n`, 'cyan')
+          colorize(
+            `${formatUsername(username)} peeks into the room from the ${fromDirection}.\r\n`,
+            'cyan'
+          )
         );
       }
     }
@@ -165,15 +192,15 @@ export class LookCommand implements Command {
    */
   private notifyLookingAround(client: ConnectedClient): void {
     if (!client.user) return;
-    
+
     const roomId = client.user.currentRoomId || this.roomManager.getStartingRoomId();
     const room = this.roomManager.getRoom(roomId);
     if (!room) return;
-    
+
     for (const playerName of room.players) {
       // Skip the player who is looking
       if (playerName.toLowerCase() === client.user.username.toLowerCase()) continue;
-      
+
       const playerClient = this.findClientByUsername(playerName);
       if (playerClient) {
         writeFormattedMessageToClient(
@@ -188,7 +215,7 @@ export class LookCommand implements Command {
    * Find a client by username
    */
   private findClientByUsername(username: string): ConnectedClient | undefined {
-    for (const [_, client] of this.clients.entries()) {
+    for (const client of this.clients.values()) {
       if (client.user && client.user.username.toLowerCase() === username.toLowerCase()) {
         return client;
       }
@@ -201,28 +228,49 @@ export class LookCommand implements Command {
    */
   private getOppositeDirection(direction: string): string {
     switch (direction.toLowerCase()) {
-      case 'north': return 'south';
-      case 'south': return 'north';
-      case 'east': return 'west';
-      case 'west': return 'east';
-      case 'up': return 'below';
-      case 'down': return 'above';
-      case 'northeast': return 'southwest';
-      case 'northwest': return 'southeast';
-      case 'southeast': return 'northwest';
-      case 'southwest': return 'northeast';
+      case 'north':
+        return 'south';
+      case 'south':
+        return 'north';
+      case 'east':
+        return 'west';
+      case 'west':
+        return 'east';
+      case 'up':
+        return 'below';
+      case 'down':
+        return 'above';
+      case 'northeast':
+        return 'southwest';
+      case 'northwest':
+        return 'southeast';
+      case 'southeast':
+        return 'northwest';
+      case 'southwest':
+        return 'northeast';
       // Handle abbreviations too
-      case 'n': return 'south';
-      case 's': return 'north';
-      case 'e': return 'west';
-      case 'w': return 'east';
-      case 'ne': return 'southwest';
-      case 'nw': return 'southeast';
-      case 'se': return 'northwest';
-      case 'sw': return 'northeast';
-      case 'u': return 'below';
-      case 'd': return 'above';
-      default: return 'somewhere';
+      case 'n':
+        return 'south';
+      case 's':
+        return 'north';
+      case 'e':
+        return 'west';
+      case 'w':
+        return 'east';
+      case 'ne':
+        return 'southwest';
+      case 'nw':
+        return 'southeast';
+      case 'se':
+        return 'northwest';
+      case 'sw':
+        return 'northeast';
+      case 'u':
+        return 'below';
+      case 'd':
+        return 'above';
+      default:
+        return 'somewhere';
     }
   }
 
@@ -231,17 +279,28 @@ export class LookCommand implements Command {
    */
   private getFullDirectionName(direction: string): string {
     switch (direction.toLowerCase()) {
-      case 'n': return 'north';
-      case 's': return 'south';
-      case 'e': return 'east';
-      case 'w': return 'west';
-      case 'ne': return 'northeast';
-      case 'nw': return 'northwest';
-      case 'se': return 'southeast';
-      case 'sw': return 'southwest';
-      case 'u': return 'up';
-      case 'd': return 'down';
-      default: return direction.toLowerCase(); // Return the original if it's already a full name
+      case 'n':
+        return 'north';
+      case 's':
+        return 'south';
+      case 'e':
+        return 'east';
+      case 'w':
+        return 'west';
+      case 'ne':
+        return 'northeast';
+      case 'nw':
+        return 'northwest';
+      case 'se':
+        return 'southeast';
+      case 'sw':
+        return 'southwest';
+      case 'u':
+        return 'up';
+      case 'd':
+        return 'down';
+      default:
+        return direction.toLowerCase(); // Return the original if it's already a full name
     }
   }
 }

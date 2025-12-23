@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Core types use any for flexible state data handling
 import { IConnection } from './connection/interfaces/connection.interface';
 
 // Define state enum
@@ -7,9 +9,9 @@ export enum ClientStateType {
   SIGNUP = 'signup',
   CONFIRMATION = 'confirmation',
   AUTHENTICATED = 'authenticated',
-  TRANSFER_REQUEST = 'transfer_request',  // New state for handling session transfers
-  SNAKE_GAME = 'snake_game',  // New state for playing Snake game
-  WAITING = 'waiting'  // New state for debugging state transitions
+  TRANSFER_REQUEST = 'transfer_request', // New state for handling session transfers
+  SNAKE_GAME = 'snake_game', // New state for playing Snake game
+  WAITING = 'waiting', // New state for debugging state transitions
 }
 
 // Define equipment slots
@@ -25,7 +27,7 @@ export enum EquipmentSlot {
   LEGS = 'legs',
   FEET = 'feet',
   MAIN_HAND = 'mainHand',
-  OFF_HAND = 'offHand'
+  OFF_HAND = 'offHand',
 }
 
 // Define Item interface
@@ -103,28 +105,32 @@ export interface ItemTemplate {
 
 // Define ItemInstance interface (for specific item instances)
 export interface ItemInstance {
-  instanceId: string;      // Unique instance ID
-  templateId: string;      // Reference to the item template
-  created: Date;           // When this item was created
-  createdBy: string;       // Who/what created this item (player, spawn, quest, etc)
-  properties?: {           // Instance-specific properties
-    customName?: string;   // Custom name given to this item instance
-    durability?: {         // Durability system
-      current: number;     // Current durability
-      max: number;         // Maximum durability
+  instanceId: string; // Unique instance ID
+  templateId: string; // Reference to the item template
+  created: Date; // When this item was created
+  createdBy: string; // Who/what created this item (player, spawn, quest, etc)
+  properties?: {
+    // Instance-specific properties
+    customName?: string; // Custom name given to this item instance
+    durability?: {
+      // Durability system
+      current: number; // Current durability
+      max: number; // Maximum durability
     };
     quality?: 'poor' | 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'; // Item quality
-    soulbound?: boolean;   // Whether item is bound to a specific player
-    boundTo?: string;      // Username item is bound to (if soulbound)
-    charges?: number;      // For items with limited uses
-    enchantments?: {       // Additional enchantments
+    soulbound?: boolean; // Whether item is bound to a specific player
+    boundTo?: string; // Username item is bound to (if soulbound)
+    charges?: number; // For items with limited uses
+    enchantments?: {
+      // Additional enchantments
       name: string;
       effect: string;
       bonuses?: { [stat: string]: number };
     }[];
-    [key: string]: any;    // Allow for other custom properties
+    [key: string]: any; // Allow for other custom properties
   };
-  history?: {              // Optional: track item history
+  history?: {
+    // Optional: track item history
     timestamp: Date;
     event: string;
     details?: string;
@@ -176,7 +182,7 @@ export interface User {
   movementRestricted?: boolean; // Flag to restrict player movement
   movementRestrictedReason?: string; // Custom reason why movement is restricted
   flags?: string[]; // Array to store player flags for permissions, quests, etc.
-  pendingAdminMessages?: Array<{message: string, timestamp: string}>; // Store admin messages for offline users
+  pendingAdminMessages?: Array<{ message: string; timestamp: string }>; // Store admin messages for offline users
 
   // Add missing optional properties used in UserAdminMenu
   email?: string;
@@ -236,7 +242,7 @@ export interface ServerStats {
     heapTotal: number;
     heapUsed: number;
     external: number;
-  }
+  };
 }
 
 export interface Room {
@@ -262,4 +268,16 @@ export interface SnakeScoreEntry {
 
 export interface SnakeScores {
   scores: SnakeScoreEntry[];
+}
+
+// MUD configuration loaded from mud-config.json
+export interface MUDConfig {
+  game: {
+    idleTimeout: number;
+  };
+}
+
+// Global type extension for test flags
+export interface GlobalWithSkipMCP {
+  __SKIP_MCP_SERVER?: boolean;
 }

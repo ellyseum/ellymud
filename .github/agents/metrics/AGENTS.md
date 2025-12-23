@@ -36,21 +36,22 @@ metrics/
 {agent-prefix}_YYYY-MM-DD_{task-slug}-stats.md
 ```
 
-| Agent | Prefix | Example |
-|-------|--------|---------|
-| Problem Solver | `pipeline` | `pipeline_2025-12-23_wave-command-stats.md` |
-| Research | `research` | `research_2025-12-23_wave-command-stats.md` |
-| Planning | `plan` | `plan_2025-12-23_wave-command-stats.md` |
-| Implementation | `impl` | `impl_2025-12-23_wave-command-stats.md` |
-| Validation | `validation` | `validation_2025-12-23_wave-command-stats.md` |
-| Output Review | `review` | `review_2025-12-23_wave-command-stats.md` |
-| Post-Mortem | `postmortem` | `postmortem_2025-12-23_wave-command-stats.md` |
-| Documentation | `docs` | `docs_2025-12-23_wave-command-stats.md` |
-| Rollback | `rollback` | `rollback_2025-12-23_wave-command-stats.md` |
+| Agent          | Prefix       | Example                                       |
+| -------------- | ------------ | --------------------------------------------- |
+| Problem Solver | `pipeline`   | `pipeline_2025-12-23_wave-command-stats.md`   |
+| Research       | `research`   | `research_2025-12-23_wave-command-stats.md`   |
+| Planning       | `plan`       | `plan_2025-12-23_wave-command-stats.md`       |
+| Implementation | `impl`       | `impl_2025-12-23_wave-command-stats.md`       |
+| Validation     | `validation` | `validation_2025-12-23_wave-command-stats.md` |
+| Output Review  | `review`     | `review_2025-12-23_wave-command-stats.md`     |
+| Post-Mortem    | `postmortem` | `postmortem_2025-12-23_wave-command-stats.md` |
+| Documentation  | `docs`       | `docs_2025-12-23_wave-command-stats.md`       |
+| Rollback       | `rollback`   | `rollback_2025-12-23_wave-command-stats.md`   |
 
 ### Stats File Contents
 
 Each stats file contains:
+
 - **Timing**: Start/end times, duration, status
 - **Token Usage**: Estimated input/output/total tokens
 - **Tool Calls**: Breakdown by tool type
@@ -78,60 +79,60 @@ See `pipeline-metrics-schema.json` for the full JSON schema.
 
 ### Core Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `pipelineId` | string | Unique ID (e.g., `pipe-2025-12-21-001`) |
-| `task` | string | Task description |
-| `date` | datetime | ISO 8601 timestamp |
-| `complexity` | enum | Trivial, Low, Medium, High, Critical |
-| `mode` | enum | Instant, Fast-Track, Standard, Full |
-| `stages` | object | Per-stage metrics (duration, grade, retries) |
-| `outcome` | enum | success, failure, escalated, rolled-back, abandoned |
-| `tokensEstimate` | integer | Estimated total tokens used |
+| Field            | Type     | Description                                         |
+| ---------------- | -------- | --------------------------------------------------- |
+| `pipelineId`     | string   | Unique ID (e.g., `pipe-2025-12-21-001`)             |
+| `task`           | string   | Task description                                    |
+| `date`           | datetime | ISO 8601 timestamp                                  |
+| `complexity`     | enum     | Trivial, Low, Medium, High, Critical                |
+| `mode`           | enum     | Instant, Fast-Track, Standard, Full                 |
+| `stages`         | object   | Per-stage metrics (duration, grade, retries)        |
+| `outcome`        | enum     | success, failure, escalated, rolled-back, abandoned |
+| `tokensEstimate` | integer  | Estimated total tokens used                         |
 
 ### Stats File References
 
-| Field | Description |
-|-------|-------------|
-| `statsFiles.research` | Path to research agent stats file |
-| `statsFiles.planning` | Path to planning agent stats file |
+| Field                       | Description                             |
+| --------------------------- | --------------------------------------- |
+| `statsFiles.research`       | Path to research agent stats file       |
+| `statsFiles.planning`       | Path to planning agent stats file       |
 | `statsFiles.implementation` | Path to implementation agent stats file |
-| `statsFiles.validation` | Path to validation agent stats file |
-| `statsFiles.*` | Other stage stats files |
+| `statsFiles.validation`     | Path to validation agent stats file     |
+| `statsFiles.*`              | Other stage stats files                 |
 
 ### Output File References
 
-| Field | Description |
-|-------|-------------|
-| `outputs.{stage}.original` | Original agent output file |
-| `outputs.{stage}.reviewed` | Reviewed version (*-reviewed.md) |
-| `outputs.{stage}.gradeReport` | Grade report (*-grade.md) |
-| `outputs.{stage}.summary` | Summary file (*-summary.md) |
-| `outputs.{stage}.changeSuggestions` | Improvement suggestions |
+| Field                               | Description                       |
+| ----------------------------------- | --------------------------------- |
+| `outputs.{stage}.original`          | Original agent output file        |
+| `outputs.{stage}.reviewed`          | Reviewed version (\*-reviewed.md) |
+| `outputs.{stage}.gradeReport`       | Grade report (\*-grade.md)        |
+| `outputs.{stage}.summary`           | Summary file (\*-summary.md)      |
+| `outputs.{stage}.changeSuggestions` | Improvement suggestions           |
 
 ### Aggregated Metrics (from stats files)
 
-| Field | Description |
-|-------|-------------|
-| `aggregatedFromStats.totalToolCalls` | Sum of all tool calls |
-| `aggregatedFromStats.filesProcessed` | Read/created/modified/deleted counts |
-| `aggregatedFromStats.tokenBreakdown` | Tokens per stage |
-| `aggregatedFromStats.qualityScores` | Citations, tasks, tests, build status |
+| Field                                | Description                           |
+| ------------------------------------ | ------------------------------------- |
+| `aggregatedFromStats.totalToolCalls` | Sum of all tool calls                 |
+| `aggregatedFromStats.filesProcessed` | Read/created/modified/deleted counts  |
+| `aggregatedFromStats.tokenBreakdown` | Tokens per stage                      |
+| `aggregatedFromStats.qualityScores`  | Citations, tasks, tests, build status |
 
 ### Stage Metrics
 
 Each stage in `stages` contains:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `duration` | integer | Minutes (from stats file) |
-| `grade` | string | Letter grade (A-F with +/-) |
-| `score` | integer | Numeric score (0-100) |
-| `verdict` | enum | PASS/FAIL/SKIP |
-| `retries` | integer | Retry attempts |
-| `skipped` | boolean | Whether stage was skipped |
-| `tokensUsed` | integer | From stats file |
-| `statsFile` | string | Path to stage stats file |
+| Field        | Type    | Description                 |
+| ------------ | ------- | --------------------------- |
+| `duration`   | integer | Minutes (from stats file)   |
+| `grade`      | string  | Letter grade (A-F with +/-) |
+| `score`      | integer | Numeric score (0-100)       |
+| `verdict`    | enum    | PASS/FAIL/SKIP              |
+| `retries`    | integer | Retry attempts              |
+| `skipped`    | boolean | Whether stage was skipped   |
+| `tokensUsed` | integer | From stats file             |
+| `statsFile`  | string  | Path to stage stats file    |
 
 ## Related Files
 
