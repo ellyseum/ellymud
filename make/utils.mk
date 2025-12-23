@@ -6,6 +6,7 @@
 .PHONY: clean clean-dist clean-logs clean-all
 .PHONY: logs logs-follow logs-error logs-error-follow logs-mcp logs-mcp-follow
 .PHONY: backup-data reset-data
+.PHONY: pipeline-report
 
 #-----------------------------------------------------------------------------
 # Cleaning
@@ -75,3 +76,10 @@ reset-data: ## Reset data to defaults (DESTRUCTIVE)
 	@rm -rf $(DATA_DIR)/*.json
 	@$(MAKE) init-data
 	@printf "$(GREEN)Data reset complete$(NC)\n"
+
+#-----------------------------------------------------------------------------
+# Pipeline Metrics
+#-----------------------------------------------------------------------------
+
+pipeline-report: ## Generate agent pipeline metrics report
+	@./scripts/generate-pipeline-report.sh

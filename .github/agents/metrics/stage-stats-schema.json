@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Stage Stats",
+  "description": "Schema for individual agent stage statistics files (*-stats.md)",
+  "type": "object",
+  "required": ["stage", "task", "startTime", "endTime", "status"],
+  "properties": {
+    "stage": {
+      "type": "string",
+      "enum": ["research", "planning", "implementation", "validation", "review"],
+      "description": "Which pipeline stage this stats file is for"
+    },
+    "task": {
+      "type": "string",
+      "description": "Brief description of the task"
+    },
+    "startTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when agent started"
+    },
+    "endTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when agent finished"
+    },
+    "durationMinutes": {
+      "type": "number",
+      "description": "Total duration in minutes (calculated from start/end)",
+      "minimum": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "failed", "blocked", "escalated"],
+      "description": "Final status of this stage"
+    },
+    "tokens": {
+      "type": "object",
+      "description": "Token usage estimates",
+      "properties": {
+        "input": {
+          "type": "integer",
+          "description": "Estimated input tokens consumed",
+          "minimum": 0
+        },
+        "output": {
+          "type": "integer",
+          "description": "Estimated output tokens generated",
+          "minimum": 0
+        },
+        "total": {
+          "type": "integer",
+          "description": "Total tokens (input + output)",
+          "minimum": 0
+        }
+      }
+    },
+    "toolCalls": {
+      "type": "object",
+      "description": "Tool usage breakdown",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "description": "Total number of tool calls made",
+          "minimum": 0
+        },
+        "breakdown": {
+          "type": "object",
+          "description": "Count per tool type",
+          "additionalProperties": { "type": "integer" }
+        }
+      }
+    },
+    "filesProcessed": {
+      "type": "object",
+      "description": "File operations performed",
+      "properties": {
+        "read": {
+          "type": "integer",
+          "description": "Files read",
+          "minimum": 0
+        },
+        "created": {
+          "type": "integer",
+          "description": "Files created",
+          "minimum": 0
+        },
+        "modified": {
+          "type": "integer",
+          "description": "Files modified",
+          "minimum": 0
+        },
+        "deleted": {
+          "type": "integer",
+          "description": "Files deleted",
+          "minimum": 0
+        }
+      }
+    },
+    "outputFile": {
+      "type": "string",
+      "description": "Path to the main output file (research doc, plan, impl report, etc.)"
+    },
+    "outputLines": {
+      "type": "integer",
+      "description": "Line count of the output document",
+      "minimum": 0
+    },
+    "reviewedFile": {
+      "type": "string",
+      "description": "Path to the reviewed version (*-reviewed.md) if this stage's output was reviewed"
+    },
+    "gradeReport": {
+      "type": "string",
+      "description": "Path to the grade report (*-grade.md) from Output Review Agent"
+    },
+    "grade": {
+      "type": "string",
+      "description": "Letter grade received (extracted from grade report)",
+      "pattern": "^[A-F][+-]?$"
+    },
+    "score": {
+      "type": "integer",
+      "description": "Numeric score (0-100) from grade report",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL"],
+      "description": "Pass/Fail verdict (PASS >= 80)"
+    },
+    "suggestionFile": {
+      "type": "string",
+      "description": "Path to improvement suggestions file if generated"
+    },
+    "summaryFile": {
+      "type": "string",
+      "description": "Path to summary file if generated"
+    },
+    "retries": {
+      "type": "integer",
+      "description": "Number of retry attempts needed",
+      "minimum": 0,
+      "default": 0
+    },
+    "blockers": {
+      "type": "array",
+      "description": "Issues that blocked or slowed progress",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": { "type": "string" },
+          "resolution": { "type": "string" },
+          "timeImpactMinutes": { "type": "number" }
+        }
+      }
+    },
+    "qualityIndicators": {
+      "type": "object",
+      "description": "Stage-specific quality metrics",
+      "properties": {
+        "citationCount": {
+          "type": "integer",
+          "description": "Number of file:line citations (research/planning)"
+        },
+        "taskCount": {
+          "type": "integer",
+          "description": "Number of tasks defined (planning)"
+        },
+        "testsRun": {
+          "type": "integer",
+          "description": "Number of tests executed (implementation/validation)"
+        },
+        "testsPassed": {
+          "type": "integer",
+          "description": "Number of tests passed"
+        },
+        "buildSuccess": {
+          "type": "boolean",
+          "description": "Whether build succeeded (implementation/validation)"
+        },
+        "functionalTestsRun": {
+          "type": "integer",
+          "description": "Number of functional tests (validation)"
+        }
+      }
+    },
+    "handoff": {
+      "type": "object",
+      "description": "Information about handoff to next stage",
+      "properties": {
+        "nextStage": {
+          "type": "string",
+          "description": "Which stage receives this output"
+        },
+        "ready": {
+          "type": "boolean",
+          "description": "Whether output is ready for next stage"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notes for the next agent"
+        }
+      }
+    },
+    "model": {
+      "type": "string",
+      "description": "LLM model used for this stage",
+      "examples": ["claude-4.5-opus", "gemini-2.5-pro"]
+    },
+    "agentVersion": {
+      "type": "string",
+      "description": "Version of the agent that ran",
+      "examples": ["1.0.0", "1.1.0"]
+    }
+  }
+}

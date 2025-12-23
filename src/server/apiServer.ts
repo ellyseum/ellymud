@@ -49,9 +49,11 @@ export class APIServer {
     this.httpServer = http.createServer(this.app);
 
     // Add error handler
-    this.httpServer.on('error', (err: Error & {code?: string}) => {
+    this.httpServer.on('error', (err: Error & { code?: string }) => {
       if (err.code === 'EADDRINUSE') {
-        systemLogger.error(`Port ${config.HTTP_PORT} is already in use. Is another instance running?`);
+        systemLogger.error(
+          `Port ${config.HTTP_PORT} is already in use. Is another instance running?`
+        );
         systemLogger.info(`Trying alternative port ${config.HTTP_PORT + 1}...`);
         this.actualPort = config.HTTP_PORT + 1;
         this.httpServer.listen(this.actualPort);
@@ -64,26 +66,81 @@ export class APIServer {
   private setupApiRoutes(): void {
     // Admin API routes
     this.app.post('/api/admin/login', AdminApi.login);
-    this.app.get('/api/admin/stats', AdminApi.validateToken, AdminApi.getServerStats(this.serverStats));
-    this.app.get('/api/admin/players', AdminApi.validateToken, AdminApi.getConnectedPlayers(this.clients, this.userManager));
-    this.app.post('/api/admin/players/:clientId/kick', AdminApi.validateToken, AdminApi.kickPlayer(this.clients));
-    this.app.post('/api/admin/players/:clientId/monitor', AdminApi.validateToken, AdminApi.monitorPlayer(this.clients));
+    this.app.get(
+      '/api/admin/stats',
+      AdminApi.validateToken,
+      AdminApi.getServerStats(this.serverStats)
+    );
+    this.app.get(
+      '/api/admin/players',
+      AdminApi.validateToken,
+      AdminApi.getConnectedPlayers(this.clients, this.userManager)
+    );
+    this.app.post(
+      '/api/admin/players/:clientId/kick',
+      AdminApi.validateToken,
+      AdminApi.kickPlayer(this.clients)
+    );
+    this.app.post(
+      '/api/admin/players/:clientId/monitor',
+      AdminApi.validateToken,
+      AdminApi.monitorPlayer(this.clients)
+    );
 
     // Player management endpoints
-    this.app.get('/api/admin/players/all', AdminApi.validateToken, AdminApi.getAllPlayers(this.userManager));
-    this.app.get('/api/admin/players/details/:username', AdminApi.validateToken, AdminApi.getPlayerDetailsById(this.userManager));
-    this.app.post('/api/admin/players/update/:username', AdminApi.validateToken, AdminApi.updatePlayer(this.userManager, this.roomManager));
-    this.app.post('/api/admin/players/reset-password/:username', AdminApi.validateToken, AdminApi.resetPlayerPassword(this.userManager));
-    this.app.delete('/api/admin/players/delete/:username', AdminApi.validateToken, AdminApi.deletePlayer(this.userManager, this.roomManager, this.clients));
+    this.app.get(
+      '/api/admin/players/all',
+      AdminApi.validateToken,
+      AdminApi.getAllPlayers(this.userManager)
+    );
+    this.app.get(
+      '/api/admin/players/details/:username',
+      AdminApi.validateToken,
+      AdminApi.getPlayerDetailsById(this.userManager)
+    );
+    this.app.post(
+      '/api/admin/players/update/:username',
+      AdminApi.validateToken,
+      AdminApi.updatePlayer(this.userManager, this.roomManager)
+    );
+    this.app.post(
+      '/api/admin/players/reset-password/:username',
+      AdminApi.validateToken,
+      AdminApi.resetPlayerPassword(this.userManager)
+    );
+    this.app.delete(
+      '/api/admin/players/delete/:username',
+      AdminApi.validateToken,
+      AdminApi.deletePlayer(this.userManager, this.roomManager, this.clients)
+    );
 
     // Game timer system endpoints
-    this.app.get('/api/admin/gametimer-config', AdminApi.validateToken, AdminApi.getGameTimerConfig(this.gameTimerManager));
-    this.app.post('/api/admin/gametimer-config', AdminApi.validateToken, AdminApi.updateGameTimerConfig(this.gameTimerManager));
-    this.app.post('/api/admin/force-save', AdminApi.validateToken, AdminApi.forceSave(this.gameTimerManager));
+    this.app.get(
+      '/api/admin/gametimer-config',
+      AdminApi.validateToken,
+      AdminApi.getGameTimerConfig(this.gameTimerManager)
+    );
+    this.app.post(
+      '/api/admin/gametimer-config',
+      AdminApi.validateToken,
+      AdminApi.updateGameTimerConfig(this.gameTimerManager)
+    );
+    this.app.post(
+      '/api/admin/force-save',
+      AdminApi.validateToken,
+      AdminApi.forceSave(this.gameTimerManager)
+    );
 
     // MUD config endpoints
     this.app.get('/api/admin/mud-config', AdminApi.validateToken, AdminApi.getMUDConfig());
     this.app.post('/api/admin/mud-config', AdminApi.validateToken, AdminApi.updateMUDConfig());
+
+    // Pipeline metrics endpoint
+    this.app.get(
+      '/api/admin/pipeline-metrics',
+      AdminApi.validateToken,
+      AdminApi.getPipelineMetrics()
+    );
   }
 
   private setupStaticFiles(): void {

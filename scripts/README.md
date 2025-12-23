@@ -8,6 +8,7 @@ Shell scripts for project setup, maintenance, and automation tasks.
 |------|-------------|
 | `bootstrap.sh` | Fresh system setup - installs dependencies and configures environment |
 | `check-paired-docs.sh` | Validates README.md and AGENTS.md pairs across all directories |
+| `generate-pipeline-report.sh` | Generates markdown report from agent pipeline metrics |
 
 ## Usage
 
@@ -36,6 +37,24 @@ Used by pre-commit hooks to validate staged files:
 ```bash
 ./scripts/check-paired-docs.sh --staged
 ```
+
+### Pipeline Report Generation
+
+Generate a markdown summary of agent pipeline execution metrics:
+
+```bash
+./scripts/generate-pipeline-report.sh
+```
+
+Output: `.github/agents/metrics/pipeline-report.md`
+
+Custom output path:
+
+```bash
+./scripts/generate-pipeline-report.sh ./my-report.md
+```
+
+Requires `jq` for JSON parsing.
 
 ## Related
 

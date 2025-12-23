@@ -101,6 +101,60 @@ Summary:
 - `*/results/` (generated output directories)
 
 **File patterns checked** (to determine if directory has content):
+
+### `generate-pipeline-report.sh`
+
+**Purpose**: Generate a markdown summary report from agent pipeline execution metrics.
+
+**What it does**:
+1. Reads all JSON files from `.github/agents/metrics/executions/`
+2. Aggregates success/failure rates
+3. Calculates stage performance averages
+4. Identifies common issues
+5. Generates formatted markdown report
+
+**Usage**:
+```bash
+# Generate report to default location
+./scripts/generate-pipeline-report.sh
+# Output: .github/agents/metrics/pipeline-report.md
+
+# Custom output path
+./scripts/generate-pipeline-report.sh ./custom-report.md
+```
+
+**Requirements**:
+- `jq` - JSON processor (install: `apt install jq` or `brew install jq`)
+
+**Output sections**:
+- Success Rate summary
+- Stage Performance table (avg duration, grade, failure rate)
+- Common Issues list
+- Recent Executions table
+- Complexity Distribution
+- Mode Distribution
+
+**Report format**:
+```markdown
+# Pipeline Metrics Summary - December 2025
+
+## Success Rate
+✅ 12 APPROVED | ❌ 3 REJECTED | 80% success
+
+## Stage Performance
+| Stage | Avg Duration | Avg Grade | Failure Rate |
+|-------|-------------|-----------|--------------|
+| Research | 3.2 min | A- (89) | 5% |
+...
+```
+
+**Exit codes**:
+- `0`: Success (report generated or no data)
+- `1`: Missing jq dependency
+
+---
+
+**File patterns checked** (to determine if directory has content):
 - `*.ts`, `*.js`, `*.json`, `*.sh`
 - `*.html`, `*.css`, `*.md`
 - `*.yml`, `*.yaml`

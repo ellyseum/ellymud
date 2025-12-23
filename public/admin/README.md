@@ -22,6 +22,7 @@ The admin dashboard provides:
 - **Server Statistics**: Monitor server health and performance
 - **Configuration**: Adjust game settings in real-time
 - **Log Access**: View system and player logs
+- **Pipeline Metrics**: View agent pipeline execution statistics and history
 
 ## Authentication
 
@@ -47,6 +48,7 @@ Key endpoints used:
 - `GET /api/admin/sessions` - Active sessions
 - `GET /api/admin/stats` - Server statistics
 - `POST /api/admin/config` - Update configuration
+- `GET /api/admin/pipeline-metrics` - Pipeline execution metrics
 
 ## Related
 

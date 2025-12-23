@@ -187,8 +187,202 @@ Stage output: .github/agents/research/research_feature-reviewed.md
 Grade report: .github/agents/research/research_feature-grade.md
 ```
 
-#### At Pipeline End
-Create metrics file at `.github/agents/metrics/executions/pipeline_YYYY-MM-DD_task-slug.json`
+#### At Pipeline End - Create Metrics File
+
+**CRITICAL**: You MUST create a metrics JSON file at the end of every pipeline execution.
+
+**File path**: `.github/agents/metrics/executions/pipeline_YYYY-MM-DD_task-slug.json`
+
+##### Step 1: Aggregate Stats from Individual Agent Files
+
+Before creating the metrics file, read all stats files from `.github/agents/metrics/stats/` for this pipeline:
+
+```bash
+# Stats files to look for (replace YYYY-MM-DD and task-slug):
+.github/agents/metrics/stats/research_YYYY-MM-DD_task-slug-stats.md
+.github/agents/metrics/stats/plan_YYYY-MM-DD_task-slug-stats.md
+.github/agents/metrics/stats/impl_YYYY-MM-DD_task-slug-stats.md
+.github/agents/metrics/stats/validation_YYYY-MM-DD_task-slug-stats.md
+.github/agents/metrics/stats/review_YYYY-MM-DD_task-slug-stats.md
+.github/agents/metrics/stats/postmortem_YYYY-MM-DD_task-slug-stats.md
+.github/agents/metrics/stats/docs_YYYY-MM-DD_task-slug-stats.md
+```
+
+From each stats file, extract:
+- **Duration**: From "Timing" table
+- **Tokens**: From "Token Usage" table
+- **Tool calls**: From "Tool Calls" table
+- **Quality indicators**: Stage-specific metrics
+
+##### Step 2: Create Metrics JSON
+
+**Use `create_file` tool with this structure** (fill in actual values):
+
+```json
+{
+  "pipelineId": "pipe-YYYY-MM-DD-NNN",
+  "task": "[Original task description from user]",
+  "date": "[ISO 8601 timestamp - e.g., 2025-12-23T10:30:00Z]",
+  "endDate": "[ISO 8601 timestamp when pipeline completed]",
+  "branch": "[Feature branch name - e.g., feature/add-dance-command]",
+  "complexity": "[Trivial|Low|Medium|High|Critical]",
+  "mode": "[Instant|Fast-Track|Standard|Full]",
+  "stages": {
+    "research": {
+      "duration": 0,
+      "grade": "[A+|A|A-|B+|B|B-|C+|C|C-|D|F or N/A if skipped]",
+      "score": 0,
+      "verdict": "[PASS|FAIL|SKIP]",
+      "retries": 0,
+      "skipped": false,
+      "tokensUsed": 0,
+      "statsFile": ".github/agents/metrics/stats/research_YYYY-MM-DD_task-slug-stats.md"
+    },
+    "planning": {
+      "duration": 0,
+      "grade": "[grade]",
+      "score": 0,
+      "verdict": "[PASS|FAIL|SKIP]",
+      "retries": 0,
+      "skipped": false,
+      "tokensUsed": 0,
+      "statsFile": ".github/agents/metrics/stats/plan_YYYY-MM-DD_task-slug-stats.md"
+    },
+    "implementation": {
+      "duration": 0,
+      "grade": "[grade]",
+      "score": 0,
+      "verdict": "[PASS|FAIL|SKIP]",
+      "retries": 0,
+      "skipped": false,
+      "tokensUsed": 0,
+      "statsFile": ".github/agents/metrics/stats/impl_YYYY-MM-DD_task-slug-stats.md"
+    },
+    "validation": {
+      "duration": 0,
+      "grade": "[grade]",
+      "score": 0,
+      "verdict": "[APPROVED|REJECTED]",
+      "retries": 0,
+      "skipped": false,
+      "tokensUsed": 0,
+      "statsFile": ".github/agents/metrics/stats/validation_YYYY-MM-DD_task-slug-stats.md"
+    },
+    "postMortem": {
+      "duration": 0,
+      "skipped": false,
+      "tokensUsed": 0,
+      "statsFile": ".github/agents/metrics/stats/postmortem_YYYY-MM-DD_task-slug-stats.md"
+    },
+    "documentation": {
+      "duration": 0,
+      "skipped": false,
+      "tokensUsed": 0,
+      "statsFile": ".github/agents/metrics/stats/docs_YYYY-MM-DD_task-slug-stats.md"
+    }
+  },
+  "statsFiles": {
+    "pipeline": ".github/agents/metrics/stats/pipeline_YYYY-MM-DD_task-slug-stats.md",
+    "research": ".github/agents/metrics/stats/research_YYYY-MM-DD_task-slug-stats.md",
+    "planning": ".github/agents/metrics/stats/plan_YYYY-MM-DD_task-slug-stats.md",
+    "implementation": ".github/agents/metrics/stats/impl_YYYY-MM-DD_task-slug-stats.md",
+    "validation": ".github/agents/metrics/stats/validation_YYYY-MM-DD_task-slug-stats.md",
+    "review": ".github/agents/metrics/stats/review_YYYY-MM-DD_task-slug-stats.md",
+    "postMortem": ".github/agents/metrics/stats/postmortem_YYYY-MM-DD_task-slug-stats.md",
+    "documentation": ".github/agents/metrics/stats/docs_YYYY-MM-DD_task-slug-stats.md"
+  },
+  "outputs": {
+    "research": {
+      "original": ".github/agents/research/research_SLUG_TIMESTAMP.md",
+      "reviewed": ".github/agents/research/research_SLUG_TIMESTAMP-reviewed.md",
+      "gradeReport": ".github/agents/research/research_SLUG_TIMESTAMP-grade.md",
+      "summary": null,
+      "changeSuggestions": null
+    },
+    "planning": {
+      "original": ".github/agents/planning/plan_SLUG_TIMESTAMP.md",
+      "reviewed": ".github/agents/planning/plan_SLUG_TIMESTAMP-reviewed.md",
+      "gradeReport": ".github/agents/planning/plan_SLUG_TIMESTAMP-grade.md",
+      "summary": null,
+      "changeSuggestions": null
+    },
+    "implementation": {
+      "original": ".github/agents/implementation/impl_SLUG_TIMESTAMP.md",
+      "reviewed": ".github/agents/implementation/impl_SLUG_TIMESTAMP-reviewed.md",
+      "gradeReport": ".github/agents/implementation/impl_SLUG_TIMESTAMP-grade.md",
+      "summary": null,
+      "changeSuggestions": null
+    },
+    "validation": {
+      "original": ".github/agents/validation/validation_SLUG_TIMESTAMP.md",
+      "reviewed": ".github/agents/validation/validation_SLUG_TIMESTAMP-reviewed.md",
+      "gradeReport": ".github/agents/validation/validation_SLUG_TIMESTAMP-grade.md",
+      "summary": null,
+      "changeSuggestions": null
+    },
+    "postMortem": {
+      "suggestions": ".github/agents/suggestions/post-mortem-suggestions-SLUG_TIMESTAMP.md",
+      "agentUpdates": []
+    },
+    "documentation": {
+      "readmeFiles": [],
+      "agentsFiles": []
+    }
+  },
+  "aggregatedFromStats": {
+    "totalToolCalls": 0,
+    "filesProcessed": {
+      "read": 0,
+      "created": 0,
+      "modified": 0,
+      "deleted": 0
+    },
+    "tokenBreakdown": {
+      "research": 0,
+      "planning": 0,
+      "implementation": 0,
+      "validation": 0,
+      "review": 0,
+      "postMortem": 0,
+      "documentation": 0,
+      "orchestrator": 0
+    },
+    "qualityScores": {
+      "researchCitations": 0,
+      "planningTasks": 0,
+      "testsRun": 0,
+      "testsPassed": 0,
+      "buildSuccess": true
+    }
+  },
+  "totalDuration": 0,
+  "outcome": "[success|failure|escalated|rolled-back|abandoned]",
+  "tokensEstimate": 0,
+  "filesChanged": [
+    "src/path/to/file1.ts",
+    "src/path/to/file2.ts"
+  ],
+  "rollback": {
+    "triggered": false,
+    "reason": null,
+    "checkpointId": null,
+    "filesReverted": 0
+  },
+  "issues": [],
+  "notes": "[Any additional notes about this execution]"
+}
+```
+
+**Field Guidelines**:
+- `pipelineId`: Format `pipe-YYYY-MM-DD-NNN` where NNN is sequential (001, 002, etc.)
+- `duration`: Extract from each stats file's "Timing" table
+- `tokensUsed`: Extract from each stats file's "Token Usage" table
+- `grade`/`score`/`verdict`: Extract from `-grade.md` files created by Output Review
+- `statsFiles`: Paths to all agent stats files (verify they exist)
+- `outputs`: Paths to all stage output files (original, reviewed, grade reports)
+- `aggregatedFromStats`: Sum values from individual stats files
+- `filesChanged`: List all source files modified (not agent output files)
+- `outcome`: Use `success` for APPROVED, `failure` for REJECTED, etc.
 
 ### Progress Notifications
 

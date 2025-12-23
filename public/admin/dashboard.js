@@ -45,6 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (fullTabId === '#players-tab') {
             loadPlayersTabContent();
         }
+        
+        // Load content for pipeline tab when it's activated
+        if (fullTabId === '#pipeline-tab') {
+            loadPipelineMetrics();
+        }
 
         // Re-initialize tooltips after tab change
         setTimeout(initTooltips, 100);
@@ -64,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hash = window.location.hash;
         if (hash) {
             // Only activate these specific tabs (security/validation)
-            const validTabs = ['dashboard-tab', 'client-tab', 'players-tab', 'config-tab'];
+            const validTabs = ['dashboard-tab', 'client-tab', 'players-tab', 'config-tab', 'pipeline-tab'];
             const tabName = hash.substring(1); // Remove the # character
             
             if (validTabs.includes(tabName)) {
@@ -1739,4 +1744,208 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return password;
     }
+
+    // Pipeline Metrics Functions
+    async function loadPipelineMetrics() {
+        try {
+            const response = await fetch('/api/admin/pipeline-metrics', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                displayPipelineMetrics(data);
+            } else if (response.status === 404) {
+                // No metrics endpoint yet - try loading from static files
+                loadPipelineMetricsFromFiles();
+            } else {
+                console.error('Failed to load pipeline metrics');
+                displayEmptyMetrics();
+            }
+        } catch (error) {
+            console.error('Error loading pipeline metrics:', error);
+            loadPipelineMetricsFromFiles();
+        }
+    }
+
+    async function loadPipelineMetricsFromFiles() {
+        try {
+            // Try to load metrics from the static files directory
+            const response = await fetch('/.github/agents/metrics/executions/');
+            if (!response.ok) {
+                displayEmptyMetrics();
+                return;
+            }
+            
+            // Parse directory listing or JSON files
+            const files = await response.json();
+            const metrics = [];
+            
+            for (const file of files) {
+                if (file.endsWith('.json')) {
+                    const metricResponse = await fetch(`/.github/agents/metrics/executions/${file}`);
+                    if (metricResponse.ok) {
+                        metrics.push(await metricResponse.json());
+                    }
+                }
+            }
+            
+            if (metrics.length > 0) {
+                displayPipelineMetrics(aggregateMetrics(metrics));
+            } else {
+                displayEmptyMetrics();
+            }
+        } catch (error) {
+            console.error('Error loading metrics from files:', error);
+            displayEmptyMetrics();
+        }
+    }
+
+    function aggregateMetrics(executions) {
+        const total = executions.length;
+        const successful = executions.filter(e => e.outcome === 'success').length;
+        const failed = executions.filter(e => e.outcome === 'failure' || e.outcome === 'rolled-back').length;
+        
+        // Calculate stage averages
+        const stages = ['research', 'planning', 'implementation', 'validation'];
+        const stageStats = {};
+        
+        stages.forEach(stage => {
+            const stageData = executions
+                .filter(e => e.stages && e.stages[stage])
+                .map(e => e.stages[stage]);
+            
+            if (stageData.length > 0) {
+                const durations = stageData.map(s => s.duration || 0);
+                const scores = stageData.filter(s => s.score).map(s => s.score);
+                const failures = stageData.filter(s => s.grade === 'F' || s.verdict === 'REJECTED').length;
+                
+                stageStats[stage] = {
+                    avgDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
+                    avgScore: scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null,
+                    failureRate: (failures / stageData.length) * 100
+                };
+            }
+        });
+        
+        return {
+            summary: {
+                total,
+                successful,
+                failed,
+                successRate: total > 0 ? ((successful / total) * 100).toFixed(1) : 0
+            },
+            stages: stageStats,
+            executions: executions.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10)
+        };
+    }
+
+    function displayPipelineMetrics(data) {
+        // Update summary cards
+        document.getElementById('pipeline-total').textContent = data.summary?.total || 0;
+        document.getElementById('pipeline-success').textContent = data.summary?.successful || 0;
+        document.getElementById('pipeline-failed').textContent = data.summary?.failed || 0;
+        document.getElementById('pipeline-success-rate').textContent = (data.summary?.successRate || 0) + '%';
+        
+        // Update stage performance
+        const stages = ['research', 'planning', 'implementation', 'validation'];
+        stages.forEach(stage => {
+            const stats = data.stages?.[stage];
+            if (stats) {
+                document.getElementById(`${stage}-avg-duration`).textContent = 
+                    stats.avgDuration ? `${stats.avgDuration.toFixed(1)} min` : '-';
+                document.getElementById(`${stage}-avg-grade`).textContent = 
+                    stats.avgScore ? scoreToGrade(stats.avgScore) : '-';
+                document.getElementById(`${stage}-failure-rate`).textContent = 
+                    stats.failureRate !== undefined ? `${stats.failureRate.toFixed(1)}%` : '-';
+            }
+        });
+        
+        // Update recent executions table
+        const tbody = document.getElementById('pipeline-executions-body');
+        const noDataRow = document.getElementById('no-executions-row');
+        
+        if (data.executions && data.executions.length > 0) {
+            if (noDataRow) noDataRow.remove();
+            tbody.innerHTML = '';
+            
+            data.executions.forEach(exec => {
+                const row = document.createElement('tr');
+                const outcomeClass = exec.outcome === 'success' ? 'text-success' : 
+                                    exec.outcome === 'failure' ? 'text-danger' : 'text-warning';
+                const outcomeIcon = exec.outcome === 'success' ? '✅' : 
+                                   exec.outcome === 'failure' ? '❌' : '⚠️';
+                
+                row.innerHTML = `
+                    <td><code>${exec.pipelineId || '-'}</code></td>
+                    <td>${truncateText(exec.task || '-', 40)}</td>
+                    <td>${formatDate(exec.date)}</td>
+                    <td><span class="badge bg-${complexityColor(exec.complexity)}">${exec.complexity || '-'}</span></td>
+                    <td>${exec.mode || '-'}</td>
+                    <td>${exec.totalDuration ? exec.totalDuration + ' min' : '-'}</td>
+                    <td class="${outcomeClass}">${outcomeIcon} ${exec.outcome || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    }
+
+    function displayEmptyMetrics() {
+        document.getElementById('pipeline-total').textContent = '0';
+        document.getElementById('pipeline-success').textContent = '0';
+        document.getElementById('pipeline-failed').textContent = '0';
+        document.getElementById('pipeline-success-rate').textContent = '0%';
+        
+        const stages = ['research', 'planning', 'implementation', 'validation'];
+        stages.forEach(stage => {
+            document.getElementById(`${stage}-avg-duration`).textContent = '-';
+            document.getElementById(`${stage}-avg-grade`).textContent = '-';
+            document.getElementById(`${stage}-failure-rate`).textContent = '-';
+        });
+    }
+
+    function scoreToGrade(score) {
+        if (score >= 97) return 'A+';
+        if (score >= 93) return 'A';
+        if (score >= 90) return 'A-';
+        if (score >= 87) return 'B+';
+        if (score >= 83) return 'B';
+        if (score >= 80) return 'B-';
+        if (score >= 77) return 'C+';
+        if (score >= 73) return 'C';
+        if (score >= 70) return 'C-';
+        if (score >= 60) return 'D';
+        return 'F';
+    }
+
+    function complexityColor(complexity) {
+        switch (complexity?.toLowerCase()) {
+            case 'trivial': return 'secondary';
+            case 'low': return 'success';
+            case 'medium': return 'warning';
+            case 'high': return 'danger';
+            case 'critical': return 'dark';
+            default: return 'secondary';
+        }
+    }
+
+    function truncateText(text, maxLength) {
+        if (!text) return '-';
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        } catch {
+            return dateStr;
+        }
+    }
+
+    // Pipeline refresh button handler
+    document.getElementById('refresh-pipeline-metrics')?.addEventListener('click', loadPipelineMetrics);
 });

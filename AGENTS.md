@@ -33,6 +33,57 @@ kill <specific-pid>                # Kill only the PID you identified
 
 ---
 
+## ⚠️ CRITICAL: Ignore `todos/` Folder
+
+**The `todos/` folder is for HUMAN developers only.** Do NOT use it as a source of truth.
+
+```
+❌ NEVER: Read todos/ to understand current state or requirements
+❌ NEVER: Base implementation decisions on todos/ content
+❌ NEVER: Assume todos/ files are up-to-date or accurate
+✅ ONLY: Read todos/ when the user EXPLICITLY asks you to
+```
+
+**Why this matters:**
+- The `todos/` folder contains human planning notes, brainstorms, and outdated analysis
+- Content may be **weeks or months out of date**
+- Implementation details may have changed significantly since those files were written
+- Using stale information leads to incorrect implementations
+
+**Source of truth hierarchy:**
+1. **Actual source code** (`src/`, `data/`, config files)
+2. **AGENTS.md files** in each directory
+3. **User's explicit instructions** in the current conversation
+4. ~~todos/ folder~~ ← **IGNORE unless explicitly requested**
+
+---
+
+## ⚠️ IMPORTANT: Ephemeral Data - Do NOT Commit
+
+**Generated/ephemeral data MUST NOT be committed to the repository.**
+
+The `.gitignore` excludes these automatically, but be aware:
+
+| Directory/File | Content | Why Excluded |
+|----------------|---------|---------------|
+| `.github/agents/research/*.md` | Research documents | Session-specific outputs |
+| `.github/agents/planning/*.md` | Implementation plans | Session-specific outputs |
+| `.github/agents/implementation/*.md` | Impl reports | Session-specific outputs |
+| `.github/agents/validation/*.md` | Validation reports | Session-specific outputs |
+| `.github/agents/suggestions/*.md` | Post-mortem suggestions | Session-specific outputs |
+| `.github/agents/metrics/executions/*.json` | Pipeline metrics | Execution telemetry |
+| `.github/agents/metrics/pipeline-report.md` | Generated report | Derived from metrics |
+| `todos/*.md` | Human planning notes | Personal brainstorms |
+
+**What IS committed:**
+- `README.md` and `AGENTS.md` in each directory (documentation)
+- `pipeline-metrics-schema.json` (schema definition)
+- Agent prompt files (`*.agent.md`)
+
+**If you create new ephemeral output directories**, add them to `.gitignore`.
+
+---
+
 ## ⚠️ CRITICAL: Paired Documentation Rule
 
 **STOP! Before editing ANY `README.md` or `AGENTS.md` file:**
@@ -64,7 +115,7 @@ This rule exists because:
 
 ### After Running a Terminal Command
 
-1. **Check the output first** using `execute/terminalLastCommand` (`terminal_last_command`) tool
+1. **Check the output first** using `execute/getTerminalOutput` or if that doesn't work, use `execute/terminalLastCommand` (`terminal_last_command`) tool
 2. **Read the exit code** - 0 means success, non-zero means error
 3. **Only re-run if** there was an actual error that needs retry
 
@@ -228,6 +279,32 @@ import { systemLogger, getPlayerLogger } from '../utils/logger';
 systemLogger.info('Server started');
 getPlayerLogger(username).info('Player action');
 ```
+
+### 8. TypeScript Types (CRITICAL)
+
+**NEVER use `any` or `Function` types.** ESLint will block commits.
+
+```typescript
+// ❌ WRONG - will fail ESLint
+function process(data: any) { ... }
+function validate(req: Request, res: Response, next: Function) { ... }
+
+// ✅ CORRECT - use specific types
+function process(data: UserData) { ... }
+function validate(req: Request, res: Response, next: () => void) { ... }
+
+// ✅ If type is truly unknown, use `unknown` and narrow it
+function handle(input: unknown) {
+  if (typeof input === 'string') {
+    // Now TypeScript knows it's a string
+  }
+}
+```
+
+**Rules enforced by ESLint:**
+- `@typescript-eslint/no-explicit-any` - No `any` type
+- `@typescript-eslint/ban-types` - No `Function`, `Object`, `{}` types
+- `@typescript-eslint/no-unused-vars` - Prefix unused params with `_`
 
 ---
 
