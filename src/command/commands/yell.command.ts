@@ -26,7 +26,7 @@ export class YellCommand implements Command {
       writeToClient(client, colorize(`You must be logged in to yell.\r\n`, 'red'));
       return;
     }
-    
+
     // Store user info in local variables to avoid null check issues
     const username = client.user.username;
     const currentRoomId = client.user.currentRoomId || this.roomManager.getStartingRoomId();
@@ -52,7 +52,7 @@ export class YellCommand implements Command {
 
     // Collect all adjacent room IDs
     const adjacentRoomIds: string[] = [];
-    currentRoom.exits.forEach(exit => {
+    currentRoom.exits.forEach((exit) => {
       const nextRoomId = exit.roomId;
       if (nextRoomId && !adjacentRoomIds.includes(nextRoomId)) {
         adjacentRoomIds.push(nextRoomId);
@@ -74,9 +74,9 @@ export class YellCommand implements Command {
   }
 
   private sendMessageToRoom(
-    roomId: string, 
-    yellerUsername: string, 
-    message: string, 
+    roomId: string,
+    yellerUsername: string,
+    message: string,
     isAdjacent: boolean,
     fromDirection?: string
   ): void {
@@ -87,20 +87,20 @@ export class YellCommand implements Command {
     for (const playerUsername of room.players) {
       // Skip the yeller in their own room
       if (!isAdjacent && playerUsername.toLowerCase() === yellerUsername.toLowerCase()) continue;
-      
+
       // Find the client for this player
       const playerClient = this.findClientByUsername(playerUsername);
       if (playerClient) {
         // Message format depends on whether the player is in the same room or adjacent
         let messageText;
         if (isAdjacent) {
-          messageText = fromDirection 
+          messageText = fromDirection
             ? `You hear someone yell from the ${fromDirection} '${message}'\r\n`
             : `You hear someone yell '${message}'\r\n`;
         } else {
           messageText = `${formatUsername(yellerUsername)} yells '${message}'\r\n`;
         }
-          
+
         // Use the formatted message function
         writeFormattedMessageToClient(playerClient, colorize(messageText, 'red'));
       }
@@ -113,7 +113,7 @@ export class YellCommand implements Command {
   private getDirectionBetweenRooms(fromRoomId: string, toRoomId: string): string | undefined {
     const fromRoom = this.roomManager.getRoom(fromRoomId);
     if (!fromRoom) return undefined;
-    
+
     // Find the exit that leads to the target room
     for (const exit of fromRoom.exits) {
       if (exit.roomId === toRoomId) {
@@ -127,7 +127,7 @@ export class YellCommand implements Command {
    * Find a client by username
    */
   private findClientByUsername(username: string): ConnectedClient | undefined {
-    for (const [_, client] of this.clients.entries()) {
+    for (const client of this.clients.values()) {
       if (client.user && client.user.username.toLowerCase() === username.toLowerCase()) {
         return client;
       }

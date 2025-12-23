@@ -4,8 +4,8 @@ Temporary status effects including buffs, debuffs, and damage-over-time effects.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
+| File               | Description                               |
+| ------------------ | ----------------------------------------- |
 | `effectManager.ts` | Manage active effects on players and NPCs |
 
 ## What Effects Do
@@ -21,6 +21,7 @@ Effects are temporary modifiers applied to entities:
 ## Effect Properties
 
 Each effect has:
+
 - `name` - Display name
 - `type` - Category (buff, debuff, dot, hot)
 - `duration` - Remaining ticks

@@ -12,12 +12,12 @@ The effects system manages temporary status effects on players and NPCs. Effects
 
 ```typescript
 export class EffectManager {
-  static getInstance(): EffectManager
-  
-  applyEffect(target: CombatEntity, effect: Effect): void
-  removeEffect(target: CombatEntity, effectType: EffectType): void
-  getEffects(target: CombatEntity): Effect[]
-  processEffectTick(): void
+  static getInstance(): EffectManager;
+
+  applyEffect(target: CombatEntity, effect: Effect): void;
+  removeEffect(target: CombatEntity, effectType: EffectType): void;
+  getEffects(target: CombatEntity): Effect[];
+  processEffectTick(): void;
 }
 ```
 
@@ -27,28 +27,28 @@ export class EffectManager {
 interface Effect {
   type: EffectType;
   name: string;
-  duration: number;      // Remaining ticks
-  magnitude: number;     // Effect strength
-  source?: string;       // Who applied it
+  duration: number; // Remaining ticks
+  magnitude: number; // Effect strength
+  source?: string; // Who applied it
   stackBehavior: StackBehavior;
 }
 
 enum EffectType {
-  POISON,      // Damage over time
-  STUN,        // Can't act
-  ROOT,        // Can't move
-  BUFF_STR,    // Strength increase
-  DEBUFF_DEF,  // Defense decrease
+  POISON, // Damage over time
+  STUN, // Can't act
+  ROOT, // Can't move
+  BUFF_STR, // Strength increase
+  DEBUFF_DEF, // Defense decrease
   // etc.
 }
 
 enum StackBehavior {
-  REPLACE,         // New replaces old
-  REFRESH,         // Reset duration
-  STACK_DURATION,  // Add durations
+  REPLACE, // New replaces old
+  REFRESH, // Reset duration
+  STACK_DURATION, // Add durations
   STACK_INTENSITY, // Run independently
-  STRONGEST_WINS,  // Keep stronger
-  IGNORE,          // Don't apply if exists
+  STRONGEST_WINS, // Keep stronger
+  IGNORE, // Don't apply if exists
 }
 ```
 
@@ -76,8 +76,8 @@ const poison: Effect = {
   type: EffectType.POISON,
   name: 'Poison',
   duration: 10,
-  magnitude: 5,  // 5 damage per tick
-  stackBehavior: StackBehavior.REFRESH
+  magnitude: 5, // 5 damage per tick
+  stackBehavior: StackBehavior.REFRESH,
 };
 
 effectManager.applyEffect(target, poison);
@@ -87,8 +87,8 @@ effectManager.applyEffect(target, poison);
 
 ```typescript
 const effects = effectManager.getEffects(client.user);
-const isPoisoned = effects.some(e => e.type === EffectType.POISON);
-const isRooted = effects.some(e => e.type === EffectType.ROOT);
+const isPoisoned = effects.some((e) => e.type === EffectType.POISON);
+const isRooted = effects.some((e) => e.type === EffectType.ROOT);
 ```
 
 ## Related Context

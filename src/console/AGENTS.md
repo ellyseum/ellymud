@@ -16,7 +16,7 @@ export class ConsoleInterface {
     private clients: Map<string, ConnectedClient>,
     private userManager: UserManager
   )
-  
+
   start(): void
   handleKeypress(key: string): void
   displayStatus(): void
@@ -24,6 +24,7 @@ export class ConsoleInterface {
 ```
 
 **Keyboard Shortcuts**:
+
 - `l` - List online users
 - `b` - Broadcast message
 - `k` - Kick user
@@ -37,7 +38,7 @@ export class ConsoleInterface {
 
 ```typescript
 export class ConsoleManager {
-  executeCommand(command: string): void
+  executeCommand(command: string): void;
 }
 ```
 
@@ -48,14 +49,15 @@ export class ConsoleManager {
 ```typescript
 export class AutoSessionHandler {
   // Creates auto-login session for admin
-  createAdminSession(): ConnectedClient
-  
+  createAdminSession(): ConnectedClient;
+
   // Creates session for specific user
-  createUserSession(username: string): ConnectedClient
+  createUserSession(username: string): ConnectedClient;
 }
 ```
 
 **CLI Flags**:
+
 - `-a` - Auto-login as admin
 - `--forceSession=username` - Auto-login as specific user
 
@@ -65,8 +67,8 @@ export class AutoSessionHandler {
 
 ```typescript
 export class UserMonitor {
-  startMonitoring(username: string): void
-  stopMonitoring(): void
+  startMonitoring(username: string): void;
+  stopMonitoring(): void;
 }
 ```
 

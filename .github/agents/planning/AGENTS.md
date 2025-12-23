@@ -10,9 +10,9 @@ This directory stores implementation plans produced by the Planning Agent during
 
 ## File Naming Convention
 
-| Pattern | Description | Example |
-|---------|-------------|---------|
-| `plan_{topic}.md` | Raw planning output | `plan_npc_hostility.md` |
+| Pattern                    | Description         | Example                          |
+| -------------------------- | ------------------- | -------------------------------- |
+| `plan_{topic}.md`          | Raw planning output | `plan_npc_hostility.md`          |
 | `plan_{topic}-reviewed.md` | After Output Review | `plan_npc_hostility-reviewed.md` |
 
 ## Expected Document Structure
@@ -33,6 +33,7 @@ Planning documents should contain:
 ## Quality Criteria
 
 Planning documents must:
+
 - ✅ Reference research document findings
 - ✅ Include specific file paths and line numbers
 - ✅ Provide verifiable success criteria per task
@@ -40,6 +41,7 @@ Planning documents must:
 - ✅ Include rollback considerations
 
 Planning documents must NOT:
+
 - ❌ Conduct new research
 - ❌ Skip dependency analysis
 - ❌ Leave ambiguous task descriptions
@@ -60,4 +62,4 @@ Bad task: "Update the combat system to track attackers"
 
 ---
 
-*Last updated: 2025-01-11*
+_Last updated: 2025-01-11_

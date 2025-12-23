@@ -58,11 +58,9 @@ export class NPC implements CombatEntity {
     this.attackTexts = attackTexts || [
       `swipes $TARGET$ with its claws`,
       `lunges at $TARGET$`,
-      `hisses and attacks $TARGET$`
+      `hisses and attacks $TARGET$`,
     ];
-    this.deathMessages = deathMessages || [
-      `collapses to the ground and dies`
-    ];
+    this.deathMessages = deathMessages || [`collapses to the ground and dies`];
     this.templateId = templateId || name.toLowerCase();
     this.instanceId = instanceId || uuidv4();
   }
@@ -74,15 +72,15 @@ export class NPC implements CombatEntity {
    */
   static loadPrevalidatedNPCData(npcData: NPCData[]): Map<string, NPCData> {
     const npcMap = new Map<string, NPCData>();
-    
-    npcData.forEach(npc => {
+
+    npcData.forEach((npc) => {
       npcMap.set(npc.id, npc);
     });
-    
+
     // Update the cache
     NPC.npcDataCache = npcMap;
     NPC.cacheTimestamp = Date.now();
-    
+
     systemLogger.info(`Loaded ${npcMap.size} pre-validated NPCs`);
     return npcMap;
   }
@@ -90,13 +88,12 @@ export class NPC implements CombatEntity {
   // Static method to load NPC data from JSON with caching
   static loadNPCData(): Map<string, NPCData> {
     const currentTime = Date.now();
-    
+
     // Return cached data if available and not expired
-    if (NPC.npcDataCache && 
-        (currentTime - NPC.cacheTimestamp) < NPC.CACHE_EXPIRY_MS) {
+    if (NPC.npcDataCache && currentTime - NPC.cacheTimestamp < NPC.CACHE_EXPIRY_MS) {
       return NPC.npcDataCache;
     }
-    
+
     // Try to load NPCs from command line argument if provided
     if (config.DIRECT_NPCS_DATA) {
       try {
@@ -110,26 +107,26 @@ export class NPC implements CombatEntity {
         throw error;
       }
     }
-    
+
     // Otherwise load from file with validation
     return NPC.loadNPCDataFromFile();
   }
-  
+
   /**
    * Load NPC data from file with validation
    */
   static loadNPCDataFromFile(): Map<string, NPCData> {
     const npcFilePath = path.join(__dirname, '..', '..', 'data', 'npcs.json');
-    
+
     // Check if file exists
     if (!fs.existsSync(npcFilePath)) {
       systemLogger.warn(`NPCs file not found: ${npcFilePath}`);
       return new Map<string, NPCData>(); // Return empty map only if file doesn't exist
     }
-    
+
     // Validate the file
     const npcArray = loadAndValidateJsonFile<NPCData[]>(npcFilePath, 'npcs');
-    
+
     if (npcArray && Array.isArray(npcArray)) {
       return NPC.loadPrevalidatedNPCData(npcArray);
     } else {
@@ -148,7 +145,7 @@ export class NPC implements CombatEntity {
     // Prevent setting invalid values
     if (expiryTimeMs > 0) {
       Object.defineProperty(NPC, 'CACHE_EXPIRY_MS', {
-        value: expiryTimeMs
+        value: expiryTimeMs,
       });
     }
   }

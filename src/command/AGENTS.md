@@ -21,13 +21,15 @@ Player Input → CommandHandler → CommandRegistry → Command.execute()
 **Purpose**: Main entry point for all command processing
 
 **Key Exports**:
+
 ```typescript
 export class CommandHandler {
-  handleCommand(client: ConnectedClient, input: string): void
+  handleCommand(client: ConnectedClient, input: string): void;
 }
 ```
 
 **Key Logic**:
+
 - Trims and validates input
 - Checks if player is unconscious (restricts certain commands)
 - Adds command to history
@@ -40,15 +42,17 @@ export class CommandHandler {
 **Purpose**: Singleton registry of all commands with lookup and fuzzy matching
 
 **Key Exports**:
+
 ```typescript
 export class CommandRegistry {
-  static getInstance(clients, roomMgr, combatSys, userMgr, stateMachine): CommandRegistry
-  getCommand(name: string): Command | undefined
-  executeCommand(client: ConnectedClient, commandName: string, args: string[]): void
+  static getInstance(clients, roomMgr, combatSys, userMgr, stateMachine): CommandRegistry;
+  getCommand(name: string): Command | undefined;
+  executeCommand(client: ConnectedClient, commandName: string, args: string[]): void;
 }
 ```
 
 **Key Features**:
+
 - Levenshtein distance for "did you mean?" suggestions
 - Alias support (e.g., `n` → `north`)
 - Admin-only command filtering
@@ -83,6 +87,7 @@ Contains 40+ individual command files. Each file exports a single command class.
 **Naming Convention**: `{commandname}.command.ts`
 
 **Examples**:
+
 - `look.command.ts` - View room/objects
 - `move.command.ts` - Navigate between rooms
 - `attack.command.ts` - Initiate combat
@@ -113,7 +118,7 @@ export class MyCommand implements Command {
   execute(client: ConnectedClient, args: string[], services: CommandServices): void {
     // Always check for user
     if (!client.user) return;
-    
+
     // Use writeMessageToClient for output
     writeMessageToClient(client, colorize('green', 'Command executed!\r\n'));
   }
@@ -147,7 +152,7 @@ Commands receive all services via the `services` parameter:
 ```typescript
 execute(client: ConnectedClient, args: string[], services: CommandServices): void {
   const { roomManager, combatSystem, userManager, clients } = services;
-  
+
   // Use services
   const room = roomManager.getRoom(client.user.currentRoomId);
   const combat = combatSystem.getCombatForPlayer(client.user.username);
@@ -159,6 +164,7 @@ execute(client: ConnectedClient, args: string[], services: CommandServices): voi
 ### Adding a New Command
 
 1. Create the command file:
+
 ```typescript
 // src/command/commands/newcmd.command.ts
 import { Command, CommandServices } from '../command.interface';
@@ -169,7 +175,7 @@ export class NewCmdCommand implements Command {
   name = 'newcmd';
   aliases = ['nc'];
   description = 'Description for help text';
-  
+
   execute(client: ConnectedClient, args: string[], services: CommandServices): void {
     if (!client.user) return;
     writeMessageToClient(client, 'New command output\r\n');
@@ -178,6 +184,7 @@ export class NewCmdCommand implements Command {
 ```
 
 2. Register in `commandRegistry.ts`:
+
 ```typescript
 import { NewCmdCommand } from './commands/newcmd.command';
 // In constructor:
@@ -191,7 +198,7 @@ this.registerCommand(new NewCmdCommand());
 ```typescript
 export class AdminOnlyCommand implements Command {
   name = 'secretcmd';
-  adminOnly = true;  // Add this flag
+  adminOnly = true; // Add this flag
   // ...
 }
 ```

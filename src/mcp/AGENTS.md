@@ -4,11 +4,11 @@ Model Context Protocol server for AI integration.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `mcpServer.ts` | HTTP API server on port 3100 |
+| File                       | Description                  |
+| -------------------------- | ---------------------------- |
+| `mcpServer.ts`             | HTTP API server on port 3100 |
 | `virtualSessionManager.ts` | Manage virtual game sessions |
-| `README.md` | Detailed MCP documentation |
+| `README.md`                | Detailed MCP documentation   |
 
 ## Overview
 

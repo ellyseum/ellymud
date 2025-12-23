@@ -15,7 +15,7 @@ export class TeleportationService implements ITeleportationService {
   private notifyPlayersInRoom: (roomId: string, message: string, excludeUsername?: string) => void;
 
   constructor(
-    roomManager: { 
+    roomManager: {
       getRoom: (roomId: string) => Room | undefined;
       getStartingRoomId: () => string;
       getAllRooms: () => Room[];
@@ -67,7 +67,7 @@ export class TeleportationService implements ITeleportationService {
     const startingRoom = this.roomManager.getRoom(startingRoomId);
 
     if (!startingRoom) {
-      systemLogger.error("Error: Starting room does not exist!");
+      systemLogger.error('Error: Starting room does not exist!');
       return false;
     }
 
@@ -80,10 +80,10 @@ export class TeleportationService implements ITeleportationService {
 
     // Notify the player about the teleport
     writeToClient(client, colorize(`You are being teleported to a safe location...\r\n`, 'yellow'));
-    
+
     // Show the new room description
     writeToClient(client, startingRoom.getDescriptionExcludingPlayer(client.user.username));
-    
+
     // Announce player's arrival in the starting room
     this.notifyPlayersInRoom(
       startingRoomId,
@@ -94,7 +94,7 @@ export class TeleportationService implements ITeleportationService {
     // Log the teleportation
     const playerLogger = getPlayerLogger(client.user.username);
     playerLogger.info(`Teleported to starting room: ${startingRoom.name}`);
-    
+
     return true;
   }
 }

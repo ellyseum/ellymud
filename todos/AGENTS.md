@@ -10,6 +10,7 @@ This is an **ephemeral scratch pad** for developers and agents working on the co
 ## Purpose
 
 Use this directory for:
+
 - Brainstorming sessions and rough notes
 - Planning data while working on tasks
 - Agent pipeline working files and drafts
@@ -18,12 +19,14 @@ Use this directory for:
 ## Conventions
 
 ### For Agents
+
 - Feel free to create working files here during tasks
 - Do not assume any specific files exist—each clone may differ
 - Clean up files when work is complete
 - Do not reference files in this directory from permanent documentation
 
-### For Developers  
+### For Developers
+
 - Use for personal notes and scratch work
 - Contents are not shared across team members
 - Consider adding `todos/` to `.gitignore` if not already present

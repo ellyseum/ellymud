@@ -4,8 +4,8 @@ The state machine controller that manages client state transitions and lifecycle
 
 ## Contents
 
-| File | Description |
-|------|-------------|
+| File              | Description                                  |
+| ----------------- | -------------------------------------------- |
 | `stateMachine.ts` | State machine singleton and transition logic |
 
 ## Purpose
@@ -41,6 +41,7 @@ const currentState = stateMachine.getState(client.state);
 ## Available States
 
 States are defined in `ClientStateType` enum:
+
 - CONNECTING, LOGIN, SIGNUP, CONFIRMATION
 - AUTHENTICATED, TRANSFER_REQUEST
 - SNAKE_GAME, WAITING

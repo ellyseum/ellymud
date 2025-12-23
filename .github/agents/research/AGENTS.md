@@ -10,9 +10,9 @@ This directory stores comprehensive research documents produced by the Research 
 
 ## File Naming Convention
 
-| Pattern | Description | Example |
-|---------|-------------|---------|
-| `research_{topic}.md` | Raw research output | `research_npc_hostility.md` |
+| Pattern                        | Description         | Example                              |
+| ------------------------------ | ------------------- | ------------------------------------ |
+| `research_{topic}.md`          | Raw research output | `research_npc_hostility.md`          |
 | `research_{topic}-reviewed.md` | After Output Review | `research_npc_hostility-reviewed.md` |
 
 ## Expected Document Structure
@@ -30,6 +30,7 @@ Research documents should contain:
 ## Quality Criteria
 
 Research documents must:
+
 - ✅ Cite specific files and line numbers
 - ✅ Include code snippets for key patterns
 - ✅ List all dependencies and constraints
@@ -37,6 +38,7 @@ Research documents must:
 - ✅ Provide actionable recommendations
 
 Research documents must NOT:
+
 - ❌ Make implementation decisions
 - ❌ Include speculative solutions
 - ❌ Skip examination of related code
@@ -51,10 +53,10 @@ Research documents must NOT:
 
 ## Current Contents
 
-| File | Status | Topic |
-|------|--------|-------|
+| File                        | Status   | Topic                            |
+| --------------------------- | -------- | -------------------------------- |
 | `research_npc_hostility.md` | Complete | NPC hostility persistence system |
 
 ---
 
-*Last updated: 2025-01-11*
+_Last updated: 2025-01-11_

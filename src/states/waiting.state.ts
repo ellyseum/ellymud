@@ -1,10 +1,10 @@
-import { ClientState, ClientStateType, ConnectedClient } from "../types";
-import { colorize } from "../utils/colors";
-import { writeToClient, writeFormattedMessageToClient } from "../utils/socketWriter";
-import { UserManager } from "../user/userManager";
-import { RoomManager } from "../room/roomManager";
-import { formatUsername } from "../utils/formatters";
-import { systemLogger } from "../utils/logger";
+import { ClientState, ClientStateType, ConnectedClient } from '../types';
+import { colorize } from '../utils/colors';
+import { writeToClient, writeFormattedMessageToClient } from '../utils/socketWriter';
+import { UserManager } from '../user/userManager';
+import { RoomManager } from '../room/roomManager';
+import { formatUsername } from '../utils/formatters';
+import { systemLogger } from '../utils/logger';
 
 export class WaitingState implements ClientState {
   name = ClientStateType.WAITING;
@@ -86,8 +86,7 @@ export class WaitingState implements ClientState {
       const roomManager = RoomManager.getInstance(this.clients);
 
       // Get the room ID the player was in before waiting
-      const previousRoomId =
-        client.stateData.previousRoomId || roomManager.getStartingRoomId();
+      const previousRoomId = client.stateData.previousRoomId || roomManager.getStartingRoomId();
 
       // Add the player back to their previous room
       const room = roomManager.getRoom(previousRoomId);
@@ -115,14 +114,14 @@ export class WaitingState implements ClientState {
     // Directly iterate through all clients in the global clients map
     this.clients.forEach((client) => {
       if (client.authenticated && client.user) {
-        writeFormattedMessageToClient(client, colorize(message, "bright"));
+        writeFormattedMessageToClient(client, colorize(message, 'bright'));
       }
     });
   }
 
   private clearScreen(client: ConnectedClient): void {
     // ANSI escape code to clear the screen and move the cursor to the top-left corner
-    writeToClient(client, "\u001b[2J\u001b[H");
+    writeToClient(client, '\u001b[2J\u001b[H');
   }
 
   exit(client: ConnectedClient): void {

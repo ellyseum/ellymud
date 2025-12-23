@@ -23,33 +23,32 @@ export class AttackCommand implements CombatCommand {
     private userManager?: UserManager,
     private targetClient?: ConnectedClient
   ) {}
-  
+
   execute(): void {
     // Calculate hit chance (50% base chance)
     const hit = Math.random() >= 0.5;
-    
+
     if (hit) {
       const damage = this.attacker.getAttackDamage();
-      
+
       // If target is a player (has a client), update their health
       if (this.targetClient?.user && this.userManager) {
         this.targetClient.user.health -= damage;
-        
+
         // Make sure it doesn't go below -10
         if (this.targetClient.user.health < -10) {
           this.targetClient.user.health = -10;
         }
-        
+
         // Update the player's health
-        this.userManager.updateUserStats(
-          this.targetClient.user.username, 
-          { health: this.targetClient.user.health }
-        );
+        this.userManager.updateUserStats(this.targetClient.user.username, {
+          health: this.targetClient.user.health,
+        });
       } else if (this.target.takeDamage) {
         // Target is an NPC or other entity with takeDamage method
         this.target.takeDamage(damage);
       }
-      
+
       // Notify about the attack result
       if (this.targetClient) {
         this.notifier.notifyAttackResult(
@@ -67,23 +66,16 @@ export class AttackCommand implements CombatCommand {
           'red'
         );
       }
-      
+
       // Log the attack
-      systemLogger.debug(
-        `${this.attacker.name} attacked ${this.target.name} for ${damage} damage`
-      );
-      
+      systemLogger.debug(`${this.attacker.name} attacked ${this.target.name} for ${damage} damage`);
+
       return;
     }
-    
+
     // Attack missed
     if (this.targetClient) {
-      this.notifier.notifyAttackResult(
-        this.attacker,
-        this.targetClient,
-        this.roomId,
-        false
-      );
+      this.notifier.notifyAttackResult(this.attacker, this.targetClient, this.roomId, false);
     } else {
       // Generic notification for NPC targets
       this.notifier.broadcastRoomMessage(
@@ -92,11 +84,9 @@ export class AttackCommand implements CombatCommand {
         'cyan'
       );
     }
-    
+
     // Log the miss
-    systemLogger.debug(
-      `${this.attacker.name} attacked ${this.target.name} and missed`
-    );
+    systemLogger.debug(`${this.attacker.name} attacked ${this.target.name} and missed`);
   }
 }
 
@@ -108,24 +98,24 @@ export class FleeCommand implements CombatCommand {
     private player: ConnectedClient,
     private notifier: CombatNotifier
   ) {}
-  
+
   execute(): void {
     if (!this.player.user) return;
-    
+
     // Calculate flee chance (30% base chance)
     const fleeSuccess = Math.random() < 0.3;
-    
+
     if (fleeSuccess) {
       // Set player's inCombat to false
       this.player.user.inCombat = false;
-      
+
       // Notify player and room
       this.notifier.broadcastRoomMessage(
         this.player.user.currentRoomId || '',
         `${this.player.user.username} breaks away from combat!\r\n`,
         'green'
       );
-      
+
       // Log the successful flee
       const playerLogger = getPlayerLogger(this.player.user.username);
       playerLogger.info(`Successfully fled from combat`);
@@ -136,7 +126,7 @@ export class FleeCommand implements CombatCommand {
         `${this.player.user.username} tries to flee but is still in combat!\r\n`,
         'yellow'
       );
-      
+
       // Log the failed flee attempt
       const playerLogger = getPlayerLogger(this.player.user.username);
       playerLogger.info(`Failed to flee from combat`);
@@ -152,7 +142,7 @@ export class CombatCommandFactory {
     private notifier: CombatNotifier,
     private userManager: UserManager
   ) {}
-  
+
   createAttackCommand(
     attacker: CombatEntity,
     target: CombatEntity,
@@ -168,7 +158,7 @@ export class CombatCommandFactory {
       targetClient
     );
   }
-  
+
   createFleeCommand(player: ConnectedClient): CombatCommand {
     return new FleeCommand(player, this.notifier);
   }

@@ -15,7 +15,7 @@ export class StatsCommand implements Command {
     this.itemManager = ItemManager.getInstance();
   }
 
-  execute(client: ConnectedClient, args: string): void {
+  execute(client: ConnectedClient, _args: string): void {
     if (!client.user) return;
 
     const user = client.user;
@@ -45,13 +45,55 @@ export class StatsCommand implements Command {
 
     // Display the character attributes/statistics with any bonuses from equipment
     writeToClient(client, colorize('\r\n=== Attributes ===\r\n', 'magenta'));
-    writeToClient(client, colorize(`Strength: ${user.strength}${statBonuses.strength ? ` (+${statBonuses.strength})` : ''}\r\n`, 'white'));
-    writeToClient(client, colorize(`Dexterity: ${user.dexterity}${statBonuses.dexterity ? ` (+${statBonuses.dexterity})` : ''}\r\n`, 'white'));
-    writeToClient(client, colorize(`Agility: ${user.agility}${statBonuses.agility ? ` (+${statBonuses.agility})` : ''}\r\n`, 'white'));
-    writeToClient(client, colorize(`Constitution: ${user.constitution}${statBonuses.constitution ? ` (+${statBonuses.constitution})` : ''}\r\n`, 'white'));
-    writeToClient(client, colorize(`Wisdom: ${user.wisdom}${statBonuses.wisdom ? ` (+${statBonuses.wisdom})` : ''}\r\n`, 'white'));
-    writeToClient(client, colorize(`Intelligence: ${user.intelligence}${statBonuses.intelligence ? ` (+${statBonuses.intelligence})` : ''}\r\n`, 'white'));
-    writeToClient(client, colorize(`Charisma: ${user.charisma}${statBonuses.charisma ? ` (+${statBonuses.charisma})` : ''}\r\n`, 'white'));
+    writeToClient(
+      client,
+      colorize(
+        `Strength: ${user.strength}${statBonuses.strength ? ` (+${statBonuses.strength})` : ''}\r\n`,
+        'white'
+      )
+    );
+    writeToClient(
+      client,
+      colorize(
+        `Dexterity: ${user.dexterity}${statBonuses.dexterity ? ` (+${statBonuses.dexterity})` : ''}\r\n`,
+        'white'
+      )
+    );
+    writeToClient(
+      client,
+      colorize(
+        `Agility: ${user.agility}${statBonuses.agility ? ` (+${statBonuses.agility})` : ''}\r\n`,
+        'white'
+      )
+    );
+    writeToClient(
+      client,
+      colorize(
+        `Constitution: ${user.constitution}${statBonuses.constitution ? ` (+${statBonuses.constitution})` : ''}\r\n`,
+        'white'
+      )
+    );
+    writeToClient(
+      client,
+      colorize(
+        `Wisdom: ${user.wisdom}${statBonuses.wisdom ? ` (+${statBonuses.wisdom})` : ''}\r\n`,
+        'white'
+      )
+    );
+    writeToClient(
+      client,
+      colorize(
+        `Intelligence: ${user.intelligence}${statBonuses.intelligence ? ` (+${statBonuses.intelligence})` : ''}\r\n`,
+        'white'
+      )
+    );
+    writeToClient(
+      client,
+      colorize(
+        `Charisma: ${user.charisma}${statBonuses.charisma ? ` (+${statBonuses.charisma})` : ''}\r\n`,
+        'white'
+      )
+    );
 
     // Display equipment if any
     if (user.equipment && Object.keys(user.equipment).length > 0) {
@@ -61,9 +103,10 @@ export class StatsCommand implements Command {
         if (!itemId) continue;
 
         // Convert slot key to display name
-        const slotDisplayName = slot.split('_').map(word =>
-          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-        ).join(' ');
+        const slotDisplayName = slot
+          .split('_')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
 
         // Check if it's an item instance first
         const instance = this.itemManager.getItemInstance(itemId);
@@ -97,8 +140,14 @@ export class StatsCommand implements Command {
     }
 
     writeToClient(client, colorize('\r\n=== Account Info ===\r\n', 'magenta'));
-    writeToClient(client, colorize(`Member since: ${user.joinDate.toLocaleDateString()}\r\n`, 'dim'));
-    writeToClient(client, colorize(`Last login: ${user.lastLogin.toLocaleDateString()}\r\n`, 'dim'));
+    writeToClient(
+      client,
+      colorize(`Member since: ${user.joinDate.toLocaleDateString()}\r\n`, 'dim')
+    );
+    writeToClient(
+      client,
+      colorize(`Last login: ${user.lastLogin.toLocaleDateString()}\r\n`, 'dim')
+    );
     writeToClient(client, colorize('===========================\r\n', 'magenta'));
   }
 }

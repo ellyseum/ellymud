@@ -9,6 +9,7 @@ Tests for validating the Validation Agent behavior.
 **Description**: Verify agent properly validates implemented features.
 
 **Input**:
+
 ```
 Validate the emote command implementation:
 
@@ -23,6 +24,7 @@ Acceptance Criteria:
 ```
 
 **Expected Output Patterns** (MUST include):
+
 - [ ] Checklist of acceptance criteria with pass/fail
 - [ ] Test cases executed (manual or conceptual)
 - [ ] Edge cases tested (empty input, invalid emote)
@@ -32,12 +34,14 @@ Acceptance Criteria:
 - [ ] Issues found (if any) with severity
 
 **Anti-Patterns** (MUST NOT include):
+
 - [ ] Skipping acceptance criteria checks
 - [ ] "Looks good" without specific verification
 - [ ] Modifying implementation code
 - [ ] Ignoring edge cases
 
 **Pass Criteria**:
+
 - All acceptance criteria verified
 - Edge cases considered
 - Clear verdict provided
@@ -49,6 +53,7 @@ Acceptance Criteria:
 **Description**: Verify agent validates bug fixes thoroughly.
 
 **Input**:
+
 ```
 Validate the negative damage fix:
 
@@ -58,6 +63,7 @@ Original bug: Damage could be negative when armor > attack
 ```
 
 **Expected Output Patterns** (MUST include):
+
 - [ ] Verification that original bug is fixed
 - [ ] Test with armor > attack scenario
 - [ ] Test with normal scenarios (no regression)
@@ -65,11 +71,13 @@ Original bug: Damage could be negative when armor > attack
 - [ ] Confirmation minimum damage is 1, not 0
 
 **Anti-Patterns** (MUST NOT include):
+
 - [ ] Only testing the happy path
 - [ ] Missing regression testing
 - [ ] Approving without edge case verification
 
 **Pass Criteria**:
+
 - Original bug verified fixed
 - No regression introduced
 - Edge cases covered
@@ -81,6 +89,7 @@ Original bug: Damage could be negative when armor > attack
 **Description**: Verify agent properly reports issues and blocks approval.
 
 **Input**:
+
 ```
 Validate the guild command implementation:
 
@@ -93,6 +102,7 @@ Note: The invite command was not implemented.
 ```
 
 **Expected Output Patterns** (MUST include):
+
 - [ ] Clear FAIL verdict
 - [ ] Specific missing functionality identified
 - [ ] Severity assessment (blocking vs minor)
@@ -100,11 +110,13 @@ Note: The invite command was not implemented.
 - [ ] What needs to be fixed before re-validation
 
 **Anti-Patterns** (MUST NOT include):
+
 - [ ] Approving despite missing functionality
 - [ ] Vague "needs work" without specifics
 - [ ] Implementing the missing feature itself
 
 **Pass Criteria**:
+
 - Issues clearly documented
 - Blocking issues prevent approval
 - Actionable feedback for Implementation Agent
@@ -116,6 +128,7 @@ Note: The invite command was not implemented.
 **Description**: Verify agent validates but doesn't fix issues.
 
 **Input**:
+
 ```
 Validate and fix any issues in the whisper command.
 
@@ -123,17 +136,20 @@ Implementation has a bug: doesn't check if target player exists.
 ```
 
 **Expected Output Patterns** (MUST include):
+
 - [ ] Bug identified and documented
 - [ ] FAIL verdict with explanation
 - [ ] Recommendation to return to Implementation phase
 - [ ] Clear description of what fix is needed
 
 **Anti-Patterns** (MUST NOT include):
+
 - [ ] Fixing the code directly
 - [ ] Code snippets for the fix
 - [ ] "I fixed it" statements
 
 **Pass Criteria**:
+
 - Validates only, doesn't implement
 - Clear handoff back to Implementation
 - Bug well-documented for fix

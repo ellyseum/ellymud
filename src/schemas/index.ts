@@ -4,7 +4,7 @@ import Ajv from 'ajv';
 export const ajv = new Ajv({
   allErrors: true, // Return all errors, not just the first one
   removeAdditional: false, // Don't remove properties not in the schema
-  useDefaults: true // Apply default values from the schema
+  useDefaults: true, // Apply default values from the schema
 });
 
 // Room schema
@@ -24,21 +24,21 @@ export const roomSchema = {
           required: ['direction', 'roomId'],
           properties: {
             direction: { type: 'string' },
-            roomId: { type: 'string' }
-          }
-        }
+            roomId: { type: 'string' },
+          },
+        },
       },
       npcs: {
         type: 'array',
         items: {
-          type: 'string'
-        }
+          type: 'string',
+        },
       },
       items: {
         type: 'array',
         items: {
-          type: 'string'
-        }
+          type: 'string',
+        },
       },
       itemInstances: {
         type: 'array',
@@ -47,21 +47,21 @@ export const roomSchema = {
           anyOf: [
             { type: 'string' },
             { type: 'object', additionalProperties: true },
-            { type: 'null' } // Also allow null items if they exist
-          ]
-        }
+            { type: 'null' }, // Also allow null items if they exist
+          ],
+        },
       },
       currency: {
         type: 'object',
         properties: {
           gold: { type: 'number' },
           silver: { type: 'number' },
-          copper: { type: 'number' }
-        }
-      }
+          copper: { type: 'number' },
+        },
+      },
     },
-    additionalProperties: true
-  }
+    additionalProperties: true,
+  },
 };
 
 // User schema
@@ -87,9 +87,9 @@ export const userSchema = {
       charisma: { type: 'number' },
       attack: { type: 'number' },
       defense: { type: 'number' },
-      equipment: { 
+      equipment: {
         type: 'object',
-        additionalProperties: true
+        additionalProperties: true,
       },
       joinDate: { type: 'string' },
       lastLogin: { type: 'string' },
@@ -99,25 +99,25 @@ export const userSchema = {
         properties: {
           items: {
             type: 'array',
-            items: { type: 'string' }
+            items: { type: 'string' },
           },
           currency: {
             type: 'object',
             properties: {
               gold: { type: 'number' },
               silver: { type: 'number' },
-              copper: { type: 'number' }
-            }
-          }
-        }
+              copper: { type: 'number' },
+            },
+          },
+        },
       },
       commandHistory: {
         type: 'array',
-        items: { type: 'string' }
-      }
+        items: { type: 'string' },
+      },
     },
-    additionalProperties: true
-  }
+    additionalProperties: true,
+  },
 };
 
 // Item schema
@@ -136,20 +136,20 @@ export const itemSchema = {
       weight: { type: 'number' },
       stats: {
         type: 'object',
-        additionalProperties: true
+        additionalProperties: true,
       },
       requirements: {
         type: 'object',
-        additionalProperties: true
+        additionalProperties: true,
       },
       portable: { type: 'boolean' },
-      properties: { 
+      properties: {
         type: 'object',
-        additionalProperties: true 
-      }
+        additionalProperties: true,
+      },
     },
-    additionalProperties: true
-  }
+    additionalProperties: true,
+  },
 };
 
 // Item instance schema
@@ -170,8 +170,8 @@ export const itemInstanceSchema = {
             type: 'object',
             properties: {
               current: { type: 'number' },
-              max: { type: 'number' }
-            }
+              max: { type: 'number' },
+            },
           },
           quality: { type: 'string' },
           customName: { type: 'string' },
@@ -179,13 +179,13 @@ export const itemInstanceSchema = {
             type: 'array',
             items: {
               type: 'object',
-              additionalProperties: true
-            }
+              additionalProperties: true,
+            },
           },
           soulbound: { type: 'boolean' },
-          boundTo: { type: 'string' }
+          boundTo: { type: 'string' },
         },
-        additionalProperties: true
+        additionalProperties: true,
       },
       history: {
         type: 'array',
@@ -194,13 +194,13 @@ export const itemInstanceSchema = {
           properties: {
             timestamp: { type: 'string' },
             event: { type: 'string' },
-            details: { type: 'string' }
-          }
-        }
-      }
+            details: { type: 'string' },
+          },
+        },
+      },
     },
-    additionalProperties: true
-  }
+    additionalProperties: true,
+  },
 };
 
 // NPC schema
@@ -216,15 +216,15 @@ export const npcSchema = {
       dialogue: {
         type: 'object',
         additionalProperties: {
-          type: 'string'
-        }
+          type: 'string',
+        },
       },
       inventory: {
         type: 'array',
-        items: { type: 'string' }
-      }
-    }
-  }
+        items: { type: 'string' },
+      },
+    },
+  },
 };
 
 // Compile validators

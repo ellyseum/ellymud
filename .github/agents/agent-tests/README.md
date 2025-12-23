@@ -11,6 +11,7 @@ The Agent Test Harness ensures that changes to agent definitions don't introduce
 Before running automated tests, ensure the following are installed and configured:
 
 ### 1. Node.js / npm
+
 ```bash
 # Check if installed
 node --version
@@ -20,6 +21,7 @@ npm --version
 ```
 
 ### 2. GitHub Copilot CLI
+
 ```bash
 # Option A: Install globally
 npm install -g @githubnext/github-copilot-cli
@@ -31,6 +33,7 @@ npm install -g @githubnext/github-copilot-cli
 > **Note**: The old `gh copilot` extension is deprecated. The test runner uses `npx` to auto-download the CLI if not installed globally.
 
 ### 3. jq (JSON processor)
+
 ```bash
 # Check if installed
 jq --version
@@ -40,6 +43,7 @@ sudo apt install jq
 ```
 
 ### Quick Bootstrap Verification
+
 ```bash
 # Run this to check all prerequisites
 npm run test:agents:dry
@@ -89,16 +93,16 @@ For when CLI automation isn't available:
 
 ## Command Reference
 
-| Command | Description |
-|---------|-------------|
-| `./run-tests.sh` | Run all tests |
-| `./run-tests.sh <agent>` | Run tests for specific agent |
-| `./run-tests.sh <agent> <test-id>` | Run specific test |
-| `./run-tests.sh --list` | List test files |
-| `./run-tests.sh --show-tests` | List all test IDs |
-| `./run-tests.sh --validate` | Check naming convention |
-| `./run-tests.sh --dry-run [args]` | Preview without running |
-| `./run-tests.sh --check-output <file> <test-id>` | Validate existing output |
+| Command                                          | Description                  |
+| ------------------------------------------------ | ---------------------------- |
+| `./run-tests.sh`                                 | Run all tests                |
+| `./run-tests.sh <agent>`                         | Run tests for specific agent |
+| `./run-tests.sh <agent> <test-id>`               | Run specific test            |
+| `./run-tests.sh --list`                          | List test files              |
+| `./run-tests.sh --show-tests`                    | List all test IDs            |
+| `./run-tests.sh --validate`                      | Check naming convention      |
+| `./run-tests.sh --dry-run [args]`                | Preview without running      |
+| `./run-tests.sh --check-output <file> <test-id>` | Validate existing output     |
 
 ## Test Definitions
 
@@ -107,6 +111,7 @@ Tests are defined in two formats:
 ### JSON Format (for automation)
 
 `test-definitions.json`:
+
 ```json
 {
   "id": "TC-R01",
@@ -123,12 +128,12 @@ Detailed test cases in `test-cases/*.md` with full context.
 
 ## Test Case Files
 
-| File | Agent Tested | Test Count |
-|------|--------------|------------|
-| `test-cases/research.agent-tests.md` | Research Agent | 5 |
-| `test-cases/planning.agent-tests.md` | Planning Agent | 5 |
-| `test-cases/implementation.agent-tests.md` | Implementation Agent | 4 |
-| `test-cases/validation.agent-tests.md` | Validation Agent | 4 |
+| File                                       | Agent Tested         | Test Count |
+| ------------------------------------------ | -------------------- | ---------- |
+| `test-cases/research.agent-tests.md`       | Research Agent       | 5          |
+| `test-cases/planning.agent-tests.md`       | Planning Agent       | 5          |
+| `test-cases/implementation.agent-tests.md` | Implementation Agent | 4          |
+| `test-cases/validation.agent-tests.md`     | Validation Agent     | 4          |
 
 **Naming Convention**: `<agent-name>.agent-tests.md`
 
@@ -146,14 +151,15 @@ Detailed test cases in `test-cases/*.md` with full context.
 
 ```markdown
 ## Test Run: [Date]
+
 **Agent**: [Agent name]
 **Version**: [Version being tested]
 **Tester**: [Your name or "automated"]
 
-| Test ID | Result | Notes |
-|---------|--------|-------|
-| TC-R01 | ✅ PASS | |
-| TC-R02 | ❌ FAIL | Missing risk analysis section |
+| Test ID | Result  | Notes                         |
+| ------- | ------- | ----------------------------- |
+| TC-R01  | ✅ PASS |                               |
+| TC-R02  | ❌ FAIL | Missing risk analysis section |
 ```
 
 ## When to Run Tests
@@ -176,12 +182,14 @@ The Post-Mortem Agent should reference test results when analyzing pipeline fail
 ## Pass/Fail Criteria
 
 ### PASS
+
 - All expected output patterns present
 - No anti-patterns detected
 - Output follows agent's defined structure
 - Output is actionable and complete
 
 ### FAIL
+
 - Missing expected patterns
 - Anti-patterns detected
 - Structural violations

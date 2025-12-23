@@ -11,40 +11,42 @@ The `UserManager` singleton handles all user-related operations including authen
 **Purpose**: Singleton managing all user data and operations
 
 **Key Exports**:
+
 ```typescript
 export class UserManager {
-  static getInstance(): UserManager
-  
+  static getInstance(): UserManager;
+
   // Authentication
-  validateCredentials(username: string, password: string): User | null
-  createUser(username: string, password: string): User
-  
+  validateCredentials(username: string, password: string): User | null;
+  createUser(username: string, password: string): User;
+
   // Session management
-  getActiveSession(username: string): ConnectedClient | undefined
-  setActiveSession(username: string, client: ConnectedClient): void
-  removeActiveSession(username: string): void
-  
+  getActiveSession(username: string): ConnectedClient | undefined;
+  setActiveSession(username: string, client: ConnectedClient): void;
+  removeActiveSession(username: string): void;
+
   // User data
-  getUser(username: string): User | undefined
-  getAllUsers(): User[]
-  saveUsers(): void
-  
+  getUser(username: string): User | undefined;
+  getAllUsers(): User[];
+  saveUsers(): void;
+
   // Stats management
-  updateUserStats(username: string, stats: Partial<UserStats>): void
-  getUserStats(username: string): UserStats | undefined
-  
+  updateUserStats(username: string, stats: Partial<UserStats>): void;
+  getUserStats(username: string): UserStats | undefined;
+
   // Inventory
-  addItemToInventory(username: string, item: Item): void
-  removeItemFromInventory(username: string, itemId: string): void
-  
+  addItemToInventory(username: string, item: Item): void;
+  removeItemFromInventory(username: string, itemId: string): void;
+
   // Transfer handling
-  initiateTranfer(username: string, newClient: ConnectedClient): void
-  completeTransfer(username: string): void
-  cancelTransfer(username: string): void
+  initiateTranfer(username: string, newClient: ConnectedClient): void;
+  completeTransfer(username: string): void;
+  cancelTransfer(username: string): void;
 }
 ```
 
 **Singleton Pattern**:
+
 ```typescript
 // ✅ Correct
 const userManager = UserManager.getInstance();
@@ -62,10 +64,10 @@ interface User {
   salt: string;
   isAdmin: boolean;
   flags: string[];
-  
+
   // Location
   currentRoomId: string;
-  
+
   // Character stats
   health: number;
   maxHealth: number;
@@ -73,7 +75,7 @@ interface User {
   maxMana: number;
   experience: number;
   level: number;
-  
+
   // Attributes
   strength: number;
   dexterity: number;
@@ -81,24 +83,24 @@ interface User {
   constitution: number;
   wisdom: number;
   charisma: number;
-  
+
   // Economy
   gold: number;
   silver: number;
   copper: number;
-  
+
   // Items
   inventory: Item[];
   equipment: Equipment;
-  
+
   // State
   inCombat: boolean;
   isUnconscious: boolean;
-  
+
   // Tracking
   createdAt: Date;
   lastLogin: Date;
-  playTime: number;  // seconds
+  playTime: number; // seconds
 }
 ```
 
@@ -139,7 +141,7 @@ userManager.addItemToInventory(username, item);
 
 // ❌ Don't modify user object directly without saving
 const user = userManager.getUser(username);
-user.health = 50;  // Changes lost without save!
+user.health = 50; // Changes lost without save!
 ```
 
 ### Saving Data
@@ -184,7 +186,7 @@ if (!user) {
 // Update multiple stats
 userManager.updateUserStats(username, {
   health: Math.max(0, user.health - damage),
-  experience: user.experience + xpGained
+  experience: user.experience + xpGained,
 });
 ```
 

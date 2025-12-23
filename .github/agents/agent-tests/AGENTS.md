@@ -86,13 +86,16 @@ Each test case follows this structure:
 [Sample user request or context]
 
 **Expected Output Patterns** (MUST include):
+
 - Pattern 1 that should appear
 - Pattern 2 that should appear
 
 **Anti-Patterns** (MUST NOT include):
+
 - Pattern that should NOT appear
 
 **Pass Criteria**:
+
 - All expected patterns present
 - No anti-patterns present
 ```
@@ -120,29 +123,33 @@ Each test case follows this structure:
 
 ## Test Coverage
 
-| Agent | Test File | Test IDs |
-|-------|-----------|----------|
-| Research | `research.agent-tests.md` | TC-R01, TC-R02 |
-| Planning | `planning.agent-tests.md` | TC-P01, TC-P02 |
+| Agent          | Test File                       | Test IDs       |
+| -------------- | ------------------------------- | -------------- |
+| Research       | `research.agent-tests.md`       | TC-R01, TC-R02 |
+| Planning       | `planning.agent-tests.md`       | TC-P01, TC-P02 |
 | Implementation | `implementation.agent-tests.md` | TC-I01, TC-I02 |
-| Validation | `validation.agent-tests.md` | TC-V01, TC-V02 |
+| Validation     | `validation.agent-tests.md`     | TC-V01, TC-V02 |
 
 ## Troubleshooting
 
 ### Script hangs at CLI check
+
 The old `copilot` wrapper from `gh-copilot` prompts interactively. The test runner
 avoids this, but if you have issues:
+
 ```bash
 # Remove old extension
 gh extension remove gh-copilot
 ```
 
 ### "jq not found"
+
 ```bash
 sudo apt install jq
 ```
 
 ### No npx available
+
 Install Node.js from https://nodejs.org/
 
 ## Related

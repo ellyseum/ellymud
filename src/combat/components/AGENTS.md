@@ -25,10 +25,10 @@ CombatSystem
 
 ```typescript
 export class EntityTracker {
-  getEntitiesInRoom(roomId: string): CombatEntity[]
-  addEntity(roomId: string, entity: CombatEntity): void
-  removeEntity(roomId: string, entityId: string): void
-  findEntityByName(roomId: string, name: string): CombatEntity | undefined
+  getEntitiesInRoom(roomId: string): CombatEntity[];
+  addEntity(roomId: string, entity: CombatEntity): void;
+  removeEntity(roomId: string, entityId: string): void;
+  findEntityByName(roomId: string, name: string): CombatEntity | undefined;
 }
 ```
 
@@ -40,9 +40,9 @@ export class EntityTracker {
 
 ```typescript
 export class CombatProcessor {
-  processTurn(combat: Combat): CombatResult
-  calculateDamage(attacker: CombatEntity, defender: CombatEntity): number
-  applyDamage(target: CombatEntity, damage: number): void
+  processTurn(combat: Combat): CombatResult;
+  calculateDamage(attacker: CombatEntity, defender: CombatEntity): number;
+  applyDamage(target: CombatEntity, damage: number): void;
 }
 ```
 
@@ -54,10 +54,10 @@ export class CombatProcessor {
 
 ```typescript
 export class CombatNotifier {
-  notifyPlayer(client: ConnectedClient, message: string): void
-  notifyRoom(roomId: string, message: string, exclude?: string[]): void
-  notifyCombatStart(client: ConnectedClient, npc: NPC): void
-  notifyCombatEnd(client: ConnectedClient, result: CombatResult): void
+  notifyPlayer(client: ConnectedClient, message: string): void;
+  notifyRoom(roomId: string, message: string, exclude?: string[]): void;
+  notifyCombatStart(client: ConnectedClient, npc: NPC): void;
+  notifyCombatEnd(client: ConnectedClient, result: CombatResult): void;
 }
 ```
 
@@ -69,9 +69,9 @@ export class CombatNotifier {
 
 ```typescript
 export class PlayerDeathHandler {
-  handlePlayerHealth(client: ConnectedClient, roomId: string): void
-  respawnPlayer(client: ConnectedClient): void
-  applyDeathPenalty(client: ConnectedClient): void
+  handlePlayerHealth(client: ConnectedClient, roomId: string): void;
+  respawnPlayer(client: ConnectedClient): void;
+  applyDeathPenalty(client: ConnectedClient): void;
 }
 ```
 
@@ -83,13 +83,14 @@ export class PlayerDeathHandler {
 
 ```typescript
 export class CombatEventBus {
-  on(event: string, handler: Function): void
-  emit(event: string, data: any): void
-  off(event: string, handler: Function): void
+  on(event: string, handler: Function): void;
+  emit(event: string, data: any): void;
+  off(event: string, handler: Function): void;
 }
 ```
 
 **Events**:
+
 - `player.damage` - Player took damage
 - `npc.damage` - NPC took damage
 - `combat.start` - Combat initiated
@@ -102,12 +103,12 @@ export class CombatEventBus {
 
 ```typescript
 export interface CombatCommand {
-  execute(): void
-  undo(): void
+  execute(): void;
+  undo(): void;
 }
 
-export class AttackCommand implements CombatCommand { }
-export class FleeCommand implements CombatCommand { }
+export class AttackCommand implements CombatCommand {}
+export class FleeCommand implements CombatCommand {}
 ```
 
 ### `CombatState.ts`
@@ -116,13 +117,13 @@ export class FleeCommand implements CombatCommand { }
 
 ```typescript
 export interface CombatState {
-  enter(combat: Combat): void
-  processTurn(combat: Combat): CombatState
-  exit(combat: Combat): void
+  enter(combat: Combat): void;
+  processTurn(combat: Combat): CombatState;
+  exit(combat: Combat): void;
 }
 
-export class ActiveCombatState implements CombatState { }
-export class FleeingCombatState implements CombatState { }
+export class ActiveCombatState implements CombatState {}
+export class FleeingCombatState implements CombatState {}
 ```
 
 ## Conventions
@@ -138,7 +139,7 @@ export interface IMyComponent {
 // 2. Implement component
 export class MyComponent implements IMyComponent {
   constructor(private dependencies: Dependencies) {}
-  
+
   doThing(): void {
     // Implementation
   }
@@ -157,7 +158,7 @@ constructor() {
 this.eventBus.emit('combat.damage', {
   target: client,
   amount: damage,
-  source: npc
+  source: npc,
 });
 
 // Listening for events

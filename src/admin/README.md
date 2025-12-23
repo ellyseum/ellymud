@@ -4,9 +4,9 @@ Backend API for the web-based admin dashboard, providing user management and ser
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `adminApi.ts` | Express routes for all admin endpoints |
+| File           | Description                                |
+| -------------- | ------------------------------------------ |
+| `adminApi.ts`  | Express routes for all admin endpoints     |
 | `adminAuth.ts` | Authentication middleware for admin access |
 
 ## Features
@@ -29,16 +29,16 @@ All admin endpoints require authentication:
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/users` | List all users |
-| GET | `/api/admin/users/:id` | Get specific user |
-| PUT | `/api/admin/users/:id` | Update user |
-| DELETE | `/api/admin/users/:id` | Delete user |
-| GET | `/api/admin/sessions` | Active sessions |
-| GET | `/api/admin/stats` | Server statistics |
-| GET | `/api/admin/config` | Current config |
-| POST | `/api/admin/config` | Update config |
+| Method | Endpoint               | Description       |
+| ------ | ---------------------- | ----------------- |
+| GET    | `/api/admin/users`     | List all users    |
+| GET    | `/api/admin/users/:id` | Get specific user |
+| PUT    | `/api/admin/users/:id` | Update user       |
+| DELETE | `/api/admin/users/:id` | Delete user       |
+| GET    | `/api/admin/sessions`  | Active sessions   |
+| GET    | `/api/admin/stats`     | Server statistics |
+| GET    | `/api/admin/config`    | Current config    |
+| POST   | `/api/admin/config`    | Update config     |
 
 ## Related
 

@@ -4,8 +4,8 @@ JSON Schema definitions for validating game data files.
 
 ## Contents
 
-| File | Description |
-|------|-------------|
+| File       | Description                             |
+| ---------- | --------------------------------------- |
 | `index.ts` | Schema exports and validation functions |
 
 ## Purpose
@@ -20,6 +20,7 @@ Schemas validate JSON data files to ensure data integrity:
 ## Validated Files
 
 Schemas exist for:
+
 - `users.json` - User account structure
 - `rooms.json` - Room definitions
 - `items.json` - Item templates

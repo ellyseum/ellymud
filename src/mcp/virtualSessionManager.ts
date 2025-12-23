@@ -29,27 +29,29 @@ export class VirtualSessionManager {
     // Username must be letters only (3-12 chars) per game rules
     const finalUsername = username || this.generateRandomUsername();
     const password = crypto.randomBytes(8).toString('hex');
-    
+
     // Validate username format (letters only, 3-12 chars)
     if (!/^[a-zA-Z]{3,12}$/.test(finalUsername)) {
-      throw new Error(`Invalid username '${finalUsername}': must be 3-12 letters only (no numbers or special characters)`);
+      throw new Error(
+        `Invalid username '${finalUsername}': must be 3-12 letters only (no numbers or special characters)`
+      );
     }
-    
+
     // Check if user already exists
     if (this.userManager.userExists(finalUsername)) {
       throw new Error(`User '${finalUsername}' already exists`);
     }
-    
+
     // Create the user
     const success = this.userManager.createUser(finalUsername, password);
     if (!success) {
       throw new Error(`Failed to create temp user '${finalUsername}'`);
     }
-    
+
     // Track as temp user for cleanup
     this.tempUsers.add(finalUsername.toLowerCase());
     mcpLogger.info(`Created temp user: ${finalUsername}`);
-    
+
     return { username: finalUsername, password };
   }
 
@@ -72,14 +74,16 @@ export class VirtualSessionManager {
    */
   directLogin(username: string): VirtualSession {
     const lowerUsername = username.toLowerCase();
-    
+
     // Validate username format if creating new user
     if (!this.userManager.userExists(lowerUsername)) {
       // Validate username format (letters only, 3-12 chars)
       if (!/^[a-zA-Z]{3,12}$/.test(lowerUsername)) {
-        throw new Error(`Invalid username '${username}': must be 3-12 letters only (no numbers or special characters)`);
+        throw new Error(
+          `Invalid username '${username}': must be 3-12 letters only (no numbers or special characters)`
+        );
       }
-      
+
       const password = crypto.randomBytes(8).toString('hex');
       const success = this.userManager.createUser(lowerUsername, password);
       if (!success) {
@@ -88,35 +92,37 @@ export class VirtualSessionManager {
       this.tempUsers.add(lowerUsername);
       mcpLogger.info(`Created temp user for direct login: ${username}`);
     }
-    
+
     // Create virtual session
     const connection = new VirtualConnection();
     const client = this.clientManager.setupClient(connection);
-    
+
     // Get the user and directly authenticate
     const user = this.userManager.getUser(lowerUsername);
     if (!user) {
       throw new Error(`User '${username}' not found after creation`);
     }
-    
+
     // Set up the client as authenticated
     client.user = user;
     client.authenticated = true;
     client.state = ClientStateType.AUTHENTICATED;
-    
+
     // Register user session
     this.userManager.updateLastLogin(lowerUsername);
     this.userManager.registerUserSession(lowerUsername, client);
-    
+
     // Clear any login state data and output buffer
     client.stateData = {};
     connection.clearOutput();
-    
+
     const session = new VirtualSession(connection, client);
     this.sessions.set(connection.getId(), session);
-    
-    mcpLogger.info(`Direct login session created for: ${username} (sessionId: ${connection.getId()})`);
-    
+
+    mcpLogger.info(
+      `Direct login session created for: ${username} (sessionId: ${connection.getId()})`
+    );
+
     return session;
   }
 
@@ -144,10 +150,10 @@ export class VirtualSessionManager {
   createSession(sessionId?: string): VirtualSession {
     const connection = new VirtualConnection(sessionId);
     const client = this.clientManager.setupClient(connection);
-    
+
     const session = new VirtualSession(connection, client);
     this.sessions.set(connection.getId(), session);
-    
+
     mcpLogger.info(`Created virtual session: ${connection.getId()}`);
     return session;
   }
@@ -186,18 +192,18 @@ export class VirtualSessionManager {
   cleanupInactiveSessions(maxAgeMs: number = 3600000): number {
     let cleaned = 0;
     const now = Date.now();
-    
+
     for (const [sessionId, session] of this.sessions.entries()) {
-      if (!session.isActive() || (now - session.getLastActivity()) > maxAgeMs) {
+      if (!session.isActive() || now - session.getLastActivity() > maxAgeMs) {
         this.closeSession(sessionId);
         cleaned++;
       }
     }
-    
+
     if (cleaned > 0) {
       mcpLogger.info(`Cleaned up ${cleaned} inactive virtual sessions`);
     }
-    
+
     return cleaned;
   }
 }

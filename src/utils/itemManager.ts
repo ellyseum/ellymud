@@ -1,23 +1,20 @@
-import fs from "fs";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
-import config from "../config";
-import {
-  EquipmentSlot,
-  GameItem,
-  ItemInstance,
-  User
-} from "../types";
-import { loadAndValidateJsonFile } from "./fileUtils";
-import { parseAndValidateJson } from "./jsonUtils";
-import { createContextLogger } from "./logger";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Item manager uses dynamic typing for flexible item property handling
+import fs from 'fs';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import config from '../config';
+import { EquipmentSlot, GameItem, ItemInstance, User } from '../types';
+import { loadAndValidateJsonFile } from './fileUtils';
+import { parseAndValidateJson } from './jsonUtils';
+import { createContextLogger } from './logger';
 
 // Create a context-specific logger for ItemManager
-const itemLogger = createContextLogger("ItemManager");
+const itemLogger = createContextLogger('ItemManager');
 
-const DATA_DIR = path.join(__dirname, "..", "..", "data");
-const ITEMS_FILE = path.join(DATA_DIR, "items.json");
-const ITEM_INSTANCES_FILE = path.join(DATA_DIR, "itemInstances.json");
+const DATA_DIR = path.join(__dirname, '..', '..', 'data');
+const ITEMS_FILE = path.join(DATA_DIR, 'items.json');
+const ITEM_INSTANCES_FILE = path.join(DATA_DIR, 'itemInstances.json');
 
 export class ItemManager {
   private static instance: ItemManager | null = null;
@@ -51,7 +48,7 @@ export class ItemManager {
       this.items.set(item.id, item);
     });
 
-    itemLogger.info("Pre-validated items loaded successfully");
+    itemLogger.info('Pre-validated items loaded successfully');
   }
 
   /**
@@ -59,9 +56,7 @@ export class ItemManager {
    * @param instanceData An array of validated item instance data objects
    */
   public loadPrevalidatedItemInstances(instanceData: ItemInstance[]): void {
-    itemLogger.info(
-      `Loading ${instanceData.length} pre-validated item instances...`
-    );
+    itemLogger.info(`Loading ${instanceData.length} pre-validated item instances...`);
 
     // Clear existing instances to prevent duplicates
     this.itemInstances.clear();
@@ -79,24 +74,21 @@ export class ItemManager {
       this.itemInstances.set(instance.instanceId, instance);
     });
 
-    itemLogger.info("Pre-validated item instances loaded successfully");
+    itemLogger.info('Pre-validated item instances loaded successfully');
   }
 
   private loadItems(): void {
     // First try to load items from command line argument if provided
     if (config.DIRECT_ITEMS_DATA) {
       try {
-        const itemData = parseAndValidateJson<GameItem[]>(
-          config.DIRECT_ITEMS_DATA,
-          "items"
-        );
+        const itemData = parseAndValidateJson<GameItem[]>(config.DIRECT_ITEMS_DATA, 'items');
 
         if (itemData && Array.isArray(itemData)) {
           this.loadPrevalidatedItems(itemData);
           return; // Successfully loaded from command line
         }
       } catch (error) {
-        itemLogger.error("Failed to load items from command line:", error);
+        itemLogger.error('Failed to load items from command line:', error);
       }
     }
 
@@ -117,7 +109,7 @@ export class ItemManager {
     }
 
     // Validate file data using our validation system
-    const itemData = loadAndValidateJsonFile<GameItem[]>(ITEMS_FILE, "items");
+    const itemData = loadAndValidateJsonFile<GameItem[]>(ITEMS_FILE, 'items');
 
     if (itemData && Array.isArray(itemData)) {
       this.loadPrevalidatedItems(itemData);
@@ -134,10 +126,10 @@ export class ItemManager {
     const defaultItems: GameItem[] = [
       // Weapons
       {
-        id: "sword-001",
-        name: "Iron Sword",
-        description: "A sturdy iron sword with a sharp edge.",
-        type: "weapon",
+        id: 'sword-001',
+        name: 'Iron Sword',
+        description: 'A sturdy iron sword with a sharp edge.',
+        type: 'weapon',
         slot: EquipmentSlot.MAIN_HAND,
         value: 50,
         weight: 5,
@@ -151,10 +143,10 @@ export class ItemManager {
         },
       },
       {
-        id: "shield-001",
-        name: "Wooden Shield",
-        description: "A basic wooden shield that provides some protection.",
-        type: "armor",
+        id: 'shield-001',
+        name: 'Wooden Shield',
+        description: 'A basic wooden shield that provides some protection.',
+        type: 'armor',
         slot: EquipmentSlot.OFF_HAND,
         value: 30,
         weight: 4,
@@ -164,10 +156,10 @@ export class ItemManager {
         },
       },
       {
-        id: "helmet-001",
-        name: "Leather Cap",
-        description: "A simple leather cap that offers minimal protection.",
-        type: "armor",
+        id: 'helmet-001',
+        name: 'Leather Cap',
+        description: 'A simple leather cap that offers minimal protection.',
+        type: 'armor',
         slot: EquipmentSlot.HEAD,
         value: 25,
         weight: 2,
@@ -176,10 +168,10 @@ export class ItemManager {
         },
       },
       {
-        id: "amulet-001",
-        name: "Copper Amulet",
-        description: "A simple amulet made of copper.",
-        type: "armor",
+        id: 'amulet-001',
+        name: 'Copper Amulet',
+        description: 'A simple amulet made of copper.',
+        type: 'armor',
         slot: EquipmentSlot.NECK,
         value: 35,
         weight: 1,
@@ -189,10 +181,10 @@ export class ItemManager {
         },
       },
       {
-        id: "chest-001",
-        name: "Padded Tunic",
-        description: "A padded tunic that offers some protection.",
-        type: "armor",
+        id: 'chest-001',
+        name: 'Padded Tunic',
+        description: 'A padded tunic that offers some protection.',
+        type: 'armor',
         slot: EquipmentSlot.CHEST,
         value: 45,
         weight: 6,
@@ -202,10 +194,10 @@ export class ItemManager {
         },
       },
       {
-        id: "cloak-001",
+        id: 'cloak-001',
         name: "Traveler's Cloak",
-        description: "A warm cloak that keeps you dry in the rain.",
-        type: "armor",
+        description: 'A warm cloak that keeps you dry in the rain.',
+        type: 'armor',
         slot: EquipmentSlot.BACK,
         value: 20,
         weight: 3,
@@ -215,10 +207,10 @@ export class ItemManager {
         },
       },
       {
-        id: "arms-001",
-        name: "Leather Bracers",
-        description: "Protective bracers made of hardened leather.",
-        type: "armor",
+        id: 'arms-001',
+        name: 'Leather Bracers',
+        description: 'Protective bracers made of hardened leather.',
+        type: 'armor',
         slot: EquipmentSlot.ARMS,
         value: 30,
         weight: 2,
@@ -228,10 +220,10 @@ export class ItemManager {
         },
       },
       {
-        id: "gloves-001",
-        name: "Leather Gloves",
-        description: "Simple gloves that protect your hands.",
-        type: "armor",
+        id: 'gloves-001',
+        name: 'Leather Gloves',
+        description: 'Simple gloves that protect your hands.',
+        type: 'armor',
         slot: EquipmentSlot.HANDS,
         value: 15,
         weight: 1,
@@ -241,10 +233,10 @@ export class ItemManager {
         },
       },
       {
-        id: "ring-001",
-        name: "Silver Ring",
-        description: "A simple silver ring.",
-        type: "armor",
+        id: 'ring-001',
+        name: 'Silver Ring',
+        description: 'A simple silver ring.',
+        type: 'armor',
         slot: EquipmentSlot.FINGER,
         value: 50,
         weight: 0.1,
@@ -253,10 +245,10 @@ export class ItemManager {
         },
       },
       {
-        id: "belt-001",
-        name: "Leather Belt",
-        description: "A sturdy leather belt with a brass buckle.",
-        type: "armor",
+        id: 'belt-001',
+        name: 'Leather Belt',
+        description: 'A sturdy leather belt with a brass buckle.',
+        type: 'armor',
         slot: EquipmentSlot.WAIST,
         value: 25,
         weight: 1,
@@ -266,10 +258,10 @@ export class ItemManager {
         },
       },
       {
-        id: "legs-001",
-        name: "Leather Leggings",
-        description: "Protective leggings made of leather.",
-        type: "armor",
+        id: 'legs-001',
+        name: 'Leather Leggings',
+        description: 'Protective leggings made of leather.',
+        type: 'armor',
         slot: EquipmentSlot.LEGS,
         value: 35,
         weight: 3,
@@ -279,10 +271,10 @@ export class ItemManager {
         },
       },
       {
-        id: "boots-001",
-        name: "Leather Boots",
-        description: "Sturdy boots for long travels.",
-        type: "armor",
+        id: 'boots-001',
+        name: 'Leather Boots',
+        description: 'Sturdy boots for long travels.',
+        type: 'armor',
         slot: EquipmentSlot.FEET,
         value: 30,
         weight: 2,
@@ -300,7 +292,7 @@ export class ItemManager {
       this.items.set(item.id, item);
     });
 
-    itemLogger.info("Created and loaded default items");
+    itemLogger.info('Created and loaded default items');
   }
 
   /**
@@ -315,7 +307,7 @@ export class ItemManager {
           // Item instances might be provided in a different format, so we handle it separately
           const instanceData = parseAndValidateJson<ItemInstance[]>(
             config.DIRECT_ITEMS_DATA,
-            "items"
+            'items'
           );
 
           if (instanceData && Array.isArray(instanceData)) {
@@ -324,14 +316,14 @@ export class ItemManager {
           }
         } catch (error) {
           // This might fail if the item data doesn't include instances, which is fine
-          itemLogger.debug("No item instances found in command line data");
+          itemLogger.debug('No item instances found in command line data');
         }
       }
 
       // If no item instances from command line, try loading from file
       this.loadItemInstancesFromFile();
     } catch (error) {
-      itemLogger.error("Error loading item instances:", error);
+      itemLogger.error('Error loading item instances:', error);
       this.itemInstances = new Map();
     }
   }
@@ -344,22 +336,17 @@ export class ItemManager {
       }
 
       // Try to validate the file first
-      const instanceData = loadAndValidateJsonFile<ItemInstance[]>(
-        ITEM_INSTANCES_FILE,
-        "items"
-      );
+      const instanceData = loadAndValidateJsonFile<ItemInstance[]>(ITEM_INSTANCES_FILE, 'items');
 
       if (instanceData && Array.isArray(instanceData)) {
         this.loadPrevalidatedItemInstances(instanceData);
       } else {
         // Instead of falling back to legacy loading, throw an error
-        throw new Error(
-          "Item instance data validation failed - data must conform to the schema"
-        );
+        throw new Error('Item instance data validation failed - data must conform to the schema');
       }
     } catch (error: unknown) {
       itemLogger.error(
-        "Error loading item instances from file:",
+        'Error loading item instances from file:',
         error instanceof Error ? error.message : String(error)
       );
 
@@ -376,7 +363,7 @@ export class ItemManager {
       fs.writeFileSync(ITEM_INSTANCES_FILE, JSON.stringify(instances, null, 2));
       itemLogger.info(`Saved ${instances.length} item instances.`);
     } catch (error) {
-      itemLogger.error("Error saving item instances:", error);
+      itemLogger.error('Error saving item instances:', error);
     }
   }
 
@@ -385,7 +372,7 @@ export class ItemManager {
       const itemArray = Array.from(this.items.values());
       fs.writeFileSync(ITEMS_FILE, JSON.stringify(itemArray, null, 2));
     } catch (error) {
-      itemLogger.error("Error saving items:", error);
+      itemLogger.error('Error saving items:', error);
     }
   }
 
@@ -425,15 +412,13 @@ export class ItemManager {
    */
   public createItemInstance(
     templateId: string,
-    createdBy: string = "system",
-    properties?: Partial<ItemInstance["properties"]>
+    createdBy: string = 'system',
+    properties?: Partial<ItemInstance['properties']>
   ): ItemInstance | null {
     // Check if template exists
     const template = this.getItem(templateId);
     if (!template) {
-      itemLogger.error(
-        `Cannot create instance: Template ${templateId} not found.`
-      );
+      itemLogger.error(`Cannot create instance: Template ${templateId} not found.`);
       return null;
     }
 
@@ -441,10 +426,10 @@ export class ItemManager {
     const instanceId = uuidv4();
 
     // Set up default properties based on item type
-    const defaultProperties: ItemInstance["properties"] = {};
+    const defaultProperties: ItemInstance['properties'] = {};
 
     // Add durability for weapons and armor
-    if (template.type === "weapon" || template.type === "armor") {
+    if (template.type === 'weapon' || template.type === 'armor') {
       defaultProperties.durability = {
         current: 100,
         max: 100,
@@ -452,19 +437,19 @@ export class ItemManager {
     }
 
     // Auto-detect quality from item ID for our test items
-    if (templateId.includes("-poor")) {
-      defaultProperties.quality = "poor";
-    } else if (templateId.includes("-uncommon")) {
-      defaultProperties.quality = "uncommon";
-    } else if (templateId.includes("-rare")) {
-      defaultProperties.quality = "rare";
-    } else if (templateId.includes("-epic")) {
-      defaultProperties.quality = "epic";
-    } else if (templateId.includes("-legendary")) {
-      defaultProperties.quality = "legendary";
+    if (templateId.includes('-poor')) {
+      defaultProperties.quality = 'poor';
+    } else if (templateId.includes('-uncommon')) {
+      defaultProperties.quality = 'uncommon';
+    } else if (templateId.includes('-rare')) {
+      defaultProperties.quality = 'rare';
+    } else if (templateId.includes('-epic')) {
+      defaultProperties.quality = 'epic';
+    } else if (templateId.includes('-legendary')) {
+      defaultProperties.quality = 'legendary';
     } else {
       // Set default quality to common for all other items
-      defaultProperties.quality = "common";
+      defaultProperties.quality = 'common';
     }
 
     // Create the item instance
@@ -477,7 +462,7 @@ export class ItemManager {
       history: [
         {
           timestamp: new Date(),
-          event: "created",
+          event: 'created',
           details: `Created by ${createdBy}`,
         },
       ],
@@ -487,7 +472,7 @@ export class ItemManager {
     this.itemInstances.set(instanceId, instance);
     itemLogger.info(
       `Created item instance ${instanceId} of ${templateId} (quality: ${
-        instance.properties?.quality || "unknown"
+        instance.properties?.quality || 'unknown'
       })`
     );
 
@@ -530,11 +515,7 @@ export class ItemManager {
   /**
    * Add an event to an item's history
    */
-  public addItemHistory(
-    instanceId: string,
-    event: string,
-    details?: string
-  ): boolean {
+  public addItemHistory(instanceId: string, event: string, details?: string): boolean {
     const instance = this.itemInstances.get(instanceId);
     if (!instance) {
       itemLogger.error(`Cannot add history: Instance ${instanceId} not found.`);
@@ -574,20 +555,17 @@ export class ItemManager {
    */
   public getItemDisplayName(instanceId: string): string {
     const instance = this.getItemInstance(instanceId);
-    if (!instance) return "unknown item";
+    if (!instance) return 'unknown item';
 
     const template = this.getItem(instance.templateId);
-    if (!template) return "unknown item";
+    if (!template) return 'unknown item';
 
-    let name = "";
+    let name = '';
 
     // Add quality prefix if available
-    if (
-      instance.properties?.quality &&
-      instance.properties.quality !== "common"
-    ) {
+    if (instance.properties?.quality && instance.properties.quality !== 'common') {
       const qualityPrefix = this.getQualityPrefix(instance.properties.quality);
-      name += qualityPrefix + " ";
+      name += qualityPrefix + ' ';
     }
 
     // Use custom name if available, otherwise use template name
@@ -601,37 +579,32 @@ export class ItemManager {
    */
   public getItemDescription(instanceId: string): string {
     const instance = this.getItemInstance(instanceId);
-    if (!instance) return "You see nothing special.";
+    if (!instance) return 'You see nothing special.';
 
     const template = this.getItem(instance.templateId);
-    if (!template) return "You see nothing special.";
+    if (!template) return 'You see nothing special.';
 
     let description = template.description;
 
     // Add durability information if available
     if (instance.properties?.durability) {
       const durability = instance.properties.durability;
-      const percentage = Math.floor(
-        (durability.current / durability.max) * 100
-      );
-      let condition = "";
+      const percentage = Math.floor((durability.current / durability.max) * 100);
+      let condition = '';
 
-      if (percentage > 90) condition = "in excellent condition";
-      else if (percentage > 75) condition = "in good condition";
-      else if (percentage > 50) condition = "showing signs of wear";
-      else if (percentage > 25) condition = "badly worn";
-      else if (percentage > 10) condition = "severely damaged";
-      else condition = "about to break";
+      if (percentage > 90) condition = 'in excellent condition';
+      else if (percentage > 75) condition = 'in good condition';
+      else if (percentage > 50) condition = 'showing signs of wear';
+      else if (percentage > 25) condition = 'badly worn';
+      else if (percentage > 10) condition = 'severely damaged';
+      else condition = 'about to break';
 
       description += `\nIt appears to be ${condition}.`;
     }
 
     // Add enchantment information if available
-    if (
-      instance.properties?.enchantments &&
-      instance.properties.enchantments.length > 0
-    ) {
-      description += "\nIt gives off a magical aura.";
+    if (instance.properties?.enchantments && instance.properties.enchantments.length > 0) {
+      description += '\nIt gives off a magical aura.';
 
       instance.properties.enchantments.forEach((enchant) => {
         description += `\nIt has been enchanted with ${enchant.name}: ${enchant.effect}`;
@@ -651,20 +624,20 @@ export class ItemManager {
    */
   private getQualityPrefix(quality: string): string {
     switch (quality) {
-      case "poor":
-        return "Damaged";
-      case "common":
-        return "";
-      case "uncommon":
-        return "Fine";
-      case "rare":
-        return "Exceptional";
-      case "epic":
-        return "Magnificent";
-      case "legendary":
-        return "Legendary";
+      case 'poor':
+        return 'Damaged';
+      case 'common':
+        return '';
+      case 'uncommon':
+        return 'Fine';
+      case 'rare':
+        return 'Exceptional';
+      case 'epic':
+        return 'Magnificent';
+      case 'legendary':
+        return 'Legendary';
       default:
-        return "";
+        return '';
     }
   }
 
@@ -679,12 +652,8 @@ export class ItemManager {
     instance.properties.durability.current += change;
 
     // Make sure we don't exceed max durability
-    if (
-      instance.properties.durability.current >
-      instance.properties.durability.max
-    ) {
-      instance.properties.durability.current =
-        instance.properties.durability.max;
+    if (instance.properties.durability.current > instance.properties.durability.max) {
+      instance.properties.durability.current = instance.properties.durability.max;
     }
 
     // Check if item broke
@@ -693,11 +662,7 @@ export class ItemManager {
       instance.properties.durability.current = 0;
 
       // Add to history
-      this.addItemHistory(
-        instanceId,
-        "broke",
-        "The item has broken from wear and tear"
-      );
+      this.addItemHistory(instanceId, 'broke', 'The item has broken from wear and tear');
 
       // Save changes
       this.saveItemInstances();
@@ -720,20 +685,12 @@ export class ItemManager {
     instance.properties.durability.current += amount;
 
     // Cap at maximum durability
-    if (
-      instance.properties.durability.current >
-      instance.properties.durability.max
-    ) {
-      instance.properties.durability.current =
-        instance.properties.durability.max;
+    if (instance.properties.durability.current > instance.properties.durability.max) {
+      instance.properties.durability.current = instance.properties.durability.max;
     }
 
     // Add to history
-    this.addItemHistory(
-      instanceId,
-      "repaired",
-      `Durability restored by ${amount} points`
-    );
+    this.addItemHistory(instanceId, 'repaired', `Durability restored by ${amount} points`);
 
     // Save changes
     this.saveItemInstances();
@@ -743,11 +700,7 @@ export class ItemManager {
   /**
    * Rename an item with a custom name
    */
-  public renameItem(
-    instanceId: string,
-    newName: string,
-    renamedBy: string
-  ): boolean {
+  public renameItem(instanceId: string, newName: string, renamedBy: string): boolean {
     const instance = this.getItemInstance(instanceId);
     if (!instance) return false;
 
@@ -760,11 +713,7 @@ export class ItemManager {
     instance.properties.customName = newName;
 
     // Add to history
-    this.addItemHistory(
-      instanceId,
-      "renamed",
-      `Renamed to "${newName}" by ${renamedBy}`
-    );
+    this.addItemHistory(instanceId, 'renamed', `Renamed to "${newName}" by ${renamedBy}`);
 
     // Save changes
     this.saveItemInstances();
@@ -791,7 +740,7 @@ export class ItemManager {
     // Add to history
     this.addItemHistory(
       instanceId,
-      "name-reset",
+      'name-reset',
       `Custom name removed by ${resetBy}, reverted to "${template.name}"`
     );
 
@@ -830,11 +779,7 @@ export class ItemManager {
     });
 
     // Add to history
-    this.addItemHistory(
-      instanceId,
-      "enchanted",
-      `Enchanted with "${enchantName}": ${effect}`
-    );
+    this.addItemHistory(instanceId, 'enchanted', `Enchanted with "${enchantName}": ${effect}`);
 
     // Save changes
     this.saveItemInstances();
@@ -858,7 +803,7 @@ export class ItemManager {
     instance.properties.boundTo = playerName;
 
     // Add to history
-    this.addItemHistory(instanceId, "bound", `Bound to ${playerName}`);
+    this.addItemHistory(instanceId, 'bound', `Bound to ${playerName}`);
 
     // Save changes
     this.saveItemInstances();
@@ -957,18 +902,13 @@ export class ItemManager {
         const template = this.getTemplateForInstance(instanceId);
         if (template?.stats) {
           // Add each stat bonus
-          if (template.stats.strength)
-            bonuses.strength += template.stats.strength;
-          if (template.stats.dexterity)
-            bonuses.dexterity += template.stats.dexterity;
+          if (template.stats.strength) bonuses.strength += template.stats.strength;
+          if (template.stats.dexterity) bonuses.dexterity += template.stats.dexterity;
           if (template.stats.agility) bonuses.agility += template.stats.agility;
-          if (template.stats.constitution)
-            bonuses.constitution += template.stats.constitution;
+          if (template.stats.constitution) bonuses.constitution += template.stats.constitution;
           if (template.stats.wisdom) bonuses.wisdom += template.stats.wisdom;
-          if (template.stats.intelligence)
-            bonuses.intelligence += template.stats.intelligence;
-          if (template.stats.charisma)
-            bonuses.charisma += template.stats.charisma;
+          if (template.stats.intelligence) bonuses.intelligence += template.stats.intelligence;
+          if (template.stats.charisma) bonuses.charisma += template.stats.charisma;
         }
       });
     }
@@ -1002,11 +942,7 @@ export class ItemManager {
    * This helps commands work with names instead of just instance IDs
    */
   public findItemInInventory(user: User, itemName: string): string | null {
-    if (
-      !user.inventory ||
-      !user.inventory.items ||
-      user.inventory.items.length === 0
-    ) {
+    if (!user.inventory || !user.inventory.items || user.inventory.items.length === 0) {
       return null;
     }
 
@@ -1021,10 +957,7 @@ export class ItemManager {
       if (!instance) continue;
 
       // Check custom name if available
-      if (
-        instance.properties?.customName?.toLowerCase() ===
-        itemName.toLowerCase()
-      ) {
+      if (instance.properties?.customName?.toLowerCase() === itemName.toLowerCase()) {
         return instanceId;
       }
 
@@ -1041,20 +974,13 @@ export class ItemManager {
       if (!instance) continue;
 
       // Check custom name if available
-      if (
-        instance.properties?.customName
-          ?.toLowerCase()
-          .includes(itemName.toLowerCase())
-      ) {
+      if (instance.properties?.customName?.toLowerCase().includes(itemName.toLowerCase())) {
         return instanceId;
       }
 
       // Check template name
       const template = this.getItem(instance.templateId);
-      if (
-        template &&
-        template.name.toLowerCase().includes(itemName.toLowerCase())
-      ) {
+      if (template && template.name.toLowerCase().includes(itemName.toLowerCase())) {
         return instanceId;
       }
     }
@@ -1073,7 +999,7 @@ export class ItemManager {
 
     // Handle both string IDs and possible legacy object items in room
     const roomItems = room.items.map((item: any) =>
-      typeof item === "string" ? item : item.id || item
+      typeof item === 'string' ? item : item.id || item
     );
 
     // First try for exact instance ID match
@@ -1083,16 +1009,13 @@ export class ItemManager {
 
     // Check for exact name matches first
     for (const instanceId of roomItems) {
-      if (typeof instanceId !== "string") continue;
+      if (typeof instanceId !== 'string') continue;
 
       const instance = this.getItemInstance(instanceId);
       if (!instance) continue;
 
       // Check custom name if available
-      if (
-        instance.properties?.customName?.toLowerCase() ===
-        itemName.toLowerCase()
-      ) {
+      if (instance.properties?.customName?.toLowerCase() === itemName.toLowerCase()) {
         return instanceId;
       }
 
@@ -1105,26 +1028,19 @@ export class ItemManager {
 
     // If no exact match, check for partial matches
     for (const instanceId of roomItems) {
-      if (typeof instanceId !== "string") continue;
+      if (typeof instanceId !== 'string') continue;
 
       const instance = this.getItemInstance(instanceId);
       if (!instance) continue;
 
       // Check custom name if available
-      if (
-        instance.properties?.customName
-          ?.toLowerCase()
-          .includes(itemName.toLowerCase())
-      ) {
+      if (instance.properties?.customName?.toLowerCase().includes(itemName.toLowerCase())) {
         return instanceId;
       }
 
       // Check template name
       const template = this.getItem(instance.templateId);
-      if (
-        template &&
-        template.name.toLowerCase().includes(itemName.toLowerCase())
-      ) {
+      if (template && template.name.toLowerCase().includes(itemName.toLowerCase())) {
         return instanceId;
       }
     }
@@ -1146,11 +1062,7 @@ export class ItemManager {
 
     // First check if itemName is a slot name
     const normalizedItemName = itemName.toLowerCase();
-    if (
-      Object.keys(user.equipment).some(
-        (slot) => slot.toLowerCase() === normalizedItemName
-      )
-    ) {
+    if (Object.keys(user.equipment).some((slot) => slot.toLowerCase() === normalizedItemName)) {
       const slot = Object.keys(user.equipment).find(
         (slot) => slot.toLowerCase() === normalizedItemName
       );
@@ -1172,10 +1084,7 @@ export class ItemManager {
       if (!instance) continue;
 
       // Check custom name if available
-      if (
-        instance.properties?.customName?.toLowerCase() ===
-        itemName.toLowerCase()
-      ) {
+      if (instance.properties?.customName?.toLowerCase() === itemName.toLowerCase()) {
         return { slot, instanceId };
       }
 
@@ -1192,20 +1101,13 @@ export class ItemManager {
       if (!instance) continue;
 
       // Check custom name if available
-      if (
-        instance.properties?.customName
-          ?.toLowerCase()
-          .includes(itemName.toLowerCase())
-      ) {
+      if (instance.properties?.customName?.toLowerCase().includes(itemName.toLowerCase())) {
         return { slot, instanceId };
       }
 
       // Check template name
       const template = this.getItem(instance.templateId);
-      if (
-        template &&
-        template.name.toLowerCase().includes(itemName.toLowerCase())
-      ) {
+      if (template && template.name.toLowerCase().includes(itemName.toLowerCase())) {
         return { slot, instanceId };
       }
     }
@@ -1231,9 +1133,7 @@ export class ItemManager {
    * @param partialId The partial ID to search for (minimum 8 characters)
    * @returns The matching item instance, null if not found, or undefined if ambiguous
    */
-  public findInstanceByPartialId(
-    partialId: string
-  ): ItemInstance | null | undefined {
+  public findInstanceByPartialId(partialId: string): ItemInstance | null | undefined {
     // If it's an exact match, return directly
     if (this.itemInstances.has(partialId)) {
       return this.itemInstances.get(partialId) || null;

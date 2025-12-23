@@ -7,6 +7,7 @@ import { ConsoleManager } from './console/consoleManager';
 import { LocalSessionManager } from './console/localSessionManager';
 import { UserAdminMenu } from './console/userAdminMenu';
 import { UserMonitor } from './console/userMonitor';
+import { IConnection } from './connection/interfaces/connection.interface';
 import { RoomManager } from './room/roomManager';
 import { APIServer } from './server/apiServer';
 import { ShutdownManager } from './server/shutdownManager';
@@ -17,9 +18,10 @@ import { StateMachine } from './state/stateMachine';
 import { SnakeGameState } from './states/snake-game.state';
 import { WaitingState } from './states/waiting.state';
 import { GameTimerManager } from './timer/gameTimerManager';
-import { ConnectedClient, ServerStats } from './types';
+import { ConnectedClient, GlobalWithSkipMCP, MUDConfig, ServerStats } from './types';
 import { UserManager } from './user/userManager';
 import { MCPServer } from './mcp/mcpServer';
+import { CommandRegistry } from './command/commandRegistry';
 import { isDebugMode } from './utils/debugUtils'; // Import the isDebugMode function
 import { clearSessionReferenceFile } from './utils/fileUtils'; // Import the clearSessionReferenceFile function
 import { systemLogger } from './utils/logger';
@@ -60,15 +62,19 @@ export class GameServer {
           rss: 0,
           heapTotal: 0,
           heapUsed: 0,
-          external: 0
-        }
+          external: 0,
+        },
       };
 
       // Set up update interval for server stats
       setInterval(() => {
-        this.serverStats.uptime = Math.floor((Date.now() - this.serverStats.startTime.getTime()) / 1000);
+        this.serverStats.uptime = Math.floor(
+          (Date.now() - this.serverStats.startTime.getTime()) / 1000
+        );
         this.serverStats.connectedClients = this.clientManager?.getClients().size || 0;
-        this.serverStats.authenticatedUsers = Array.from(this.clientManager?.getClients().values() || []).filter(c => c.authenticated).length;
+        this.serverStats.authenticatedUsers = Array.from(
+          this.clientManager?.getClients().values() || []
+        ).filter((c) => c.authenticated).length;
         this.serverStats.memoryUsage = process.memoryUsage();
       }, config.SERVER_STATS_UPDATE_INTERVAL);
 
@@ -76,7 +82,10 @@ export class GameServer {
       this.userManager = UserManager.getInstance();
 
       // Create client manager with empty clients map first
-      this.clientManager = ClientManager.getInstance(this.userManager, RoomManager.getInstance(new Map<string, ConnectedClient>()));
+      this.clientManager = ClientManager.getInstance(
+        this.userManager,
+        RoomManager.getInstance(new Map<string, ConnectedClient>())
+      );
 
       // Now that clientManager exists, get roomManager with client map from it
       this.roomManager = RoomManager.getInstance(this.clientManager.getClients());
@@ -134,10 +143,7 @@ export class GameServer {
       );
 
       // Create the ShutdownManager
-      this.shutdownManager = new ShutdownManager(
-        this.clientManager,
-        this
-      );
+      this.shutdownManager = new ShutdownManager(this.clientManager, this);
 
       // Create the ConsoleManager with all required parameters
       this.consoleManager = new ConsoleManager(
@@ -150,10 +156,7 @@ export class GameServer {
       );
 
       // Create the LocalSessionManager
-      this.localSessionManager = new LocalSessionManager(
-        this.consoleManager,
-        this.telnetServer
-      );
+      this.localSessionManager = new LocalSessionManager(this.consoleManager, this.telnetServer);
 
       // Create UserMonitor with correct parameters
       this.userMonitor = new UserMonitor(
@@ -181,11 +184,7 @@ export class GameServer {
       }, config.IDLE_CHECK_INTERVAL);
 
       // Initialize MCP Server
-      this.mcpServer = new MCPServer(
-        this.userManager,
-        this.roomManager,
-        this.clientManager
-      );
+      this.mcpServer = new MCPServer(this.userManager, this.roomManager, this.clientManager);
 
       // Setup keyboard listeners for console commands after server is started
       // We delegate this now to the ConsoleManager
@@ -199,7 +198,7 @@ export class GameServer {
     }
   }
 
-  private setupClient(connection: any): void {
+  private setupClient(connection: IConnection): void {
     this.clientManager.setupClient(connection);
   }
 
@@ -236,7 +235,7 @@ export class GameServer {
     }
   }
 
-  private loadMUDConfig(): any {
+  private loadMUDConfig(): MUDConfig {
     const configPath = path.join(config.DATA_DIR, 'mud-config.json');
     if (fs.existsSync(configPath)) {
       try {
@@ -246,16 +245,16 @@ export class GameServer {
         systemLogger.error(`Error loading MUD config: ${error}`);
         return {
           game: {
-            idleTimeout: 30 // Default idle timeout in minutes
-          }
+            idleTimeout: 30, // Default idle timeout in minutes
+          },
         };
       }
     } else {
       // Create default config
       const defaultConfig = {
         game: {
-          idleTimeout: 30 // Default idle timeout in minutes
-        }
+          idleTimeout: 30, // Default idle timeout in minutes
+        },
       };
 
       try {
@@ -320,7 +319,7 @@ export class GameServer {
       this.gameTimerManager.start();
 
       // Start MCP Server (only if API key is available)
-      const skipMCPServer = (global as any).__SKIP_MCP_SERVER;
+      const skipMCPServer = (global as GlobalWithSkipMCP).__SKIP_MCP_SERVER;
       if (!skipMCPServer) {
         try {
           await this.mcpServer.start();
@@ -336,8 +335,12 @@ export class GameServer {
       }
 
       systemLogger.info('Game server started successfully!');
-      systemLogger.info(`TELNET: port ${this.telnetServer.getActualPort()}, API/WS: port ${this.apiServer.getActualPort()}`);
-      systemLogger.info(`Admin interface: http://localhost:${this.apiServer.getActualPort()}/admin`);
+      systemLogger.info(
+        `TELNET: port ${this.telnetServer.getActualPort()}, API/WS: port ${this.apiServer.getActualPort()}`
+      );
+      systemLogger.info(
+        `Admin interface: http://localhost:${this.apiServer.getActualPort()}/admin`
+      );
 
       // Setup graceful shutdown handler
       this.setupShutdownHandler();
@@ -394,7 +397,6 @@ export class GameServer {
     GameTimerManager.resetInstance();
 
     // Also reset CommandRegistry instance
-    const { CommandRegistry } = require('./command/commandRegistry');
     CommandRegistry.resetInstance();
 
     // Exit the process
@@ -455,7 +457,7 @@ export class GameServer {
     this.suppressNormalOutput();
 
     // Allow the server a moment to initialize
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Start an admin session
     this.localSessionManager.startLocalAdminSession(this.telnetServer.getActualPort());
@@ -469,7 +471,7 @@ export class GameServer {
     this.suppressNormalOutput();
 
     // Allow the server a moment to initialize
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Start a local client session
     this.localSessionManager.startLocalClientSession(this.telnetServer.getActualPort());
@@ -486,7 +488,7 @@ export class GameServer {
     this.suppressNormalOutput();
 
     // Brief delay to let the server initialize
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Start the forced session
     await this.localSessionManager.startForcedSession(this.telnetServer.getActualPort(), username);
@@ -498,7 +500,7 @@ export class GameServer {
   private suppressNormalOutput(): void {
     // Don't show the welcome message or keyboard instructions
     // Need to preserve the original method structure for type compatibility
-    systemLogger.info = function() {
+    systemLogger.info = function () {
       // No-op function that maintains the return type
       return systemLogger;
     };
@@ -506,7 +508,9 @@ export class GameServer {
 
   private setupAutoExit(): void {
     // Override the endLocalSession method to exit when session ends
-    const originalEndLocalSession = this.localSessionManager.endLocalSession.bind(this.localSessionManager);
+    const originalEndLocalSession = this.localSessionManager.endLocalSession.bind(
+      this.localSessionManager
+    );
     this.localSessionManager.endLocalSession = () => {
       originalEndLocalSession();
 
@@ -527,7 +531,7 @@ export class GameServer {
 // When this file is run directly, start the server
 if (require.main === module) {
   const gameServer = new GameServer();
-  gameServer.start().catch(error => {
+  gameServer.start().catch((error) => {
     systemLogger.error('Failed to start game server:', error);
     process.exit(1);
   });

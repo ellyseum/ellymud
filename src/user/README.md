@@ -4,8 +4,8 @@ User data management, authentication, session handling, and character persistenc
 
 ## Contents
 
-| File | Description |
-|------|-------------|
+| File             | Description                            |
+| ---------------- | -------------------------------------- |
 | `userManager.ts` | Singleton managing all user operations |
 
 ## UserManager Responsibilities
@@ -22,6 +22,7 @@ The `UserManager` singleton handles:
 ## User Data Structure
 
 Each user record contains:
+
 - `username` - Unique identifier
 - `passwordHash` - Bcrypt hashed password
 - `stats` - HP, MP, strength, dexterity, etc.
@@ -45,6 +46,7 @@ Each user record contains:
 ## Password Security
 
 Passwords are:
+
 - Hashed using bcrypt with salt rounds
 - Never stored in plain text
 - Validated server-side only

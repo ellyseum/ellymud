@@ -4,14 +4,14 @@ Protocol-specific connection implementations providing a unified interface for T
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `index.ts` | Barrel exports for all connection types |
-| `telnet.connection.ts` | Telnet protocol handler with ANSI support |
-| `websocket.connection.ts` | WebSocket protocol handler |
-| `socketio.connection.ts` | Socket.IO variant for fallback support |
-| `virtual.connection.ts` | Virtual connection for testing and MCP integration |
-| `interfaces/` | Connection interface definitions |
+| File                      | Description                                        |
+| ------------------------- | -------------------------------------------------- |
+| `index.ts`                | Barrel exports for all connection types            |
+| `telnet.connection.ts`    | Telnet protocol handler with ANSI support          |
+| `websocket.connection.ts` | WebSocket protocol handler                         |
+| `socketio.connection.ts`  | Socket.IO variant for fallback support             |
+| `virtual.connection.ts`   | Virtual connection for testing and MCP integration |
+| `interfaces/`             | Connection interface definitions                   |
 
 ## Connection Abstraction
 
@@ -26,6 +26,7 @@ Connection (interface)
 ```
 
 This abstraction allows the game logic to be protocol-agnostic. All connections provide:
+
 - `write(data)` - Send data to client
 - `close()` - Terminate connection
 - `on('data', handler)` - Receive input
@@ -34,16 +35,19 @@ This abstraction allows the game logic to be protocol-agnostic. All connections 
 ## Protocol Details
 
 **Telnet (port 8023)**:
+
 - Traditional MUD client support
 - Full ANSI color support
 - Handles Telnet negotiations (WILL, WONT, DO, DONT)
 
 **WebSocket (port 8080)**:
+
 - Modern browser support
 - Used by the web client
 - Binary and text frame support
 
 **Virtual**:
+
 - In-memory connection for testing
 - Used by MCP server for AI integration
 - No actual network I/O

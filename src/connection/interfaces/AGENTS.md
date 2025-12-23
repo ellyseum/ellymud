@@ -12,16 +12,16 @@ Defines the `Connection` interface that all protocol handlers must implement.
 export interface Connection {
   // Unique identifier
   id: string;
-  
+
   // Protocol type
   type: 'telnet' | 'websocket' | 'socketio' | 'virtual';
-  
+
   // Send data to client
   write(data: string): void;
-  
+
   // Close connection
   close(): void;
-  
+
   // Event handlers
   on(event: 'data', handler: (data: string) => void): void;
   on(event: 'close', handler: () => void): void;
@@ -37,10 +37,16 @@ All connection classes implement this interface:
 class MyConnection implements Connection {
   id: string;
   type: 'myprotocol';
-  
-  write(data: string): void { /* ... */ }
-  close(): void { /* ... */ }
-  on(event: string, handler: Function): void { /* ... */ }
+
+  write(data: string): void {
+    /* ... */
+  }
+  close(): void {
+    /* ... */
+  }
+  on(event: string, handler: Function): void {
+    /* ... */
+  }
 }
 ```
 

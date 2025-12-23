@@ -11,6 +11,7 @@ This directory contains shell scripts for project automation. These are standalo
 **Purpose**: Complete fresh system setup for new developers or CI environments.
 
 **What it does**:
+
 1. Checks system requirements (git, curl, make)
 2. Ensures Node.js 18+ and npm are installed
 3. Runs `npm install` for dependencies
@@ -20,6 +21,7 @@ This directory contains shell scripts for project automation. These are standalo
 7. Verifies installation with build test
 
 **Usage**:
+
 ```bash
 # Full bootstrap
 ./scripts/bootstrap.sh
@@ -32,10 +34,12 @@ This directory contains shell scripts for project automation. These are standalo
 ```
 
 **Exit codes**:
+
 - `0`: Success
 - `1`: Missing requirements or installation failed
 
 **Key functions**:
+
 - `check_command()` - Verify a command exists
 - `install_node()` - Platform-specific Node.js installation
 - `setup_env()` - Create .env from template
@@ -48,9 +52,11 @@ This directory contains shell scripts for project automation. These are standalo
 **Modes**:
 
 1. **Staged mode** (default, for git hooks):
+
    ```bash
    ./scripts/check-paired-docs.sh --staged
    ```
+
    Checks only staged files. Warns if one doc is staged without its pair.
 
 2. **All mode** (for audits):
@@ -60,6 +66,7 @@ This directory contains shell scripts for project automation. These are standalo
    Recursively scans entire project for directories missing README.md or AGENTS.md.
 
 **Output example**:
+
 ```
 Scanning all directories for README.md and AGENTS.md pairs...
 
@@ -82,15 +89,18 @@ Summary:
 ```
 
 **Exit codes**:
+
 - `0`: All pairs valid
 - `1`: Missing pairs found
 
 **What it checks**:
+
 - All directories recursively (including hidden dirs like `.github/`)
 - Reports directories missing BOTH files first (most critical)
 - Then reports partial pairs (missing one file)
 
 **Exclusions** (directories not checked):
+
 - `node_modules/`
 - `dist/`
 - `.git/`
@@ -107,6 +117,7 @@ Summary:
 **Purpose**: Generate a markdown summary report from agent pipeline execution metrics.
 
 **What it does**:
+
 1. Reads all JSON files from `.github/agents/metrics/executions/`
 2. Aggregates success/failure rates
 3. Calculates stage performance averages
@@ -114,6 +125,7 @@ Summary:
 5. Generates formatted markdown report
 
 **Usage**:
+
 ```bash
 # Generate report to default location
 ./scripts/generate-pipeline-report.sh
@@ -124,9 +136,11 @@ Summary:
 ```
 
 **Requirements**:
+
 - `jq` - JSON processor (install: `apt install jq` or `brew install jq`)
 
 **Output sections**:
+
 - Success Rate summary
 - Stage Performance table (avg duration, grade, failure rate)
 - Common Issues list
@@ -135,26 +149,32 @@ Summary:
 - Mode Distribution
 
 **Report format**:
+
 ```markdown
 # Pipeline Metrics Summary - December 2025
 
 ## Success Rate
+
 ✅ 12 APPROVED | ❌ 3 REJECTED | 80% success
 
 ## Stage Performance
-| Stage | Avg Duration | Avg Grade | Failure Rate |
-|-------|-------------|-----------|--------------|
-| Research | 3.2 min | A- (89) | 5% |
+
+| Stage    | Avg Duration | Avg Grade | Failure Rate |
+| -------- | ------------ | --------- | ------------ |
+| Research | 3.2 min      | A- (89)   | 5%           |
+
 ...
 ```
 
 **Exit codes**:
+
 - `0`: Success (report generated or no data)
 - `1`: Missing jq dependency
 
 ---
 
 **File patterns checked** (to determine if directory has content):
+
 - `*.ts`, `*.js`, `*.json`, `*.sh`
 - `*.html`, `*.css`, `*.md`
 - `*.yml`, `*.yaml`

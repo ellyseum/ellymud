@@ -4,18 +4,18 @@ Modular Makefile definitions organized by functionality. The root `Makefile` inc
 
 ## Structure
 
-| File | Purpose |
-|------|---------|
-| `config.mk` | Shared variables, paths, and ANSI colors |
-| `setup.mk` | Bootstrap, install, and environment setup |
-| `dev.mk` | Development workflow commands and file watching |
-| `build.mk` | TypeScript compilation and linting |
-| `server.mk` | Server start, stop, status, and health checks |
-| `test.mk` | Testing and validation commands |
-| `agents.mk` | Agent ecosystem and MCP tests |
-| `docker.mk` | Docker build and deployment |
-| `utils.mk` | Cleaning, log viewing, and backup utilities |
-| `docs.mk` | Documentation generation tasks |
+| File        | Purpose                                         |
+| ----------- | ----------------------------------------------- |
+| `config.mk` | Shared variables, paths, and ANSI colors        |
+| `setup.mk`  | Bootstrap, install, and environment setup       |
+| `dev.mk`    | Development workflow commands and file watching |
+| `build.mk`  | TypeScript compilation and linting              |
+| `server.mk` | Server start, stop, status, and health checks   |
+| `test.mk`   | Testing and validation commands                 |
+| `agents.mk` | Agent ecosystem and MCP tests                   |
+| `docker.mk` | Docker build and deployment                     |
+| `utils.mk`  | Cleaning, log viewing, and backup utilities     |
+| `docs.mk`   | Documentation generation tasks                  |
 
 ## Usage
 
@@ -28,6 +28,7 @@ make help           # Show all available targets with descriptions
 ### Common Workflows
 
 **Development:**
+
 ```bash
 make dev            # Start dev server with hot reload
 make watch          # Watch TypeScript files for changes
@@ -36,6 +37,7 @@ make lint           # Run ESLint on source files
 ```
 
 **Server Management:**
+
 ```bash
 make start          # Start the server
 make stop           # Stop the server
@@ -45,12 +47,14 @@ make health         # Health check via API
 ```
 
 **Testing:**
+
 ```bash
 make test           # Run all tests
 make agent-test     # Run agent ecosystem tests
 ```
 
 **Utilities:**
+
 ```bash
 make logs           # View recent system logs
 make logs-error     # View recent error logs
@@ -68,6 +72,7 @@ make outdated       # Check for outdated npm packages
 4. Use `printf` with colors for user-friendly output
 
 Example:
+
 ```makefile
 .PHONY: my-target
 

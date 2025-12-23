@@ -12,13 +12,14 @@ Room functionality is decomposed into modular services following Single Responsi
 
 ```typescript
 export class DirectionHelper {
-  normalizeDirection(input: string): string
-  getOppositeDirection(direction: string): string
-  isValidDirection(direction: string): boolean
+  normalizeDirection(input: string): string;
+  getOppositeDirection(direction: string): string;
+  isValidDirection(direction: string): boolean;
 }
 ```
 
 **Direction Mapping**:
+
 ```typescript
 'n' → 'north'
 's' → 'south'
@@ -38,13 +39,13 @@ export class DirectionHelper {
 
 ```typescript
 export class EntityRegistryService {
-  addPlayerToRoom(roomId: string, username: string): void
-  removePlayerFromRoom(roomId: string, username: string): void
-  getPlayersInRoom(roomId: string): string[]
-  
-  addNPCToRoom(roomId: string, npc: NPC): void
-  removeNPCFromRoom(roomId: string, npcId: string): void
-  getNPCsInRoom(roomId: string): NPC[]
+  addPlayerToRoom(roomId: string, username: string): void;
+  removePlayerFromRoom(roomId: string, username: string): void;
+  getPlayersInRoom(roomId: string): string[];
+
+  addNPCToRoom(roomId: string, npc: NPC): void;
+  removeNPCFromRoom(roomId: string, npcId: string): void;
+  getNPCsInRoom(roomId: string): NPC[];
 }
 ```
 
@@ -54,9 +55,9 @@ export class EntityRegistryService {
 
 ```typescript
 export class NPCInteractionService {
-  findNPCByName(roomId: string, name: string): NPC | undefined
-  findNPCById(roomId: string, id: string): NPC | undefined
-  getNPCsForDisplay(roomId: string): string[]
+  findNPCByName(roomId: string, name: string): NPC | undefined;
+  findNPCById(roomId: string, id: string): NPC | undefined;
+  getNPCsForDisplay(roomId: string): string[];
 }
 ```
 
@@ -66,13 +67,14 @@ export class NPCInteractionService {
 
 ```typescript
 export class PlayerMovementService {
-  movePlayer(client: ConnectedClient, direction: string): boolean
-  canMove(client: ConnectedClient, direction: string): boolean
-  getExitDescription(roomId: string, direction: string): string
+  movePlayer(client: ConnectedClient, direction: string): boolean;
+  canMove(client: ConnectedClient, direction: string): boolean;
+  getExitDescription(roomId: string, direction: string): string;
 }
 ```
 
 **Movement Flow**:
+
 1. Validate direction
 2. Check exit exists
 3. Check movement restrictions (rooted, in combat)
@@ -87,9 +89,9 @@ export class PlayerMovementService {
 
 ```typescript
 export class RoomUINotificationService {
-  notifyRoom(roomId: string, message: string, exclude?: string[]): void
-  notifyPlayerArrival(client: ConnectedClient, fromDirection: string): void
-  notifyPlayerDeparture(client: ConnectedClient, toDirection: string): void
+  notifyRoom(roomId: string, message: string, exclude?: string[]): void;
+  notifyPlayerArrival(client: ConnectedClient, fromDirection: string): void;
+  notifyPlayerDeparture(client: ConnectedClient, toDirection: string): void;
 }
 ```
 
@@ -99,8 +101,8 @@ export class RoomUINotificationService {
 
 ```typescript
 export class TeleportationService {
-  teleportPlayer(client: ConnectedClient, targetRoomId: string): boolean
-  teleportToStartingRoom(client: ConnectedClient): void
+  teleportPlayer(client: ConnectedClient, targetRoomId: string): boolean;
+  teleportToStartingRoom(client: ConnectedClient): void;
 }
 ```
 

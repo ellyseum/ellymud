@@ -1,17 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// JSON utilities need flexible typing for parsing arbitrary JSON structures
 import { systemLogger } from './logger';
-import { 
-  validateRooms, 
-  validateUsers, 
+import {
+  validateRooms,
+  validateUsers,
   validateItems,
   validateItemInstances,
-  validateNpcs
+  validateNpcs,
 } from '../schemas';
 
 /**
  * Error class for JSON validation errors
  */
 export class JsonValidationError extends Error {
-  constructor(message: string, public errors?: any[]) {
+  constructor(
+    message: string,
+    public errors?: any[]
+  ) {
     super(message);
     this.name = 'JsonValidationError';
   }
@@ -19,27 +24,27 @@ export class JsonValidationError extends Error {
 
 /**
  * Parse and validate JSON input based on its data type
- * 
+ *
  * @param jsonString The JSON string to parse and validate
  * @param dataType The type of data to validate ('rooms', 'users', 'items', 'npcs')
  * @returns The parsed and validated data or undefined if validation fails
  */
 export function parseAndValidateJson<T>(
-  jsonString: string | null | undefined, 
+  jsonString: string | null | undefined,
   dataType: 'rooms' | 'users' | 'items' | 'npcs'
 ): T | undefined {
   if (!jsonString) {
     return undefined;
   }
-  
+
   try {
     // Parse the JSON string
     const data = JSON.parse(jsonString);
-    
+
     // Select the appropriate validator based on data type
     let isValid = false;
     let validator: any;
-    
+
     switch (dataType) {
       case 'rooms':
         isValid = validateRooms(data);
@@ -64,7 +69,7 @@ export function parseAndValidateJson<T>(
         validator = validateNpcs;
         break;
     }
-    
+
     if (!isValid) {
       systemLogger.error(`Invalid ${dataType} data structure`);
       if (validator.errors) {
@@ -74,7 +79,7 @@ export function parseAndValidateJson<T>(
       }
       return undefined;
     }
-    
+
     // Additional business logic validation
     try {
       validateBusinessRules(data, dataType);
@@ -87,11 +92,13 @@ export function parseAndValidateJson<T>(
           });
         }
       } else {
-        systemLogger.error(`Business rule validation error: ${error instanceof Error ? error.message : String(error)}`);
+        systemLogger.error(
+          `Business rule validation error: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
       return undefined;
     }
-    
+
     return data as T;
   } catch (error) {
     if (error instanceof JsonValidationError) {
@@ -104,7 +111,9 @@ export function parseAndValidateJson<T>(
     } else if (error instanceof SyntaxError) {
       systemLogger.error(`JSON parse error: ${error.message}`);
     } else {
-      systemLogger.error(`Unexpected error: ${error instanceof Error ? error.message : String(error)}`);
+      systemLogger.error(
+        `Unexpected error: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
     return undefined;
   }
@@ -146,23 +155,23 @@ function validateRoomBusinessRules(rooms: any[]): void {
       throw new JsonValidationError(`Duplicate room ID: ${room.id} at index ${index}`);
     }
     roomIds.add(room.id);
-    
+
     // Check that exit targets exist if exits is an array (current format)
     if (Array.isArray(room.exits)) {
       room.exits.forEach((exit: any, exitIndex: number) => {
         // Skip validation if roomId is not a string (could be an object or something else)
-        if (typeof exit.roomId === 'string' && !rooms.some(r => r.id === exit.roomId)) {
+        if (typeof exit.roomId === 'string' && !rooms.some((r) => r.id === exit.roomId)) {
           throw new JsonValidationError(
             `Room ${room.id} has exit to non-existent room ID: ${exit.roomId} at exit index ${exitIndex}`
           );
         }
       });
-    } 
+    }
     // Also handle exits as an object (alternative format)
     else if (room.exits && typeof room.exits === 'object') {
       Object.entries(room.exits).forEach(([direction, targetId]) => {
         // Skip validation if targetId is not a string
-        if (typeof targetId === 'string' && !rooms.some(r => r.id === targetId)) {
+        if (typeof targetId === 'string' && !rooms.some((r) => r.id === targetId)) {
           throw new JsonValidationError(
             `Room ${room.id} has exit to non-existent room ID: ${targetId} in direction ${direction}`
           );
@@ -210,7 +219,9 @@ function validateItemInstanceBusinessRules(instances: any[]): void {
   const instanceIds = new Set<string>();
   instances.forEach((instance, index) => {
     if (instance.instanceId && instanceIds.has(instance.instanceId)) {
-      throw new JsonValidationError(`Duplicate item instance ID: ${instance.instanceId} at index ${index}`);
+      throw new JsonValidationError(
+        `Duplicate item instance ID: ${instance.instanceId} at index ${index}`
+      );
     }
     if (instance.instanceId) {
       instanceIds.add(instance.instanceId);
@@ -235,16 +246,23 @@ function validateNpcBusinessRules(npcs: any[]): void {
 /**
  * Simple JSON parsing without validation
  */
-export function parseJsonArg<T>(jsonString: string | null | undefined, defaultValue?: T): T | undefined {
+export function parseJsonArg<T>(
+  jsonString: string | null | undefined,
+  defaultValue?: T
+): T | undefined {
   if (!jsonString) {
     return defaultValue;
   }
-  
+
   try {
     return JSON.parse(jsonString) as T;
   } catch (error) {
-    systemLogger.error(`Error parsing JSON argument: ${error instanceof Error ? error.message : String(error)}`);
-    systemLogger.error(`Problematic JSON string: ${jsonString.substring(0, 100)}${jsonString.length > 100 ? '...' : ''}`);
+    systemLogger.error(
+      `Error parsing JSON argument: ${error instanceof Error ? error.message : String(error)}`
+    );
+    systemLogger.error(
+      `Problematic JSON string: ${jsonString.substring(0, 100)}${jsonString.length > 100 ? '...' : ''}`
+    );
     return defaultValue;
   }
 }
@@ -253,20 +271,20 @@ export function parseJsonArg<T>(jsonString: string | null | undefined, defaultVa
  * Format validation errors to provide human-readable output
  */
 export function formatValidationErrors(errors: any[]): string {
-  return errors.map(error => {
-    const path = error.instancePath || 'root';
-    let message = `- ${path}: ${error.message}`;
-    
-    if (error.keyword === 'required') {
-      message = `- ${path}: Missing required property: ${error.params.missingProperty}`;
-    }
-    else if (error.keyword === 'type') {
-      message = `- ${path}: Expected ${error.params.type}, got ${typeof error.data}`;
-    }
-    else if (error.keyword === 'enum') {
-      message = `- ${path}: Must be one of: ${error.params.allowedValues.join(', ')}`;
-    }
-    
-    return message;
-  }).join('\n');
+  return errors
+    .map((error) => {
+      const path = error.instancePath || 'root';
+      let message = `- ${path}: ${error.message}`;
+
+      if (error.keyword === 'required') {
+        message = `- ${path}: Missing required property: ${error.params.missingProperty}`;
+      } else if (error.keyword === 'type') {
+        message = `- ${path}: Expected ${error.params.type}, got ${typeof error.data}`;
+      } else if (error.keyword === 'enum') {
+        message = `- ${path}: Must be one of: ${error.params.allowedValues.join(', ')}`;
+      }
+
+      return message;
+    })
+    .join('\n');
 }

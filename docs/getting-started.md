@@ -30,11 +30,9 @@ Before you begin, ensure you have the following installed:
 - **Node.js** version 18.x or higher
   - Check: `node --version`
   - Download from: https://nodejs.org/
-  
 - **npm** version 8.x or higher
   - Check: `npm --version`
   - Comes with Node.js
-  
 - **Git** (for cloning the repository)
   - Check: `git --version`
   - Download from: https://git-scm.com/
@@ -74,6 +72,7 @@ cp .env.example .env
 Edit `.env` if you want to customize settings. The defaults work fine for most users.
 
 Available settings:
+
 ```
 MAX_PASSWORD_ATTEMPTS=3  # Maximum login attempts before lockout
 ```
@@ -103,30 +102,37 @@ This starts the server with an interactive console. You'll be prompted to set an
 On your very first run, you'll see two setup prompts:
 
 1. **Admin Password Setup**
+
    ```
    Admin password not set. Please create one:
    ```
+
    Enter a secure password for the admin account.
 
 2. **MCP Server API Key Setup**
+
    ```
    ⚠️  EllyMUD MCP Server API key is missing.
    Would you like to generate one? (Y/n):
    ```
+
    Press Enter or type 'y' to auto-generate a secure API key for AI tool integration.
-   
+
    If you decline, the MCP server will not start and you'll see:
+
    ```
    ⚠️  MCP Server NOT started, missing API key
    ```
 
 **What happens:**
+
 - Telnet server starts on port **8023**
 - HTTP/WebSocket server starts on port **8080**
 - MCP server starts on port **3100** (if API key exists)
 - Interactive console provides server management commands
 
 **Console Commands:**
+
 - Press `m` - Send a message to all connected users
 - Press `s` - Shutdown server
 - Press `u` - List all connected users
@@ -179,6 +185,7 @@ Once the server is running, you have multiple ways to connect:
 4. Enter your username and password (or create a new account)
 
 **Advantages:**
+
 - Easy to use
 - Works on any modern browser
 - Good for beginners
@@ -186,21 +193,25 @@ Once the server is running, you have multiple ways to connect:
 ### Method 2: Telnet (Traditional MUD Experience)
 
 **Windows:**
+
 ```cmd
 telnet localhost 8023
 ```
 
 **macOS/Linux:**
+
 ```bash
 telnet localhost 8023
 ```
 
 **Note:** On macOS, you may need to enable telnet:
+
 ```bash
 brew install telnet
 ```
 
 **Advantages:**
+
 - Authentic MUD experience
 - Fast and lightweight
 - Works with any telnet client
@@ -208,12 +219,14 @@ brew install telnet
 ### Method 3: Third-Party MUD Clients
 
 You can use dedicated MUD clients like:
+
 - **MUSHclient** (Windows)
 - **Mudlet** (Cross-platform)
 - **TinTin++** (Command-line)
 - **Atlantis** (macOS)
 
 Configure them to connect to:
+
 - **Host:** localhost (or your server's IP)
 - **Port:** 8023
 - **Protocol:** Telnet
@@ -264,6 +277,7 @@ say Hello!        - Say something to players in the same room
 Here's a quick reference of essential commands:
 
 ### Movement
+
 - `north` / `n` - Go north
 - `south` / `s` - Go south
 - `east` / `e` - Go east
@@ -272,6 +286,7 @@ Here's a quick reference of essential commands:
 - `down` / `d` - Go down
 
 ### Information
+
 - `look` / `l` - Look at the room
 - `examine <item>` - Examine an item closely
 - `inventory` / `i` - Check your inventory
@@ -281,12 +296,14 @@ Here's a quick reference of essential commands:
 - `help <command>` - Get help on a specific command
 
 ### Communication
+
 - `say <message>` - Speak to players in the same room
 - `tell <player> <message>` - Send a private message
 - `emote <action>` - Perform an emote action
 - `shout <message>` - Shout to all players (if enabled)
 
 ### Items
+
 - `get <item>` - Pick up an item
 - `drop <item>` - Drop an item
 - `equip <item>` - Equip an item
@@ -294,11 +311,13 @@ Here's a quick reference of essential commands:
 - `use <item>` - Use an item
 
 ### Combat
+
 - `attack <target>` - Attack an NPC or player
 - `flee` - Try to escape from combat
 - `cast <spell>` - Cast a spell
 
 ### Other
+
 - `quit` - Log out of the game
 - `who` - See online players
 - `time` - Check game time
@@ -357,11 +376,13 @@ Would you like to generate one? (Y/n):
 ```
 
 **Press Enter** or type `y` to automatically generate a secure 256-bit API key. The key will be:
+
 - Saved to your `.env` file
 - Displayed once for you to copy
 - Required for all MCP API requests
 
 **Example output:**
+
 ```
 ✅ EllyMUD MCP Server key has been added as an environment variable:
 
@@ -454,6 +475,7 @@ This is a security feature - the MCP server requires authentication. You can gen
 ### More Information
 
 For detailed MCP server documentation, API endpoints, and integration examples, see:
+
 - [src/mcp/README.md](../src/mcp/README.md)
 
 ## Troubleshooting
@@ -461,6 +483,7 @@ For detailed MCP server documentation, API endpoints, and integration examples, 
 ### Server Won't Start
 
 **Problem:** Port already in use
+
 ```
 Error: listen EADDRINUSE: address already in use :::8023
 ```
@@ -468,11 +491,13 @@ Error: listen EADDRINUSE: address already in use :::8023
 **Solution:** Another process is using the port. Find and stop it, or change the port in the configuration.
 
 **Problem:** Permission denied
+
 ```
 Error: EACCES: permission denied
 ```
 
 **Solution:** Make sure you have write permissions in the directory. On Linux/macOS:
+
 ```bash
 chmod 755 .
 ```
@@ -482,6 +507,7 @@ chmod 755 .
 **Problem:** Connection refused
 
 **Solution:**
+
 - Make sure the server is running (`npm start`)
 - Check if firewall is blocking the ports
 - Try connecting to `127.0.0.1` instead of `localhost`
@@ -491,6 +517,7 @@ chmod 755 .
 **Problem:** TypeScript compilation errors
 
 **Solution:**
+
 ```bash
 # Clean and rebuild
 rm -rf dist/
@@ -500,6 +527,7 @@ npm run build
 **Problem:** Module not found
 
 **Solution:**
+
 ```bash
 # Reinstall dependencies
 rm -rf node_modules/
@@ -509,29 +537,35 @@ npm install
 ### MCP Server Issues
 
 **Problem:** MCP Server won't start
+
 ```
 ⚠️  MCP Server could not start, port already in use
 ```
 
 **Solution:** Another process is using port 3100. Either:
+
 - Stop the other process using port 3100
 - Change MCP port in `src/mcp/mcpServer.ts` (search for `port: number = 3100`)
 
 **Problem:** MCP Server not starting (no API key)
+
 ```
 ⚠️  MCP Server NOT started, missing API key
 ```
 
 **Solution:** This is expected if you declined key generation. To fix:
+
 ```bash
 # Generate and add key manually
 echo "ELLYMUD_MCP_API_KEY=$(openssl rand -hex 32)" >> .env
 ```
+
 Then restart the server.
 
 **Problem:** MCP API returns 401 Unauthorized
 
 **Solution:** Your API key is incorrect. Check:
+
 - The key in your `.env` file matches the one in your MCP client config
 - The `X-API-Key` header is being sent with requests
 - No extra spaces or newlines in the key value

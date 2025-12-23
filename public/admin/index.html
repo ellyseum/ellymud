@@ -1,25 +1,25 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MUD Admin</title>
     <script>
-        // Check if the user is logged in
-        const token = localStorage.getItem('mudAdminToken');
-        
-        // Preserve hash fragment for deep linking
-        const hash = window.location.hash;
-        
-        // Redirect to the appropriate page
-        if (token) {
-            window.location.href = '/admin/dashboard.html' + hash;
-        } else {
-            window.location.href = '/admin/login.html';
-        }
+      // Check if the user is logged in
+      const token = localStorage.getItem('mudAdminToken');
+
+      // Preserve hash fragment for deep linking
+      const hash = window.location.hash;
+
+      // Redirect to the appropriate page
+      if (token) {
+        window.location.href = '/admin/dashboard.html' + hash;
+      } else {
+        window.location.href = '/admin/login.html';
+      }
     </script>
-</head>
-<body>
+  </head>
+  <body>
     <p>Redirecting...</p>
-</body>
+  </body>
 </html>

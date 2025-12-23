@@ -164,15 +164,15 @@ export async function movePlayer(client: Client, direction: string): Promise<boo
   try {
     const currentRoom = RoomManager.getInstance().getRoom(client.user.roomId);
     const exit = currentRoom.exits[direction];
-    
+
     if (!exit) {
       writeToClient(client, "You can't go that way.");
       return false;
     }
-    
+
     // Perform movement logic
     // ...
-    
+
     return true;
   } catch (error) {
     systemLogger.error('Movement error:', error);
@@ -203,23 +203,27 @@ export async function movePlayer(client: Client, direction: string): Promise<boo
 ### Setup Instructions
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/ellyseum/ellymud.git
    cd ellymud
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 3. **Configure environment:**
+
    ```bash
    cp .env.example .env
    # Edit .env if needed
    ```
 
 4. **Build the project:**
+
    ```bash
    npm run build
    ```
@@ -232,15 +236,17 @@ export async function movePlayer(client: Client, direction: string): Promise<boo
 ### Development Workflow
 
 1. **Create a feature branch:**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 2. **Make your changes** and test frequently:
+
    ```bash
    # Use watch mode for automatic recompilation
    npm run watch
-   
+
    # Or use dev mode
    npm run dev
    ```
@@ -252,11 +258,13 @@ export async function movePlayer(client: Client, direction: string): Promise<boo
    - Test as specific user: `npm start -- --forceSession=username`
 
 4. **Build to check for errors:**
+
    ```bash
    npm run build
    ```
 
 5. **Commit your changes:**
+
    ```bash
    git add .
    git commit -m "✨ Add your feature"
@@ -288,6 +296,7 @@ Key directories to understand:
 ### Logging and Debugging
 
 Logs are stored in `/logs`:
+
 - `players/{username}-{date}.log` - Player-specific logs
 - `raw-sessions/{sessionId}-{date}.log` - Raw session I/O
 - `system/system-{date}.log` - General server events

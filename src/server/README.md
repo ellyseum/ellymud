@@ -4,12 +4,12 @@ Network servers and lifecycle management for EllyMUD. Handles all incoming conne
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `telnetServer.ts` | Telnet server on port 8023 |
-| `webSocketServer.ts` | WebSocket server on port 8080 |
-| `apiServer.ts` | HTTP/Express server for API and static files |
-| `shutdownManager.ts` | Graceful shutdown handling |
+| File                 | Description                                  |
+| -------------------- | -------------------------------------------- |
+| `telnetServer.ts`    | Telnet server on port 8023                   |
+| `webSocketServer.ts` | WebSocket server on port 8080                |
+| `apiServer.ts`       | HTTP/Express server for API and static files |
+| `shutdownManager.ts` | Graceful shutdown handling                   |
 
 ## Server Architecture
 
@@ -30,22 +30,26 @@ GameServer (app.ts)
 ## Server Responsibilities
 
 **TelnetServer**:
+
 - Accepts raw TCP connections
 - Handles Telnet protocol negotiations
 - Creates TelnetConnection for each client
 
 **WebSocketServer**:
+
 - WebSocket upgrade handling
 - Binary and text message support
 - Integrates with HTTP server
 
 **APIServer**:
+
 - Express-based HTTP server
 - Serves static files from `public/`
 - Admin API endpoints
 - Health check endpoints
 
 **ShutdownManager**:
+
 - Handles SIGINT/SIGTERM signals
 - Graceful client disconnection
 - Data persistence before exit

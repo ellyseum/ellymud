@@ -19,7 +19,10 @@ export class SignupState implements ClientState {
     // Check if we already have a username (came from login state)
     if (client.stateData.username) {
       // Show the username that will be used
-      writeToClient(client, colorize(`Username: ${formatUsername(client.stateData.username)}\r\n`, 'green'));
+      writeToClient(
+        client,
+        colorize(`Username: ${formatUsername(client.stateData.username)}\r\n`, 'green')
+      );
       client.stateData.maskInput = true; // Enable password masking for next input
       writeToClient(client, colorize('Create a password: ', 'green'));
     } else {
@@ -44,8 +47,13 @@ export class SignupState implements ClientState {
 
       // Check if the username is in the restricted list
       if (RESTRICTED_USERNAMES.includes(standardUsername)) {
-        systemLogger.warn(`Blocked signup attempt with restricted username: ${standardUsername} from ${client.ipAddress || 'unknown IP'}`);
-        writeToClient(client, colorize('This username is reserved. Please choose another: ', 'red'));
+        systemLogger.warn(
+          `Blocked signup attempt with restricted username: ${standardUsername} from ${client.ipAddress || 'unknown IP'}`
+        );
+        writeToClient(
+          client,
+          colorize('This username is reserved. Please choose another: ', 'red')
+        );
         return;
       }
 
@@ -58,7 +66,10 @@ export class SignupState implements ClientState {
         client.stateData.maskInput = true; // Enable password masking
 
         // Display the username in camelcase format
-        writeToClient(client, colorize(`Username set to: ${formatUsername(standardUsername)}\r\n`, 'green'));
+        writeToClient(
+          client,
+          colorize(`Username set to: ${formatUsername(standardUsername)}\r\n`, 'green')
+        );
         writeToClient(client, colorize('Create a password: ', 'green'));
       }
     }

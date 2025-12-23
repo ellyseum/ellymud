@@ -1,5 +1,3 @@
-import readline from 'readline';
-
 /**
  * Read a password from the console with character masking
  * @param prompt The prompt to display to the user
@@ -9,27 +7,27 @@ export function readPasswordFromConsole(prompt: string): Promise<string> {
   return new Promise((resolve) => {
     const stdin = process.stdin;
     const stdout = process.stdout;
-    
+
     // Save the current settings
     const originalStdinIsTTY = stdin.isTTY;
     const originalRawMode = originalStdinIsTTY ? stdin.isRaw : false;
-    
+
     // Define the proper type for data listeners
     type DataListener = (chunk: Buffer) => void;
-    
+
     // Store and remove existing listeners to prevent interference
     const existingListeners = stdin.listeners('data').slice() as DataListener[];
     stdin.removeAllListeners('data');
-    
+
     // Write the prompt first
     stdout.write(prompt);
-    
+
     let password = '';
-    
+
     // Create a raw mode handler function
     const onData = (key: Buffer) => {
       const keyStr = key.toString();
-      
+
       // Handle Ctrl+C
       if (keyStr === '\u0003') {
         stdout.write('\n');
@@ -37,13 +35,13 @@ export function readPasswordFromConsole(prompt: string): Promise<string> {
           stdin.setRawMode(false);
         }
         stdin.removeListener('data', onData);
-        
+
         // Restore original listeners
         restoreConsoleState();
-        
+
         process.exit(1);
       }
-      
+
       // Handle Enter key
       if (keyStr === '\r' || keyStr === '\n') {
         stdout.write('\n');
@@ -51,14 +49,14 @@ export function readPasswordFromConsole(prompt: string): Promise<string> {
           stdin.setRawMode(false);
         }
         stdin.removeListener('data', onData);
-        
+
         // Restore original listeners
         restoreConsoleState();
-        
+
         resolve(password);
         return;
       }
-      
+
       // Handle backspace
       if (keyStr === '\b' || keyStr === '\x7F') {
         if (password.length > 0) {
@@ -67,7 +65,7 @@ export function readPasswordFromConsole(prompt: string): Promise<string> {
         }
         return;
       }
-      
+
       // Ignore non-printable characters
       if (keyStr.length === 1 && keyStr.charCodeAt(0) >= 32 && keyStr.charCodeAt(0) <= 126) {
         // Add to password and show asterisk
@@ -75,7 +73,7 @@ export function readPasswordFromConsole(prompt: string): Promise<string> {
         stdout.write('*');
       }
     };
-    
+
     // Function to restore console state
     const restoreConsoleState = () => {
       // Delay restoration to ensure it doesn't interfere with the current operation
@@ -84,15 +82,15 @@ export function readPasswordFromConsole(prompt: string): Promise<string> {
           stdin.setRawMode(originalRawMode);
         }
         // Re-attach the original listeners
-        existingListeners.forEach(listener => stdin.on('data', listener));
+        existingListeners.forEach((listener) => stdin.on('data', listener));
       });
     };
-    
+
     // Enable raw mode to prevent terminal echo
     if (stdin.isTTY) {
       stdin.setRawMode(true);
     }
-    
+
     // Listen for keypress events
     stdin.on('data', onData);
   });

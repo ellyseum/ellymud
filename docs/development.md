@@ -36,6 +36,7 @@ Ensure you have the following installed:
 ### Initial Setup
 
 1. **Clone and install:**
+
    ```bash
    git clone https://github.com/ellyseum/ellymud.git
    cd ellymud
@@ -43,16 +44,19 @@ Ensure you have the following installed:
    ```
 
 2. **Configure environment:**
+
    ```bash
    cp .env.example .env
    ```
 
 3. **Build the project:**
+
    ```bash
    npm run build
    ```
 
 4. **Verify setup:**
+
    ```bash
    npm start
    ```
@@ -142,11 +146,13 @@ npm run watch -- --forceSession=testuser
 ### Testing Specific Features
 
 1. **Start the server** in one terminal:
+
    ```bash
    npm run watch
    ```
 
 2. **Connect as a client** in another terminal:
+
    ```bash
    telnet localhost 8023
    ```
@@ -157,6 +163,7 @@ npm run watch -- --forceSession=testuser
 ### Making Changes
 
 1. **Create a feature branch:**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -168,6 +175,7 @@ npm run watch -- --forceSession=testuser
 4. **Test your changes** thoroughly
 
 5. **Commit with descriptive message:**
+
    ```bash
    git add .
    git commit -m "✨ Add your feature description"
@@ -183,25 +191,26 @@ npm run watch -- --forceSession=testuser
 ### Adding a New Command
 
 1. **Create command file:**
+
    ```typescript
    // src/command/commands/myCommand.ts
    import { Command } from '../commandTypes';
    import { Client } from '../../types';
    import { writeToClient } from '../../utils/socketWriter';
-   
+
    export class MyCommand implements Command {
      name = 'mycommand';
      aliases = ['mc', 'mycmd'];
      description = 'Does something useful';
      usage = 'mycommand <arg1> <arg2>';
      requiredRole = undefined; // or Role.ADMIN
-     
+
      async execute(client: Client, args: string[]): Promise<void> {
        if (args.length < 1) {
          writeToClient(client, `Usage: ${this.usage}`);
          return;
        }
-       
+
        try {
          // Implement command logic
          const result = await this.doSomething(args[0]);
@@ -211,7 +220,7 @@ npm run watch -- --forceSession=testuser
          console.error('MyCommand error:', error);
        }
      }
-     
+
      private async doSomething(arg: string): Promise<string> {
        // Your logic here
        return 'result';
@@ -220,10 +229,11 @@ npm run watch -- --forceSession=testuser
    ```
 
 2. **Register the command:**
+
    ```typescript
    // src/command/commandRegistry.ts
    import { MyCommand } from './commands/myCommand';
-   
+
    // In the registration section:
    registry.register(new MyCommand());
    ```
@@ -241,34 +251,37 @@ npm run watch -- --forceSession=testuser
 ### Adding a New State
 
 1. **Create state file:**
+
    ```typescript
    // src/states/myState.ts
    import { State } from '../state/stateTypes';
    import { Client } from '../types';
    import { writeToClient } from '../utils/socketWriter';
-   
+
    export class MyState implements State {
      name = 'MyState';
-     
+
      async onEnter(client: Client): Promise<void> {
        // Initialize state
-       client.stateData = { /* initial data */ };
+       client.stateData = {
+         /* initial data */
+       };
        writeToClient(client, 'Entering my state...');
      }
-     
+
      async handleInput(client: Client, input: string): Promise<void> {
        // Process input
        const trimmed = input.trim().toLowerCase();
-       
+
        if (trimmed === 'exit') {
          // Transition to another state
          await client.changeState('AuthenticatedState');
          return;
        }
-       
+
        // Handle other inputs
      }
-     
+
      async onExit(client: Client): Promise<void> {
        // Cleanup
        delete client.stateData;
@@ -277,10 +290,11 @@ npm run watch -- --forceSession=testuser
    ```
 
 2. **Register the state:**
+
    ```typescript
    // src/state/stateMachine.ts
    import { MyState } from '../states/myState';
-   
+
    // Add to state registry
    this.states.set('MyState', new MyState());
    ```
@@ -293,27 +307,28 @@ npm run watch -- --forceSession=testuser
 ### Adding a New Manager
 
 1. **Create manager file:**
+
    ```typescript
    // src/myfeature/myManager.ts
    export class MyManager {
      private static instance: MyManager;
      private data: Map<string, any> = new Map();
-     
+
      private constructor() {
        // Private constructor for singleton
      }
-     
+
      public static getInstance(): MyManager {
        if (!MyManager.instance) {
          MyManager.instance = new MyManager();
        }
        return MyManager.instance;
      }
-     
+
      public async initialize(): Promise<void> {
        // Load data, set up listeners, etc.
      }
-     
+
      public async doSomething(): Promise<void> {
        // Manager logic
      }
@@ -321,10 +336,11 @@ npm run watch -- --forceSession=testuser
    ```
 
 2. **Initialize in GameServer:**
+
    ```typescript
    // src/app.ts
    import { MyManager } from './myfeature/myManager';
-   
+
    async start(): Promise<void> {
      // ... other initialization
      await MyManager.getInstance().initialize();
@@ -340,6 +356,7 @@ npm run watch -- --forceSession=testuser
 ### Adding a New NPC Type
 
 1. **Create NPC definition:**
+
    ```json
    // data/npcs/my-npc.json
    {
@@ -358,6 +375,7 @@ npm run watch -- --forceSession=testuser
    ```
 
 2. **Update NPC spawner:**
+
    ```typescript
    // src/room/services/npcSpawner.ts
    // Add logic to spawn your NPC type
@@ -373,11 +391,13 @@ npm run watch -- --forceSession=testuser
 ### Manual Testing
 
 1. **Start server with logging:**
+
    ```bash
    npm run watch
    ```
 
 2. **Monitor logs:**
+
    ```bash
    # In another terminal
    tail -f logs/system/system-$(date +%Y-%m-%d).log
@@ -412,11 +432,13 @@ systemLogger.error('Command failed', { error, command });
 #### Using Node.js Debugger
 
 1. **Add debugger statement:**
+
    ```typescript
    debugger; // Execution will pause here
    ```
 
 2. **Start with inspect:**
+
    ```bash
    node --inspect dist/server.js
    ```
@@ -433,7 +455,7 @@ console.log('Client state:', {
   username: client.user.username,
   state: client.currentState.name,
   stateData: client.stateData,
-  roomId: client.user.roomId
+  roomId: client.user.roomId,
 });
 ```
 
@@ -460,6 +482,7 @@ logs/raw-sessions/sessionId-YYYY-MM-DD.log
 ### Adding a New Room
 
 1. **Create room JSON:**
+
    ```json
    // data/rooms/my-room.json
    {
@@ -501,17 +524,19 @@ private calculateDamage(attacker: User, defender: User): number {
 ### Adding Status Effects
 
 1. **Define effect type:**
+
    ```typescript
    // src/types/effects.ts
    export enum EffectType {
      POISON = 'poison',
      BUFF = 'buff',
      // ... add your effect
-     MY_EFFECT = 'my-effect'
+     MY_EFFECT = 'my-effect',
    }
    ```
 
 2. **Implement effect logic:**
+
    ```typescript
    // src/effects/effectManager.ts
    private applyEffect(user: User, effect: Effect): void {
@@ -528,7 +553,7 @@ private calculateDamage(attacker: User, defender: User): number {
    effectManager.addEffect(user, {
      type: EffectType.MY_EFFECT,
      duration: 30000, // 30 seconds
-     intensity: 5
+     intensity: 5,
    });
    ```
 
@@ -637,6 +662,7 @@ console.log('[STATE] State data:', client.stateData);
 ### Socket Connection Issues
 
 Check:
+
 - Firewall settings
 - Port availability
 - Server actually running

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// NPC interaction service uses any for NPC template data
 import { INPCInteractionService } from '../interfaces';
 import { Room } from '../room';
 import { NPC } from '../../combat/npc';
@@ -8,11 +10,7 @@ export class NPCInteractionService implements INPCInteractionService {
     updateRoom: (room: Room) => void;
   };
 
-  constructor(
-    roomManager: {
-      updateRoom: (room: Room) => void;
-    }
-  ) {
+  constructor(roomManager: { updateRoom: (room: Room) => void }) {
     this.roomManager = roomManager;
   }
 
@@ -22,35 +20,43 @@ export class NPCInteractionService implements INPCInteractionService {
    * @param npcTemplateIds Array of NPC template IDs
    * @param npcData Map of NPC template data
    */
-  public instantiateNpcsFromTemplates(room: Room, npcTemplateIds: string[], npcData: Map<string, any>): void {
+  public instantiateNpcsFromTemplates(
+    room: Room,
+    npcTemplateIds: string[],
+    npcData: Map<string, any>
+  ): void {
     if (!npcTemplateIds.length) return;
-    
+
     systemLogger.info(`Instantiating ${npcTemplateIds.length} NPC(s) for room ${room.id}`);
-    
+
     for (const templateId of npcTemplateIds) {
       // Check if the template exists in our NPC data
       if (npcData.has(templateId)) {
         // Create a new NPC instance from the template
         const npcTemplate = npcData.get(templateId);
         const npc = NPC.fromNPCData(npcTemplate);
-        
+
         // Add the NPC to the room
         room.addNPC(npc);
-        systemLogger.info(`Added NPC instance ${npc.instanceId} (template: ${templateId}) to room ${room.id}`);
+        systemLogger.info(
+          `Added NPC instance ${npc.instanceId} (template: ${templateId}) to room ${room.id}`
+        );
       } else {
         // If template doesn't exist, log a warning and try to create a basic NPC
         systemLogger.warn(`NPC template '${templateId}' not found in data, creating basic NPC`);
         const defaultNpc = new NPC(
           templateId, // Use template ID as name
-          10,        // health
-          10,        // maxHealth
-          [1, 2],    // damage range
-          false,     // isHostile
-          false,     // isPassive
-          50         // experienceValue
+          10, // health
+          10, // maxHealth
+          [1, 2], // damage range
+          false, // isHostile
+          false, // isPassive
+          50 // experienceValue
         );
         room.addNPC(defaultNpc);
-        systemLogger.info(`Added default NPC instance ${defaultNpc.instanceId} (template: ${templateId}) to room ${room.id}`);
+        systemLogger.info(
+          `Added default NPC instance ${defaultNpc.instanceId} (template: ${templateId}) to room ${room.id}`
+        );
       }
     }
   }
@@ -61,10 +67,10 @@ export class NPCInteractionService implements INPCInteractionService {
   public initializeNPCsInRoom(room: Room): void {
     // Load NPC data from JSON
     const npcData = NPC.loadNPCData();
-    
+
     // Clear existing NPCs first
     room.npcs.clear();
-    
+
     // Add NPCs based on room type or ID
     if (room.id === 'start') {
       // Add 2 cats to the starting room
@@ -80,7 +86,7 @@ export class NPCInteractionService implements INPCInteractionService {
           room.addNPC(catNPC);
         }
       }
-      
+
       // Add a dog to the room
       if (npcData.has('dog')) {
         const npcTemplate = npcData.get('dog')!;
@@ -88,7 +94,7 @@ export class NPCInteractionService implements INPCInteractionService {
         room.addNPC(npc);
       }
     }
-    
+
     // Update the room to persist NPC changes
     this.roomManager.updateRoom(room);
   }

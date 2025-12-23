@@ -63,46 +63,46 @@ Each agent includes YAML frontmatter with VS Code 1.107+ properties:
 
 #### Model Assignments
 
-| Agent | Model | Reasoning |
-|-------|-------|-----------|
-| Problem Solver | Claude 4.5 Opus | Best reasoning for orchestration decisions |
-| Research | Gemini 2.5 Pro | 1M token context for exhaustive codebase exploration |
-| Planning | Claude 4.5 Opus | Best reasoning for task decomposition |
-| Implementation | Claude 4.5 Opus | Precise code generation |
-| Validation | Gemini 2.5 Pro | Large context to analyze all changes + original code |
-| Output Review | Claude 4.5 Opus | Excellent writing and editing |
-| Rollback | Claude 4.5 Opus | Precision critical for destructive operations |
-| Documentation Updater | Claude 4.5 Opus | Technical writing excellence |
-| Post-Mortem | Gemini 2.5 Pro | Must analyze ALL pipeline artifacts |
+| Agent                 | Model           | Reasoning                                            |
+| --------------------- | --------------- | ---------------------------------------------------- |
+| Problem Solver        | Claude 4.5 Opus | Best reasoning for orchestration decisions           |
+| Research              | Gemini 2.5 Pro  | 1M token context for exhaustive codebase exploration |
+| Planning              | Claude 4.5 Opus | Best reasoning for task decomposition                |
+| Implementation        | Claude 4.5 Opus | Precise code generation                              |
+| Validation            | Gemini 2.5 Pro  | Large context to analyze all changes + original code |
+| Output Review         | Claude 4.5 Opus | Excellent writing and editing                        |
+| Rollback              | Claude 4.5 Opus | Precision critical for destructive operations        |
+| Documentation Updater | Claude 4.5 Opus | Technical writing excellence                         |
+| Post-Mortem           | Gemini 2.5 Pro  | Must analyze ALL pipeline artifacts                  |
 
 #### Inference Settings
 
-| Agent | `infer` | Reason |
-|-------|---------|--------|
-| Problem Solver | `false` | Master orchestrator - should NOT be called as subagent |
-| Research | `true` | Can be delegated to for codebase research |
-| Planning | `true` | Can be delegated to for task planning |
-| Implementation | `true` | Can be delegated to for code execution |
-| Validation | `true` | Can be delegated to for verification |
-| Output Review | `true` | Can be delegated to for document grading |
-| Rollback | `true` | Can be delegated to for checkpoint/recovery |
-| Documentation Updater | `true` | Can be delegated to for doc maintenance |
-| Post-Mortem | `true` | Can be delegated to for pipeline analysis |
+| Agent                 | `infer` | Reason                                                 |
+| --------------------- | ------- | ------------------------------------------------------ |
+| Problem Solver        | `false` | Master orchestrator - should NOT be called as subagent |
+| Research              | `true`  | Can be delegated to for codebase research              |
+| Planning              | `true`  | Can be delegated to for task planning                  |
+| Implementation        | `true`  | Can be delegated to for code execution                 |
+| Validation            | `true`  | Can be delegated to for verification                   |
+| Output Review         | `true`  | Can be delegated to for document grading               |
+| Rollback              | `true`  | Can be delegated to for checkpoint/recovery            |
+| Documentation Updater | `true`  | Can be delegated to for doc maintenance                |
+| Post-Mortem           | `true`  | Can be delegated to for pipeline analysis              |
 
 #### Tool Restrictions
 
 Agents have explicit tool allowlists to prevent accidental actions:
 
-| Agent | Tools | Restriction |
-|-------|-------|-------------|
-| Research | read-only + fetch | Cannot modify files |
-| Planning | read-only + create_file | Can only create plan docs |
-| Implementation | full editing | Full access |
-| Validation | read + terminal + MCP | Can run tests, not edit |
-| Output Review | read + write docs | Limited to documents |
-| Rollback | terminal only | Git commands only |
-| Documentation Updater | read + write docs | Limited to docs |
-| Post-Mortem | read + create suggestions | Cannot modify code |
+| Agent                 | Tools                     | Restriction               |
+| --------------------- | ------------------------- | ------------------------- |
+| Research              | read-only + fetch         | Cannot modify files       |
+| Planning              | read-only + create_file   | Can only create plan docs |
+| Implementation        | full editing              | Full access               |
+| Validation            | read + terminal + MCP     | Can run tests, not edit   |
+| Output Review         | read + write docs         | Limited to documents      |
+| Rollback              | terminal only             | Git commands only         |
+| Documentation Updater | read + write docs         | Limited to docs           |
+| Post-Mortem           | read + create suggestions | Cannot modify code        |
 
 #### Pipeline Handoffs
 
@@ -130,21 +130,22 @@ Rollback ──▶ [Resume Planning] ──▶ Planning
 
 #### Argument Hints
 
-| Agent | Hint |
-|-------|------|
-| Problem Solver | "Describe the problem, bug, or feature you want to implement" |
-| Research | "Describe what aspect of the codebase to research" |
-| Planning | "Provide the research document path or describe the task to plan" |
-| Implementation | "Provide the implementation plan path to execute" |
-| Validation | "Provide the implementation report path to validate" |
-| Output Review | "Provide the document path to review and grade" |
-| Rollback | "Operation: CREATE, LIST, ROLLBACK, or EMERGENCY_ROLLBACK" |
-| Documentation Updater | "Specify directories to audit or 'full' for complete scan" |
-| Post-Mortem | "Provide the task name or 'latest' to analyze most recent pipeline" |
+| Agent                 | Hint                                                                |
+| --------------------- | ------------------------------------------------------------------- |
+| Problem Solver        | "Describe the problem, bug, or feature you want to implement"       |
+| Research              | "Describe what aspect of the codebase to research"                  |
+| Planning              | "Provide the research document path or describe the task to plan"   |
+| Implementation        | "Provide the implementation plan path to execute"                   |
+| Validation            | "Provide the implementation report path to validate"                |
+| Output Review         | "Provide the document path to review and grade"                     |
+| Rollback              | "Operation: CREATE, LIST, ROLLBACK, or EMERGENCY_ROLLBACK"          |
+| Documentation Updater | "Specify directories to audit or 'full' for complete scan"          |
+| Post-Mortem           | "Provide the task name or 'latest' to analyze most recent pipeline" |
 
 ### Todo List Management
 
 All agents include a **Todo List Management** section instructing them to:
+
 - Use the `manage_todo_list` tool to track progress through tasks
 - Create todos at the START of every session
 - Mark ONE todo as `in-progress` before starting work
@@ -154,23 +155,24 @@ All agents include a **Todo List Management** section instructing them to:
 ### Tool Reference Documentation
 
 Each agent includes a **Tool Reference** section documenting:
+
 - Each tool available in the YAML frontmatter
 - **Purpose**: What the tool does
 - **When to Use**: Specific scenarios for using the tool
 - **Example**: Concrete usage example
 - **Tips**: Best practices and gotchas
 
-| Agent | Tools Documented |
-|-------|------------------|
-| Research | search, read_file, grep_search, semantic_search, file_search, list_dir, fetch_webpage, githubRepo, create_file, replace_string_in_file |
-| Planning | search, read_file, grep_search, semantic_search, file_search, list_dir, create_file, replace_string_in_file |
-| Implementation | search, read_file, grep_search, file_search, list_dir, create_file, replace_string_in_file, run_in_terminal, get_errors |
-| Validation | search, read_file, grep_search, file_search, list_dir, run_in_terminal, get_errors, ellymud-mcp-server/*, create_file, replace_string_in_file |
-| Output Review | read_file, create_file, replace_string_in_file |
-| Rollback | run_in_terminal, get_changed_files, create_file, replace_string_in_file |
-| Post-Mortem | search, read_file, list_dir, file_search, create_file, replace_string_in_file |
-| Documentation Updater | search, read_file, list_dir, file_search, create_file, replace_string_in_file |
-| Problem Solver | Handoff documentation (Research Agent, Implementation Agent) |
+| Agent                 | Tools Documented                                                                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Research              | search, read_file, grep_search, semantic_search, file_search, list_dir, fetch_webpage, githubRepo, create_file, replace_string_in_file         |
+| Planning              | search, read_file, grep_search, semantic_search, file_search, list_dir, create_file, replace_string_in_file                                    |
+| Implementation        | search, read_file, grep_search, file_search, list_dir, create_file, replace_string_in_file, run_in_terminal, get_errors                        |
+| Validation            | search, read_file, grep_search, file_search, list_dir, run_in_terminal, get_errors, ellymud-mcp-server/\*, create_file, replace_string_in_file |
+| Output Review         | read_file, create_file, replace_string_in_file                                                                                                 |
+| Rollback              | run_in_terminal, get_changed_files, create_file, replace_string_in_file                                                                        |
+| Post-Mortem           | search, read_file, list_dir, file_search, create_file, replace_string_in_file                                                                  |
+| Documentation Updater | search, read_file, list_dir, file_search, create_file, replace_string_in_file                                                                  |
+| Problem Solver        | Handoff documentation (Research Agent, Implementation Agent)                                                                                   |
 
 ### Infrastructure
 
@@ -198,10 +200,11 @@ Each agent includes a **Tool Reference** section documenting:
 ## Version Format
 
 Semantic versioning:
+
 - **MAJOR**: Breaking changes to agent interface or project
 - **MINOR**: New capabilities, backward compatible
 - **PATCH**: Bug fixes, documentation updates
 
 ---
 
-*Maintained by: Agent Post-Mortem Agent*
+_Maintained by: Agent Post-Mortem Agent_

@@ -75,6 +75,7 @@ The `##` comment is parsed by `make help` to display all available targets.
 ## Shard Contents
 
 ### setup.mk
+
 - `bootstrap` - Full system bootstrap via `./scripts/bootstrap.sh`
 - `setup` - Quick setup (install + env)
 - `install` - npm install
@@ -83,12 +84,14 @@ The `##` comment is parsed by `make help` to display all available targets.
 - `setup-hooks` - Install git pre-commit hooks (husky)
 
 ### dev.mk
+
 - `dev` - Start dev server with hot reload
 - `dev-admin` - Dev server with admin auto-login
 - `dev-user` - Dev server with user prompt
 - `watch` - Watch TypeScript files for changes
 
 ### build.mk
+
 - `build` - Compile TypeScript
 - `build-clean` - Clean + build
 - `build-watch` - Build in watch mode
@@ -105,6 +108,7 @@ The `##` comment is parsed by `make help` to display all available targets.
 - `info` - Show project info
 
 ### server.mk
+
 - `start`, `start-admin`, `start-user` - Start server variants
 - `start-bg` - Start in background
 - `stop` - Stop background server
@@ -113,6 +117,7 @@ The `##` comment is parsed by `make help` to display all available targets.
 - `health` - Check server health via MCP endpoint
 
 ### test.mk
+
 - `test` - Run all tests
 - `test-build` - Test build completes
 - `test-start` - Test server starts
@@ -121,6 +126,7 @@ The `##` comment is parsed by `make help` to display all available targets.
 - `ci` - Full CI pipeline (lint, typecheck, validate, build)
 
 ### agents.mk
+
 - `agent-test` - Run all agent tests
 - `agent-test-dry` - Dry-run mode
 - `agent-test-list` - List test IDs
@@ -128,6 +134,7 @@ The `##` comment is parsed by `make help` to display all available targets.
 - `agent-research`, `agent-planning`, etc. - Per-agent tests
 
 ### docker.mk
+
 - `docker-build` - Build Docker image (uses Dockerfile)
 - `docker-run` - Run Docker container
 - `docker-stop` - Stop Docker container
@@ -137,6 +144,7 @@ The `##` comment is parsed by `make help` to display all available targets.
 - `prod-start` - Production mode (builds first)
 
 ### utils.mk
+
 - `clean`, `clean-dist`, `clean-logs`, `clean-all`
 - `logs`, `logs-follow` - View system logs
 - `logs-error`, `logs-error-follow` - View error logs
@@ -145,6 +153,7 @@ The `##` comment is parsed by `make help` to display all available targets.
 - `reset-data` - Reset to defaults (destructive)
 
 ### docs.mk
+
 - `docs-serve` - Show docs directory
 - `docs-check` - Check for broken links
 - `docs-list` - List all AGENTS.md files
@@ -160,6 +169,7 @@ The `##` comment is parsed by `make help` to display all available targets.
 ## Common Patterns
 
 ### Colored output (use printf, not echo!)
+
 ```makefile
 my-target:
 	@printf "$(BLUE)Starting...$(NC)\n"
@@ -169,6 +179,7 @@ my-target:
 ```
 
 ### Conditional execution
+
 ```makefile
 env-setup:
 	@if [ ! -f .env ]; then \
@@ -177,6 +188,7 @@ env-setup:
 ```
 
 ### Dependencies
+
 ```makefile
 build-clean: clean-dist build  # Runs clean-dist first, then build
 ```
@@ -184,6 +196,7 @@ build-clean: clean-dist build  # Runs clean-dist first, then build
 ## npm Script Naming Convention
 
 All npm scripts use **hyphen-separated** names for consistency with Make targets:
+
 - `npm run dev-admin` (not `dev:admin`)
 - `npm run lint-fix` (not `lint:fix`)
 - `npm run test-agents` (not `test:agents`)
@@ -191,6 +204,7 @@ All npm scripts use **hyphen-separated** names for consistency with Make targets
 ## Docker Support
 
 A `Dockerfile` is provided in the project root for production deployments:
+
 - Multi-stage build for optimized images
 - Non-root user for security
 - Health check via MCP endpoint

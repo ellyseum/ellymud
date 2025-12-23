@@ -4,12 +4,12 @@ Browser-based client for EllyMUD, providing a modern web interface for connectin
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| `index.html` | Main client page with terminal-style interface |
-| `client.js` | Client-side JavaScript handling WebSocket connection |
-| `style.css` | CSS styles for the web terminal |
-| `admin/` | Web-based admin dashboard |
+| File         | Description                                          |
+| ------------ | ---------------------------------------------------- |
+| `index.html` | Main client page with terminal-style interface       |
+| `client.js`  | Client-side JavaScript handling WebSocket connection |
+| `style.css`  | CSS styles for the web terminal                      |
+| `admin/`     | Web-based admin dashboard                            |
 
 ## Features
 

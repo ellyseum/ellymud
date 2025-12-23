@@ -12,19 +12,25 @@ Test infrastructure is set up but test coverage is still being developed. The pr
 ## Test Categories
 
 ### Unit Tests
+
 Test individual functions and classes in isolation:
+
 - Utility functions
 - Command parsing
 - Data validation
 
-### Integration Tests  
+### Integration Tests
+
 Test component interactions:
+
 - State machine transitions
 - Command execution flow
 - Combat system
 
 ### Agent Tests
+
 Specialized tests for the AI agent ecosystem:
+
 - Located in `.github/agents/agent-tests/`
 - Run with `make agent-test`
 

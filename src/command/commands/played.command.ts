@@ -10,7 +10,7 @@ export class PlayedCommand implements Command {
 
   constructor(private userManager: UserManager) {}
 
-  execute(client: ConnectedClient, args: string): void {
+  execute(client: ConnectedClient, _args: string): void {
     if (!client.user) return;
 
     const user = this.userManager.getUser(client.user.username);

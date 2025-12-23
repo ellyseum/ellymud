@@ -27,6 +27,7 @@ Please describe the tests you ran to verify your changes. Provide instructions s
 - [ ] Test B
 
 **Test Configuration**:
+
 - Node.js version:
 - OS:
 - Connection method (Telnet/WebSocket/Web):

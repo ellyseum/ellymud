@@ -11,11 +11,12 @@ First-run setup utilities for initializing the server. Creates admin accounts an
 **Purpose**: Create initial admin account
 
 ```typescript
-export async function setupAdmin(): Promise<void>
-export function isAdminSetupRequired(): boolean
+export async function setupAdmin(): Promise<void>;
+export function isAdminSetupRequired(): boolean;
 ```
 
 **Setup Flow**:
+
 1. Check if admin exists in `data/admin.json`
 2. If not, prompt for admin credentials
 3. Create admin user in `data/users.json`

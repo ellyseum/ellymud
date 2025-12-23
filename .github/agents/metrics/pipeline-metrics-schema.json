@@ -101,7 +101,10 @@
         "postMortem": {
           "type": "object",
           "properties": {
-            "suggestions": { "type": "string", "description": "Path to post-mortem suggestions file" },
+            "suggestions": {
+              "type": "string",
+              "description": "Path to post-mortem suggestions file"
+            },
             "agentUpdates": {
               "type": "array",
               "items": { "type": "string" },
@@ -161,7 +164,10 @@
           "type": "object",
           "description": "Quality scores extracted from stats files",
           "properties": {
-            "researchCitations": { "type": "integer", "description": "File:line citations in research" },
+            "researchCitations": {
+              "type": "integer",
+              "description": "File:line citations in research"
+            },
             "planningTasks": { "type": "integer", "description": "Tasks defined in plan" },
             "testsRun": { "type": "integer", "description": "Total tests executed" },
             "testsPassed": { "type": "integer", "description": "Tests that passed" },

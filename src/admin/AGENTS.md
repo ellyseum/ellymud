@@ -11,10 +11,11 @@ Backend API for the web admin interface. Provides endpoints for user management,
 **Purpose**: Express routes for admin operations
 
 ```typescript
-export function setupAdminRoutes(app: Express, userManager: UserManager): void
+export function setupAdminRoutes(app: Express, userManager: UserManager): void;
 ```
 
 **Endpoints**:
+
 - `POST /api/admin/login` - Admin authentication
 - `GET /api/admin/users` - List all users
 - `GET /api/admin/sessions` - Active sessions
@@ -28,14 +29,11 @@ export function setupAdminRoutes(app: Express, userManager: UserManager): void
 **Purpose**: Authentication middleware
 
 ```typescript
-export function adminAuthMiddleware(
-  req: Request, 
-  res: Response, 
-  next: NextFunction
-): void
+export function adminAuthMiddleware(req: Request, res: Response, next: NextFunction): void;
 ```
 
 **Auth Flow**:
+
 1. Check for Authorization header (Bearer token)
 2. Validate token against admin credentials
 3. Allow or reject request

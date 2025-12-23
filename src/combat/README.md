@@ -4,13 +4,13 @@ Event-driven combat system handling player vs NPC battles, damage calculations, 
 
 ## Contents
 
-| Path | Description |
-|------|-------------|
-| `combatSystem.ts` | Core singleton orchestrating all combat |
-| `combat.ts` | Individual combat instance between two entities |
-| `combatEntity.interface.ts` | Interface for anything that can fight |
-| `npc.ts` | NPC class with stats, AI, and combat capabilities |
-| `components/` | Modular combat subsystems |
+| Path                        | Description                                       |
+| --------------------------- | ------------------------------------------------- |
+| `combatSystem.ts`           | Core singleton orchestrating all combat           |
+| `combat.ts`                 | Individual combat instance between two entities   |
+| `combatEntity.interface.ts` | Interface for anything that can fight             |
+| `npc.ts`                    | NPC class with stats, AI, and combat capabilities |
+| `components/`               | Modular combat subsystems                         |
 
 ## How Combat Works
 
@@ -39,6 +39,7 @@ If HP <= 0 → PlayerDeathHandler or NPC death
 ## NPC AI
 
 NPCs have different aggression levels:
+
 - **Passive**: Never attacks first
 - **Neutral**: Attacks if provoked
 - **Aggressive**: Attacks players on sight

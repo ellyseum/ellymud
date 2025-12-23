@@ -4,13 +4,11 @@ import { ClientManager } from '../client/clientManager';
 import { UserManager } from '../user/userManager';
 import { CommandHandler } from '../command/commandHandler';
 import { ShutdownManager } from '../server/shutdownManager';
-import { systemLogger } from '../utils/logger';
 import { LocalSessionManager } from './localSessionManager';
 import { UserMonitor } from './userMonitor';
 import { UserAdminMenu } from './userAdminMenu';
 import { ConsoleInterface } from './consoleInterface';
 import { AutoSessionHandler } from './autoSessionHandler';
-import config from '../config';
 
 /**
  * ConsoleManager orchestrates all console-related functionality
@@ -24,10 +22,10 @@ export class ConsoleManager {
   private userManager: UserManager;
   private commandHandler: CommandHandler;
   private shutdownManager: ShutdownManager;
-  
+
   // Specialized console components - initialize with default values to satisfy TypeScript
   private localSessionManager!: LocalSessionManager;
-  private userMonitor!: UserMonitor; 
+  private userMonitor!: UserMonitor;
   private userAdminMenu!: UserAdminMenu;
   private consoleInterface!: ConsoleInterface;
   private autoSessionHandler!: AutoSessionHandler;
@@ -46,17 +44,17 @@ export class ConsoleManager {
     this.userManager = userManager;
     this.commandHandler = commandHandler;
     this.shutdownManager = shutdownManager;
-    
+
     // Initialize components immediately in the constructor
     this.initializeComponents();
   }
 
   private initializeComponents(): void {
     // Initialize all specialized components
-    
+
     // LocalSessionManager - handles local client sessions
     this.localSessionManager = new LocalSessionManager(this, this.telnetServer);
-    
+
     // ConsoleInterface - handles keyboard shortcuts and main menu
     this.consoleInterface = new ConsoleInterface(
       this.gameServer,
@@ -64,14 +62,14 @@ export class ConsoleManager {
       this.clientManager,
       this.handleKeyCommand.bind(this)
     );
-    
+
     // UserMonitor - handles monitoring user sessions
     this.userMonitor = new UserMonitor(
       this.clientManager,
       () => this.consoleInterface.setupKeyListener(),
       this.commandHandler
     );
-    
+
     // UserAdminMenu - handles user administration
     this.userAdminMenu = new UserAdminMenu(
       this.userManager,
@@ -82,12 +80,9 @@ export class ConsoleManager {
       this.gameServer,
       () => this.consoleInterface.setupKeyListener()
     );
-    
+
     // AutoSessionHandler - handles CLI auto-sessions
-    this.autoSessionHandler = new AutoSessionHandler(
-      this.localSessionManager,
-      this.telnetServer
-    );
+    this.autoSessionHandler = new AutoSessionHandler(this.localSessionManager, this.telnetServer);
   }
 
   /**
@@ -108,7 +103,7 @@ export class ConsoleManager {
    * Handle key commands from the console interface
    */
   private handleKeyCommand(command: string): void {
-    switch(command) {
+    switch (command) {
       case 'l':
         this.localSessionManager.startLocalClientSession(this.telnetServer.getActualPort());
         break;

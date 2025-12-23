@@ -14,12 +14,7 @@
           "source.fixAll.eslint": "always",
           "source.organizeImports": "always"
         },
-        "eslint.validate": [
-          "javascript",
-          "javascriptreact",
-          "typescript",
-          "typescriptreact"
-        ],
+        "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
         "prettier.requireConfig": true,
         "prettier.singleQuote": true,
         "prettier.trailingComma": "all",

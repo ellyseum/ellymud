@@ -1,13 +1,15 @@
-import express, { Request, Response } from "express";
-import cors from "cors";
-import { Server as HttpServer } from "http";
-import { UserManager } from "../user/userManager";
-import { RoomManager } from "../room/roomManager";
-import { ClientManager } from "../client/clientManager";
-import { readFileSync, readdirSync, existsSync } from "fs";
-import { join } from "path";
-import { systemLogger, mcpLogger } from "../utils/logger";
-import { VirtualSessionManager } from "./virtualSessionManager";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// MCP server uses dynamic typing for flexible API responses
+import express, { Request, Response } from 'express';
+import cors from 'cors';
+import { Server as HttpServer } from 'http';
+import { UserManager } from '../user/userManager';
+import { RoomManager } from '../room/roomManager';
+import { ClientManager } from '../client/clientManager';
+import { readFileSync, readdirSync, existsSync } from 'fs';
+import { join } from 'path';
+import { systemLogger, mcpLogger } from '../utils/logger';
+import { VirtualSessionManager } from './virtualSessionManager';
 
 /**
  * Strip ANSI escape codes from a string
@@ -27,24 +29,24 @@ function stripAnsi(str: string): string {
 function cleanCommandOutput(rawOutput: string): string {
   // Strip ANSI codes
   let output = stripAnsi(rawOutput);
-  
+
   // Remove carriage returns and terminal control chars
   output = output.replace(/\r/g, '');
-  
-  // Remove the prompt pattern: [HP=X/X MP=X/X]: 
+
+  // Remove the prompt pattern: [HP=X/X MP=X/X]:
   output = output.replace(/\[HP=\d+\/\d+\s*MP=\d+\/\d+\]:\s*/g, '');
-  
+
   // Remove cursor movement sequences (e.g., \x1b[10D)
   // eslint-disable-next-line no-control-regex
   output = output.replace(/\x1b\[\d+[ABCD]/g, '');
-  
+
   // Remove line clearing sequences
   // eslint-disable-next-line no-control-regex
   output = output.replace(/\x1b\[K/g, '');
-  
+
   // Clean up multiple newlines
   output = output.replace(/\n{3,}/g, '\n\n');
-  
+
   // Trim and return
   return output.trim();
 }
@@ -72,13 +74,17 @@ export class MCPServer {
     this.userManager = userManager;
     this.roomManager = roomManager;
     this.clientManager = clientManager;
-    this.virtualSessionManager = new VirtualSessionManager(clientManager, userManager, this.tempUsers);
+    this.virtualSessionManager = new VirtualSessionManager(
+      clientManager,
+      userManager,
+      this.tempUsers
+    );
     this.port = port;
 
     this.app = express();
     this.setupMiddleware();
     this.setupRoutes();
-    
+
     // Clean up inactive virtual sessions every 10 minutes
     setInterval(() => {
       this.virtualSessionManager.cleanupInactiveSessions();
@@ -87,12 +93,14 @@ export class MCPServer {
 
   private setupMiddleware(): void {
     // Enable CORS for all origins (suitable for local development)
-    this.app.use(cors({
-      origin: '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-      credentials: false
-    }));
+    this.app.use(
+      cors({
+        origin: '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+        credentials: false,
+      })
+    );
     this.app.use(express.json());
 
     // API Key Authentication Middleware
@@ -115,12 +123,12 @@ export class MCPServer {
       if (!apiKey || apiKey !== expectedApiKey) {
         mcpLogger.warn(`Unauthorized access attempt from ${req.ip} to ${req.path}`);
         return res.status(401).json({
-          jsonrpc: "2.0",
+          jsonrpc: '2.0',
           error: {
             code: -32001,
-            message: "Unauthorized - Invalid or missing API key"
+            message: 'Unauthorized - Invalid or missing API key',
           },
-          id: null
+          id: null,
         });
       }
 
@@ -136,7 +144,7 @@ export class MCPServer {
 
   private setupRoutes(): void {
     // MCP Protocol JSON-RPC endpoint
-    this.app.post("/", (req: Request, res: Response) => {
+    this.app.post('/', (req: Request, res: Response) => {
       const { jsonrpc, method, params, id } = req.body;
 
       // Log the incoming request for debugging
@@ -144,14 +152,14 @@ export class MCPServer {
       mcpLogger.debug(`Full request body: ${JSON.stringify(req.body)}`);
 
       // Validate JSON-RPC 2.0 format
-      if (jsonrpc !== "2.0") {
+      if (jsonrpc !== '2.0') {
         res.status(400).json({
-          jsonrpc: "2.0",
+          jsonrpc: '2.0',
           id: id || null,
           error: {
             code: -32600,
-            message: "Invalid Request: jsonrpc must be '2.0'"
-          }
+            message: "Invalid Request: jsonrpc must be '2.0'",
+          },
         });
         return;
       }
@@ -159,14 +167,14 @@ export class MCPServer {
       // Handle notifications (no id, no response needed)
       if (id === null || id === undefined) {
         mcpLogger.info(`Handling MCP notification: ${method}`);
-        
+
         // Acknowledge all notifications with 200 OK but no JSON-RPC response
-        if (method === "notifications/initialized") {
-          mcpLogger.info("Client initialized notification received");
+        if (method === 'notifications/initialized') {
+          mcpLogger.info('Client initialized notification received');
           res.status(200).end();
           return;
         }
-        
+
         // Other notifications
         mcpLogger.info(`Received notification: ${method}`);
         res.status(200).end();
@@ -174,66 +182,66 @@ export class MCPServer {
       }
 
       // Handle MCP protocol methods (requests that need responses)
-      if (method === "initialize") {
-        mcpLogger.info("Handling MCP initialize request");
+      if (method === 'initialize') {
+        mcpLogger.info('Handling MCP initialize request');
         res.json({
-          jsonrpc: "2.0",
+          jsonrpc: '2.0',
           id,
           result: {
-            protocolVersion: "2024-11-05",
+            protocolVersion: '2024-11-05',
             capabilities: {
               tools: {},
               resources: {},
-              prompts: {}
+              prompts: {},
             },
             serverInfo: {
-              name: "EllyMUD MCP Server",
-              version: "1.0.0"
+              name: 'EllyMUD MCP Server',
+              version: '1.0.0',
             },
-            instructions: "EllyMUD MCP Server - API Key authentication via X-API-Key header"
-          }
+            instructions: 'EllyMUD MCP Server - API Key authentication via X-API-Key header',
+          },
         });
         return;
       }
 
-      if (method === "tools/list") {
-        mcpLogger.info("Handling MCP tools/list request");
+      if (method === 'tools/list') {
+        mcpLogger.info('Handling MCP tools/list request');
         res.json({
-          jsonrpc: "2.0",
+          jsonrpc: '2.0',
           id,
           result: {
-            tools: this.getMCPToolsList()
-          }
+            tools: this.getMCPToolsList(),
+          },
         });
         return;
       }
 
-      if (method === "tools/call") {
+      if (method === 'tools/call') {
         mcpLogger.info(`Handling MCP tools/call request: ${params?.name}`);
         this.handleToolCall(params, id, res);
         return;
       }
 
-      if (method === "prompts/list") {
-        mcpLogger.info("Handling MCP prompts/list request");
+      if (method === 'prompts/list') {
+        mcpLogger.info('Handling MCP prompts/list request');
         res.json({
-          jsonrpc: "2.0",
+          jsonrpc: '2.0',
           id,
           result: {
-            prompts: []
-          }
+            prompts: [],
+          },
         });
         return;
       }
 
-      if (method === "resources/list") {
-        mcpLogger.info("Handling MCP resources/list request");
+      if (method === 'resources/list') {
+        mcpLogger.info('Handling MCP resources/list request');
         res.json({
-          jsonrpc: "2.0",
+          jsonrpc: '2.0',
           id,
           result: {
-            resources: []
-          }
+            resources: [],
+          },
         });
         return;
       }
@@ -241,162 +249,157 @@ export class MCPServer {
       // Unknown method
       mcpLogger.warn(`Unknown MCP method: ${method}`);
       res.status(400).json({
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id: id || null,
         error: {
           code: -32601,
-          message: `Method not found: ${method}`
-        }
+          message: `Method not found: ${method}`,
+        },
       });
     });
 
     // Root endpoint - MCP server info (GET for browser access)
-    this.app.get("/", (req: Request, res: Response) => {
+    this.app.get('/', (req: Request, res: Response) => {
       res.json({
-        name: "EllyMUD MCP Server",
-        version: "1.0.0",
-        description: "Model Context Protocol server providing access to EllyMUD game state and data",
-        protocol: "MCP (Model Context Protocol) via JSON-RPC 2.0",
+        name: 'EllyMUD MCP Server',
+        version: '1.0.0',
+        description:
+          'Model Context Protocol server providing access to EllyMUD game state and data',
+        protocol: 'MCP (Model Context Protocol) via JSON-RPC 2.0',
         endpoints: {
-          mcp: "POST / (JSON-RPC 2.0)",
-          health: "/health",
-          tools: "/tools",
-          api: "/api/*"
+          mcp: 'POST / (JSON-RPC 2.0)',
+          health: '/health',
+          tools: '/tools',
+          api: '/api/*',
         },
-        documentation: "See /tools for available endpoints"
+        documentation: 'See /tools for available endpoints',
       });
     });
 
     // Health check
-    this.app.get("/health", (req: Request, res: Response) => {
-      res.json({ status: "ok", timestamp: new Date().toISOString() });
+    this.app.get('/health', (req: Request, res: Response) => {
+      res.json({ status: 'ok', timestamp: new Date().toISOString() });
     });
 
     // List all available tools
-    this.app.get("/tools", (req: Request, res: Response) => {
+    this.app.get('/tools', (req: Request, res: Response) => {
       res.json({
         tools: [
           {
-            name: "get_online_users",
+            name: 'get_online_users',
             description:
-              "Get list of currently connected users with their current state and location",
-            endpoint: "/api/online-users",
-            method: "GET",
+              'Get list of currently connected users with their current state and location',
+            endpoint: '/api/online-users',
+            method: 'GET',
           },
           {
-            name: "get_user_data",
+            name: 'get_user_data',
             description:
-              "Get detailed information about a specific user including stats, inventory, and equipment",
-            endpoint: "/api/users/:username",
-            method: "GET",
+              'Get detailed information about a specific user including stats, inventory, and equipment',
+            endpoint: '/api/users/:username',
+            method: 'GET',
           },
           {
-            name: "get_room_data",
+            name: 'get_room_data',
             description:
-              "Get detailed information about a specific room including description, exits, items, NPCs, and current occupants",
-            endpoint: "/api/rooms/:roomId",
-            method: "GET",
+              'Get detailed information about a specific room including description, exits, items, NPCs, and current occupants',
+            endpoint: '/api/rooms/:roomId',
+            method: 'GET',
           },
           {
-            name: "get_all_rooms",
-            description: "Get a list of all rooms in the game world",
-            endpoint: "/api/rooms",
-            method: "GET",
+            name: 'get_all_rooms',
+            description: 'Get a list of all rooms in the game world',
+            endpoint: '/api/rooms',
+            method: 'GET',
           },
           {
-            name: "get_all_items",
-            description: "Get a list of all item templates in the game",
-            endpoint: "/api/items",
-            method: "GET",
+            name: 'get_all_items',
+            description: 'Get a list of all item templates in the game',
+            endpoint: '/api/items',
+            method: 'GET',
           },
           {
-            name: "get_all_npcs",
-            description: "Get a list of all NPC templates in the game",
-            endpoint: "/api/npcs",
-            method: "GET",
+            name: 'get_all_npcs',
+            description: 'Get a list of all NPC templates in the game',
+            endpoint: '/api/npcs',
+            method: 'GET',
           },
           {
-            name: "get_combat_state",
-            description:
-              "Get information about active combat sessions in the game",
-            endpoint: "/api/combat-state",
-            method: "GET",
+            name: 'get_combat_state',
+            description: 'Get information about active combat sessions in the game',
+            endpoint: '/api/combat-state',
+            method: 'GET',
           },
           {
-            name: "search_logs",
-            description:
-              "Search through player logs or system logs for debugging",
-            endpoint: "/api/logs/search",
-            method: "POST",
+            name: 'search_logs',
+            description: 'Search through player logs or system logs for debugging',
+            endpoint: '/api/logs/search',
+            method: 'POST',
             body: {
-              logType: "player | system | error | raw-session",
-              searchTerm: "string",
-              username: "string (optional, required for player/raw-session)",
+              logType: 'player | system | error | raw-session',
+              searchTerm: 'string',
+              username: 'string (optional, required for player/raw-session)',
             },
           },
           {
-            name: "get_game_config",
-            description: "Get current game configuration settings",
-            endpoint: "/api/config",
-            method: "GET",
+            name: 'get_game_config',
+            description: 'Get current game configuration settings',
+            endpoint: '/api/config',
+            method: 'GET',
           },
           {
-            name: "tail_user_session",
+            name: 'tail_user_session',
             description:
               "Get the last N lines of a user's raw session log to see exactly what they are seeing. If username not provided and only one user is online, uses that user automatically.",
-            endpoint: "/api/tail-session",
-            method: "POST",
+            endpoint: '/api/tail-session',
+            method: 'POST',
             body: {
-              username: "string (optional if only 1 user online)",
-              lines: "number (optional, default 500, max 500)",
+              username: 'string (optional if only 1 user online)',
+              lines: 'number (optional, default 500, max 500)',
             },
           },
           {
-            name: "virtual_session_create",
-            description:
-              "Create a new virtual game session for the LLM to play the game",
-            endpoint: "/api/virtual-session/create",
-            method: "POST",
+            name: 'virtual_session_create',
+            description: 'Create a new virtual game session for the LLM to play the game',
+            endpoint: '/api/virtual-session/create',
+            method: 'POST',
           },
           {
-            name: "virtual_session_command",
+            name: 'virtual_session_command',
             description:
-              "Send a command to a virtual game session and get the response. Output is cleaned (ANSI codes and prompt removed) for easy parsing.",
-            endpoint: "/api/virtual-session/command",
-            method: "POST",
+              'Send a command to a virtual game session and get the response. Output is cleaned (ANSI codes and prompt removed) for easy parsing.',
+            endpoint: '/api/virtual-session/command',
+            method: 'POST',
             body: {
-              sessionId: "string",
-              command: "string",
-              waitMs: "number (optional, default 100)",
+              sessionId: 'string',
+              command: 'string',
+              waitMs: 'number (optional, default 100)',
             },
           },
           {
-            name: "virtual_session_info",
-            description:
-              "Get information about a virtual session",
-            endpoint: "/api/virtual-session/:sessionId",
-            method: "GET",
+            name: 'virtual_session_info',
+            description: 'Get information about a virtual session',
+            endpoint: '/api/virtual-session/:sessionId',
+            method: 'GET',
           },
           {
-            name: "virtual_session_close",
-            description:
-              "Close a virtual game session",
-            endpoint: "/api/virtual-session/:sessionId",
-            method: "DELETE",
+            name: 'virtual_session_close',
+            description: 'Close a virtual game session',
+            endpoint: '/api/virtual-session/:sessionId',
+            method: 'DELETE',
           },
           {
-            name: "virtual_sessions_list",
-            description:
-              "List all active virtual sessions",
-            endpoint: "/api/virtual-sessions",
-            method: "GET",
+            name: 'virtual_sessions_list',
+            description: 'List all active virtual sessions',
+            endpoint: '/api/virtual-sessions',
+            method: 'GET',
           },
         ],
       });
     });
 
     // API endpoints
-    this.app.get("/api/online-users", async (req: Request, res: Response) => {
+    this.app.get('/api/online-users', async (req: Request, res: Response) => {
       try {
         const data = await this.getOnlineUsers();
         mcpLogger.info(`Retrieved ${data.count} online users`);
@@ -410,7 +413,7 @@ export class MCPServer {
       }
     });
 
-    this.app.get("/api/users/:username", async (req: Request, res: Response) => {
+    this.app.get('/api/users/:username', async (req: Request, res: Response) => {
       try {
         const data = await this.getUserData(req.params.username);
         mcpLogger.info(`Retrieved user data for ${req.params.username}`);
@@ -424,7 +427,7 @@ export class MCPServer {
       }
     });
 
-    this.app.get("/api/rooms/:roomId", async (req: Request, res: Response) => {
+    this.app.get('/api/rooms/:roomId', async (req: Request, res: Response) => {
       try {
         const data = await this.getRoomData(req.params.roomId);
         mcpLogger.info(`Retrieved room data for ${req.params.roomId}`);
@@ -438,7 +441,7 @@ export class MCPServer {
       }
     });
 
-    this.app.get("/api/rooms", async (req: Request, res: Response) => {
+    this.app.get('/api/rooms', async (req: Request, res: Response) => {
       try {
         const data = await this.getAllRooms();
         mcpLogger.info(`Retrieved ${data.count} rooms`);
@@ -452,7 +455,7 @@ export class MCPServer {
       }
     });
 
-    this.app.get("/api/items", async (req: Request, res: Response) => {
+    this.app.get('/api/items', async (req: Request, res: Response) => {
       try {
         const data = await this.getAllItems();
         mcpLogger.info(`Retrieved ${data.count} items`);
@@ -466,7 +469,7 @@ export class MCPServer {
       }
     });
 
-    this.app.get("/api/npcs", async (req: Request, res: Response) => {
+    this.app.get('/api/npcs', async (req: Request, res: Response) => {
       try {
         const data = await this.getAllNPCs();
         mcpLogger.info(`Retrieved ${data.count} NPCs`);
@@ -480,12 +483,10 @@ export class MCPServer {
       }
     });
 
-    this.app.get("/api/combat-state", async (req: Request, res: Response) => {
+    this.app.get('/api/combat-state', async (req: Request, res: Response) => {
       try {
         const data = await this.getCombatState();
-        mcpLogger.info(
-          `Retrieved ${data.activeCombatSessions} combat sessions`
-        );
+        mcpLogger.info(`Retrieved ${data.activeCombatSessions} combat sessions`);
         res.json({ success: true, data });
       } catch (error) {
         mcpLogger.error(`Error getting combat state: ${error}`);
@@ -496,13 +497,13 @@ export class MCPServer {
       }
     });
 
-    this.app.post("/api/logs/search", async (req: Request, res: Response) => {
+    this.app.post('/api/logs/search', async (req: Request, res: Response) => {
       try {
         const { logType, searchTerm, username } = req.body;
         if (!logType || !searchTerm) {
           return res.status(400).json({
             success: false,
-            error: "logType and searchTerm are required",
+            error: 'logType and searchTerm are required',
           });
         }
         const data = await this.searchLogs(logType, searchTerm, username);
@@ -519,10 +520,10 @@ export class MCPServer {
       }
     });
 
-    this.app.get("/api/config", async (req: Request, res: Response) => {
+    this.app.get('/api/config', async (req: Request, res: Response) => {
       try {
         const data = await this.getGameConfig();
-        mcpLogger.info("Retrieved game config");
+        mcpLogger.info('Retrieved game config');
         res.json({ success: true, data });
       } catch (error) {
         mcpLogger.error(`Error getting game config: ${error}`);
@@ -533,10 +534,10 @@ export class MCPServer {
       }
     });
 
-    this.app.post("/api/tail-session", async (req: Request, res: Response) => {
+    this.app.post('/api/tail-session', async (req: Request, res: Response) => {
       try {
         let { username, lines } = req.body;
-        
+
         // Default to 500 lines, max 500
         lines = lines ? Math.min(Math.max(1, parseInt(lines)), 500) : 500;
 
@@ -546,7 +547,7 @@ export class MCPServer {
           if (onlineUsers.count === 0) {
             return res.status(400).json({
               success: false,
-              error: "No users currently online",
+              error: 'No users currently online',
             });
           }
           if (onlineUsers.count === 1) {
@@ -556,7 +557,7 @@ export class MCPServer {
             return res.status(400).json({
               success: false,
               error: `Multiple users online (${onlineUsers.count}). Please specify username.`,
-              availableUsers: onlineUsers.users.map(u => u.username),
+              availableUsers: onlineUsers.users.map((u) => u.username),
             });
           }
         }
@@ -574,16 +575,16 @@ export class MCPServer {
     });
 
     // Virtual session endpoints
-    this.app.post("/api/virtual-session/create", async (req: Request, res: Response) => {
+    this.app.post('/api/virtual-session/create', async (req: Request, res: Response) => {
       try {
         const session = this.virtualSessionManager.createSession();
         mcpLogger.info(`Created virtual session: ${session.getSessionId()}`);
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           data: {
             sessionId: session.getSessionId(),
-            message: "Virtual session created. Use session_command to interact."
-          }
+            message: 'Virtual session created. Use session_command to interact.',
+          },
         });
       } catch (error) {
         mcpLogger.error(`Error creating virtual session: ${error}`);
@@ -594,14 +595,14 @@ export class MCPServer {
       }
     });
 
-    this.app.post("/api/virtual-session/command", async (req: Request, res: Response) => {
+    this.app.post('/api/virtual-session/command', async (req: Request, res: Response) => {
       try {
         const { sessionId, command, waitMs } = req.body;
-        
+
         if (!sessionId || !command) {
           return res.status(400).json({
             success: false,
-            error: "sessionId and command are required",
+            error: 'sessionId and command are required',
           });
         }
 
@@ -615,23 +616,23 @@ export class MCPServer {
 
         // Send the command
         session.sendCommand(command);
-        
+
         // Wait a bit for the response (default 100ms)
         const delay = waitMs !== undefined ? parseInt(waitMs) : 100;
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
         // Get the output
         const output = session.getOutput(true);
-        
+
         mcpLogger.info(`Virtual session ${sessionId} executed command: ${command}`);
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           data: {
             sessionId,
             command,
             output,
-            sessionInfo: session.getInfo()
-          }
+            sessionInfo: session.getInfo(),
+          },
         });
       } catch (error) {
         mcpLogger.error(`Error executing virtual session command: ${error}`);
@@ -642,11 +643,11 @@ export class MCPServer {
       }
     });
 
-    this.app.get("/api/virtual-session/:sessionId", async (req: Request, res: Response) => {
+    this.app.get('/api/virtual-session/:sessionId', async (req: Request, res: Response) => {
       try {
         const { sessionId } = req.params;
         const session = this.virtualSessionManager.getSession(sessionId);
-        
+
         if (!session) {
           return res.status(404).json({
             success: false,
@@ -654,9 +655,9 @@ export class MCPServer {
           });
         }
 
-        res.json({ 
-          success: true, 
-          data: session.getInfo()
+        res.json({
+          success: true,
+          data: session.getInfo(),
         });
       } catch (error) {
         mcpLogger.error(`Error getting virtual session info: ${error}`);
@@ -667,11 +668,11 @@ export class MCPServer {
       }
     });
 
-    this.app.delete("/api/virtual-session/:sessionId", async (req: Request, res: Response) => {
+    this.app.delete('/api/virtual-session/:sessionId', async (req: Request, res: Response) => {
       try {
         const { sessionId } = req.params;
         const closed = this.virtualSessionManager.closeSession(sessionId);
-        
+
         if (!closed) {
           return res.status(404).json({
             success: false,
@@ -680,9 +681,9 @@ export class MCPServer {
         }
 
         mcpLogger.info(`Closed virtual session: ${sessionId}`);
-        res.json({ 
-          success: true, 
-          data: { message: "Session closed" }
+        res.json({
+          success: true,
+          data: { message: 'Session closed' },
         });
       } catch (error) {
         mcpLogger.error(`Error closing virtual session: ${error}`);
@@ -693,17 +694,18 @@ export class MCPServer {
       }
     });
 
-    this.app.get("/api/virtual-sessions", async (req: Request, res: Response) => {
+    this.app.get('/api/virtual-sessions', async (req: Request, res: Response) => {
       try {
-        const sessions = Array.from(this.virtualSessionManager.getAllSessions().values())
-          .map(session => session.getInfo());
-        
-        res.json({ 
-          success: true, 
+        const sessions = Array.from(this.virtualSessionManager.getAllSessions().values()).map(
+          (session) => session.getInfo()
+        );
+
+        res.json({
+          success: true,
           data: {
             count: sessions.length,
-            sessions
-          }
+            sessions,
+          },
         });
       } catch (error) {
         mcpLogger.error(`Error listing virtual sessions: ${error}`);
@@ -717,12 +719,12 @@ export class MCPServer {
 
   private async getOnlineUsers() {
     // Import SudoCommand to check admin status
-    const { SudoCommand } = await import("../command/commands/sudo.command.js");
-    
+    const { SudoCommand } = await import('../command/commands/sudo.command.js');
+
     const clients = Array.from(this.clientManager.getClients().values());
     const onlineUsers = clients.map((client) => ({
-      username: client.user?.username || "Not logged in",
-      state: client.state || "Unknown",
+      username: client.user?.username || 'Not logged in',
+      state: client.state || 'Unknown',
       roomId: client.user?.currentRoomId || null,
       sessionId: client.id,
       connectedAt: client.connectedAt,
@@ -763,13 +765,15 @@ export class MCPServer {
       health: npc.health,
       maxHealth: npc.maxHealth,
       isHostile: npc.isHostile,
-      experienceValue: npc.experienceValue
+      experienceValue: npc.experienceValue,
     }));
 
-    const itemInstancesArray = Array.from(room.getItemInstances().entries()).map(([instanceId, templateId]) => ({
-      instanceId,
-      templateId
-    }));
+    const itemInstancesArray = Array.from(room.getItemInstances().entries()).map(
+      ([instanceId, templateId]) => ({
+        instanceId,
+        templateId,
+      })
+    );
 
     return {
       id: room.id,
@@ -780,7 +784,7 @@ export class MCPServer {
       currency: room.currency,
       currentUsers: usersInRoom,
       npcs: npcsArray,
-      itemInstances: itemInstancesArray
+      itemInstances: itemInstancesArray,
     };
   }
 
@@ -791,7 +795,7 @@ export class MCPServer {
       rooms: rooms.map((r) => ({
         id: r.id,
         name: r.name,
-        description: r.description?.substring(0, 100) + "...",
+        description: r.description?.substring(0, 100) + '...',
         exits: Object.keys(r.exits || {}),
       })),
     };
@@ -799,8 +803,8 @@ export class MCPServer {
 
   private async getAllItems() {
     try {
-      const itemsPath = join(process.cwd(), "data", "items.json");
-      const itemsData = JSON.parse(readFileSync(itemsPath, "utf-8"));
+      const itemsPath = join(process.cwd(), 'data', 'items.json');
+      const itemsData = JSON.parse(readFileSync(itemsPath, 'utf-8'));
       return {
         count: itemsData.length,
         items: itemsData,
@@ -812,8 +816,8 @@ export class MCPServer {
 
   private async getAllNPCs() {
     try {
-      const npcsPath = join(process.cwd(), "data", "npcs.json");
-      const npcsData = JSON.parse(readFileSync(npcsPath, "utf-8"));
+      const npcsPath = join(process.cwd(), 'data', 'npcs.json');
+      const npcsData = JSON.parse(readFileSync(npcsPath, 'utf-8'));
       return {
         count: npcsData.length,
         npcs: npcsData,
@@ -826,9 +830,7 @@ export class MCPServer {
   private async getCombatState() {
     const clients = Array.from(this.clientManager.getClients().values());
     const combatSessions = clients
-      .filter(
-        (client) => client.state === "authenticated" && client.stateData?.inCombat
-      )
+      .filter((client) => client.state === 'authenticated' && client.stateData?.inCombat)
       .map((client) => ({
         username: client.user?.username,
         roomId: client.user?.currentRoomId,
@@ -841,42 +843,36 @@ export class MCPServer {
     };
   }
 
-  private async searchLogs(
-    logType: string,
-    searchTerm: string,
-    username?: string
-  ) {
+  private async searchLogs(logType: string, searchTerm: string, username?: string) {
     try {
       let logDir: string;
       let logFiles: string[];
 
       switch (logType) {
-        case "player":
+        case 'player':
           if (!username) {
-            throw new Error("username is required for player logs");
+            throw new Error('username is required for player logs');
           }
-          logDir = join(process.cwd(), "logs", "players");
-          logFiles = readdirSync(logDir).filter((f) =>
-            f.startsWith(username + "-")
-          );
+          logDir = join(process.cwd(), 'logs', 'players');
+          logFiles = readdirSync(logDir).filter((f) => f.startsWith(username + '-'));
           break;
 
-        case "raw-session":
+        case 'raw-session':
           if (!username) {
-            throw new Error("username is required for raw-session logs");
+            throw new Error('username is required for raw-session logs');
           }
-          logDir = join(process.cwd(), "logs", "raw-sessions");
+          logDir = join(process.cwd(), 'logs', 'raw-sessions');
           logFiles = readdirSync(logDir).filter((f) => f.includes(username));
           break;
 
-        case "system":
-          logDir = join(process.cwd(), "logs");
-          logFiles = readdirSync(logDir).filter((f) => f.startsWith("system-"));
+        case 'system':
+          logDir = join(process.cwd(), 'logs');
+          logFiles = readdirSync(logDir).filter((f) => f.startsWith('system-'));
           break;
 
-        case "error":
-          logDir = join(process.cwd(), "logs");
-          logFiles = readdirSync(logDir).filter((f) => f.startsWith("error-"));
+        case 'error':
+          logDir = join(process.cwd(), 'logs');
+          logFiles = readdirSync(logDir).filter((f) => f.startsWith('error-'));
           break;
 
         default:
@@ -885,12 +881,12 @@ export class MCPServer {
 
       // Search through log files
       const results: Array<{ file: string; matches: string[] }> = [];
-      const searchRegex = new RegExp(searchTerm, "gi");
+      const searchRegex = new RegExp(searchTerm, 'gi');
 
       for (const file of logFiles.slice(-5)) {
         // Only search last 5 files
-        const content = readFileSync(join(logDir, file), "utf-8");
-        const lines = content.split("\n");
+        const content = readFileSync(join(logDir, file), 'utf-8');
+        const lines = content.split('\n');
         const matches = lines.filter((line) => searchRegex.test(line));
 
         if (matches.length > 0) {
@@ -914,8 +910,8 @@ export class MCPServer {
 
   private async getGameConfig() {
     try {
-      const configPath = join(process.cwd(), "data", "mud-config.json");
-      const configData = JSON.parse(readFileSync(configPath, "utf-8"));
+      const configPath = join(process.cwd(), 'data', 'mud-config.json');
+      const configData = JSON.parse(readFileSync(configPath, 'utf-8'));
       return configData;
     } catch (error) {
       throw new Error(`Failed to read game config: ${error}`);
@@ -924,8 +920,8 @@ export class MCPServer {
 
   private async tailUserSession(username: string | undefined, lines: number = 500) {
     // Import SudoCommand to check admin status
-    const { SudoCommand } = await import("../command/commands/sudo.command.js");
-    
+    const { SudoCommand } = await import('../command/commands/sudo.command.js');
+
     // Get list of online users
     const clients = Array.from(this.clientManager.getClients().values());
     const onlineUsers = clients
@@ -933,15 +929,15 @@ export class MCPServer {
       .map((c) => ({
         username: c.user!.username,
         client: c,
-        isAdmin: SudoCommand.isAuthorizedUser(c.user!.username)
+        isAdmin: SudoCommand.isAuthorizedUser(c.user!.username),
       }));
 
     // If no username provided, auto-select based on rules
     if (!username) {
       if (onlineUsers.length === 0) {
-        throw new Error("No users currently online");
+        throw new Error('No users currently online');
       }
-      
+
       if (onlineUsers.length === 1) {
         // Rule 1: If only 1 user online, auto-select
         username = onlineUsers[0].username;
@@ -949,19 +945,19 @@ export class MCPServer {
       } else {
         // Rule 2: If multiple users, prefer admin users
         const adminUsers = onlineUsers.filter((u) => u.isAdmin);
-        
+
         if (adminUsers.length === 1) {
           username = adminUsers[0].username;
           mcpLogger.info(`Auto-selected only admin user: ${username}`);
         } else if (adminUsers.length > 1) {
           // Rule 3: Multiple admins, ask LLM to choose
           throw new Error(
-            `Multiple admin users online. Please specify username: ${adminUsers.map(u => u.username).join(", ")}`
+            `Multiple admin users online. Please specify username: ${adminUsers.map((u) => u.username).join(', ')}`
           );
         } else {
           // No admins, multiple regular users - ask LLM to choose
           throw new Error(
-            `Multiple users online. Please specify username: ${onlineUsers.map(u => u.username).join(", ")}`
+            `Multiple users online. Please specify username: ${onlineUsers.map((u) => u.username).join(', ')}`
           );
         }
       }
@@ -969,27 +965,22 @@ export class MCPServer {
 
     // Find the user's session
     const userClient = clients.find((c) => c.user?.username === username);
-    
+
     if (!userClient) {
       throw new Error(`User '${username}' is not currently online`);
     }
 
     // Get the connection ID (which is used for the session log filename)
-    const sessionId = (userClient.connection as any).getId ? 
-      (userClient.connection as any).getId() : 
-      'unknown';
-      
+    const sessionId = (userClient.connection as any).getId
+      ? (userClient.connection as any).getId()
+      : 'unknown';
+
     if (sessionId === 'unknown') {
       throw new Error(`Unable to retrieve session ID for user '${username}'`);
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const logFilePath = join(
-      process.cwd(),
-      "logs",
-      "raw-sessions",
-      `${sessionId}-${today}.log`
-    );
+    const logFilePath = join(process.cwd(), 'logs', 'raw-sessions', `${sessionId}-${today}.log`);
 
     // Check if log file exists
     if (!existsSync(logFilePath)) {
@@ -997,16 +988,16 @@ export class MCPServer {
         username,
         sessionId,
         lines: 0,
-        content: "(No session log file found for today)",
+        content: '(No session log file found for today)',
         logFile: logFilePath,
       };
     }
 
     // Read the last N lines from the file
-    const content = readFileSync(logFilePath, "utf-8");
+    const content = readFileSync(logFilePath, 'utf-8');
     const allLines = content.split('\n');
     const lastLines = allLines.slice(-lines);
-    
+
     return {
       username,
       sessionId,
@@ -1024,195 +1015,204 @@ export class MCPServer {
   private getMCPToolsList() {
     return [
       {
-        name: "get_online_users",
-        description: "Get list of currently connected users with their current state and location",
+        name: 'get_online_users',
+        description: 'Get list of currently connected users with their current state and location',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {},
-          required: []
-        }
+          required: [],
+        },
       },
       {
-        name: "get_user_data",
-        description: "Get detailed information about a specific user including stats, inventory, and equipment",
+        name: 'get_user_data',
+        description:
+          'Get detailed information about a specific user including stats, inventory, and equipment',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
-            username: { type: "string", description: "The username to look up" }
+            username: { type: 'string', description: 'The username to look up' },
           },
-          required: ["username"]
-        }
+          required: ['username'],
+        },
       },
       {
-        name: "get_room_data",
-        description: "Get detailed information about a specific room including description, exits, items, NPCs, and current occupants",
+        name: 'get_room_data',
+        description:
+          'Get detailed information about a specific room including description, exits, items, NPCs, and current occupants',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
-            roomId: { type: "string", description: "The room ID to look up" }
+            roomId: { type: 'string', description: 'The room ID to look up' },
           },
-          required: ["roomId"]
-        }
+          required: ['roomId'],
+        },
       },
       {
-        name: "get_all_rooms",
-        description: "Get a list of all rooms in the game world",
+        name: 'get_all_rooms',
+        description: 'Get a list of all rooms in the game world',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {},
-          required: []
-        }
+          required: [],
+        },
       },
       {
-        name: "get_all_items",
-        description: "Get a list of all item templates in the game",
+        name: 'get_all_items',
+        description: 'Get a list of all item templates in the game',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {},
-          required: []
-        }
+          required: [],
+        },
       },
       {
-        name: "get_all_npcs",
-        description: "Get a list of all NPC templates in the game",
+        name: 'get_all_npcs',
+        description: 'Get a list of all NPC templates in the game',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {},
-          required: []
-        }
+          required: [],
+        },
       },
       {
-        name: "get_combat_state",
-        description: "Get information about active combat sessions in the game",
+        name: 'get_combat_state',
+        description: 'Get information about active combat sessions in the game',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {},
-          required: []
-        }
+          required: [],
+        },
       },
       {
-        name: "get_game_config",
-        description: "Get current game configuration settings",
+        name: 'get_game_config',
+        description: 'Get current game configuration settings',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {},
-          required: []
-        }
+          required: [],
+        },
       },
       {
-        name: "tail_user_session",
-        description: "Get the last N lines of a user's raw session log to see exactly what they are seeing. Automatically selects user if only one is online.",
+        name: 'tail_user_session',
+        description:
+          "Get the last N lines of a user's raw session log to see exactly what they are seeing. Automatically selects user if only one is online.",
         inputSchema: {
-          type: "object",
-          properties: {
-            username: { 
-              type: "string", 
-              description: "Username to tail (optional if only 1 user online)" 
-            },
-            lines: { 
-              type: "number", 
-              description: "Number of lines to retrieve (default 500, max 500)" 
-            }
-          },
-          required: []
-        }
-      },
-      {
-        name: "virtual_session_create",
-        description: "Create a new virtual game session for the LLM to interact with the game as a player",
-        inputSchema: {
-          type: "object",
-          properties: {},
-          required: []
-        }
-      },
-      {
-        name: "virtual_session_command",
-        description: "Send a command to a virtual game session and receive the response. Use this to login, create users, and play the game.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            sessionId: { 
-              type: "string", 
-              description: "The virtual session ID" 
-            },
-            command: { 
-              type: "string", 
-              description: "The command to send (e.g., 'admin', 'password', 'look', 'north')" 
-            },
-            waitMs: { 
-              type: "number", 
-              description: "Milliseconds to wait for response (default 100)" 
-            }
-          },
-          required: ["sessionId", "command"]
-        }
-      },
-      {
-        name: "virtual_session_info",
-        description: "Get information about a virtual session including authentication status and current state",
-        inputSchema: {
-          type: "object",
-          properties: {
-            sessionId: { 
-              type: "string", 
-              description: "The virtual session ID" 
-            }
-          },
-          required: ["sessionId"]
-        }
-      },
-      {
-        name: "virtual_session_close",
-        description: "Close a virtual game session",
-        inputSchema: {
-          type: "object",
-          properties: {
-            sessionId: { 
-              type: "string", 
-              description: "The virtual session ID" 
-            }
-          },
-          required: ["sessionId"]
-        }
-      },
-      {
-        name: "virtual_sessions_list",
-        description: "List all active virtual sessions",
-        inputSchema: {
-          type: "object",
-          properties: {},
-          required: []
-        }
-      },
-      {
-        name: "create_temp_user",
-        description: "Create a temporary user for testing. Temp users are automatically deleted when the server restarts.",
-        inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
             username: {
-              type: "string",
-              description: "Optional username for the temp user. If not provided, a random name like 'temp_abc123' will be generated."
-            }
+              type: 'string',
+              description: 'Username to tail (optional if only 1 user online)',
+            },
+            lines: {
+              type: 'number',
+              description: 'Number of lines to retrieve (default 500, max 500)',
+            },
           },
-          required: []
-        }
+          required: [],
+        },
       },
       {
-        name: "direct_login",
-        description: "Create a virtual session and login directly as the specified user, bypassing password authentication. If the user doesn't exist, it will be created as a temp user. Perfect for quick testing.",
+        name: 'virtual_session_create',
+        description:
+          'Create a new virtual game session for the LLM to interact with the game as a player',
         inputSchema: {
-          type: "object",
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'virtual_session_command',
+        description:
+          'Send a command to a virtual game session and receive the response. Use this to login, create users, and play the game.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            sessionId: {
+              type: 'string',
+              description: 'The virtual session ID',
+            },
+            command: {
+              type: 'string',
+              description: "The command to send (e.g., 'admin', 'password', 'look', 'north')",
+            },
+            waitMs: {
+              type: 'number',
+              description: 'Milliseconds to wait for response (default 100)',
+            },
+          },
+          required: ['sessionId', 'command'],
+        },
+      },
+      {
+        name: 'virtual_session_info',
+        description:
+          'Get information about a virtual session including authentication status and current state',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            sessionId: {
+              type: 'string',
+              description: 'The virtual session ID',
+            },
+          },
+          required: ['sessionId'],
+        },
+      },
+      {
+        name: 'virtual_session_close',
+        description: 'Close a virtual game session',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            sessionId: {
+              type: 'string',
+              description: 'The virtual session ID',
+            },
+          },
+          required: ['sessionId'],
+        },
+      },
+      {
+        name: 'virtual_sessions_list',
+        description: 'List all active virtual sessions',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'create_temp_user',
+        description:
+          'Create a temporary user for testing. Temp users are automatically deleted when the server restarts.',
+        inputSchema: {
+          type: 'object',
           properties: {
             username: {
-              type: "string",
-              description: "Username to login as. Will be created as temp user if doesn't exist."
-            }
+              type: 'string',
+              description:
+                "Optional username for the temp user. If not provided, a random name like 'temp_abc123' will be generated.",
+            },
           },
-          required: ["username"]
-        }
-      }
+          required: [],
+        },
+      },
+      {
+        name: 'direct_login',
+        description:
+          "Create a virtual session and login directly as the specified user, bypassing password authentication. If the user doesn't exist, it will be created as a temp user. Perfect for quick testing.",
+        inputSchema: {
+          type: 'object',
+          properties: {
+            username: {
+              type: 'string',
+              description: "Username to login as. Will be created as temp user if doesn't exist.",
+            },
+          },
+          required: ['username'],
+        },
+      },
     ];
   }
 
@@ -1224,89 +1224,89 @@ export class MCPServer {
 
     try {
       let result;
-      
+
       switch (name) {
-        case "get_online_users":
+        case 'get_online_users':
           result = await this.getOnlineUsers();
           break;
-        case "get_user_data":
+        case 'get_user_data':
           result = await this.getUserData(args.username);
           break;
-        case "get_room_data":
+        case 'get_room_data':
           result = await this.getRoomData(args.roomId);
           break;
-        case "get_all_rooms":
+        case 'get_all_rooms':
           result = await this.getAllRooms();
           break;
-        case "get_all_items":
+        case 'get_all_items':
           result = await this.getAllItems();
           break;
-        case "get_all_npcs":
+        case 'get_all_npcs':
           result = await this.getAllNPCs();
           break;
-        case "get_combat_state":
+        case 'get_combat_state':
           result = await this.getCombatState();
           break;
-        case "get_game_config":
+        case 'get_game_config':
           result = await this.getGameConfig();
           break;
-        case "tail_user_session":
+        case 'tail_user_session':
           result = await this.tailUserSession(args.username, args.lines);
           break;
-        case "virtual_session_create":
+        case 'virtual_session_create':
           result = this.createVirtualSession();
           break;
-        case "virtual_session_command":
+        case 'virtual_session_command':
           result = await this.sendVirtualCommand(args.sessionId, args.command, args.waitMs);
           break;
-        case "virtual_session_info":
+        case 'virtual_session_info':
           result = this.getVirtualSessionInfo(args.sessionId);
           break;
-        case "virtual_session_close":
+        case 'virtual_session_close':
           result = this.closeVirtualSession(args.sessionId);
           break;
-        case "virtual_sessions_list":
+        case 'virtual_sessions_list':
           result = this.listVirtualSessions();
           break;
-        case "create_temp_user":
+        case 'create_temp_user':
           result = this.createTempUser(args.username);
           break;
-        case "direct_login":
+        case 'direct_login':
           result = this.directLogin(args.username);
           break;
         default:
           res.status(400).json({
-            jsonrpc: "2.0",
+            jsonrpc: '2.0',
             id,
             error: {
               code: -32601,
-              message: `Unknown tool: ${name}`
-            }
+              message: `Unknown tool: ${name}`,
+            },
           });
           return;
       }
 
       res.json({
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id,
         result: {
           content: [
             {
-              type: "text",
-              text: JSON.stringify(result, null, 2)
-            }
-          ]
-        }
+              type: 'text',
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        },
       });
     } catch (error) {
       mcpLogger.error(`Error calling tool ${name}: ${error}`);
       res.status(500).json({
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         id,
         error: {
           code: -32603,
-          message: error instanceof Error ? error.message : String(error)
-        }
+          message: error instanceof Error ? error.message : String(error),
+        },
       });
     }
   }
@@ -1318,8 +1318,8 @@ export class MCPServer {
     const session = this.virtualSessionManager.createSession();
     return {
       sessionId: session.getSessionId(),
-      message: "Virtual session created. Use virtual_session_command to interact.",
-      info: session.getInfo()
+      message: 'Virtual session created. Use virtual_session_command to interact.',
+      info: session.getInfo(),
     };
   }
 
@@ -1332,23 +1332,23 @@ export class MCPServer {
     // IMPORTANT: Clear any accumulated output BEFORE sending command
     // This prevents previous command output from bleeding into current response
     session.clearOutput();
-    
+
     // Send the command
     session.sendCommand(command);
-    
+
     // Wait for response (default 200ms - increased from 100ms for more complete output)
     const delay = waitMs !== undefined ? parseInt(waitMs.toString()) : 200;
-    await new Promise(resolve => setTimeout(resolve, delay));
-    
+    await new Promise((resolve) => setTimeout(resolve, delay));
+
     // Get the raw output and clean it for LLM consumption
     const rawOutput = session.getOutput(true);
     const output = cleanCommandOutput(rawOutput);
-    
+
     return {
       sessionId,
       command,
       output,
-      sessionInfo: session.getInfo()
+      sessionInfo: session.getInfo(),
     };
   }
 
@@ -1365,15 +1365,16 @@ export class MCPServer {
     if (!closed) {
       throw new Error(`Session '${sessionId}' not found`);
     }
-    return { message: "Session closed", sessionId };
+    return { message: 'Session closed', sessionId };
   }
 
   private listVirtualSessions() {
-    const sessions = Array.from(this.virtualSessionManager.getAllSessions().values())
-      .map(session => session.getInfo());
+    const sessions = Array.from(this.virtualSessionManager.getAllSessions().values()).map(
+      (session) => session.getInfo()
+    );
     return {
       count: sessions.length,
-      sessions
+      sessions,
     };
   }
 
@@ -1384,8 +1385,9 @@ export class MCPServer {
     const result = this.virtualSessionManager.createTempUser(username);
     return {
       ...result,
-      message: "Temp user created. Will be deleted when server restarts. Use direct_login to login as this user.",
-      isTempUser: true
+      message:
+        'Temp user created. Will be deleted when server restarts. Use direct_login to login as this user.',
+      isTempUser: true,
     };
   }
 
@@ -1395,13 +1397,14 @@ export class MCPServer {
    */
   private directLogin(username: string) {
     const session = this.virtualSessionManager.directLogin(username);
-    
+
     return {
       sessionId: session.getSessionId(),
       username,
-      message: "Logged in directly. Session is ready. Use virtual_session_command with 'look' to see the room.",
+      message:
+        "Logged in directly. Session is ready. Use virtual_session_command with 'look' to see the room.",
       isTempUser: this.tempUsers.has(username.toLowerCase()),
-      sessionInfo: session.getInfo()
+      sessionInfo: session.getInfo(),
     };
   }
 
@@ -1415,7 +1418,7 @@ export class MCPServer {
         mcpLogger.info(`MCP Server started on port ${this.port}`);
         resolve();
       });
-      
+
       // Handle port already in use error
       this.httpServer?.on('error', (error: NodeJS.ErrnoException) => {
         if (error.code === 'EADDRINUSE') {
@@ -1440,11 +1443,11 @@ export class MCPServer {
     if (cleanedCount > 0) {
       mcpLogger.info(`Cleaned up ${cleanedCount} temp users on shutdown`);
     }
-    
+
     return new Promise((resolve) => {
       if (this.httpServer) {
         this.httpServer.close(() => {
-          mcpLogger.info("MCP Server stopped");
+          mcpLogger.info('MCP Server stopped');
           resolve();
         });
       } else {

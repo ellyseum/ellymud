@@ -23,7 +23,16 @@ export const adminUsername = 'admin'; // Default admin username
 
 // Security settings
 export const DISABLE_REMOTE_ADMIN = cliConfig.disableRemoteAdmin;
-export const RESTRICTED_USERNAMES = ['admin', 'administrator', 'mod', 'moderator', 'root', 'system', 'console', 'server'];
+export const RESTRICTED_USERNAMES = [
+  'admin',
+  'administrator',
+  'mod',
+  'moderator',
+  'root',
+  'system',
+  'console',
+  'server',
+];
 
 // File paths
 export const DATA_DIR = cliConfig.dataDir;
@@ -67,10 +76,8 @@ export const IS_WINDOWS = os.platform() === 'win32';
 
 // Check for console mode - should be true if we're in a TTY, not running with auto-session,
 // and not running with noConsole flag
-export const CONSOLE_MODE = process.stdout.isTTY && 
-                         !cliConfig.adminSession && 
-                         !cliConfig.userSession &&
-                         !cliConfig.noConsole;
+export const CONSOLE_MODE =
+  process.stdout.isTTY && !cliConfig.adminSession && !cliConfig.userSession && !cliConfig.noConsole;
 
 // Use previous IS_TTY value for backward compatibility
 export const IS_TTY = CONSOLE_MODE;
@@ -127,5 +134,5 @@ export default {
   SILENT_MODE,
   NO_CONSOLE,
   DISABLE_REMOTE_ADMIN,
-  HOST_NAME: os.hostname()
+  HOST_NAME: os.hostname(),
 };

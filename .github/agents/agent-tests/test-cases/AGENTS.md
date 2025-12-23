@@ -6,12 +6,12 @@ This directory contains individual test case files for validating agent behavior
 
 ## Files
 
-| File | Target Agent | Test Count |
-|------|--------------|------------|
-| `research-agent-tests.md` | Research Agent | 5 |
-| `planning-agent-tests.md` | Planning Agent | 5 |
-| `implementation-agent-tests.md` | Implementation Agent | 4 |
-| `validation-agent-tests.md` | Validation Agent | 4 |
+| File                            | Target Agent         | Test Count |
+| ------------------------------- | -------------------- | ---------- |
+| `research-agent-tests.md`       | Research Agent       | 5          |
+| `planning-agent-tests.md`       | Planning Agent       | 5          |
+| `implementation-agent-tests.md` | Implementation Agent | 4          |
+| `validation-agent-tests.md`     | Validation Agent     | 4          |
 
 ## Test Case Structure
 
@@ -26,29 +26,33 @@ Each test case follows this format:
 [Sample user request or context]
 
 **Expected Output Patterns** (MUST include):
+
 - [ ] Pattern that should appear in output
 - [ ] Another required pattern
 
 **Anti-Patterns** (MUST NOT include):
+
 - [ ] Pattern that should NOT appear
 - [ ] Another forbidden pattern
 
 **Pass Criteria**:
+
 - Specific conditions for passing
 ```
 
 ## Test Case IDs
 
-| Prefix | Agent |
-|--------|-------|
-| TC-R## | Research Agent |
-| TC-P## | Planning Agent |
+| Prefix | Agent                |
+| ------ | -------------------- |
+| TC-R## | Research Agent       |
+| TC-P## | Planning Agent       |
 | TC-I## | Implementation Agent |
-| TC-V## | Validation Agent |
+| TC-V## | Validation Agent     |
 
 ## Running Tests
 
 Tests are manual:
+
 1. Copy the **Input** section
 2. Provide it to the target agent
 3. Check output against **Expected Output Patterns**
@@ -64,6 +68,7 @@ Tests are manual:
 ## Adding New Tests
 
 When adding a test case:
+
 1. Use the next available ID (e.g., TC-R06)
 2. Follow the standard structure
 3. Include both expected patterns AND anti-patterns

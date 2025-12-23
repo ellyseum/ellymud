@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Telnet server uses any for socket handling
 import net from 'net';
 import { systemLogger } from '../utils/logger';
 import { TelnetConnection } from '../connection/telnet.connection';
@@ -40,58 +42,60 @@ export class TelnetServer {
       if (this.forcedSessionUsername) {
         const username = this.forcedSessionUsername;
         this.forcedSessionUsername = ''; // Reset flag immediately to prevent race conditions
-        
+
         systemLogger.info(`Incoming connection flagged as forced login for user: ${username}`);
-        
+
         // Create the connection wrapper
         const connection = new TelnetConnection(socket);
-        
+
         // Setup client normally first
         setupClientFn(connection);
-        
+
         // Get the client ID
         const clientId = connection.getId();
         const client = this.clients.get(clientId);
-        
+
         if (client) {
           // Set a special flag in stateData for the state machine to handle
           client.stateData.forcedUserLogin = username;
-          
+
           // Initialize client state
           this.stateMachine.transitionTo(client, ClientStateType.CONNECTING);
-          
-          systemLogger.info(`Forced login initialized for user ${username}, connection: ${clientId}`);
-          
+
+          systemLogger.info(
+            `Forced login initialized for user ${username}, connection: ${clientId}`
+          );
+
           // Send welcome banner
           connection.write('========================================\r\n');
           connection.write(`       FORCED LOGIN: ${username}\r\n`);
           connection.write('========================================\r\n\r\n');
-          
+
           // Delay slightly to allow telnet negotiation to complete
           setTimeout(() => {
             // First check if the user exists
             if (this.userManager.userExists(username)) {
               // Simulate typing username at prompt
               processInputFn(client, username);
-              
+
               // Force authentication immediately, bypassing password check
               client.authenticated = true;
-              
+
               // Set up user data
               const userData = this.userManager.getUser(username);
               if (userData) {
                 client.user = userData;
                 this.userManager.registerUserSession(username, client);
-                
+
                 // Transition to authenticated state
                 this.stateMachine.transitionTo(client, ClientStateType.AUTHENTICATED);
-                
+
                 // Log the forced login
                 systemLogger.info(`User ${username} logged in via forced session.`);
-                
+
                 // Notify of successful login
                 connection.write(`\r\nLogged in as ${username}. Welcome!\r\n\r\n`);
-                
+
                 // Execute the "look" command to help user orient
                 setTimeout(() => {
                   processInputFn(client, 'look');
@@ -113,56 +117,56 @@ export class TelnetServer {
       else if (this.isAdminLoginPending) {
         this.isAdminLoginPending = false; // Reset flag immediately
         systemLogger.info(`Incoming connection flagged as direct admin login.`);
-        
+
         // Create the connection wrapper
         const connection = new TelnetConnection(socket);
-        
+
         // Setup client normally first
         setupClientFn(connection);
-        
+
         // Get the client ID
         const clientId = connection.getId();
         const client = this.clients.get(clientId);
-        
+
         if (client) {
           // Set a special flag in stateData for the state machine to handle
           client.stateData.directAdminLogin = true;
-          
+
           // Have the state machine transition immediately to CONNECTING first
           // to ensure everything is initialized properly
           this.stateMachine.transitionTo(client, ClientStateType.CONNECTING);
-          
+
           systemLogger.info(`Direct admin login initialized for connection: ${clientId}`);
-          
+
           // Send welcome banner
           connection.write('========================================\r\n');
           connection.write('       DIRECT ADMIN LOGIN\r\n');
           connection.write('========================================\r\n\r\n');
-          
+
           // Delay slightly to allow telnet negotiation to complete
           setTimeout(() => {
             // Login as admin user bypassing normal flow
             // This simulates the user typing "admin" at the login prompt
             processInputFn(client, 'admin');
-            
+
             // Force authentication immediately, bypassing password check
             client.authenticated = true;
-            
+
             // Set up admin user data
             const adminData = this.userManager.getUser('admin');
             if (adminData) {
               client.user = adminData;
               this.userManager.registerUserSession('admin', client);
-              
+
               // Transition to authenticated state
               this.stateMachine.transitionTo(client, ClientStateType.AUTHENTICATED);
-              
+
               // Log the direct admin login
               systemLogger.info(`Admin user directly logged in via console shortcut.`);
-              
+
               // Notify admin of successful login
               connection.write('\r\nDirectly logged in as admin. Welcome!\r\n\r\n');
-              
+
               // Execute the "look" command to help admin orient
               setTimeout(() => {
                 processInputFn(client, 'look');
@@ -178,22 +182,24 @@ export class TelnetServer {
       } else {
         // Normal connection flow
         systemLogger.info(`TELNET client connected: ${socket.remoteAddress}`);
-        
+
         // Create our custom connection wrapper
         const connection = new TelnetConnection(socket);
-        
+
         // TelnetConnection class now handles all the TELNET negotiation
         setupClientFn(connection);
-        
+
         // Track total connections
         this.serverStats.totalConnections++;
       }
     });
 
     // Add error handler
-    this.server.on('error', (err: Error & {code?: string}) => {
+    this.server.on('error', (err: Error & { code?: string }) => {
       if (err.code === 'EADDRINUSE') {
-        systemLogger.error(`Port ${config.TELNET_PORT} is already in use. Is another instance running?`);
+        systemLogger.error(
+          `Port ${config.TELNET_PORT} is already in use. Is another instance running?`
+        );
         systemLogger.info(`Trying alternative port ${config.TELNET_PORT + 1}...`);
         this.actualPort = config.TELNET_PORT + 1;
         this.server.listen(this.actualPort);

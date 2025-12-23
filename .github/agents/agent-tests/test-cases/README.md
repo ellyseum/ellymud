@@ -6,21 +6,21 @@ Individual test case files for validating agent behavior.
 
 **Pattern**: `<agent-name>.agent-tests.md`
 
-| ✅ Valid | ❌ Invalid |
-|----------|------------|
-| `research.agent-tests.md` | `research-agent-tests.md` |
-| `validation.agent-tests.md` | `validation_tests.md` |
+| ✅ Valid                    | ❌ Invalid                |
+| --------------------------- | ------------------------- |
+| `research.agent-tests.md`   | `research-agent-tests.md` |
+| `validation.agent-tests.md` | `validation_tests.md`     |
 
 This convention is **enforced** by `run-tests.sh --validate`.
 
 ## Contents
 
-| File | Agent | Test IDs |
-|------|-------|----------|
-| `research.agent-tests.md` | Research Agent | TC-R01, TC-R02 |
-| `planning.agent-tests.md` | Planning Agent | TC-P01, TC-P02 |
+| File                            | Agent                | Test IDs       |
+| ------------------------------- | -------------------- | -------------- |
+| `research.agent-tests.md`       | Research Agent       | TC-R01, TC-R02 |
+| `planning.agent-tests.md`       | Planning Agent       | TC-P01, TC-P02 |
 | `implementation.agent-tests.md` | Implementation Agent | TC-I01, TC-I02 |
-| `validation.agent-tests.md` | Validation Agent | TC-V01, TC-V02 |
+| `validation.agent-tests.md`     | Validation Agent     | TC-V01, TC-V02 |
 
 ## Running Tests
 
@@ -47,6 +47,7 @@ cd .github/agents/agent-tests
 ## Test Case Format
 
 Each `.agent-tests.md` file contains test cases with:
+
 - **Prompt**: Input to send to the agent
 - **Expected patterns**: Must appear in output
 - **Anti-patterns**: Must NOT appear in output

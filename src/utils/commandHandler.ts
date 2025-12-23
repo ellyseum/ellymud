@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Command handler uses dynamic typing for flexible command routing
 import { ConnectedClient } from '../types';
 import { RoomManager } from '../room/roomManager';
 import { UserManager } from '../user/userManager';
@@ -6,34 +8,33 @@ import { writeToClient, writeFormattedMessageToClient } from './socketWriter';
 import { colorize } from './colors';
 import { CommandRegistry } from '../command/commandRegistry';
 import { SudoCommand } from '../command/commands/sudo.command';
-import { NPC } from '../combat/npc';
 
 export class CommandHandler {
   private combatSystem: CombatSystem;
   private commandRegistry: CommandRegistry | null = null;
   private sudoCommand: SudoCommand | null = null;
-  
+
   constructor(
     private roomManager: RoomManager,
     private userManager: UserManager
   ) {
     this.combatSystem = CombatSystem.getInstance(userManager, roomManager);
   }
-  
+
   /**
    * Set the command registry for this handler
    * This is needed to resolve circular dependency issues
    */
   public setCommandRegistry(registry: CommandRegistry): void {
     this.commandRegistry = registry;
-    
+
     // Get the sudo command for admin privilege checking
     const sudoCmd = registry.getCommand('sudo');
     if (sudoCmd && sudoCmd instanceof SudoCommand) {
       this.sudoCommand = sudoCmd;
     }
   }
-  
+
   /**
    * Handle a command from a client
    */
@@ -42,14 +43,14 @@ export class CommandHandler {
       writeToClient(client, colorize('Error: Command registry not initialized.\r\n', 'red'));
       return;
     }
-    
+
     // Store this handler instance in client state data for access by commands
     if (!client.stateData) {
       client.stateData = {};
     }
-    
+
     client.stateData.commandHandler = this;
-    
+
     // Also store sudo command for admin privilege checking
     if (this.sudoCommand) {
       if (!client.stateData.commands) {
@@ -57,11 +58,11 @@ export class CommandHandler {
       }
       client.stateData.commands.set('sudo', this.sudoCommand);
     }
-    
+
     // Execute the command
     this.commandRegistry.executeCommand(client, input);
   }
-  
+
   /**
    * Check if a user has admin privileges
    */
@@ -70,7 +71,7 @@ export class CommandHandler {
       // If sudo command is not available, only admin user has privileges
       return username === 'admin';
     }
-    
+
     return this.sudoCommand.isAuthorized(username);
   }
 
@@ -85,13 +86,13 @@ export class CommandHandler {
 
     // Check for empty target
     if (args.length === 0) {
-      writeToClient(client, "Attack what?\r\n");
+      writeToClient(client, 'Attack what?\r\n');
       return;
     }
 
     const targetName = args.join(' ');
     const room = this.roomManager.getRoom(client.user.currentRoomId);
-    
+
     if (!room) {
       writeFormattedMessageToClient(client, "You're in a void with nothing to attack.\r\n");
       return;
@@ -100,12 +101,14 @@ export class CommandHandler {
     // Check if there's an NPC with this name in the room
     if (room.npcs.has(targetName) || this.findNpcByTemplateId(room, targetName)) {
       // Get the actual NPC instance from the room or by template ID
-      const npcInstanceId = room.npcs.has(targetName) ? targetName : this.findNpcInstanceIdByTemplateId(room, targetName);
-      
+      const npcInstanceId = room.npcs.has(targetName)
+        ? targetName
+        : this.findNpcInstanceIdByTemplateId(room, targetName);
+
       if (npcInstanceId) {
         // Create a dummy NPC to use for combat
         const target = this.combatSystem.createTestNPC(npcInstanceId);
-        
+
         // Start combat with this target
         if (this.combatSystem.engageCombat(client, target)) {
           // Combat successfully started - handled by engageCombat
@@ -117,7 +120,10 @@ export class CommandHandler {
           writeFormattedMessageToClient(client, `You can't attack ${targetName} right now.\r\n`);
         }
       } else {
-        writeFormattedMessageToClient(client, `You don't see a '${targetName}' here to attack.\r\n`);
+        writeFormattedMessageToClient(
+          client,
+          `You don't see a '${targetName}' here to attack.\r\n`
+        );
       }
     } else {
       writeFormattedMessageToClient(client, `You don't see a '${targetName}' here to attack.\r\n`);
@@ -137,7 +143,9 @@ export class CommandHandler {
    */
   private findNpcInstanceIdByTemplateId(room: any, templateId: string): string | null {
     const npcsEntries = Array.from(room.npcs.entries());
-    const match = (npcsEntries as [string, any][]).find(([_, npc]) => npc.templateId === templateId);
+    const match = (npcsEntries as [string, any][]).find(
+      ([_, npc]) => npc.templateId === templateId
+    );
     return match ? match[0] : null;
   }
 

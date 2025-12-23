@@ -8,84 +8,84 @@ This directory contains 40+ command implementations. Each command is a single Ty
 
 ### Core Commands
 
-| File | Purpose |
-|------|---------|
-| `look.command.ts` | View room, exits, items, NPCs |
-| `move.command.ts` | Navigate via direction (n/s/e/w/u/d) |
-| `inventory.command.ts` | List items in inventory |
-| `stats.command.ts` | Display player statistics |
-| `help.command.ts` | List available commands |
-| `quit.command.ts` | Disconnect from server |
+| File                   | Purpose                              |
+| ---------------------- | ------------------------------------ |
+| `look.command.ts`      | View room, exits, items, NPCs        |
+| `move.command.ts`      | Navigate via direction (n/s/e/w/u/d) |
+| `inventory.command.ts` | List items in inventory              |
+| `stats.command.ts`     | Display player statistics            |
+| `help.command.ts`      | List available commands              |
+| `quit.command.ts`      | Disconnect from server               |
 
 ### Combat Commands
 
-| File | Purpose |
-|------|---------|
+| File                | Purpose                  |
+| ------------------- | ------------------------ |
 | `attack.command.ts` | Initiate combat with NPC |
-| `break.command.ts` | Attempt to flee combat |
-| `heal.command.ts` | Restore health (testing) |
-| `damage.command.ts` | Take damage (testing) |
+| `break.command.ts`  | Attempt to flee combat   |
+| `heal.command.ts`   | Restore health (testing) |
+| `damage.command.ts` | Take damage (testing)    |
 
 ### Item Commands
 
-| File | Purpose |
-|------|---------|
-| `pickup.command.ts` | Pick up items from room |
-| `drop.command.ts` | Drop items in room |
-| `get.command.ts` | Alias for pickup |
-| `equip.command.ts` | Equip items |
-| `unequip.command.ts` | Remove equipped items |
-| `equipment.command.ts` | View equipped items |
-| `destroy.command.ts` | Permanently delete item |
-| `rename.command.ts` | Give item custom name |
-| `resetname.command.ts` | Restore original name |
-| `repair.command.ts` | Fix damaged items |
+| File                   | Purpose                 |
+| ---------------------- | ----------------------- |
+| `pickup.command.ts`    | Pick up items from room |
+| `drop.command.ts`      | Drop items in room      |
+| `get.command.ts`       | Alias for pickup        |
+| `equip.command.ts`     | Equip items             |
+| `unequip.command.ts`   | Remove equipped items   |
+| `equipment.command.ts` | View equipped items     |
+| `destroy.command.ts`   | Permanently delete item |
+| `rename.command.ts`    | Give item custom name   |
+| `resetname.command.ts` | Restore original name   |
+| `repair.command.ts`    | Fix damaged items       |
 
 ### Communication Commands
 
-| File | Purpose |
-|------|---------|
-| `say.command.ts` | Talk to current room |
+| File              | Purpose                 |
+| ----------------- | ----------------------- |
+| `say.command.ts`  | Talk to current room    |
 | `yell.command.ts` | Shout to adjacent rooms |
-| `wave.command.ts` | Wave gesture to room |
+| `wave.command.ts` | Wave gesture to room    |
 
 ### Admin Commands
 
-| File | Purpose |
-|------|---------|
-| `spawn.command.ts` | Spawn NPCs |
-| `giveitem.command.ts` | Give items to players |
-| `debug.command.ts` | Inspect game objects |
-| `sudo.command.ts` | Toggle admin mode |
-| `adminmanage.command.ts` | Manage admin privileges |
-| `addflag.command.ts` | Add user flags |
-| `removeflag.command.ts` | Remove user flags |
-| `listflags.command.ts` | View user flags |
-| `restrict.command.ts` | Restrict player movement |
-| `root.command.ts` | Root target in place |
+| File                     | Purpose                  |
+| ------------------------ | ------------------------ |
+| `spawn.command.ts`       | Spawn NPCs               |
+| `giveitem.command.ts`    | Give items to players    |
+| `debug.command.ts`       | Inspect game objects     |
+| `sudo.command.ts`        | Toggle admin mode        |
+| `adminmanage.command.ts` | Manage admin privileges  |
+| `addflag.command.ts`     | Add user flags           |
+| `removeflag.command.ts`  | Remove user flags        |
+| `listflags.command.ts`   | View user flags          |
+| `restrict.command.ts`    | Restrict player movement |
+| `root.command.ts`        | Root target in place     |
 
 ### Utility Commands
 
-| File | Purpose |
-|------|---------|
-| `history.command.ts` | View command history |
-| `time.command.ts` | Show server time |
-| `played.command.ts` | Show play time |
-| `bugreport.command.ts` | Submit bug report |
-| `changePassword.command.ts` | Change password |
+| File                        | Purpose              |
+| --------------------------- | -------------------- |
+| `history.command.ts`        | View command history |
+| `time.command.ts`           | Show server time     |
+| `played.command.ts`         | Show play time       |
+| `bugreport.command.ts`      | Submit bug report    |
+| `changePassword.command.ts` | Change password      |
 
 ### Mini-Games
 
-| File | Purpose |
-|------|---------|
-| `snake.command.ts` | Play Snake game |
-| `scores.command.ts` | View high scores |
-| `wait.command.ts` | Enter waiting state |
+| File                | Purpose             |
+| ------------------- | ------------------- |
+| `snake.command.ts`  | Play Snake game     |
+| `scores.command.ts` | View high scores    |
+| `wait.command.ts`   | Enter waiting state |
 
 ### Effect Commands
 
-| File | Purpose |
-|------|---------|
+| File                | Purpose              |
+| ------------------- | -------------------- |
 | `effect.command.ts` | Apply/remove effects |
 
 ## Command Structure
@@ -99,10 +99,10 @@ import { writeMessageToClient } from '../../utils/socketWriter';
 import { colorize } from '../../utils/colors';
 
 export class ExampleCommand implements Command {
-  name = 'example';           // Primary command name
-  aliases = ['ex', 'exam'];   // Optional shortcuts
+  name = 'example'; // Primary command name
+  aliases = ['ex', 'exam']; // Optional shortcuts
   description = 'Example command description';
-  adminOnly = false;          // true = admin only
+  adminOnly = false; // true = admin only
 
   execute(client: ConnectedClient, args: string[], services: CommandServices): void {
     // Guard: check user exists
@@ -126,11 +126,13 @@ export class ExampleCommand implements Command {
 ## Conventions
 
 ### Naming
+
 - File: `{commandname}.command.ts` (lowercase, hyphenated if needed)
 - Class: `{CommandName}Command` (PascalCase)
 - Command name: lowercase, no spaces
 
 ### Output
+
 ```typescript
 // ✅ Always use socketWriter utilities
 writeMessageToClient(client, 'Message\r\n');
@@ -141,12 +143,14 @@ client.connection.write('Bad!');
 ```
 
 ### Error Messages
+
 ```typescript
 // Show error in red
 writeMessageToClient(client, colorize('red', 'Error: Target not found.\r\n'));
 ```
 
 ### Success Messages
+
 ```typescript
 // Show success in green or white
 writeMessageToClient(client, colorize('green', 'Item picked up.\r\n'));

@@ -9,7 +9,7 @@ The connection layer abstracts protocol differences between Telnet and WebSocket
 ```
 Connection Interface
 ├── TelnetConnection   - Raw TCP socket, ANSI codes
-├── WebSocketConnection- Browser-based, JSON messages  
+├── WebSocketConnection- Browser-based, JSON messages
 ├── SocketIOConnection - Socket.IO variant
 └── VirtualConnection  - Testing/MCP integration
 ```
@@ -24,10 +24,10 @@ Connection Interface
 export interface Connection {
   id: string;
   type: 'telnet' | 'websocket' | 'socketio' | 'virtual';
-  
+
   write(data: string): void;
   close(): void;
-  
+
   on(event: 'data', handler: (data: string) => void): void;
   on(event: 'close', handler: () => void): void;
   on(event: 'error', handler: (error: Error) => void): void;
@@ -41,14 +41,14 @@ export interface Connection {
 ```typescript
 export class TelnetConnection implements Connection {
   type = 'telnet';
-  
+
   constructor(private socket: net.Socket) {}
-  
+
   write(data: string): void {
     // Writes raw data with ANSI codes
     this.socket.write(data);
   }
-  
+
   close(): void {
     this.socket.destroy();
   }
@@ -56,6 +56,7 @@ export class TelnetConnection implements Connection {
 ```
 
 **Telnet Specifics**:
+
 - Raw TCP on port 8023
 - ANSI escape codes for colors/formatting
 - Line endings: `\r\n` (carriage return + newline)
@@ -68,14 +69,14 @@ export class TelnetConnection implements Connection {
 ```typescript
 export class WebSocketConnection implements Connection {
   type = 'websocket';
-  
+
   constructor(private ws: WebSocket) {}
-  
+
   write(data: string): void {
     // Send as WebSocket message
     this.ws.send(data);
   }
-  
+
   close(): void {
     this.ws.close();
   }
@@ -83,6 +84,7 @@ export class WebSocketConnection implements Connection {
 ```
 
 **WebSocket Specifics**:
+
 - HTTP upgrade on port 8080
 - Browser-compatible
 - Messages sent as strings
@@ -102,15 +104,15 @@ Similar to WebSocket but uses Socket.IO's event system.
 export class VirtualConnection implements Connection {
   type = 'virtual';
   private outputBuffer: string[] = [];
-  
+
   write(data: string): void {
     this.outputBuffer.push(data);
   }
-  
+
   getOutput(): string[] {
     return this.outputBuffer;
   }
-  
+
   simulateInput(data: string): void {
     this.emit('data', data);
   }
@@ -118,6 +120,7 @@ export class VirtualConnection implements Connection {
 ```
 
 **Use Cases**:
+
 - Unit testing without real sockets
 - MCP server virtual sessions
 - Automated testing
@@ -127,6 +130,7 @@ export class VirtualConnection implements Connection {
 ### Protocol Detection
 
 The server determines protocol by the port/method of connection:
+
 - Port 8023 → Telnet
 - Port 8080 HTTP upgrade → WebSocket
 
@@ -138,7 +142,7 @@ import { writeToClient } from '../utils/socketWriter';
 writeToClient(client, 'Hello!\r\n');
 
 // ❌ Avoid direct connection access
-client.connection.write('Hello!\r\n');  // Works but bypasses utilities
+client.connection.write('Hello!\r\n'); // Works but bypasses utilities
 ```
 
 ### Line Endings

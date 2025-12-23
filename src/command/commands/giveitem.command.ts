@@ -40,32 +40,38 @@ export class GiveItemCommand implements Command {
 
     // Get the sudo command to check for admin privileges
     let sudoCommand: SudoCommand | undefined;
-    
+
     // Try to get the sudo command from client's state data first
     if (client.stateData && client.stateData.commands) {
       sudoCommand = client.stateData.commands.get('sudo') as SudoCommand;
     }
-    
+
     // If not found in state data, get the singleton instance
     if (!sudoCommand) {
       sudoCommand = SudoCommand.getInstance();
     }
-    
+
     // Check if the user has admin privileges
     const hasAdminAccess = sudoCommand.isAuthorized(client.user.username);
     if (!hasAdminAccess) {
       writeToClient(client, colorize('You do not have permission to use this command.\r\n', 'red'));
-      writeToClient(client, colorize('Hint: Use "sudo" to gain admin privileges if authorized.\r\n', 'yellow'));
+      writeToClient(
+        client,
+        colorize('Hint: Use "sudo" to gain admin privileges if authorized.\r\n', 'yellow')
+      );
       return;
     }
 
     const argParts = args.split(' ');
-    
+
     // Format: giveitem <itemId> [username]
     // Format: giveitem instance <instanceId> [username]
     if (argParts.length === 0) {
       writeToClient(client, colorize('Usage: giveitem <itemId> [username]\r\n', 'yellow'));
-      writeToClient(client, colorize('   or: giveitem instance <instanceId> [username]\r\n', 'yellow'));
+      writeToClient(
+        client,
+        colorize('   or: giveitem instance <instanceId> [username]\r\n', 'yellow')
+      );
       this.listAvailableItems(client);
       return;
     }
@@ -75,11 +81,11 @@ export class GiveItemCommand implements Command {
       this.handleInstanceGiving(client, argParts.slice(1));
       return;
     }
-    
+
     // Handle normal item template giving
-    let itemId = argParts[0];
-    let targetUsername = argParts.length > 1 ? argParts[1] : client.user.username;
-    
+    const itemId = argParts[0];
+    const targetUsername = argParts.length > 1 ? argParts[1] : client.user.username;
+
     if (!itemId) {
       writeToClient(client, colorize('Usage: giveitem <itemId> [username]\r\n', 'yellow'));
       this.listAvailableItems(client);
@@ -127,7 +133,10 @@ export class GiveItemCommand implements Command {
     // Create a new instance of the item for the user
     const instance = this.itemManager.createItemInstance(itemId, client.user.username);
     if (!instance) {
-      writeToClient(client, colorize(`Failed to create an instance of item "${itemId}".\r\n`, 'red'));
+      writeToClient(
+        client,
+        colorize(`Failed to create an instance of item "${itemId}".\r\n`, 'red')
+      );
       return;
     }
 
@@ -137,81 +146,111 @@ export class GiveItemCommand implements Command {
     if (!targetUser.inventory) {
       targetUser.inventory = {
         items: [],
-        currency: { gold: 0, silver: 0, copper: 0 }
+        currency: { gold: 0, silver: 0, copper: 0 },
       };
     }
-    
+
     if (!targetUser.inventory.items) {
       targetUser.inventory.items = [];
     }
-    
+
     targetUser.inventory.items.push(instanceId);
-    
+
     // Save the changes
     this.userManager.updateUserInventory(targetUsername, targetUser.inventory);
-    
+
     // Log the player action
-    playerLogger.info(`${client.user.username} gave ${item.name} (${itemId}, instance: ${instanceId}) to ${targetUsername}`);
-    
+    playerLogger.info(
+      `${client.user.username} gave ${item.name} (${itemId}, instance: ${instanceId}) to ${targetUsername}`
+    );
+
     // Notify the admin
     if (targetUsername === client.user.username) {
-      writeToClient(client, colorize(`Added ${item.name} to your inventory. Instance ID: ${instanceId}\r\n`, 'green'));
+      writeToClient(
+        client,
+        colorize(`Added ${item.name} to your inventory. Instance ID: ${instanceId}\r\n`, 'green')
+      );
     } else {
-      writeToClient(client, colorize(`Added ${item.name} to ${targetUsername}'s inventory. Instance ID: ${instanceId}\r\n`, 'green'));
+      writeToClient(
+        client,
+        colorize(
+          `Added ${item.name} to ${targetUsername}'s inventory. Instance ID: ${instanceId}\r\n`,
+          'green'
+        )
+      );
     }
-    
+
     // Notify the target user if they're online and not the admin
     if (targetUsername !== client.user.username) {
       const targetClient = this.userManager.getActiveUserSession(targetUsername);
       if (targetClient) {
-        writeToClient(targetClient, colorize(`${client.user.username} gave you ${item.name}.\r\n`, 'green'));
+        writeToClient(
+          targetClient,
+          colorize(`${client.user.username} gave you ${item.name}.\r\n`, 'green')
+        );
       }
     }
   }
-  
+
   /**
    * Handle giving a specific item instance to a player
    */
   private handleInstanceGiving(client: ConnectedClient, args: string[]): void {
     if (!client.user) return;
-    
+
     if (args.length === 0) {
-      writeToClient(client, colorize('Usage: giveitem instance <instanceId> [username]\r\n', 'yellow'));
+      writeToClient(
+        client,
+        colorize('Usage: giveitem instance <instanceId> [username]\r\n', 'yellow')
+      );
       return;
     }
-    
+
     const inputInstanceId = args[0];
     const targetUsername = args.length > 1 ? args[1] : client.user.username;
-    
+
     // Find the target user
     const targetUser = this.userManager.getUser(targetUsername);
     if (!targetUser) {
       writeToClient(client, colorize(`User "${targetUsername}" not found.\r\n`, 'red'));
       return;
     }
-    
+
     // First try exact match
     let instance = this.itemManager.getItemInstance(inputInstanceId);
-    let fullInstanceId = '';  // Initialize to empty string
-    
+    let fullInstanceId = ''; // Initialize to empty string
+
     // If not found but it's at least 8 characters, try partial matching
     if (!instance && inputInstanceId.length >= 8) {
       try {
         // Try to find instance by partial ID
         instance = this.itemManager.findInstanceByPartialId(inputInstanceId);
-        
+
         // If undefined, it means multiple items matched (ambiguous)
         if (instance === undefined) {
-          writeToClient(client, colorize(`Multiple items match ID '${inputInstanceId}'. Please use a longer ID to be more specific.\r\n`, 'yellow'));
-          
+          writeToClient(
+            client,
+            colorize(
+              `Multiple items match ID '${inputInstanceId}'. Please use a longer ID to be more specific.\r\n`,
+              'yellow'
+            )
+          );
+
           // Show the matching instances for convenience
           const matchingInstances = this.findInstancesByPartialId(inputInstanceId);
           if (matchingInstances.length > 0) {
             writeToClient(client, colorize(`Matching instances:\r\n`, 'cyan'));
             matchingInstances.forEach((matchInstance, index) => {
               const template = this.itemManager.getItem(matchInstance.templateId);
-              const displayName = matchInstance.properties?.customName || (template ? template.name : 'Unknown');
-              writeToClient(client, colorize(`  ${index + 1}. ${displayName} (ID: ${matchInstance.instanceId})\r\n`, 'white'));
+              const displayName =
+                matchInstance.properties?.customName || (template ? template.name : 'Unknown');
+              writeToClient(
+                client,
+                colorize(
+                  `  ${index + 1}. ${displayName} (ID: ${matchInstance.instanceId})\r\n`,
+                  'white'
+                )
+              );
             });
           }
           return;
@@ -222,88 +261,133 @@ export class GiveItemCommand implements Command {
         return;
       }
     }
-    
+
     if (!instance) {
-      writeToClient(client, colorize(`Item instance with ID "${inputInstanceId}" not found.\r\n`, 'red'));
+      writeToClient(
+        client,
+        colorize(`Item instance with ID "${inputInstanceId}" not found.\r\n`, 'red')
+      );
       return;
     }
-    
+
     // Get the full instance ID from the instance object
     fullInstanceId = instance.instanceId;
-    
+
     // Get the template for display purposes
     const template = this.itemManager.getItem(instance.templateId);
     if (!template) {
-      writeToClient(client, colorize(`Template for item instance "${fullInstanceId}" not found.\r\n`, 'red'));
+      writeToClient(
+        client,
+        colorize(`Template for item instance "${fullInstanceId}" not found.\r\n`, 'red')
+      );
       return;
     }
-    
+
     // Find and remove the item from all possible locations
     const { location, owner } = this.findAndRemoveItem(fullInstanceId);
-    
+
     // Add to the new user's inventory
     if (!targetUser.inventory) {
       targetUser.inventory = {
         items: [],
-        currency: { gold: 0, silver: 0, copper: 0 }
+        currency: { gold: 0, silver: 0, copper: 0 },
       };
     }
-    
+
     if (!targetUser.inventory.items) {
       targetUser.inventory.items = [];
     }
-    
+
     // Add the FULL instance ID to the inventory
     targetUser.inventory.items.push(fullInstanceId);
-    
+
     // Add transfer to item history
-    this.itemManager.addItemHistory(fullInstanceId, 'admin-transfer', `Transferred from ${location} ${owner ? `(${owner})` : ''} to ${targetUsername} by admin ${client.user.username}`);
-    
+    this.itemManager.addItemHistory(
+      fullInstanceId,
+      'admin-transfer',
+      `Transferred from ${location} ${owner ? `(${owner})` : ''} to ${targetUsername} by admin ${client.user.username}`
+    );
+
     // Log the player action
     const itemName = instance.properties?.customName || template.name;
-    playerLogger.info(`${client.user.username} transferred ${itemName} (instance: ${fullInstanceId}) from ${location || 'unknown'} ${owner ? `(${owner})` : ''} to ${targetUsername}`);
-    
+    playerLogger.info(
+      `${client.user.username} transferred ${itemName} (instance: ${fullInstanceId}) from ${location || 'unknown'} ${owner ? `(${owner})` : ''} to ${targetUsername}`
+    );
+
     // Save the changes
     this.userManager.updateUserInventory(targetUsername, targetUser.inventory);
-    
+
     // Notify the admin
     if (targetUsername === client.user.username) {
-      writeToClient(client, colorize(`Added ${colorizeItemName(itemName)} to your inventory. Full ID: ${fullInstanceId}\r\n`, 'green'));
+      writeToClient(
+        client,
+        colorize(
+          `Added ${colorizeItemName(itemName)} to your inventory. Full ID: ${fullInstanceId}\r\n`,
+          'green'
+        )
+      );
     } else {
       if (location && owner) {
-        writeToClient(client, colorize(`Transferred ${colorizeItemName(itemName)} from ${owner}'s ${location} to ${targetUsername}. Full ID: ${fullInstanceId}\r\n`, 'green'));
+        writeToClient(
+          client,
+          colorize(
+            `Transferred ${colorizeItemName(itemName)} from ${owner}'s ${location} to ${targetUsername}. Full ID: ${fullInstanceId}\r\n`,
+            'green'
+          )
+        );
       } else if (location) {
-        writeToClient(client, colorize(`Transferred ${colorizeItemName(itemName)} from ${location} to ${targetUsername}. Full ID: ${fullInstanceId}\r\n`, 'green'));
+        writeToClient(
+          client,
+          colorize(
+            `Transferred ${colorizeItemName(itemName)} from ${location} to ${targetUsername}. Full ID: ${fullInstanceId}\r\n`,
+            'green'
+          )
+        );
       } else {
-        writeToClient(client, colorize(`Transferred ${colorizeItemName(itemName)} to ${targetUsername}. Full ID: ${fullInstanceId}\r\n`, 'green'));
+        writeToClient(
+          client,
+          colorize(
+            `Transferred ${colorizeItemName(itemName)} to ${targetUsername}. Full ID: ${fullInstanceId}\r\n`,
+            'green'
+          )
+        );
       }
     }
-    
+
     // Notify the previous owner if they're online and not the admin
     if (owner && owner !== client.user.username) {
       const ownerClient = this.userManager.getActiveUserSession(owner);
       if (ownerClient) {
-        writeToClient(ownerClient, colorize(`An admin has removed ${colorizeItemName(itemName)} from your possession.\r\n`, 'yellow'));
+        writeToClient(
+          ownerClient,
+          colorize(
+            `An admin has removed ${colorizeItemName(itemName)} from your possession.\r\n`,
+            'yellow'
+          )
+        );
       }
     }
-    
+
     // Notify the target user if they're online and not the admin
     if (targetUsername !== client.user.username) {
       const targetClient = this.userManager.getActiveUserSession(targetUsername);
       if (targetClient) {
-        writeToClient(targetClient, colorize(`${client.user.username} gave you ${colorizeItemName(itemName)}.\r\n`, 'green'));
+        writeToClient(
+          targetClient,
+          colorize(`${client.user.username} gave you ${colorizeItemName(itemName)}.\r\n`, 'green')
+        );
       }
     }
   }
-  
+
   /**
    * Find and remove an item from all possible locations
    * Returns information about where the item was found
    */
-  private findAndRemoveItem(instanceId: string): { location: string | null, owner: string | null } {
+  private findAndRemoveItem(instanceId: string): { location: string | null; owner: string | null } {
     // Check all users' inventories and equipment
     const allUsers = this.userManager.getAllUsers();
-    
+
     for (const user of allUsers) {
       // Check inventory
       if (user.inventory && user.inventory.items && user.inventory.items.includes(instanceId)) {
@@ -314,7 +398,7 @@ export class GiveItemCommand implements Command {
           return { location: 'inventory', owner: user.username };
         }
       }
-      
+
       // Check equipment
       if (user.equipment) {
         for (const slot in user.equipment) {
@@ -329,7 +413,7 @@ export class GiveItemCommand implements Command {
         }
       }
     }
-    
+
     // Check all rooms
     const allRooms = this.roomManager.getAllRooms();
     for (const room of allRooms) {
@@ -340,11 +424,11 @@ export class GiveItemCommand implements Command {
         return { location: `room (${room.id}: ${room.name})`, owner: null };
       }
     }
-    
+
     // If not found anywhere, return null
     return { location: null, owner: null };
   }
-  
+
   /**
    * Helper method to find instances by partial ID
    */
@@ -352,45 +436,45 @@ export class GiveItemCommand implements Command {
     // Get all instances from the item manager
     const allInstances = this.itemManager.getAllItemInstances();
     const matchingInstances: ItemInstance[] = [];
-    
+
     // Filter instances that match the partial ID
     for (const instance of allInstances) {
       if (instance.instanceId.toLowerCase().startsWith(partialId.toLowerCase())) {
         matchingInstances.push(instance);
       }
     }
-    
+
     return matchingInstances;
   }
-  
+
   /**
    * List all available items that can be given
    */
   private listAvailableItems(client: ConnectedClient): void {
     const items = this.itemManager.getAllItems();
-    
+
     if (items.length === 0) {
       writeToClient(client, colorize('No items available.\r\n', 'yellow'));
       return;
     }
-    
+
     writeToClient(client, colorize('Available items:\r\n', 'cyan'));
-    
+
     // Group items by type
     const itemsByType: { [type: string]: GameItem[] } = {};
-    
-    items.forEach(item => {
+
+    items.forEach((item) => {
       if (!itemsByType[item.type]) {
         itemsByType[item.type] = [];
       }
       itemsByType[item.type].push(item);
     });
-    
+
     // Display items grouped by type
     for (const type in itemsByType) {
       writeToClient(client, colorize(`\r\n${type.toUpperCase()}:\r\n`, 'yellow'));
-      
-      itemsByType[type].forEach(item => {
+
+      itemsByType[type].forEach((item) => {
         writeToClient(client, colorize(`  ${item.id} - ${item.name}\r\n`, 'white'));
       });
     }

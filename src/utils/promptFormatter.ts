@@ -1,5 +1,5 @@
 import { ConnectedClient } from '../types';
-import { colorize, ColorType } from './colors';
+import { colorize } from './colors';
 import { writeToClient } from './socketWriter';
 import { SudoCommand } from '../command/commands/sudo.command';
 
@@ -8,7 +8,7 @@ import { SudoCommand } from '../command/commands/sudo.command';
  */
 export function writeCommandPrompt(client: ConnectedClient): void {
   if (!client.user) return;
-  
+
   const promptText = getPromptText(client);
   writeToClient(client, promptText);
 }
@@ -18,40 +18,40 @@ export function writeCommandPrompt(client: ConnectedClient): void {
  */
 export function getPromptText(client: ConnectedClient): string {
   if (!client.user) return '';
-  
+
   // Reset any previous color formatting
   const ANSI_RESET = '\x1b[0m';
-  
+
   // Format the HP numbers in green
   const hpNumbers = colorize(`${client.user.health}/${client.user.maxHealth}`, 'green');
 
   // Format MP in blue when mana stats are available, otherwise show placeholders
-  const hasManaStats = typeof client.user.mana === 'number' && typeof client.user.maxMana === 'number';
-  const mpDisplay = hasManaStats
-    ? `${client.user.mana}/${client.user.maxMana}`
-    : '--/--';
+  const hasManaStats =
+    typeof client.user.mana === 'number' && typeof client.user.maxMana === 'number';
+  const mpDisplay = hasManaStats ? `${client.user.mana}/${client.user.maxMana}` : '--/--';
   const mpNumbers = colorize(mpDisplay, 'blue');
-  
+
   // Build the prompt with white base color and stat numbers
-  let prompt = colorize(`[HP=`, 'white') + 
-               hpNumbers + 
-               colorize(` MP=`, 'white') +
-               mpNumbers +
-               colorize(`]`, 'white');
-  
+  let prompt =
+    colorize(`[HP=`, 'white') +
+    hpNumbers +
+    colorize(` MP=`, 'white') +
+    mpNumbers +
+    colorize(`]`, 'white');
+
   // Add combat indicator if in combat
   if (client.user.inCombat) {
     prompt += colorize(' [COMBAT]', 'boldYellow');
   }
-  
+
   // Check if user has admin privileges using the static method
   // This guarantees we're checking the same admin status across the entire application
   if (SudoCommand.isAuthorizedUser(client.user.username)) {
     prompt += colorize(' [Admin]', 'red');
   }
-  
+
   prompt += colorize(': ', 'white');
-  
+
   // Write the prompt with a reset first to ensure clean formatting
   return ANSI_RESET + prompt;
 }
@@ -63,21 +63,21 @@ export function getPromptText(client: ConnectedClient): string {
  */
 export function drawCommandPrompt(client: ConnectedClient): void {
   if (!client.user) return;
-  
+
   // Skip drawing the prompt if it's currently suppressed (e.g., during movement)
   if (client.stateData?.suppressPrompt) {
     return;
   }
-  
+
   // ANSI sequence to clear the current line
   const clearLineSequence = '\r\x1B[K';
-  
+
   // Get the prompt text
   const promptText = getPromptText(client);
-  
+
   // Write the clear line sequence followed by the prompt
   writeToClient(client, clearLineSequence + promptText);
-  
+
   // Redraw any partially typed command
   if (client.buffer && client.buffer.length > 0) {
     writeToClient(client, client.buffer);

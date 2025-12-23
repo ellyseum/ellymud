@@ -9,6 +9,7 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
 ## ✨ Features
 
 ### Core Gameplay
+
 - 🎮 **Classic MUD Experience** - Text-based RPG gameplay with rich descriptions
 - ⚔️ **Real-Time Combat** - Turn-based combat system with NPCs and PvP support
 - 🗺️ **Room-Based Navigation** - Explore interconnected rooms with dynamic events
@@ -18,6 +19,7 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
 - 🎯 **Status Effects** - Buffs, debuffs, and persistent effects
 
 ### Technical Features
+
 - 🌐 **Multiple Connection Methods**
   - Telnet (port 8023)
   - WebSocket (port 8080)
@@ -49,6 +51,7 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
   - User management tools
 
 ### Fun Extras
+
 - 🐍 **Snake Game** - Play Snake right in the MUD! (Type `snake`)
 - 🎨 **ANSI Color Support** - Rich text formatting
 - ⚡ **Movement Delays** - Realistic movement based on character stats
@@ -64,17 +67,20 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/ellyseum/ellymud.git
    cd ellymud
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Start the server**
+
    ```bash
    npm start
    ```
@@ -139,6 +145,7 @@ EllyMUD includes an integrated Model Context Protocol (MCP) server that provides
 - **Integration**: Works with GitHub Copilot, Claude, and other MCP-compatible clients
 
 **First Run:**
+
 ```
 ⚠️  EllyMUD MCP Server API key is missing.
 Would you like to generate one? (Y/n): [Press Enter]
@@ -222,12 +229,14 @@ Found a security vulnerability? Please see our [Security Policy](SECURITY.md) fo
 ## 📊 System Requirements
 
 ### Minimum
+
 - 1 CPU core
 - 512 MB RAM
 - 5 GB disk space
 - Node.js 18+
 
 ### Recommended
+
 - 2+ CPU cores
 - 2 GB RAM
 - 20 GB disk space

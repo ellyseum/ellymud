@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// User manager uses dynamic typing for flexible user data handling
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -51,9 +53,7 @@ export class UserManager {
 
   // Hash password with salt
   private hashPassword(password: string, salt: string): string {
-    return crypto
-      .pbkdf2Sync(password, salt, 10000, 64, 'sha512')
-      .toString('hex');
+    return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
   }
 
   // Verify password against stored hash
@@ -66,7 +66,7 @@ export class UserManager {
   private migrateUsersToHashedPasswords(): void {
     let hasChanges = false;
 
-    this.users.forEach(user => {
+    this.users.forEach((user) => {
       if (user.password && !user.passwordHash) {
         const salt = this.generateSalt();
         const passwordHash = this.hashPassword(user.password, salt);
@@ -91,12 +91,12 @@ export class UserManager {
    */
   public loadPrevalidatedUsers(userData: any[]): void {
     systemLogger.info(`Loading ${userData.length} pre-validated users...`);
-    
+
     // Clear existing users to prevent duplicates
     this.users = [];
-    
-    // Process each validated user 
-    userData.forEach(user => {
+
+    // Process each validated user
+    userData.forEach((user) => {
       // Ensure dates are properly parsed
       if (typeof user.joinDate === 'string') {
         user.joinDate = new Date(user.joinDate);
@@ -104,12 +104,12 @@ export class UserManager {
       if (typeof user.lastLogin === 'string') {
         user.lastLogin = new Date(user.lastLogin);
       }
-      
+
       // Ensure inventory structure exists
       if (!user.inventory) {
         user.inventory = {
           items: [],
-          currency: { gold: 0, silver: 0, copper: 0 }
+          currency: { gold: 0, silver: 0, copper: 0 },
         };
       }
 
@@ -136,17 +136,17 @@ export class UserManager {
       } else {
         user.mana = Math.max(0, Math.min(user.mana, user.maxMana));
       }
-      
+
       // Add user to collection
       this.users.push(user);
     });
-    
+
     // Migrate any users with plain text passwords
     this.migrateUsersToHashedPasswords();
-    
+
     // Save to ensure all users have the correct structure
     this.saveUsers();
-    
+
     systemLogger.info('Pre-validated users loaded successfully');
   }
 
@@ -155,7 +155,7 @@ export class UserManager {
     if (config.DIRECT_USERS_DATA) {
       try {
         const userData = parseAndValidateJson<any[]>(config.DIRECT_USERS_DATA, 'users');
-        
+
         if (userData && Array.isArray(userData)) {
           this.loadPrevalidatedUsers(userData);
           return; // Successfully loaded from command line
@@ -164,11 +164,11 @@ export class UserManager {
         systemLogger.error('Failed to load users from command line:', error);
       }
     }
-    
+
     // If no users from command line, try loading from file
     this.loadUsersFromFile();
   }
-  
+
   private loadUsersFromFile(): void {
     try {
       // Create data directory if it doesn't exist
@@ -184,7 +184,7 @@ export class UserManager {
 
       // Validate file data using our validation system
       const userData = loadAndValidateJsonFile<any[]>(USERS_FILE, 'users');
-      
+
       if (userData && Array.isArray(userData)) {
         this.loadPrevalidatedUsers(userData);
       } else {
@@ -227,20 +227,20 @@ export class UserManager {
 
       const data = fs.readFileSync(SNAKE_SCORES_FILE, 'utf8');
       const parsed = JSON.parse(data);
-      
+
       // Ensure scores is an array
       if (!Array.isArray(parsed.scores)) {
         this.snakeScores = [];
         return;
       }
-      
+
       // Convert date strings back to Date objects
       this.snakeScores = parsed.scores.map((score: any) => ({
         username: score.username,
         score: score.score,
-        date: new Date(score.date)
+        date: new Date(score.date),
       }));
-      
+
       systemLogger.info(`[UserManager] Loaded ${this.snakeScores.length} snake scores from file`);
     } catch (error) {
       systemLogger.error('Error loading snake scores:', error);
@@ -252,7 +252,7 @@ export class UserManager {
   private saveSnakeScores(): void {
     try {
       const data = {
-        scores: this.snakeScores
+        scores: this.snakeScores,
       };
       fs.writeFileSync(SNAKE_SCORES_FILE, JSON.stringify(data, null, 2));
     } catch (error) {
@@ -263,22 +263,22 @@ export class UserManager {
   // Migrate any existing snake scores from users.json to snake-scores.json
   private migrateSnakeScores(): void {
     let migrationCount = 0;
-    
+
     // Check each user for a snakeHighScore
-    this.users.forEach(user => {
+    this.users.forEach((user) => {
       if (user.snakeHighScore && user.snakeHighScore > 0) {
         const username = user.username;
         const score = user.snakeHighScore;
-        
+
         // Check if we already have this score in the new system
-        const existingScoreIndex = this.snakeScores.findIndex(s => s.username === username);
-        
+        const existingScoreIndex = this.snakeScores.findIndex((s) => s.username === username);
+
         if (existingScoreIndex === -1) {
           // Add as a new score
           this.snakeScores.push({
             username,
             score,
-            date: new Date() // We don't know the original date, so use current
+            date: new Date(), // We don't know the original date, so use current
           });
           migrationCount++;
         } else if (score > this.snakeScores[existingScoreIndex].score) {
@@ -286,14 +286,16 @@ export class UserManager {
           this.snakeScores[existingScoreIndex].score = score;
           migrationCount++;
         }
-        
+
         // Clear the score from the user object
         delete user.snakeHighScore;
       }
     });
-    
+
     if (migrationCount > 0) {
-      systemLogger.info(`[UserManager] Migrated ${migrationCount} snake scores from users.json to snake-scores.json`);
+      systemLogger.info(
+        `[UserManager] Migrated ${migrationCount} snake scores from users.json to snake-scores.json`
+      );
       // Save both files
       this.saveUsers();
       this.saveSnakeScores();
@@ -302,12 +304,12 @@ export class UserManager {
 
   public getUser(username: string): User | undefined {
     const standardized = standardizeUsername(username);
-    return this.users.find(user => user.username === standardized);
+    return this.users.find((user) => user.username === standardized);
   }
 
   public userExists(username: string): boolean {
     const standardized = standardizeUsername(username);
-    return this.users.some(user => user.username === standardized);
+    return this.users.some((user) => user.username === standardized);
   }
 
   public authenticateUser(username: string, password: string): boolean {
@@ -420,31 +422,34 @@ export class UserManager {
 
     if (approved) {
       // Inform the existing client they're being disconnected
-      writeToClient(existingClient, colorize('\r\n\r\nYou approved the session transfer. Disconnecting...\r\n', 'yellow'));
+      writeToClient(
+        existingClient,
+        colorize('\r\n\r\nYou approved the session transfer. Disconnecting...\r\n', 'yellow')
+      );
 
       // Mark both clients as being in a transfer
       existingClient.stateData.transferInProgress = true;
       newClient.stateData.isSessionTransfer = true;
-      
+
       // CRITICAL FIX: Keep references to both clients temporarily
       // This helps prevent combat from seeing "no valid clients" during transfer
-      
+
       if (existingClient.user) {
         // Capture if user is in combat BEFORE making any changes
         const inCombat = existingClient.user.inCombat || false;
         systemLogger.info(`[UserManager] User ${username} inCombat status: ${inCombat}`);
-        
+
         // Clone the user from existing client
         const user = this.getUser(username);
         if (user) {
           // Setup the new client
-          newClient.user = {...user}; // Clone to avoid reference issues
+          newClient.user = { ...user }; // Clone to avoid reference issues
           newClient.authenticated = true;
           newClient.stateData.waitingForTransfer = false;
-          
+
           // CRITICAL: Always register the new session FIRST
           this.registerUserSession(username, newClient);
-          
+
           // Transfer combat state if needed
           if (inCombat) {
             // Explicitly preserve combat flag
@@ -453,7 +458,7 @@ export class UserManager {
               // Update user data store immediately
               this.updateUserStats(username, { inCombat: true });
             }
-            
+
             // Notify combat system to transfer combat state
             try {
               const roomManager = RoomManager.getInstance(this.activeUserSessions);
@@ -463,13 +468,16 @@ export class UserManager {
               systemLogger.error('Error transferring combat state:', error);
             }
           }
-          
+
           // Save user stats
           this.updateUserStats(username, { lastLogin: new Date() });
-          
+
           // Inform new client they can proceed
-          writeToClient(newClient, colorize('\r\n\r\nSession transfer approved. Logging in...\r\n', 'green'));
-          
+          writeToClient(
+            newClient,
+            colorize('\r\n\r\nSession transfer approved. Logging in...\r\n', 'green')
+          );
+
           // Transition new client to authenticated state
           newClient.stateData.transitionTo = ClientStateType.AUTHENTICATED;
         }
@@ -487,17 +495,24 @@ export class UserManager {
     } else {
       // Transfer denied - restore the new client to previous state
       newClient.stateData.waitingForTransfer = false;
-      writeToClient(newClient, colorize('\r\n\r\nSession transfer was denied by the active user.\r\n', 'red'));
+      writeToClient(
+        newClient,
+        colorize('\r\n\r\nSession transfer was denied by the active user.\r\n', 'red')
+      );
       newClient.stateData.transitionTo = ClientStateType.LOGIN;
 
       // Restore the existing client
-      existingClient.state = existingClient.stateData.returnToState || ClientStateType.AUTHENTICATED;
+      existingClient.state =
+        existingClient.stateData.returnToState || ClientStateType.AUTHENTICATED;
       delete existingClient.stateData.interruptedBy;
       delete existingClient.stateData.transferClient;
-      writeToClient(existingClient, colorize('\r\n\r\nYou denied the session transfer. Continuing your session.\r\n', 'green'));
+      writeToClient(
+        existingClient,
+        colorize('\r\n\r\nYou denied the session transfer. Continuing your session.\r\n', 'green')
+      );
     }
 
-    // Clean up the pending transfer 
+    // Clean up the pending transfer
     this.pendingTransfers.delete(lowerUsername);
   }
 
@@ -515,7 +530,8 @@ export class UserManager {
 
     if (existingClient && existingClient.state === ClientStateType.TRANSFER_REQUEST) {
       // Restore the existing client to its previous state
-      existingClient.state = existingClient.stateData.returnToState || ClientStateType.AUTHENTICATED;
+      existingClient.state =
+        existingClient.stateData.returnToState || ClientStateType.AUTHENTICATED;
       delete existingClient.stateData.interruptedBy;
       delete existingClient.stateData.transferClient;
       writeToClient(existingClient, colorize('\r\n\r\nTransfer request cancelled.\r\n', 'yellow'));
@@ -533,9 +549,7 @@ export class UserManager {
     }
 
     // Validate username before creating
-    if (!/^[a-zA-Z]+$/.test(standardized) ||
-      standardized.length >= 13 ||
-      standardized.length < 3) {
+    if (!/^[a-zA-Z]+$/.test(standardized) || standardized.length >= 13 || standardized.length < 3) {
       return false;
     }
 
@@ -557,7 +571,7 @@ export class UserManager {
       strength: 10,
       dexterity: 10,
       agility: 10,
-      constitution: 10, 
+      constitution: 10,
       wisdom: 10,
       intelligence: 10,
       charisma: 10,
@@ -571,9 +585,9 @@ export class UserManager {
       currentRoomId: 'start', // Set default starting room
       inventory: {
         items: [],
-        currency: { gold: 0, silver: 0, copper: 0 }
+        currency: { gold: 0, silver: 0, copper: 0 },
       },
-      totalPlayTime: 0 // Initialize totalPlayTime to 0
+      totalPlayTime: 0, // Initialize totalPlayTime to 0
     };
 
     this.users.push(newUser);
@@ -594,7 +608,7 @@ export class UserManager {
     if (!user) return false;
 
     // Handle isUnconscious property specially
-    if (stats.hasOwnProperty('isUnconscious')) {
+    if (Object.prototype.hasOwnProperty.call(stats, 'isUnconscious')) {
       user.isUnconscious = stats.isUnconscious;
     }
 
@@ -602,7 +616,9 @@ export class UserManager {
     if (stats.flags !== undefined) {
       // Ensure flags is an array
       if (!Array.isArray(stats.flags)) {
-        systemLogger.warn(`[UserManager] Attempted to update flags with non-array value for ${username}. Ignoring.`);
+        systemLogger.warn(
+          `[UserManager] Attempted to update flags with non-array value for ${username}. Ignoring.`
+        );
         delete stats.flags; // Remove invalid flags from stats to avoid overwriting
       } else {
         // If the user doesn't have a flags array yet, initialize it
@@ -630,7 +646,9 @@ export class UserManager {
   }
 
   public deleteUser(username: string): boolean {
-    const index = this.users.findIndex(user => user.username.toLowerCase() === username.toLowerCase());
+    const index = this.users.findIndex(
+      (user) => user.username.toLowerCase() === username.toLowerCase()
+    );
     if (index === -1) return false;
 
     this.users.splice(index, 1);
@@ -670,53 +688,57 @@ export class UserManager {
   }
 
   // Save a player's high score for the Snake game
-  public saveHighScore(scoreData: { username: string, score: number }): void {
+  public saveHighScore(scoreData: { username: string; score: number }): void {
     if (!scoreData.username || scoreData.score <= 0) return;
 
     // Get the username in standardized form
     const username = standardizeUsername(scoreData.username);
-    
+
     // Check if the user exists
     if (!this.userExists(username)) return;
-    
+
     // Find existing score for this user
-    const existingScoreIndex = this.snakeScores.findIndex(s => s.username === username);
-    
+    const existingScoreIndex = this.snakeScores.findIndex((s) => s.username === username);
+
     if (existingScoreIndex >= 0) {
       // Only update if new score is higher
       if (scoreData.score > this.snakeScores[existingScoreIndex].score) {
         this.snakeScores[existingScoreIndex] = {
           username,
           score: scoreData.score,
-          date: new Date()
+          date: new Date(),
         };
-        
+
         // Save to file
         this.saveSnakeScores();
-        systemLogger.info(`[UserManager] Updated snake high score for ${username}: ${scoreData.score}`);
+        systemLogger.info(
+          `[UserManager] Updated snake high score for ${username}: ${scoreData.score}`
+        );
       }
     } else {
       // New high score for this user
       this.snakeScores.push({
         username,
         score: scoreData.score,
-        date: new Date()
+        date: new Date(),
       });
-      
+
       // Save to file
       this.saveSnakeScores();
-      systemLogger.info(`[UserManager] Added new snake high score for ${username}: ${scoreData.score}`);
+      systemLogger.info(
+        `[UserManager] Added new snake high score for ${username}: ${scoreData.score}`
+      );
     }
   }
 
   // Get all snake game high scores, sorted from highest to lowest
-  public getSnakeHighScores(limit: number = 10): { username: string, score: number }[] {
+  public getSnakeHighScores(limit: number = 10): { username: string; score: number }[] {
     return this.snakeScores
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
-      .map(score => ({
+      .map((score) => ({
         username: score.username,
-        score: score.score
+        score: score.score,
       }));
   }
 
@@ -759,12 +781,14 @@ export class UserManager {
   public removeFlag(username: string, flag: string): boolean {
     const user = this.getUser(username);
     if (!user || !user.flags) {
-      systemLogger.error(`[UserManager] Cannot remove flag: User ${username} not found or has no flags.`);
+      systemLogger.error(
+        `[UserManager] Cannot remove flag: User ${username} not found or has no flags.`
+      );
       return false;
     }
 
     const initialLength = user.flags.length;
-    user.flags = user.flags.filter(f => f !== flag);
+    user.flags = user.flags.filter((f) => f !== flag);
 
     if (user.flags.length < initialLength) {
       this.saveUsers();
@@ -805,7 +829,9 @@ export class UserManager {
    * @returns True if the user was updated, false if user not found
    */
   public updateUser(username: string, updatedData: Partial<User>): boolean {
-    const index = this.users.findIndex(user => user.username.toLowerCase() === username.toLowerCase());
+    const index = this.users.findIndex(
+      (user) => user.username.toLowerCase() === username.toLowerCase()
+    );
     if (index === -1) return false;
 
     // Get the existing user
@@ -818,13 +844,13 @@ export class UserManager {
     // Explicitly construct the updated user object to satisfy the User type
     const updatedUserObject: User = {
       ...existingUser, // Start with existing user properties
-      ...dataToMerge,   // Override with updated data (excluding username)
-      username: existingUser.username // Explicitly keep the original username (string)
+      ...dataToMerge, // Override with updated data (excluding username)
+      username: existingUser.username, // Explicitly keep the original username (string)
     };
 
     // Apply the updates
     this.users[index] = updatedUserObject;
-    
+
     // Save changes to disk
     this.saveUsers();
     return true;

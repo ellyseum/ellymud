@@ -214,7 +214,7 @@ userManager.updateUserStats(username, { health: 50 });
 
 // ❌ Don't modify data directly
 const user = userManager.getUser(username);
-user.health = 50;  // Won't persist!
+user.health = 50; // Won't persist!
 ```
 
 ## Gotchas & Warnings

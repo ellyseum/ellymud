@@ -4,16 +4,16 @@ State machine implementations managing the client interaction flow. Each state h
 
 ## Contents
 
-| File | State | Description |
-|------|-------|-------------|
-| `connecting.state.ts` | CONNECTING | Initial connection, displays MOTD |
-| `login.state.ts` | LOGIN | Username/password authentication |
-| `signup.state.ts` | SIGNUP | New account creation flow |
-| `confirmation.state.ts` | CONFIRMATION | Password confirmation step |
-| `authenticated.state.ts` | AUTHENTICATED | Main gameplay state |
+| File                        | State            | Description                         |
+| --------------------------- | ---------------- | ----------------------------------- |
+| `connecting.state.ts`       | CONNECTING       | Initial connection, displays MOTD   |
+| `login.state.ts`            | LOGIN            | Username/password authentication    |
+| `signup.state.ts`           | SIGNUP           | New account creation flow           |
+| `confirmation.state.ts`     | CONFIRMATION     | Password confirmation step          |
+| `authenticated.state.ts`    | AUTHENTICATED    | Main gameplay state                 |
 | `transfer-request.state.ts` | TRANSFER_REQUEST | Session handoff between connections |
-| `snake-game.state.ts` | SNAKE_GAME | Snake mini-game state |
-| `waiting.state.ts` | WAITING | Temporary idle state |
+| `snake-game.state.ts`       | SNAKE_GAME       | Snake mini-game state               |
+| `waiting.state.ts`          | WAITING          | Temporary idle state                |
 
 ## State Flow
 
@@ -36,6 +36,7 @@ AUTHENTICATED ←───────────┘
 ## State Pattern
 
 Each state:
+
 - Handles its own input processing
 - Knows valid transitions to other states
 - Manages state-specific data in `client.stateData`
@@ -44,6 +45,7 @@ Each state:
 ## AuthenticatedState
 
 The main gameplay state where most action happens:
+
 - Processes all game commands through `CommandHandler`
 - Manages the player prompt display
 - Handles combat state transitions

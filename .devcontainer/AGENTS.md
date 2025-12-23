@@ -19,30 +19,30 @@ The `.devcontainer/` directory contains VS Code Dev Container configuration that
 {
   // Runs after container is created - installs deps and builds
   "postCreateCommand": "npm install && npm run build",
-  
+
   "customizations": {
     "vscode": {
       "extensions": [
-        "esbenp.prettier-vscode",      // Code formatting
-        "dbaeumer.vscode-eslint",      // Linting
+        "esbenp.prettier-vscode", // Code formatting
+        "dbaeumer.vscode-eslint", // Linting
         "ms-azuretools.vscode-docker", // Docker support
-        "ms-vscode-remote.remote-containers" // Dev containers
+        "ms-vscode-remote.remote-containers", // Dev containers
       ],
       "settings": {
         // Auto-formatting and linting on save
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
           "source.fixAll.eslint": "always",
-          "source.organizeImports": "always"
+          "source.organizeImports": "always",
         },
         // Prettier configuration
         "prettier.singleQuote": true,
         "prettier.trailingComma": "all",
         // Terminal configuration
-        "terminal.integrated.defaultProfile.linux": "zsh"
-      }
-    }
-  }
+        "terminal.integrated.defaultProfile.linux": "zsh",
+      },
+    },
+  },
 }
 ```
 

@@ -34,7 +34,7 @@ export class EntityTracker {
     if (this.roomCombatEntities.has(roomId)) {
       this.roomCombatEntities.get(roomId)!.delete(entityName);
       systemLogger.info(`Removed ${entityName} from active combat in room ${roomId}`);
-      
+
       // Clean up if no more combat entities in this room
       if (this.roomCombatEntities.get(roomId)!.size === 0) {
         this.roomCombatEntities.delete(roomId);
@@ -56,8 +56,9 @@ export class EntityTracker {
    * Check if an entity is in active combat in a room
    */
   isEntityInCombat(roomId: string, entityName: string): boolean {
-    return this.roomCombatEntities.has(roomId) && 
-           this.roomCombatEntities.get(roomId)!.has(entityName);
+    return (
+      this.roomCombatEntities.has(roomId) && this.roomCombatEntities.get(roomId)!.has(entityName)
+    );
   }
 
   /**
@@ -68,7 +69,7 @@ export class EntityTracker {
       this.sharedEntities.set(roomId, new Map());
     }
     const roomEntities = this.sharedEntities.get(roomId)!;
-    
+
     // Try to find an existing entity
     if (roomEntities.has(entityName)) {
       const existingEntity = roomEntities.get(entityName)!;
@@ -79,40 +80,44 @@ export class EntityTracker {
         return existingEntity;
       }
     }
-    
+
     // Look up entity in the room
     const room = this.roomManager.getRoom(roomId);
     if (!room) return null;
-    
+
     // First try to find the NPC by instance ID directly
     let npc: NPC | null = room.npcs.get(entityName) || null;
-    
+
     // If not found by instance ID, check if entityName might be a template ID
     if (!npc && room.npcs) {
-      const matchingNPCs = Array.from(room.npcs.values()).filter((n: NPC) => n.templateId === entityName);
+      const matchingNPCs = Array.from(room.npcs.values()).filter(
+        (n: NPC) => n.templateId === entityName
+      );
       if (matchingNPCs.length > 0) {
         npc = matchingNPCs[0];
-        
+
         // Create a mapping from template ID to the instance we're using
         if (npc.instanceId !== entityName) {
-          systemLogger.info(`Creating mapping from template ID ${entityName} to instance ID ${npc.instanceId}`);
-          
+          systemLogger.info(
+            `Creating mapping from template ID ${entityName} to instance ID ${npc.instanceId}`
+          );
+
           // Store by instance ID instead
           if (!roomEntities.has(npc.instanceId)) {
             roomEntities.set(npc.instanceId, npc);
           }
-          
+
           // Return the entity we found by template ID
           return npc;
         }
       }
     }
-    
+
     // If we still don't have an NPC, create a placeholder
     if (!npc) {
       npc = this.createTestNPC(entityName);
     }
-    
+
     roomEntities.set(entityName, npc);
     return npc;
   }
@@ -123,23 +128,23 @@ export class EntityTracker {
   public createTestNPC(name: string = 'cat'): NPC {
     // Load NPC data from JSON file to set proper hostility values
     const npcData = NPC.loadNPCData();
-    
+
     // Check if we have data for this NPC
     if (npcData.has(name)) {
       systemLogger.debug(`Creating NPC ${name} from data`);
       return NPC.fromNPCData(npcData.get(name)!);
     }
-    
+
     // Fallback to default NPC if no data found
     systemLogger.warn(`No data found for NPC ${name}, creating default`);
     return new NPC(
       name,
-      20,  // health
-      20,  // maxHealth
-      [1, 3],  // damage range
-      false,  // isHostile
-      false,  // isPassive
-      100  // experienceValue
+      20, // health
+      20, // maxHealth
+      [1, 3], // damage range
+      false, // isHostile
+      false, // isPassive
+      100 // experienceValue
     );
   }
 
@@ -162,7 +167,7 @@ export class EntityTracker {
     if (!this.entityTargeters.has(entityId)) {
       this.entityTargeters.set(entityId, new Set());
     }
-    
+
     this.entityTargeters.get(entityId)!.add(username);
   }
 
@@ -173,7 +178,7 @@ export class EntityTracker {
     if (!this.entityTargeters.has(entityId)) {
       return [];
     }
-    
+
     return Array.from(this.entityTargeters.get(entityId)!);
   }
 
@@ -183,7 +188,7 @@ export class EntityTracker {
   removeEntityTargeter(entityId: string, username: string): void {
     if (this.entityTargeters.has(entityId)) {
       this.entityTargeters.get(entityId)!.delete(username);
-      
+
       // Clean up if no more targeters
       if (this.entityTargeters.get(entityId)!.size === 0) {
         this.entityTargeters.delete(entityId);
@@ -197,18 +202,18 @@ export class EntityTracker {
   entityIsDead(entityId: string): boolean {
     // Parse the entity ID to get room and name
     const [roomId] = entityId.split('::');
-    
+
     if (!this.sharedEntities.has(roomId)) {
       return true;
     }
-    
+
     const roomEntities = this.sharedEntities.get(roomId)!;
     // Extract the entity name from the ID
     const entityName = entityId.split('::')[1];
     if (!roomEntities.has(entityName)) {
       return true;
     }
-    
+
     return !roomEntities.get(entityName)!.isAlive();
   }
 

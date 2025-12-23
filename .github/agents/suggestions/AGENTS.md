@@ -10,10 +10,10 @@ This directory stores improvement suggestions produced by the Post-Mortem Agent 
 
 ## File Naming Convention
 
-| Pattern | Description | Example |
-|---------|-------------|---------|
+| Pattern                  | Description             | Example                        |
+| ------------------------ | ----------------------- | ------------------------------ |
 | `suggestions_{topic}.md` | Post-mortem suggestions | `suggestions_npc_hostility.md` |
-| `improvements_{date}.md` | Batch improvements | `improvements_2025-01-11.md` |
+| `improvements_{date}.md` | Batch improvements      | `improvements_2025-01-11.md`   |
 
 ## Expected Document Structure
 
@@ -34,6 +34,7 @@ Suggestion documents should contain:
 ## Quality Criteria
 
 Suggestion documents must:
+
 - ✅ Reference specific pipeline outputs
 - ✅ Provide evidence for each finding
 - ✅ Include actionable improvements
@@ -41,6 +42,7 @@ Suggestion documents must:
 - ✅ Estimate implementation effort
 
 Suggestion documents must NOT:
+
 - ❌ Make vague recommendations
 - ❌ Propose changes without evidence
 - ❌ Skip analysis of any pipeline stage
@@ -55,13 +57,13 @@ Suggestion documents must NOT:
 
 ## Improvement Categories
 
-| Category | Examples |
-|----------|----------|
+| Category           | Examples                                            |
+| ------------------ | --------------------------------------------------- |
 | Agent Instructions | Add new checklist items, clarify ambiguous sections |
-| Pipeline Workflow | Add/remove stages, change gate criteria |
-| Quality Gates | Adjust grade thresholds, add new checks |
-| Documentation | Update README files, add examples |
-| Tooling | New test cases, metrics improvements |
+| Pipeline Workflow  | Add/remove stages, change gate criteria             |
+| Quality Gates      | Adjust grade thresholds, add new checks             |
+| Documentation      | Update README files, add examples                   |
+| Tooling            | New test cases, metrics improvements                |
 
 ## Acting on Suggestions
 
@@ -73,4 +75,4 @@ Suggestion documents must NOT:
 
 ---
 
-*Last updated: 2025-01-11*
+_Last updated: 2025-01-11_

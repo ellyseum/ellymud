@@ -10,10 +10,10 @@ This directory stores validation reports produced by the Validation Agent during
 
 ## File Naming Convention
 
-| Pattern | Description | Example |
-|---------|-------------|---------|
-| `validation_{topic}.md` | Raw validation report | `validation_npc_hostility.md` |
-| `validation_{topic}-reviewed.md` | After Output Review | `validation_npc_hostility-reviewed.md` |
+| Pattern                          | Description           | Example                                |
+| -------------------------------- | --------------------- | -------------------------------------- |
+| `validation_{topic}.md`          | Raw validation report | `validation_npc_hostility.md`          |
+| `validation_{topic}-reviewed.md` | After Output Review   | `validation_npc_hostility-reviewed.md` |
 
 ## Expected Document Structure
 
@@ -32,6 +32,7 @@ Validation reports should contain:
 ## Quality Criteria
 
 Validation reports must:
+
 - ✅ Check every success criterion from plan
 - ✅ Include actual test output
 - ✅ Provide clear APPROVED/REJECTED verdict
@@ -39,6 +40,7 @@ Validation reports must:
 - ✅ Include remediation steps for failures
 
 Validation reports must NOT:
+
 - ❌ Fix issues (only report them)
 - ❌ Approve without evidence
 - ❌ Skip any success criteria
@@ -54,12 +56,14 @@ Validation reports must NOT:
 ## Verdict Criteria
 
 **APPROVED** requires:
+
 - All success criteria pass
 - No critical/high severity issues
 - Build passes
 - Tests pass
 
 **REJECTED** triggers:
+
 - Any success criterion fails
 - Critical issue found
 - Build fails
@@ -79,4 +83,4 @@ When verdict is REJECTED:
 
 ---
 
-*Last updated: 2025-01-11*
+_Last updated: 2025-01-11_

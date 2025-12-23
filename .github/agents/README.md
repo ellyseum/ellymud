@@ -10,20 +10,20 @@ Coordinates specialized AI agents for complex development tasks. The Problem Sol
 
 Just describe your task. For complex work, the pipeline activates automatically.
 
-Explicit invocation: *"Using the agent pipeline, implement [feature]"*
+Explicit invocation: _"Using the agent pipeline, implement [feature]"_
 
 ## Agents
 
-| Agent | Purpose |
-|-------|---------|
-| **Problem Solver** | Main orchestrator |
-| **Research** | Codebase investigation |
-| **Planning** | Implementation plans |
-| **Implementation** | Code execution |
-| **Validation** | Quality verification |
-| **Rollback** | Safety checkpoints |
-| **Post-Mortem** | Pipeline analysis |
-| **Documentation** | README/AGENTS maintenance |
+| Agent              | Purpose                   |
+| ------------------ | ------------------------- |
+| **Problem Solver** | Main orchestrator         |
+| **Research**       | Codebase investigation    |
+| **Planning**       | Implementation plans      |
+| **Implementation** | Code execution            |
+| **Validation**     | Quality verification      |
+| **Rollback**       | Safety checkpoints        |
+| **Post-Mortem**    | Pipeline analysis         |
+| **Documentation**  | README/AGENTS maintenance |
 
 ## Directory Structure
 
@@ -42,4 +42,4 @@ Explicit invocation: *"Using the agent pipeline, implement [feature]"*
 
 ---
 
-*See [AGENTS.md](AGENTS.md) for comprehensive LLM context.*
+_See [AGENTS.md](AGENTS.md) for comprehensive LLM context._
