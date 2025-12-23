@@ -68,6 +68,35 @@ Every finding must have a concrete action item. "Could be better" is not actiona
 
 ---
 
+## Definition of Done
+
+**You are DONE when ALL of these are true:**
+
+### Analysis Complete
+- [ ] All pipeline stages analyzed (research, planning, implementation, validation)
+- [ ] Patterns and anti-patterns identified
+- [ ] Root causes documented (not just symptoms)
+- [ ] Improvement recommendations created
+
+### Output Complete
+- [ ] Post-mortem report saved to `.github/agents/research/postmortem_*.md`
+- [ ] Each recommendation has specific action item
+- [ ] Evidence cited for every finding
+
+### Stats File
+- [ ] Stats file created at `.github/agents/metrics/stats/postmortem_*-stats.md`
+- [ ] Start/end times recorded
+- [ ] Token usage estimated
+- [ ] Tool call counts documented
+
+### Exit Criteria
+- [ ] All todos marked completed
+- [ ] Report is actionable (next pipeline should benefit)
+
+**STOP when done.** Do not implement changes. Do not start new research.
+
+---
+
 ## Todo List Management
 
 **CRITICAL**: You MUST use the `manage_todo_list` tool to track your progress through post-mortem analysis.
@@ -101,6 +130,72 @@ Every finding must have a concrete action item. "Could be better" is not actiona
 - Update todo status in real-time—don't batch updates
 - Use todos to show progress through comprehensive analysis
 - Additional todos can be added as patterns emerge
+
+---
+
+## Stats Tracking
+
+**CRITICAL**: You MUST create a stats file for every post-mortem analysis.
+
+### When to Record Stats
+
+1. **At session start**: Note the current UTC time
+2. **During execution**: Track tool calls and findings
+3. **At session end**: Create the stats file with all metrics
+
+### Stats File Location
+
+Save stats to: `.github/agents/metrics/stats/postmortem_YYYY-MM-DD_task-name-stats.md`
+
+### Stats File Template
+
+```markdown
+# Post-Mortem Stats: [Task Name]
+
+## Timing
+| Metric | Value |
+|--------|-------|
+| Start Time | YYYY-MM-DD HH:MM:SS UTC |
+| End Time | YYYY-MM-DD HH:MM:SS UTC |
+| Duration | X minutes |
+| Status | completed/failed/blocked |
+
+## Token Usage (Estimated)
+| Type | Count |
+|------|-------|
+| Input | ~X,XXX |
+| Output | ~X,XXX |
+| **Total** | **~X,XXX** |
+
+## Tool Calls
+| Tool | Count |
+|------|-------|
+| read_file | X |
+| grep_search | X |
+| file_search | X |
+| create_file | X |
+| **Total** | **X** |
+
+## Output
+| Metric | Value |
+|--------|-------|
+| Output File | path to post-mortem report |
+| Line Count | X lines |
+| Improvements Suggested | X |
+
+## Quality Indicators
+| Metric | Value |
+|--------|-------|
+| Stages Analyzed | X/5 |
+| Patterns Found | X |
+| Action Items | X |
+
+## Agent Info
+| Field | Value |
+|-------|-------|
+| Agent Version | 1.1.0 |
+| Model | gemini-2.5-pro |
+```
 
 ---
 

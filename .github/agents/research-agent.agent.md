@@ -84,6 +84,12 @@ Present findings objectively. Let the Planning Agent draw conclusions. Your job 
 - [ ] No speculation - only facts or explicit assumptions
 - [ ] Document saved to `.github/agents/research/research_*.md`
 
+### Stats File
+- [ ] Stats file created at `.github/agents/research/research_*-stats.md`
+- [ ] Start/end times recorded
+- [ ] Token usage estimated
+- [ ] Tool call counts documented
+
 ### Exit Criteria
 - [ ] All todos marked completed
 - [ ] Document is under 500 lines (force conciseness)
@@ -122,6 +128,90 @@ Present findings objectively. Let the Planning Agent draw conclusions. Your job 
 - Update todo status in real-time—don't batch updates
 - Use todos to show progress to the user
 - If a todo reveals sub-tasks, add them to the list
+
+---
+
+## Stats Tracking
+
+**CRITICAL**: You MUST create a stats file alongside your research document.
+
+### When to Record Stats
+
+1. **At session start**: Note the current UTC time
+2. **During execution**: Mentally track tool calls by category
+3. **At session end**: Create the stats file with all metrics
+
+### Stats File Location
+
+Save stats to: `.github/agents/metrics/stats/research_YYYY-MM-DD_task-name-stats.md`
+
+### Stats File Template
+
+```markdown
+# Research Stats: [Task Name]
+
+## Timing
+| Metric | Value |
+|--------|-------|
+| Start Time | YYYY-MM-DD HH:MM:SS UTC |
+| End Time | YYYY-MM-DD HH:MM:SS UTC |
+| Duration | X minutes |
+| Status | completed/failed/blocked |
+
+## Token Usage (Estimated)
+| Type | Count |
+|------|-------|
+| Input | ~X,XXX |
+| Output | ~X,XXX |
+| **Total** | **~X,XXX** |
+
+## Tool Calls
+| Tool | Count |
+|------|-------|
+| read_file | X |
+| grep_search | X |
+| semantic_search | X |
+| file_search | X |
+| list_dir | X |
+| **Total** | **X** |
+
+## Files Processed
+| Operation | Count |
+|-----------|-------|
+| Read | X |
+| Created | 1 (research doc) |
+
+## Output
+| Metric | Value |
+|--------|-------|
+| Output File | `.github/agents/research/research_*.md` |
+| Line Count | X lines |
+
+## Quality Indicators
+| Metric | Value |
+|--------|-------|
+| File:Line Citations | X |
+| [UNVERIFIED] Tags | X |
+
+## Handoff
+| Field | Value |
+|-------|-------|
+| Next Stage | planning |
+| Ready | Yes/No |
+
+## Agent Info
+| Field | Value |
+|-------|-------|
+| Agent Version | 1.0.0 |
+| Model | gemini-2.5-pro |
+```
+
+### Token Estimation
+
+- **Short message** (~100 words): ~150 tokens
+- **File read** (~100 lines): ~500 tokens
+- **File read** (~500 lines): ~2500 tokens
+- **Tool call**: ~100-200 tokens input
 
 ---
 

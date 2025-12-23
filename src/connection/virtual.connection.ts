@@ -58,12 +58,18 @@ export class VirtualConnection extends EventEmitter implements IConnection {
 
   /**
    * Simulate receiving input from the client
+   * Processes input character-by-character to match real telnet behavior
    */
   simulateInput(data: string): void {
     if (!this.isConnected) {
       throw new Error('Cannot send input to disconnected virtual connection');
     }
-    this.emit('data', data);
+    
+    // Process each character individually to simulate real terminal input
+    // This ensures proper handling of control characters and command processing
+    for (const char of data) {
+      this.emit('data', char);
+    }
   }
 
   /**

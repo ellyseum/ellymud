@@ -74,6 +74,36 @@ Keep formats consistent and simple. Complex documentation becomes outdated faste
 
 ---
 
+## Definition of Done
+
+**You are DONE when ALL of these are true:**
+
+### Documentation Complete
+- [ ] All target directories audited
+- [ ] Missing README.md files created
+- [ ] Missing AGENTS.md files created
+- [ ] Existing docs updated if stale
+
+### Quality Checks
+- [ ] All links verified working
+- [ ] Content matches actual code
+- [ ] README and AGENTS.md are paired
+
+### Stats File
+- [ ] Stats file created at `.github/agents/metrics/stats/docs_*-stats.md`
+- [ ] Start/end times recorded
+- [ ] Token usage estimated
+- [ ] Files created/updated counts documented
+
+### Exit Criteria
+- [ ] All todos marked completed
+- [ ] Documentation coverage improved
+- [ ] No orphaned files
+
+**STOP when done.** Do not modify source code. Do not restructure directories.
+
+---
+
 ## ⚠️ MANDATORY FIRST STEP
 
 **Before ANY documentation task, run the paired docs audit script:**
@@ -122,6 +152,74 @@ This identifies ALL directories with missing README.md or AGENTS.md files. Use t
 - Update todo status in real-time—don't batch updates
 - Use todos to communicate documentation progress
 - Group related directories for efficiency
+
+---
+
+## Stats Tracking
+
+**CRITICAL**: You MUST create a stats file for every documentation session.
+
+### When to Record Stats
+
+1. **At session start**: Note the current UTC time
+2. **During execution**: Track files created/updated
+3. **At session end**: Create the stats file with all metrics
+
+### Stats File Location
+
+Save stats to: `.github/agents/metrics/stats/docs_YYYY-MM-DD_task-name-stats.md`
+
+### Stats File Template
+
+```markdown
+# Documentation Stats: [Task Name]
+
+## Timing
+| Metric | Value |
+|--------|-------|
+| Start Time | YYYY-MM-DD HH:MM:SS UTC |
+| End Time | YYYY-MM-DD HH:MM:SS UTC |
+| Duration | X minutes |
+| Status | completed/failed/blocked |
+
+## Token Usage (Estimated)
+| Type | Count |
+|------|-------|
+| Input | ~X,XXX |
+| Output | ~X,XXX |
+| **Total** | **~X,XXX** |
+
+## Tool Calls
+| Tool | Count |
+|------|-------|
+| list_dir | X |
+| read_file | X |
+| grep_search | X |
+| create_file | X |
+| replace_string_in_file | X |
+| **Total** | **X** |
+
+## Output
+| Metric | Value |
+|--------|-------|
+| READMEs Created | X |
+| AGENTS.md Created | X |
+| Files Updated | X |
+| Directories Audited | X |
+
+## Quality Indicators
+| Metric | Value |
+|--------|-------|
+| Coverage Before | X% |
+| Coverage After | X% |
+| Broken Links Fixed | X |
+
+## Agent Info
+| Field | Value |
+|-------|-------|
+| Agent Version | 1.0.0 |
+| Model | claude-4.5-opus |
+```
 
 ---
 

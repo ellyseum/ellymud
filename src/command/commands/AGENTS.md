@@ -47,6 +47,7 @@ This directory contains 40+ command implementations. Each command is a single Ty
 |------|---------|
 | `say.command.ts` | Talk to current room |
 | `yell.command.ts` | Shout to adjacent rooms |
+| `wave.command.ts` | Wave gesture to room |
 
 ### Admin Commands
 

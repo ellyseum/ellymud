@@ -12,16 +12,39 @@ Pipeline metrics provide visibility into:
 
 ## Where Metrics Are Stored
 
-Metrics files are stored in `.github/agents/metrics/executions/`:
 ```
 .github/agents/metrics/
 ├── README.md                          # This file
-├── pipeline-metrics-schema.json       # JSON schema definition
-└── executions/                        # Individual execution records
-    ├── pipeline_2025-12-21_task-abc.json
-    ├── pipeline_2025-12-22_task-def.json
-    └── ...
+├── pipeline-metrics-schema.json       # Pipeline-level JSON schema
+├── stage-stats-schema.json            # Individual stage stats schema
+├── stats/                             # All agent stats files
+│   ├── pipeline_2025-12-23_task-name-stats.md
+│   ├── research_2025-12-23_task-name-stats.md
+│   ├── plan_2025-12-23_task-name-stats.md
+│   ├── impl_2025-12-23_task-name-stats.md
+│   ├── validation_2025-12-23_task-name-stats.md
+│   └── ...
+└── executions/                        # Aggregated pipeline JSON records
+    └── pipeline_2025-12-21_task-abc.json
 ```
+
+## Stats System
+
+**Every agent creates a stats file** in `metrics/stats/` with timing, token usage, and quality metrics.
+
+| Agent | Stats File Pattern |
+|-------|-------------------|
+| Problem Solver | `pipeline_YYYY-MM-DD_task-stats.md` |
+| Research | `research_YYYY-MM-DD_task-stats.md` |
+| Planning | `plan_YYYY-MM-DD_task-stats.md` |
+| Implementation | `impl_YYYY-MM-DD_task-stats.md` |
+| Validation | `validation_YYYY-MM-DD_task-stats.md` |
+| Output Review | `review_YYYY-MM-DD_task-stats.md` |
+| Post-Mortem | `postmortem_YYYY-MM-DD_task-stats.md` |
+| Documentation | `docs_YYYY-MM-DD_task-stats.md` |
+| Rollback | `rollback_YYYY-MM-DD_task-stats.md` |
+
+Each agent has its own stats template inlined in its `.agent.md` file.
 
 ## File Naming Convention
 

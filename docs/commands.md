@@ -235,6 +235,26 @@ say Has anyone seen the blacksmith?
 - Only players in the same room can hear you
 - NPCs may respond to certain keywords
 
+### wave
+
+Wave at someone or everyone in the room.
+
+**Usage:**
+```
+wave
+wave <player>
+```
+
+**Examples:**
+```
+wave
+wave alice
+```
+
+**Notes:**
+- Only visible to players in the same room
+- If targeting a player, they see a personalized message
+
 ### yell
 
 Shout to all players in nearby areas.

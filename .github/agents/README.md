@@ -37,6 +37,8 @@ Explicit invocation: *"Using the agent pipeline, implement [feature]"*
 - **Safety**: Git stash checkpoints, automated rollback
 - **Quality Gates**: Verification at each pipeline stage
 - **Metrics**: Execution tracking and analysis
+- **Autonomous Testing**: MCP virtual sessions for functional tests
+- **Isolated Testing**: Custom data directories for safe experimentation
 
 ---
 

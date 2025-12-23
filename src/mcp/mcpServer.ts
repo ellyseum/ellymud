@@ -4,10 +4,50 @@ import { Server as HttpServer } from "http";
 import { UserManager } from "../user/userManager";
 import { RoomManager } from "../room/roomManager";
 import { ClientManager } from "../client/clientManager";
-import { readFileSync, readdirSync } from "fs";
+import { readFileSync, readdirSync, existsSync } from "fs";
 import { join } from "path";
 import { systemLogger, mcpLogger } from "../utils/logger";
 import { VirtualSessionManager } from "./virtualSessionManager";
+
+/**
+ * Strip ANSI escape codes from a string
+ */
+function stripAnsi(str: string): string {
+  // eslint-disable-next-line no-control-regex
+  return str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+}
+
+/**
+ * Clean command output for LLM consumption:
+ * - Strips ANSI codes
+ * - Removes the prompt line (HP/MP status bar)
+ * - Removes terminal control sequences
+ * - Trims whitespace
+ */
+function cleanCommandOutput(rawOutput: string): string {
+  // Strip ANSI codes
+  let output = stripAnsi(rawOutput);
+  
+  // Remove carriage returns and terminal control chars
+  output = output.replace(/\r/g, '');
+  
+  // Remove the prompt pattern: [HP=X/X MP=X/X]: 
+  output = output.replace(/\[HP=\d+\/\d+\s*MP=\d+\/\d+\]:\s*/g, '');
+  
+  // Remove cursor movement sequences (e.g., \x1b[10D)
+  // eslint-disable-next-line no-control-regex
+  output = output.replace(/\x1b\[\d+[ABCD]/g, '');
+  
+  // Remove line clearing sequences
+  // eslint-disable-next-line no-control-regex
+  output = output.replace(/\x1b\[K/g, '');
+  
+  // Clean up multiple newlines
+  output = output.replace(/\n{3,}/g, '\n\n');
+  
+  // Trim and return
+  return output.trim();
+}
 
 /**
  * MCP Server integrated with EllyMUD runtime
@@ -21,6 +61,7 @@ export class MCPServer {
   private clientManager: ClientManager;
   private virtualSessionManager: VirtualSessionManager;
   private port: number;
+  private tempUsers: Set<string> = new Set(); // Track temp users for cleanup
 
   constructor(
     userManager: UserManager,
@@ -31,7 +72,7 @@ export class MCPServer {
     this.userManager = userManager;
     this.roomManager = roomManager;
     this.clientManager = clientManager;
-    this.virtualSessionManager = new VirtualSessionManager(clientManager);
+    this.virtualSessionManager = new VirtualSessionManager(clientManager, userManager, this.tempUsers);
     this.port = port;
 
     this.app = express();
@@ -320,7 +361,7 @@ export class MCPServer {
           {
             name: "virtual_session_command",
             description:
-              "Send a command to a virtual game session and get the response",
+              "Send a command to a virtual game session and get the response. Output is cleaned (ANSI codes and prompt removed) for easy parsing.",
             endpoint: "/api/virtual-session/command",
             method: "POST",
             body: {
@@ -951,7 +992,7 @@ export class MCPServer {
     );
 
     // Check if log file exists
-    if (!require('fs').existsSync(logFilePath)) {
+    if (!existsSync(logFilePath)) {
       return {
         username,
         sessionId,
@@ -1143,6 +1184,34 @@ export class MCPServer {
           properties: {},
           required: []
         }
+      },
+      {
+        name: "create_temp_user",
+        description: "Create a temporary user for testing. Temp users are automatically deleted when the server restarts.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            username: {
+              type: "string",
+              description: "Optional username for the temp user. If not provided, a random name like 'temp_abc123' will be generated."
+            }
+          },
+          required: []
+        }
+      },
+      {
+        name: "direct_login",
+        description: "Create a virtual session and login directly as the specified user, bypassing password authentication. If the user doesn't exist, it will be created as a temp user. Perfect for quick testing.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            username: {
+              type: "string",
+              description: "Username to login as. Will be created as temp user if doesn't exist."
+            }
+          },
+          required: ["username"]
+        }
       }
     ];
   }
@@ -1199,6 +1268,12 @@ export class MCPServer {
         case "virtual_sessions_list":
           result = this.listVirtualSessions();
           break;
+        case "create_temp_user":
+          result = this.createTempUser(args.username);
+          break;
+        case "direct_login":
+          result = this.directLogin(args.username);
+          break;
         default:
           res.status(400).json({
             jsonrpc: "2.0",
@@ -1254,15 +1329,20 @@ export class MCPServer {
       throw new Error(`Session '${sessionId}' not found`);
     }
 
+    // IMPORTANT: Clear any accumulated output BEFORE sending command
+    // This prevents previous command output from bleeding into current response
+    session.clearOutput();
+    
     // Send the command
     session.sendCommand(command);
     
-    // Wait for response (default 100ms)
-    const delay = waitMs !== undefined ? parseInt(waitMs.toString()) : 100;
+    // Wait for response (default 200ms - increased from 100ms for more complete output)
+    const delay = waitMs !== undefined ? parseInt(waitMs.toString()) : 200;
     await new Promise(resolve => setTimeout(resolve, delay));
     
-    // Get the output
-    const output = session.getOutput(true);
+    // Get the raw output and clean it for LLM consumption
+    const rawOutput = session.getOutput(true);
+    const output = cleanCommandOutput(rawOutput);
     
     return {
       sessionId,
@@ -1298,6 +1378,34 @@ export class MCPServer {
   }
 
   /**
+   * Create a temporary user
+   */
+  private createTempUser(username?: string) {
+    const result = this.virtualSessionManager.createTempUser(username);
+    return {
+      ...result,
+      message: "Temp user created. Will be deleted when server restarts. Use direct_login to login as this user.",
+      isTempUser: true
+    };
+  }
+
+  /**
+   * Direct login - create session and login directly
+   * Session is returned immediately ready for commands via virtual_session_command
+   */
+  private directLogin(username: string) {
+    const session = this.virtualSessionManager.directLogin(username);
+    
+    return {
+      sessionId: session.getSessionId(),
+      username,
+      message: "Logged in directly. Session is ready. Use virtual_session_command with 'look' to see the room.",
+      isTempUser: this.tempUsers.has(username.toLowerCase()),
+      sessionInfo: session.getInfo()
+    };
+  }
+
+  /**
    * Start the MCP server
    */
   async start(): Promise<void> {
@@ -1327,6 +1435,12 @@ export class MCPServer {
    * Stop the MCP server
    */
   async stop(): Promise<void> {
+    // Clean up temp users before stopping
+    const cleanedCount = this.virtualSessionManager.cleanupTempUsers();
+    if (cleanedCount > 0) {
+      mcpLogger.info(`Cleaned up ${cleanedCount} temp users on shutdown`);
+    }
+    
     return new Promise((resolve) => {
       if (this.httpServer) {
         this.httpServer.close(() => {

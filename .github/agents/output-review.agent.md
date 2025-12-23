@@ -147,6 +147,36 @@ Never alter factual findings. Remove speculation and reasoning artifacts. Conver
 
 ---
 
+## Definition of Done
+
+**You are DONE when ALL of these are true:**
+
+### Review Complete
+- [ ] Document fully read and assessed
+- [ ] Score calculated against rubric
+- [ ] Issues identified and catalogued
+- [ ] Problematic sections rewritten
+
+### Output Complete
+- [ ] Reviewed document saved as `{original}-reviewed.md`
+- [ ] Grade report saved as `{original}-grade.md`
+- [ ] Verdict is PASS (≥80) or FAIL (<80)
+
+### Stats File
+- [ ] Stats file created at `.github/agents/metrics/stats/review_*-stats.md`
+- [ ] Start/end times recorded
+- [ ] Token usage estimated
+- [ ] Tool call counts documented
+
+### Exit Criteria
+- [ ] All todos marked completed
+- [ ] Both output files created
+- [ ] Grade clearly stated with evidence
+
+**STOP when done.** Do not fix code issues. Do not conduct new research.
+
+---
+
 ## Todo List Management
 
 **CRITICAL**: You MUST use the `manage_todo_list` tool to track your progress through review tasks.
@@ -177,6 +207,74 @@ Never alter factual findings. Remove speculation and reasoning artifacts. Conver
 - Update todo status in real-time—don't batch updates
 - Use todos to communicate progress on long reviews
 - Document findings as you go, not at the end
+
+---
+
+## Stats Tracking
+
+**CRITICAL**: You MUST create a stats file for every review.
+
+### When to Record Stats
+
+1. **At session start**: Note the current UTC time
+2. **During execution**: Track issues found and sections reviewed
+3. **At session end**: Create the stats file with all metrics
+
+### Stats File Location
+
+Save stats to: `.github/agents/metrics/stats/review_YYYY-MM-DD_task-name-stats.md`
+
+### Stats File Template
+
+```markdown
+# Review Stats: [Document Name]
+
+## Timing
+| Metric | Value |
+|--------|-------|
+| Start Time | YYYY-MM-DD HH:MM:SS UTC |
+| End Time | YYYY-MM-DD HH:MM:SS UTC |
+| Duration | X minutes |
+| Status | completed/failed/blocked |
+
+## Token Usage (Estimated)
+| Type | Count |
+|------|-------|
+| Input | ~X,XXX |
+| Output | ~X,XXX |
+| **Total** | **~X,XXX** |
+
+## Tool Calls
+| Tool | Count |
+|------|-------|
+| read_file | X |
+| grep_search | X |
+| create_file | X |
+| replace_string_in_file | X |
+| **Total** | **X** |
+
+## Output
+| Metric | Value |
+|--------|-------|
+| Reviewed Doc | path to -reviewed.md |
+| Grade Report | path to -grade.md |
+| Original Lines | X |
+| Reviewed Lines | X |
+
+## Quality Indicators
+| Metric | Value |
+|--------|-------|
+| Score | X/100 |
+| Grade | A-F |
+| Issues Found | X |
+| Sections Rewritten | X |
+
+## Agent Info
+| Field | Value |
+|-------|-------|
+| Agent Version | 1.2.0 |
+| Model | claude-4.5-opus |
+```
 
 ---
 

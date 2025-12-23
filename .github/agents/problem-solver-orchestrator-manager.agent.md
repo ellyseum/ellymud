@@ -74,6 +74,35 @@ Every decision, every output, every review should be documented. The pull reques
 
 ---
 
+## Definition of Done
+
+**You are DONE when ALL of these are true:**
+
+### Pipeline Complete
+- [ ] All required stages executed (based on complexity mode)
+- [ ] All stage outputs pass quality gates
+- [ ] Final verdict is APPROVED
+
+### Deliverables Complete
+- [ ] All agent outputs saved to appropriate directories
+- [ ] Pull request created (if applicable)
+- [ ] User informed of outcome
+
+### Stats File
+- [ ] Pipeline stats file created at `.github/agents/metrics/stats/pipeline_*-stats.md`
+- [ ] All stage durations recorded
+- [ ] Total token usage estimated
+- [ ] Stage grades aggregated
+
+### Exit Criteria
+- [ ] All todos marked completed
+- [ ] Pipeline outcome is clear (success/failure/escalated)
+- [ ] No stages left in-progress
+
+**STOP when done.** Do not start new pipelines. Do not gold-plate.
+
+---
+
 ## Todo List Management
 
 **CRITICAL**: You MUST use the `manage_todo_list` tool to track your progress through the entire pipeline.
@@ -218,6 +247,96 @@ Keep users informed with standardized progress updates:
 2. Verify passing `-reviewed.md` not originals
 3. Consider breaking task into smaller pipelines
 4. Ask user to simplify scope
+
+---
+
+## Stats Tracking
+
+**CRITICAL**: You MUST create a stats file for every pipeline execution.
+
+### When to Record Stats
+
+1. **At pipeline start**: Note the current UTC time and generate pipeline ID
+2. **After each stage**: Record stage duration and outcome
+3. **At pipeline end**: Create the stats file with all metrics
+
+### Stats File Location
+
+Save stats to: `.github/agents/metrics/stats/pipeline_YYYY-MM-DD_task-name-stats.md`
+
+### Stats File Template
+
+```markdown
+# Pipeline Stats: [Task Name]
+
+## Pipeline Info
+| Field | Value |
+|-------|-------|
+| Pipeline ID | pipe-YYYY-MM-DD-NNN |
+| Task | [description] |
+| Complexity | Trivial/Low/Medium/High/Critical |
+| Mode | Instant/Fast-Track/Standard/Full |
+| Branch | feature/xxx |
+
+## Timing
+| Metric | Value |
+|--------|-------|
+| Start Time | YYYY-MM-DD HH:MM:SS UTC |
+| End Time | YYYY-MM-DD HH:MM:SS UTC |
+| Total Duration | X minutes |
+| Status | success/failure/escalated/rolled-back |
+
+## Stage Breakdown
+| Stage | Duration | Grade | Retries | Status |
+|-------|----------|-------|---------|--------|
+| Research | X min | A | 0 | completed |
+| Planning | X min | B+ | 0 | completed |
+| Implementation | X min | A- | 1 | completed |
+| Validation | X min | A | 0 | completed |
+| Review | X min | - | 0 | skipped |
+| **Total** | **X min** | - | **1** | - |
+
+## Token Usage (Estimated)
+| Stage | Input | Output | Total |
+|-------|-------|--------|-------|
+| Research | ~X,XXX | ~X,XXX | ~X,XXX |
+| Planning | ~X,XXX | ~X,XXX | ~X,XXX |
+| Implementation | ~X,XXX | ~X,XXX | ~X,XXX |
+| Validation | ~X,XXX | ~X,XXX | ~X,XXX |
+| Orchestrator | ~X,XXX | ~X,XXX | ~X,XXX |
+| **Total** | **~X,XXX** | **~X,XXX** | **~X,XXX** |
+
+## Outputs Produced
+| Stage | File |
+|-------|------|
+| Research | `.github/agents/research/research_*.md` |
+| Planning | `.github/agents/planning/plan_*.md` |
+| Implementation | `.github/agents/implementation/impl_*.md` |
+| Validation | `.github/agents/validation/validation_*.md` |
+
+## Quality Summary
+| Metric | Value |
+|--------|-------|
+| Stages Completed | X/5 |
+| Total Retries | X |
+| Rollbacks Triggered | X |
+| Final Verdict | APPROVED/REJECTED |
+
+## Issues Encountered
+| Stage | Severity | Description | Resolved |
+|-------|----------|-------------|----------|
+| - | - | None | - |
+
+## Agent Info
+| Field | Value |
+|-------|-------|
+| Agent Version | 1.2.0 |
+| Model | claude-4.5-opus |
+```
+
+### Aggregating Stage Stats
+
+After each stage completes, check for the agent's stats file in `metrics/stats/` and incorporate its data into the pipeline stats.
 
 ---
 

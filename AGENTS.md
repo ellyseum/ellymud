@@ -2,6 +2,37 @@
 
 > **This is the single source of truth** for core conventions and navigation to detailed context.
 
+## ⚠️ CRITICAL: NEVER Kill All Node Processes
+
+**STOP! VS Code runs on Node.js. Killing all node processes will CRASH THE EDITOR!**
+
+```bash
+# ❌ NEVER DO THIS - WILL CRASH VS CODE
+pkill -f node
+killall node
+kill $(pgrep node)
+
+# ✅ CORRECT: Find specific PIDs first, then kill only those
+lsof -i :8023 -t | xargs kill     # Kill process on specific port
+kill <specific-pid>                # Kill only the PID you identified
+```
+
+### Safe Process Termination Workflow
+
+1. **Identify the specific process** using `lsof -i :<port>` or `ps aux | grep <pattern>`
+2. **Note the specific PID(s)** from the output
+3. **Kill only those PIDs**: `kill <pid>` or `kill -9 <pid>` if needed
+4. **NEVER use broad kill commands** like `pkill -f node`
+
+| Port | Service | Safe Kill Command |
+|------|---------|-------------------|
+| 8023 | Telnet Server | `lsof -i :8023 -t \| xargs kill` |
+| 8080 | WebSocket Server | `lsof -i :8080 -t \| xargs kill` |
+| 3100 | MCP Server | `lsof -i :3100 -t \| xargs kill` |
+| 3000 | Admin API | `lsof -i :3000 -t \| xargs kill` |
+
+---
+
 ## ⚠️ CRITICAL: Paired Documentation Rule
 
 **STOP! Before editing ANY `README.md` or `AGENTS.md` file:**

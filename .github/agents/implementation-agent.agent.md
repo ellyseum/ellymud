@@ -104,6 +104,14 @@ Complete one task fully before moving to the next. Never leave a task partially 
 - [ ] All imports added/updated correctly
 - [ ] Code follows project conventions (from copilot-instructions.md)
 
+### Stats File
+- [ ] Stats file created at `.github/agents/implementation/impl_*-stats.md`
+- [ ] Start/end times recorded
+- [ ] Token usage estimated
+- [ ] Tool call counts documented
+- [ ] Files created/modified counts recorded
+- [ ] Build success recorded in quality indicators
+
 ### Exit Criteria
 - [ ] All todos marked completed
 - [ ] Report is under 300 lines (summarize, don't narrate)
@@ -145,6 +153,94 @@ Complete one task fully before moving to the next. Never leave a task partially 
 - Update todo status in real-time—don't batch updates
 - If a task fails, mark it with failure reason and stop
 - Use todos to give users visibility into implementation progress
+
+---
+
+## Stats Tracking
+
+**CRITICAL**: You MUST create a stats file alongside your implementation report.
+
+### When to Record Stats
+
+1. **At session start**: Note the current UTC time
+2. **During execution**: Track tool calls and file operations
+3. **At session end**: Create the stats file with all metrics
+
+### Stats File Location
+
+Save stats to: `.github/agents/metrics/stats/impl_YYYY-MM-DD_task-name-stats.md`
+
+### Stats File Template
+
+```markdown
+# Implementation Stats: [Task Name]
+
+## Timing
+| Metric | Value |
+|--------|-------|
+| Start Time | YYYY-MM-DD HH:MM:SS UTC |
+| End Time | YYYY-MM-DD HH:MM:SS UTC |
+| Duration | X minutes |
+| Status | completed/failed/blocked |
+
+## Token Usage (Estimated)
+| Type | Count |
+|------|-------|
+| Input | ~X,XXX |
+| Output | ~X,XXX |
+| **Total** | **~X,XXX** |
+
+## Tool Calls
+| Tool | Count |
+|------|-------|
+| read_file | X |
+| grep_search | X |
+| create_file | X |
+| replace_string_in_file | X |
+| run_in_terminal | X |
+| get_errors | X |
+| **Total** | **X** |
+
+## Files Processed
+| Operation | Count |
+|-----------|-------|
+| Read | X |
+| Created | X |
+| Modified | X |
+| Deleted | X |
+
+## Output
+| Metric | Value |
+|--------|-------|
+| Output File | `.github/agents/implementation/impl_*.md` |
+| Line Count | X lines |
+
+## Quality Indicators
+| Metric | Value |
+|--------|-------|
+| Tasks Completed | X/Y |
+| Build Success | Yes/No |
+| Deviations | X |
+
+## Handoff
+| Field | Value |
+|-------|-------|
+| Next Stage | validation |
+| Ready | Yes/No |
+
+## Agent Info
+| Field | Value |
+|-------|-------|
+| Agent Version | 1.0.0 |
+| Model | claude-4.5-opus |
+```
+
+### Token Estimation
+
+- **Short message** (~100 words): ~150 tokens
+- **File read** (~100 lines): ~500 tokens
+- **Code edit**: ~200-500 tokens
+- **Terminal command**: ~100-300 tokens
 
 ---
 

@@ -22,6 +22,7 @@ Individual command classes that handle specific player actions. Each file export
 |------|---------|-------------|
 | `say.command.ts` | say, ' | Speak to room |
 | `yell.command.ts` | yell, shout | Shout to adjacent rooms |
+| `wave.command.ts` | wave | Wave at someone or the room |
 | `whisper.command.ts` | whisper | Private message in room |
 | `tell.command.ts` | tell | Private message anywhere |
 

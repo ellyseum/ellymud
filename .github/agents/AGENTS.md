@@ -106,6 +106,17 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 - Regression detection
 - Merge readiness assessment
 
+**Server Testing (Fully Autonomous)**:
+- Start server: `npm start -- --noConsole --silent &`
+- Wait for ready: `sleep 3 && curl -s http://localhost:3100/health`
+- Test via MCP virtual sessions (no user intervention)
+- Cleanup: `pkill -f "node.*dist/server.js"`
+
+**Isolated Testing** (avoid affecting real data):
+- `--dataDir=PATH` - Use custom data directory
+- `--roomsFile=PATH` / `--usersFile=PATH` - Override specific files
+- `--rooms='[...]'` / `--users='[...]'` - Pass JSON data directly
+
 **Validation checklist**:
 ```markdown
 - [ ] npm run build passes

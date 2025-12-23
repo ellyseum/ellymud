@@ -191,6 +191,17 @@ npm run build
 node dist/server.js
 ```
 
+### Stopping the Server
+
+⚠️ **Important**: Never use `pkill node` or `killall node` as this will crash VS Code and other Node.js applications.
+
+```bash
+# Safe way to stop EllyMUD servers
+lsof -i :8023 -t | xargs kill    # Telnet server
+lsof -i :8080 -t | xargs kill    # WebSocket server
+lsof -i :3100 -t | xargs kill    # MCP server
+```
+
 ## 🔒 Security
 
 Security is a priority in EllyMUD. We implement:

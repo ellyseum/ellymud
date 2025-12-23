@@ -88,6 +88,13 @@ Identify potential failure points for every task. Plan rollback strategies. Sequ
 - [ ] Every CREATE task has complete file content or template
 - [ ] Task sequence respects dependencies (no forward references)
 
+### Stats File
+- [ ] Stats file created at `.github/agents/planning/plan_*-stats.md`
+- [ ] Start/end times recorded
+- [ ] Token usage estimated
+- [ ] Tool call counts documented
+- [ ] Task count recorded in quality indicators
+
 ### Exit Criteria
 - [ ] All todos marked completed
 - [ ] Document is under 400 lines (force conciseness)
@@ -128,6 +135,90 @@ Identify potential failure points for every task. Plan rollback strategies. Sequ
 - Update todo status in real-time—don't batch updates
 - Use todos to communicate planning progress to the user
 - Each implementation task in the plan should trace back to a planning todo
+
+---
+
+## Stats Tracking
+
+**CRITICAL**: You MUST create a stats file alongside your plan document.
+
+### When to Record Stats
+
+1. **At session start**: Note the current UTC time
+2. **During execution**: Mentally track tool calls by category
+3. **At session end**: Create the stats file with all metrics
+
+### Stats File Location
+
+Save stats to: `.github/agents/metrics/stats/plan_YYYY-MM-DD_task-name-stats.md`
+
+### Stats File Template
+
+```markdown
+# Planning Stats: [Task Name]
+
+## Timing
+| Metric | Value |
+|--------|-------|
+| Start Time | YYYY-MM-DD HH:MM:SS UTC |
+| End Time | YYYY-MM-DD HH:MM:SS UTC |
+| Duration | X minutes |
+| Status | completed/failed/blocked |
+
+## Token Usage (Estimated)
+| Type | Count |
+|------|-------|
+| Input | ~X,XXX |
+| Output | ~X,XXX |
+| **Total** | **~X,XXX** |
+
+## Tool Calls
+| Tool | Count |
+|------|-------|
+| read_file | X |
+| grep_search | X |
+| semantic_search | X |
+| create_file | X |
+| **Total** | **X** |
+
+## Files Processed
+| Operation | Count |
+|-----------|-------|
+| Read | X |
+| Created | 1 (plan doc) |
+
+## Output
+| Metric | Value |
+|--------|-------|
+| Output File | `.github/agents/planning/plan_*.md` |
+| Line Count | X lines |
+
+## Quality Indicators
+| Metric | Value |
+|--------|-------|
+| Tasks Defined | X |
+| Phases | X |
+| Code Snippets | X |
+
+## Handoff
+| Field | Value |
+|-------|-------|
+| Next Stage | implementation |
+| Ready | Yes/No |
+
+## Agent Info
+| Field | Value |
+|-------|-------|
+| Agent Version | 1.0.0 |
+| Model | claude-4.5-opus |
+```
+
+### Token Estimation
+
+- **Short message** (~100 words): ~150 tokens
+- **File read** (~100 lines): ~500 tokens
+- **File read** (~500 lines): ~2500 tokens
+- **Tool call**: ~100-200 tokens input
 
 ---
 

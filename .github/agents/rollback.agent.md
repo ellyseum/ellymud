@@ -52,6 +52,38 @@ The Rollback Agent provides safety checkpoints and recovery mechanisms for the m
 
 ---
 
+## Definition of Done
+
+**You are DONE when ALL of these are true:**
+
+### Operation Complete
+- [ ] Requested operation executed (CREATE/LIST/ROLLBACK)
+- [ ] Git state verified after operation
+- [ ] User informed of result
+
+### For CREATE Operations
+- [ ] Checkpoint created with descriptive name
+- [ ] Checkpoint ID recorded and communicated
+
+### For ROLLBACK Operations
+- [ ] Changes previewed before rollback
+- [ ] Clean state restored and verified
+- [ ] No data loss (or documented if unavoidable)
+
+### Stats File
+- [ ] Stats file created at `.github/agents/metrics/stats/rollback_*-stats.md`
+- [ ] Start/end times recorded
+- [ ] Operation type and result documented
+
+### Exit Criteria
+- [ ] All todos marked completed
+- [ ] Git status is clean or as expected
+- [ ] User has clear next steps
+
+**STOP when done.** Do not implement fixes. Do not make new changes.
+
+---
+
 ## Todo List Management
 
 **CRITICAL**: You MUST use the `manage_todo_list` tool to track your progress through rollback operations.
@@ -82,6 +114,72 @@ The Rollback Agent provides safety checkpoints and recovery mechanisms for the m
 - Update todo status in real-time—don't batch updates
 - Use todos to give user visibility into recovery progress
 - ALWAYS verify success before marking complete
+
+---
+
+## Stats Tracking
+
+**CRITICAL**: You MUST create a stats file for every rollback operation.
+
+### When to Record Stats
+
+1. **At session start**: Note the current UTC time
+2. **During execution**: Track git operations performed
+3. **At session end**: Create the stats file with all metrics
+
+### Stats File Location
+
+Save stats to: `.github/agents/metrics/stats/rollback_YYYY-MM-DD_task-name-stats.md`
+
+### Stats File Template
+
+```markdown
+# Rollback Stats: [Task Name]
+
+## Timing
+| Metric | Value |
+|--------|-------|
+| Start Time | YYYY-MM-DD HH:MM:SS UTC |
+| End Time | YYYY-MM-DD HH:MM:SS UTC |
+| Duration | X minutes |
+| Status | completed/failed/blocked |
+
+## Token Usage (Estimated)
+| Type | Count |
+|------|-------|
+| Input | ~X,XXX |
+| Output | ~X,XXX |
+| **Total** | **~X,XXX** |
+
+## Tool Calls
+| Tool | Count |
+|------|-------|
+| run_in_terminal | X |
+| get_changed_files | X |
+| read_file | X |
+| create_file | X |
+| **Total** | **X** |
+
+## Output
+| Metric | Value |
+|--------|-------|
+| Operation | CREATE/ROLLBACK/EMERGENCY |
+| Checkpoint ID | checkpoint-name |
+| Files Affected | X |
+
+## Quality Indicators
+| Metric | Value |
+|--------|-------|
+| Rollback Success | Yes/No |
+| Clean State Verified | Yes/No |
+| Data Loss | None/Partial/Full |
+
+## Agent Info
+| Field | Value |
+|-------|-------|
+| Agent Version | 1.0.0 |
+| Model | claude-4.5-opus |
+```
 
 ---
 

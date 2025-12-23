@@ -53,6 +53,7 @@ import { BugReportCommand } from './commands/bugreport.command';
 import { ChangePasswordCommand } from './commands/changePassword.command'; // Import our new ChangePassword command
 import { PlayedCommand } from './commands/played.command'; // Import our new Played command
 import { TimeCommand } from './commands/time.command'; // Import our new Time command
+import { WaveCommand } from './commands/wave.command'; // Import our new Wave command
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -173,7 +174,8 @@ export class CommandRegistry {
       new BugReportCommand(this.userManager), // Add our new Bug Report command
       new ChangePasswordCommand(this.userManager), // Add our new ChangePassword command
       new PlayedCommand(this.userManager), // Add our new Played command
-      new TimeCommand() // Add our new Time command
+      new TimeCommand(), // Add our new Time command
+      new WaveCommand(this.clients) // Add our new Wave command
     ];
     
     // Register all commands
