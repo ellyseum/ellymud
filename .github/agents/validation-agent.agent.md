@@ -38,7 +38,7 @@ handoffs:
 
 # Validation Agent - EllyMUD
 
-> **Version**: 1.1.0 | **Last Updated**: 2025-12-23 | **Status**: Stable
+> **Version**: 1.0.1 | **Last Updated**: 2025-12-23 | **Status**: Stable
 
 ## Role Definition
 

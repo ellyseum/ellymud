@@ -1,6 +1,6 @@
 {
   "name": "ellymud",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Elly Mud / LLM Engineered Multi User Dungeon",
   "main": "dist/server.js",
   "scripts": {
