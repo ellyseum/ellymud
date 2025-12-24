@@ -42,7 +42,7 @@
   {
     "id": "heal",
     "name": "Heal",
-    "description": "Restore health to yourself over time.",
+    "description": "Instantly restore health to yourself.",
     "type": "standard",
     "mpCost": 20,
     "cooldownType": "rounds",
@@ -50,12 +50,12 @@
     "targetType": "self",
     "effects": [
       {
-        "effectType": "heal_over_time",
-        "payload": { "healPerTick": 8 },
-        "durationTicks": 3,
-        "tickInterval": 1,
-        "name": "Regenerating",
-        "description": "Health regenerating"
+        "effectType": "instant_heal",
+        "payload": { "healAmount": 25 },
+        "durationTicks": 0,
+        "tickInterval": 0,
+        "name": "Heal",
+        "description": "Health restored"
       }
     ]
   },
