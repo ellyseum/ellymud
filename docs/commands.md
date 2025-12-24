@@ -285,6 +285,29 @@ wave alice
 - Only visible to players in the same room
 - If targeting a player, they see a personalized message
 
+### laugh
+
+Laugh at someone or everyone in the room.
+
+**Usage:**
+
+```
+laugh
+laugh <player>
+```
+
+**Examples:**
+
+```
+laugh
+laugh alice
+```
+
+**Notes:**
+
+- Only visible to players in the same room
+- If targeting a player, they see a personalized message
+
 ### yell
 
 Shout to all players in nearby areas.
