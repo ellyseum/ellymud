@@ -107,6 +107,22 @@ Before doing ANY other work, you MUST complete these steps IN ORDER:
 | Using grep_search/read_file for investigation | Only use for reviewing agent outputs |
 | Starting work without a todo list | ALWAYS create todo list first |
 | Investigating before creating feature branch | Create branch, then delegate research |
+| **Reviewing outputs yourself** | **ALWAYS delegate to Output Review Agent** |
+| **Creating review/grade files yourself** | **Only Output Review Agent creates these** |
+
+### ⚠️ CRITICAL: Never Review Outputs Yourself
+
+**You are the orchestrator, NOT a reviewer.** Every review step MUST use `runSubagent` to delegate to the Output Review Agent.
+
+```
+❌ WRONG: Reading a document and reporting "Grade: A (95/100)"
+❌ WRONG: Creating a `-reviewed.md` or `-grade.md` file yourself
+❌ WRONG: Assessing document quality without invoking Output Review
+
+✅ CORRECT: runSubagent({ agentName: "Output Review", ... })
+✅ CORRECT: Waiting for Output Review to return grade and create files
+✅ CORRECT: Reading the grade from the Output Review's response
+```
 
 ---
 
@@ -243,7 +259,7 @@ Your ONLY pre-pipeline actions should be:
 | Planning Agent        | Phase 4 Review      | ❌ NEVER      |
 | Implementation Agent  | Phase 6 Review      | ❌ NEVER      |
 | Validation Agent      | Phase 8 Review      | ❌ NEVER      |
-| Post-Mortem Agent     | Phase 11.5 Review   | ❌ NEVER      |
+| Post-Mortem Agent     | Phase 11.4 Review   | ❌ NEVER      |
 | Documentation Updater | Phase 12.5 Review   | ❌ NEVER      |
 
 **Enforcement**: If you find yourself about to proceed to the next phase without a review step, STOP and invoke the Output Review Agent first.
@@ -1562,14 +1578,15 @@ Confirm output exists at expected path:
 - If below threshold: Note issues but still produce reviewed version
 - Critical failures: Escalate to Problem Solver
 
-### Expected Output
+### Expected Outputs
 
-`.github/agents/research/research_<topic>_<YYYYMMDD_HHMMSS>-reviewed.md`
+1. Reviewed document: `.github/agents/research/research_<topic>_<YYYYMMDD_HHMMSS>-reviewed.md`
+2. Grade report: `.github/agents/research/research_<topic>_<YYYYMMDD_HHMMSS>-grade.md`
 ```
 
 #### 2.2 Execute Review
 
-Invoke Output Review Agent.
+**CRITICAL**: Use `runSubagent` to delegate to Output Review Agent. Do NOT review the document yourself.
 
 #### 2.3 Quality Check
 
@@ -1657,14 +1674,15 @@ Confirm output exists at expected path.
 
 - Minimum acceptable grade: B (80/100)
 
-### Expected Output
+### Expected Outputs
 
-`.github/agents/planning/plan_<topic>_<YYYYMMDD_HHMMSS>-reviewed.md`
+1. Reviewed document: `.github/agents/planning/plan_<topic>_<YYYYMMDD_HHMMSS>-reviewed.md`
+2. Grade report: `.github/agents/planning/plan_<topic>_<YYYYMMDD_HHMMSS>-grade.md`
 ```
 
 #### 4.2 Execute Review
 
-Invoke Output Review Agent.
+**CRITICAL**: Use `runSubagent` to delegate to Output Review Agent. Do NOT review the document yourself.
 
 ---
 
@@ -1789,13 +1807,15 @@ Confirm:
 ### Quality Gate
 - Minimum acceptable grade: B (80/100)
 
-### Expected Output
-`.github/agents/implementation/implement_<topic>_<YYYYMMDD_HHMMSS>-reviewed.md`
+### Expected Outputs
+
+1. Reviewed document: `.github/agents/implementation/implement_<topic>_<YYYYMMDD_HHMMSS>-reviewed.md`
+2. Grade report: `.github/agents/implementation/implement_<topic>_<YYYYMMDD_HHMMSS>-grade.md`
 ````
 
 #### 6.2 Execute Review
 
-Invoke Output Review Agent.
+**CRITICAL**: Use `runSubagent` to delegate to Output Review Agent. Do NOT review the document yourself.
 
 ---
 
@@ -1862,14 +1882,15 @@ Invoke Validation Agent with the brief.
 
 - Minimum acceptable grade: B (80/100)
 
-### Expected Output
+### Expected Outputs
 
-`.github/agents/validation/validation_<topic>_<YYYYMMDD_HHMMSS>-reviewed.md`
+1. Reviewed document: `.github/agents/validation/validation_<topic>_<YYYYMMDD_HHMMSS>-reviewed.md`
+2. Grade report: `.github/agents/validation/validation_<topic>_<YYYYMMDD_HHMMSS>-grade.md`
 ```
 
 #### 8.2 Execute Review
 
-Invoke Output Review Agent.
+**CRITICAL**: Use `runSubagent` to delegate to Output Review Agent. Do NOT review the document yourself.
 
 ---
 
@@ -2256,6 +2277,9 @@ Invoke Post-Mortem Agent with the brief.
 
 #### 11.4 Review Post-Mortem Output
 
+> ⚠️ **MANDATORY**: You MUST delegate this review to the Output Review Agent via `runSubagent`. 
+> Do NOT perform the review yourself. Do NOT create the review files yourself.
+
 ##### 11.4.1 Prepare Review Brief
 
 ```markdown
@@ -2275,13 +2299,28 @@ Invoke Post-Mortem Agent with the brief.
 - Minimum acceptable grade: B (80/100)
 - If below threshold: Note issues but proceed (post-mortem is advisory)
 
-### Expected Output
-`.github/agents/suggestions/post-mortem-suggestions-<topic>-<timestamp>-reviewed.md`
+### Expected Outputs
+
+1. Reviewed document: `.github/agents/suggestions/post-mortem-suggestions-<topic>-<timestamp>-reviewed.md`
+2. Grade report: `.github/agents/suggestions/post-mortem-suggestions-<topic>-<timestamp>-grade.md`
 ```
 
 ##### 11.4.2 Execute Review
 
-Invoke Output Review Agent with the brief.
+**CRITICAL**: Use `runSubagent` to invoke the Output Review Agent:
+
+```
+runSubagent({
+  agentName: "Output Review",
+  description: "Review post-mortem suggestions",
+  prompt: "[Include the full brief from 11.4.1 above]"
+})
+```
+
+Do NOT:
+- ❌ Read the post-mortem document yourself and assess quality
+- ❌ Create the `*-reviewed.md` or `*-grade.md` files yourself
+- ❌ Report a grade without invoking Output Review Agent
 
 ##### 11.4.3 Quality Check
 
@@ -2378,12 +2417,14 @@ Do NOT run a full project audit.
 2. Updated AGENTS.md files in affected directories
 3. New README.md files for any new directories
 4. New AGENTS.md files for any new directories
+5. **Report file**: `.github/agents/documentation/docs_<topic>_<timestamp>.md`
 
 ### Alignment Reminder
 
 You are the Documentation Updater Agent. Your job is to update documentation.
 Do not modify source code. Do not conduct research.
 Focus only on the directories listed above.
+**You MUST create a report file and return a summary of what was done.**
 ```
 
 #### 12.3 Execute Documentation Update
@@ -2427,16 +2468,30 @@ Invoke Documentation Updater Agent with the brief.
 
 #### 12.5 Review Documentation Output
 
+> ⚠️ **MANDATORY**: You MUST delegate this review to the Output Review Agent via `runSubagent`. 
+> Do NOT perform the review yourself. Do NOT create the review files yourself.
+
 ##### 12.5.1 Prepare Review Brief
 
 ```markdown
 ## Output Review Agent Task Brief
 
-**Documents to Review**: All README.md and AGENTS.md files modified in affected directories
-**Document Type**: Documentation (README.md + AGENTS.md pairs)
-**Next Consumer**: Humans (README.md) and LLMs (AGENTS.md)
+**Document to Review**: `.github/agents/documentation/docs_<topic>_<timestamp>.md`
+**Document Type**: Documentation Update Report
+**Next Consumer**: Problem Solver (for PR) and future pipeline executions
+
+### Also Verify These Files
+
+Check the actual documentation files listed in the report:
+- All README.md files mentioned in the report
+- All AGENTS.md files mentioned in the report
 
 ### Review Focus
+
+#### For the Report:
+- All affected directories are accounted for
+- Changes summary is accurate
+- Quality verification checklist is complete
 
 #### For README.md files:
 - No code blocks (human-readable only)
@@ -2455,30 +2510,60 @@ Invoke Documentation Updater Agent with the brief.
 - Both files are consistent in their descriptions
 - Neither references information the other contradicts
 
+### Grading Criteria
+
+1. **Report Quality** (20 pts): Complete, accurate summary of changes
+2. **README.md Quality** (20 pts): Human-readable, no code blocks, accurate listings
+3. **AGENTS.md Quality** (20 pts): Technical detail, code examples, conventions documented
+4. **Consistency** (20 pts): Both files aligned, no contradictions
+5. **Completeness** (20 pts): All affected directories documented
+
 ### Quality Gate
 - Minimum acceptable grade: B (80/100)
 - If below threshold: Request Documentation Updater to fix issues
 
-### Expected Output
-For each directory, confirm documentation meets standards.
-Create summary: `.github/agents/documentation/docs-review-<topic>-<timestamp>.md`
+### Expected Outputs
+
+1. Reviewed report: `.github/agents/documentation/docs_<topic>_<timestamp>-reviewed.md`
+2. Grade report: `.github/agents/documentation/docs_<topic>_<timestamp>-grade.md`
 ```
 
 ##### 12.5.2 Execute Review
 
-Invoke Output Review Agent with the brief.
+**CRITICAL**: Use `runSubagent` to invoke the Output Review Agent:
 
-##### 12.5.3 Quality Check
+```
+runSubagent({
+  agentName: "Output Review",
+  description: "Review documentation updates",
+  prompt: "[Include the full brief from 12.5.1 above]"
+})
+```
+
+Do NOT:
+- ❌ Read the documentation files yourself and assess quality
+- ❌ Create the `docs_*-reviewed.md` or `docs_*-grade.md` files yourself
+- ❌ Report a grade without invoking Output Review Agent
+
+##### 12.5.3 Verify Review Output
+
+After `runSubagent` returns, verify:
+1. Reviewed report exists at `.github/agents/documentation/docs_<topic>_<timestamp>-reviewed.md`
+2. Grade report exists at `.github/agents/documentation/docs_<topic>_<timestamp>-grade.md`
+3. Grade meets threshold (≥80)
+
+##### 12.5.4 Quality Check
 
 If grade < B (80):
-- Identify specific issues in README.md or AGENTS.md files
+- Identify specific issues from the grade report
 - Request Documentation Updater to address issues
-- Re-run review after fixes
+- Re-run review after fixes (invoke Output Review Agent again)
 
 #### 12.6 Documentation Quality Gate
 
 | Check                                   | Required    | Action if Failed               |
 | --------------------------------------- | ----------- | ------------------------------ |
+| Documentation report file created       | Yes         | Re-run Documentation Updater   |
 | All affected directories have README.md | Yes         | Create missing files           |
 | All affected directories have AGENTS.md | Yes         | Create missing files           |
 | **Output Review completed**             | **Yes**     | **Run Output Review Agent first** |
