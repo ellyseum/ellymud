@@ -12,7 +12,6 @@ tools:
   - edit/replaceInFile
   - execute/runInTerminal
   - execute/getTerminalOutput
-  - agent/runSubagent
   - todo
 handoffs:
   - label: Start Research
@@ -106,14 +105,14 @@ Before doing ANY other work, you MUST complete these steps IN ORDER:
 
 ### ⚠️ CRITICAL: Never Review Outputs Yourself
 
-**You are the orchestrator, NOT a reviewer.** Every review step MUST use `runSubagent` to delegate to the Output Review Agent.
+**You are the orchestrator, NOT a reviewer.** Every review step MUST delegate to the Output Review Agent.
 
 ```
 ❌ WRONG: Reading a document and reporting "Grade: A (95/100)"
 ❌ WRONG: Creating a `-reviewed.md` or `-grade.md` file yourself
 ❌ WRONG: Assessing document quality without invoking Output Review
 
-✅ CORRECT: runSubagent({ agentName: "Output Review", ... })
+✅ CORRECT: Delegate to Output Review Agent via handoff
 ✅ CORRECT: Waiting for Output Review to return grade and create files
 ✅ CORRECT: Reading the grade from the Output Review's response
 ```
@@ -152,7 +151,6 @@ Your ONLY pre-pipeline actions should be:
 |------|---------|------|
 | `manage_todo_list` | Track pipeline progress | ALWAYS - first action |
 | `run_in_terminal` | Git operations | Branch creation, commits, push |
-| `runSubagent` | Delegate work | Research, Planning, Implementation, Validation |
 | `read_file` | Review outputs | ONLY for `.github/agents/` output files |
 | `create_file` | Create metrics | Stats files in `.github/agents/metrics/` |
 | `list_dir` | Check outputs | Verify agent outputs exist |
@@ -532,20 +530,6 @@ Keep users informed with standardized progress updates:
 | Post-Mortem Agent     | Analyze pipeline & improve agents | All pipeline outputs  | `post-mortem-suggestions-*.md` + agent updates |
 | Documentation Updater | Update README.md & AGENTS.md      | Changed directories   | Updated docs in affected directories           |
 
-### Using `runSubagent` for Delegation
-
-```
-runSubagent({
-  agentName: "[Agent Name]",
-  description: "[Phase] - [Task Description]",
-  prompt: `[Full brief with all context]
-  
-  OUTPUT: [Specify exact output file path]
-  
-  Return a summary of your findings when complete.`
-})
-```
-
 ### Key Delegation Principles
 
 | Principle                    | Explanation                                                 |
@@ -685,7 +669,6 @@ At pipeline end, create metrics JSON at `.github/agents/metrics/executions/pipel
 | `create_file` | Create metrics files | Recording pipeline execution metrics |
 | `replace_string_in_file` | Update metrics files | Adding stage completion data |
 | `run_in_terminal` | Git commands | Branch creation, commit, push |
-| `runSubagent` | Delegate to agents | ALL pipeline phases |
 | `manage_todo_list` | Track progress | START of pipeline, after each stage |
 
 ---

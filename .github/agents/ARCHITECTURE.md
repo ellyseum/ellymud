@@ -199,37 +199,7 @@ Criteria:
 - No architectural impact
 - Clear success criteria
 
----
-
-## Delegation Mechanism
-
-The orchestrator uses `runSubagent` to invoke specialized agents:
-
-```
-Orchestrator
-    │
-    ├──▶ runSubagent(Research Agent, prompt)
-    │         └──▶ Returns: research summary
-    │
-    ├──▶ runSubagent(Output Review, prompt)
-    │         └──▶ Returns: grade + reviewed doc
-    │
-    ├──▶ runSubagent(Planning Agent, prompt)
-    │         └──▶ Returns: plan summary
-    │
-    └──▶ ... continues through pipeline
-```
-
-Each sub-agent:
-
-- Receives explicit instructions (no inherited context)
-- Writes output to specified location
-- Returns summary to orchestrator
-- Has no knowledge of other agents
-
----
-
-## VS Code 1.107+ Integration
+---\n\n## Delegation Mechanism\n\nThe orchestrator delegates to specialized agents via handoffs:\n\n```\nOrchestrator\n    │\n    ├──▶ Delegate to Research Agent\n    │         └──▶ Returns: research summary\n    │\n    ├──▶ Delegate to Output Review Agent\n    │         └──▶ Returns: grade + reviewed doc\n    │\n    ├──▶ Delegate to Planning Agent\n    │         └──▶ Returns: plan summary\n    │\n    └──▶ ... continues through pipeline\n```\n\nEach sub-agent:\n\n- Receives explicit instructions (no inherited context)\n- Writes output to specified location\n- Returns summary to orchestrator\n- Has no knowledge of other agents\n\n---\n\n## VS Code 1.107+ Integration
 
 As of VS Code 1.107.1, agents have native support for:
 

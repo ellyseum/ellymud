@@ -13,9 +13,7 @@ Initial release of the multi-agent development pipeline.
   - Complexity assessment and routing (Trivial → Critical)
   - Fast-Track Mode for simple tasks
   - Instant Mode for immediate execution
-  - Timeout configuration per agent
-  - Emergency stop protocol
-  - runSubagent delegation guidance
+  - Timeout configuration per agent\n  - Emergency stop protocol
 
 - **Research Agent** (`research-agent.agent.md`)
   - Exhaustive codebase exploration

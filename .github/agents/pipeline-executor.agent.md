@@ -9,7 +9,6 @@ tools:
   - search/listDirectory
   - read
   - edit/createFile
-  - agent/runSubagent
   - todo
   - execute/runInTerminal
 ---
@@ -40,29 +39,6 @@ You execute specific pipeline phases by delegating to specialized agents and man
 ---
 
 ## Agent Delegation
-
-### Using `runSubagent` Tool (Explicit Delegation)
-
-The `runSubagent` tool provides **explicit control** over agent delegation:
-
-```
-runSubagent({
-  agentName: "[Agent Name]",
-  description: "[Phase] - [Task Description]",
-  prompt: `[Full brief with all context]
-  
-  OUTPUT: [Specify exact output file path]
-  
-  Return a summary of your findings when complete.`
-})
-```
-
-**When to use `runSubagent`:**
-
-- Pipeline orchestration (Research → Planning → Implementation → Validation)
-- When you need to pass specific context
-- When you need explicit control over output location
-- When results feed into subsequent phases
 
 ### Key Delegation Principles
 
@@ -219,13 +195,7 @@ Produce: `.github/agents/research/research_<topic>_<YYYYMMDD_HHMMSS>.md`
 
 ### 1.2 Execute Research
 
-```
-runSubagent({
-  agentName: "Research",
-  description: "Research phase for [task]",
-  prompt: `[Full brief from 1.1]`
-})
-```
+Delegate to Research Agent with the prepared brief.
 
 ### 1.3 Verify Research Output
 
@@ -262,15 +232,7 @@ Confirm output exists at: `.github/agents/research/research_<topic>_<timestamp>.
 
 ### 2.2 Execute Review
 
-**CRITICAL**: Use `runSubagent` to delegate to Output Review Agent. Do NOT review yourself.
-
-```
-runSubagent({
-  agentName: "Output Review",
-  description: "Review research output",
-  prompt: `[Full brief from 2.1]`
-})
-```
+**CRITICAL**: Delegate to Output Review Agent. Do NOT review yourself.
 
 ### 2.3 Quality Check
 
@@ -321,13 +283,7 @@ Produce: `.github/agents/planning/plan_<topic>_<YYYYMMDD_HHMMSS>.md`
 
 ### 3.2 Execute Planning
 
-```
-runSubagent({
-  agentName: "Plan",
-  description: "Planning phase for [task]",
-  prompt: `[Full brief from 3.1]`
-})
-```
+Delegate to Planning Agent with the prepared brief.
 
 ### 3.3 Verify Planning Output
 
@@ -362,7 +318,7 @@ Confirm output exists at expected path.
 
 ### 4.2 Execute Review
 
-**CRITICAL**: Use `runSubagent` to delegate to Output Review Agent. Do NOT review yourself.
+**CRITICAL**: Delegate to Output Review Agent. Do NOT review yourself.
 
 ---
 
@@ -392,13 +348,7 @@ pipeline-checkpoint-{timestamp}-{task-summary}
 
 ### 4.5.2 Execute Checkpoint
 
-```
-runSubagent({
-  agentName: "Rollback",
-  description: "Create safety checkpoint",
-  prompt: `[Brief from 4.5.1]`
-})
-```
+Delegate to Rollback Agent with CREATE_CHECKPOINT operation.
 
 ### 4.5.3 Skip Conditions
 
@@ -447,13 +397,7 @@ Produce: `.github/agents/implementation/impl_<topic>_<YYYYMMDD_HHMMSS>.md`
 
 ### 5.2 Execute Implementation
 
-```
-runSubagent({
-  agentName: "Implementation",
-  description: "Implementation phase for [task]",
-  prompt: `[Full brief from 5.1]`
-})
-```
+Delegate to Implementation Agent with the prepared brief.
 
 ### 5.3 Verify Implementation Output
 
@@ -490,7 +434,7 @@ Confirm:
 
 ### 6.2 Execute Review
 
-**CRITICAL**: Use `runSubagent` to delegate to Output Review Agent. Do NOT review yourself.
+**CRITICAL**: Delegate to Output Review Agent. Do NOT review yourself.
 
 ---
 
@@ -527,13 +471,7 @@ Produce: `.github/agents/validation/validation_<topic>_<YYYYMMDD_HHMMSS>.md`
 
 ### 7.2 Execute Validation
 
-```
-runSubagent({
-  agentName: "Validation",
-  description: "Validation phase for [task]",
-  prompt: `[Full brief from 7.1]`
-})
-```
+Delegate to Validation Agent with the prepared brief.
 
 ---
 
@@ -563,7 +501,7 @@ runSubagent({
 
 ### 8.2 Execute Review
 
-**CRITICAL**: Use `runSubagent` to delegate to Output Review Agent.
+**CRITICAL**: Delegate to Output Review Agent.
 
 ---
 
@@ -833,17 +771,7 @@ Do not conduct new research. Do not implement code changes.
 Focus on patterns, lessons learned, and concrete improvements.
 ```
 
-### 11.2 Execute Post-Mortem
-
-```
-runSubagent({
-  agentName: "Post-Mortem",
-  description: "Post-mortem analysis for [task]",
-  prompt: `[Full brief from 11.1]`
-})
-```
-
-### 11.3 Review Post-Mortem Output
+### 11.2 Execute Post-Mortem\n\nDelegate to Post-Mortem Agent with the prepared brief.\n\n### 11.3 Review Post-Mortem Output
 
 **MANDATORY**: Delegate review to Output Review Agent:
 
@@ -922,17 +850,7 @@ Update documentation ONLY for directories affected by this implementation.
 3. Report file: `.github/agents/documentation/docs_<topic>_<timestamp>.md`
 ```
 
-### 12.3 Execute Documentation Update
-
-```
-runSubagent({
-  agentName: "Documentation Updater",
-  description: "Documentation update for [task]",
-  prompt: `[Full brief from 12.2]`
-})
-```
-
-### 12.4 Review Documentation Output
+### 12.3 Execute Documentation Update\n\nDelegate to Documentation Updater Agent with the prepared brief.\n\n### 12.4 Review Documentation Output
 
 **MANDATORY**: Delegate review to Output Review Agent with focus on:
 - README.md: No code blocks, accurate listings

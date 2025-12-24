@@ -18,7 +18,6 @@ tools:
   - vscode/problems
   - ellymud-mcp-server/*
   - todo
-  - agent/runSubagent
 handoffs:
   - label: Approve & Post-Mortem
     agent: agent-post-mortem
@@ -349,27 +348,7 @@ This section documents each tool available to this agent and when to use it.
 **Example**: Getting errors for all modified files
 **Tips**: No errors = PASS; any errors = immediate FAIL with details
 
-### `ellymud-mcp-server/*`
-**Purpose**: Access live game data via MCP server for runtime validation
-**When to Use**: When verifying game features work correctly at runtime
-**Example**: Checking that new command appears in game, NPC spawns correctly
-**Tips**: Server must be running; delegate complex testing to Validation Testing agent
-
-### `agent/runSubagent`
-**Purpose**: Delegate tasks to specialized sub-agents
-**When to Use**: When functional testing is needed (delegate to Validation Testing)
-**Example**: Running comprehensive MCP-based game tests
-**Tips**: Provide clear test scenarios and expected behaviors
-
-### `todo` (manage_todo_list)
-**Purpose**: Track validation progress through verification checks
-**When to Use**: At START of every validation session, update after each check
-**Example**: Creating todos for each validation category (build, tests, functionality)
-**Tips**: Mark ONE todo in-progress at a time; document PASS/FAIL evidence for each
-
----
-
-## Project Context: EllyMUD
+### `ellymud-mcp-server/*`\n**Purpose**: Access live game data via MCP server for runtime validation\n**When to Use**: When verifying game features work correctly at runtime\n**Example**: Checking that new command appears in game, NPC spawns correctly\n**Tips**: Server must be running; delegate complex testing to Validation Testing agent\n\n### `todo` (manage_todo_list)\n**Purpose**: Track validation progress through verification checks\n**When to Use**: At START of every validation session, update after each check\n**Example**: Creating todos for each validation category (build, tests, functionality)\n**Tips**: Mark ONE todo in-progress at a time; document PASS/FAIL evidence for each\n\n---\n\n## Project Context: EllyMUD
 
 ### Technology Stack
 - **Runtime**: Node.js with TypeScript
@@ -499,19 +478,7 @@ echo "Exit code: $?"
 
 **Include**: Command, exit code, test summary (passed/failed/skipped)
 
-### Phase 6: Functional Testing
-
-**Delegate to Validation Testing agent** for MCP-based testing:
-```
-runSubagent({
-  agentName: "Validation Testing",
-  prompt: "Test [feature] - expected behaviors: [list]. Return results table."
-})
-```
-
-Or run directly using MCP virtual sessions (see Validation Testing agent for details).
-
-### Phase 7: Regression Check
+### Phase 6: Functional Testing\n\n**Delegate to Validation Testing agent** for MCP-based testing, or run directly using MCP virtual sessions (see Validation Testing agent for details).\n\n### Phase 7: Regression Check
 
 #### 7.1 Full Test Suite
 ```bash

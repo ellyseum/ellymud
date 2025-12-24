@@ -12,7 +12,6 @@ tools:
   - edit/replaceInFile
   - execute/runInTerminal
   - execute/getTerminalOutput
-  - agent/runSubagent
   - todo
 ---
 
@@ -644,47 +643,7 @@ Track recovery operations for post-mortem analysis:
 
 ---
 
-## Integration with Problem Solver
-
-The Problem Solver orchestrator invokes Pipeline Recovery when:
-
-1. Any agent exceeds its timeout threshold
-2. Output Review returns grade below B (80)
-3. Validation Agent returns FAIL verdict
-4. Implementation Agent reports inability to complete
-5. Git operations fail unexpectedly
-6. User requests pipeline abort
-
-### Invocation Pattern
-
-```markdown
-runSubagent({
-  agentName: "Pipeline Recovery",
-  description: "Recovery - [failure type]",
-  prompt: `
-    ## Recovery Request
-    
-    **Failure Type**: [timeout/quality-gate/validation/implementation/git]
-    **Failed Stage**: [stage name]
-    **Failure Details**: [specific error or grade report]
-    
-    **Current Pipeline State**:
-    - Pipeline ID: [id]
-    - Branch: [branch name]
-    - Last checkpoint: [checkpoint name]
-    - Retry count: [N]
-    
-    **Outputs Available**:
-    - [list relevant output files]
-    
-    Execute appropriate recovery protocol and report outcome.
-  `
-})
-```
-
----
-
-## Success Criteria
+## Integration with Problem Solver\n\nThe Problem Solver orchestrator invokes Pipeline Recovery when:\n\n1. Any agent exceeds its timeout threshold\n2. Output Review returns grade below B (80)\n3. Validation Agent returns FAIL verdict\n4. Implementation Agent reports inability to complete\n5. Git operations fail unexpectedly\n6. User requests pipeline abort\n\n---\n\n## Success Criteria
 
 Recovery is considered successful when:
 
