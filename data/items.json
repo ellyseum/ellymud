@@ -412,5 +412,47 @@
       "level": 22,
       "strength": 18
     }
+  },
+  {
+    "id": "venom-dagger",
+    "name": "venom dagger",
+    "description": "A dagger coated in deadly poison.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 150,
+    "weight": 2,
+    "stats": { "attack": 6, "dexterity": 2 },
+    "requirements": { "level": 5 },
+    "procAbility": "venomous_strike"
+  },
+  {
+    "id": "shock-mace",
+    "name": "shock mace",
+    "description": "A mace crackling with electrical energy.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 200,
+    "weight": 8,
+    "stats": { "attack": 10, "strength": 3 },
+    "requirements": { "level": 8 },
+    "procAbility": "shocking_touch"
+  },
+  {
+    "id": "healing-potion",
+    "name": "healing potion",
+    "description": "A red potion that restores health.",
+    "type": "consumable",
+    "value": 25,
+    "weight": 0.5,
+    "ability": "healing_potion_effect"
+  },
+  {
+    "id": "mana-potion",
+    "name": "mana potion",
+    "description": "A blue potion that restores mana.",
+    "type": "consumable",
+    "value": 30,
+    "weight": 0.5,
+    "ability": "mana_potion_effect"
   }
 ]

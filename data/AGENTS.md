@@ -123,6 +123,48 @@ JSON files containing all persistent game data. Modified at runtime and saved pe
 ]
 ```
 
+### `abilities.json`
+
+**Purpose**: Spell and ability definitions
+
+```json
+[
+  {
+    "id": "fireball",
+    "name": "Fireball",
+    "description": "Hurls a ball of fire at your enemy",
+    "type": "standard",
+    "mpCost": 15,
+    "cooldownType": "rounds",
+    "cooldownValue": 3,
+    "targetType": "enemy",
+    "effects": [
+      {
+        "effectType": "damage_over_time",
+        "payload": { "damagePerTick": 5 },
+        "durationTicks": 4,
+        "tickInterval": 1,
+        "name": "Burning",
+        "description": "Taking fire damage"
+      }
+    ]
+  }
+]
+```
+
+**Ability Types**:
+- `standard` - Cast via `cast <ability>` command
+- `combat` - Replaces weapon attacks for N rounds
+- `proc` - Triggers randomly on weapon hit
+- `item` - Triggered via `use <item>` command
+
+**Cooldown Types**:
+- `rounds` - Combat rounds
+- `seconds` - Real-time seconds
+- `uses` - Limited number of uses
+
+**Target Types**: `self`, `enemy`, `ally`, `room`
+
 ### `mud-config.json`
 
 **Purpose**: Game configuration

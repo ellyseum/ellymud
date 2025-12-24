@@ -8,6 +8,8 @@ import { CommandRegistry } from './commandRegistry';
 import { GameTimerManager } from '../timer/gameTimerManager';
 import { StateMachine } from '../state/stateMachine'; // Add StateMachine import
 import { systemLogger, getPlayerLogger } from '../utils/logger'; // Add logger imports
+import { EffectManager } from '../effects/effectManager';
+import { AbilityManager } from '../abilities/abilityManager';
 // Import the commands index file to ensure all commands are registered
 import './commands';
 
@@ -60,13 +62,21 @@ export class CommandHandler {
       GameTimerManager.getInstance(this.userManager, roomMgr)?.getCombatSystem() ||
       CombatSystem.getInstance(this.userManager, roomMgr);
 
+    // Get effect manager and ability manager for ability system
+    const effectManager = EffectManager.getInstance(this.userManager, roomMgr);
+    const abilityManager = AbilityManager.getInstance(this.userManager, roomMgr, effectManager);
+
+    // Wire AbilityManager to CombatSystem for combat abilities
+    combatSys.setAbilityManager(abilityManager);
+
     // Get the singleton instance of CommandRegistry instead of creating a new one
     this.commands = CommandRegistry.getInstance(
       this.clients,
       roomMgr,
       combatSys,
       this.userManager,
-      this.stateMachine // Pass the StateMachine instance
+      this.stateMachine, // Pass the StateMachine instance
+      abilityManager
     );
   }
 

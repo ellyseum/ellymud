@@ -19,6 +19,14 @@ Individual command classes that handle specific player actions. Each file export
 | `attack.command.ts` | attack, a, kill | Initiate combat with target |
 | `flee.command.ts`   | flee, run       | Escape from combat          |
 
+### Abilities
+
+| File                    | Command            | Description              |
+| ----------------------- | ------------------ | ------------------------ |
+| `cast.command.ts`       | cast, c            | Cast an ability          |
+| `abilities.command.ts`  | abilities, ab      | List available abilities |
+| `use.command.ts`        | use                | Use item abilities       |
+
 ### Communication
 
 | File                 | Command     | Description                  |

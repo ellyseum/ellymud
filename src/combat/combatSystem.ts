@@ -14,6 +14,7 @@ import { NPC } from './npc';
 import { RoomManager } from '../room/roomManager';
 import { formatUsername } from '../utils/formatters';
 import { systemLogger, getPlayerLogger } from '../utils/logger';
+import { AbilityManager } from '../abilities/abilityManager';
 
 // Import our new components
 import { EntityTracker } from './components/EntityTracker';
@@ -44,6 +45,9 @@ export class CombatSystem {
 
   // Track player combat states
   private playerCombatStates: Map<string, CombatState> = new Map();
+
+  // Ability manager for combat abilities
+  private abilityManager: AbilityManager | null = null;
 
   private constructor(
     private userManager: UserManager,
@@ -97,6 +101,13 @@ export class CombatSystem {
     });
 
     // More event listeners can be added here
+  }
+
+  /**
+   * Set the AbilityManager for combat abilities
+   */
+  public setAbilityManager(abilityManager: AbilityManager): void {
+    this.abilityManager = abilityManager;
   }
 
   /**
@@ -161,6 +172,10 @@ export class CombatSystem {
     // If no combat instance exists, create a new one.
     if (!combat) {
       combat = new Combat(player, this.userManager, this.roomManager, this);
+      // Wire ability manager to combat instance
+      if (this.abilityManager) {
+        combat.setAbilityManager(this.abilityManager);
+      }
       this.combats.set(player.user.username, combat);
 
       player.user.inCombat = true;
@@ -451,6 +466,10 @@ export class CombatSystem {
         playerLogger.warn(`Combat instance missing but inCombat flag is set - recreating combat`);
 
         combat = new Combat(newClient, this.userManager, this.roomManager, this);
+        // Wire ability manager to combat instance
+        if (this.abilityManager) {
+          combat.setAbilityManager(this.abilityManager);
+        }
 
         // Add stronger reference binding to prevent it from being garbage collected
         newClient.stateData.combatInstance = combat;

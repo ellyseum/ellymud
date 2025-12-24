@@ -44,8 +44,18 @@ NPCs have different aggression levels:
 - **Neutral**: Attacks if provoked
 - **Aggressive**: Attacks players on sight
 
+## Ability Integration
+
+The combat system integrates with the ability system for:
+
+- **Combat Abilities**: Replace weapon attacks with spell attacks
+- **Weapon Procs**: Auto-triggered abilities during weapon hits
+
+See [src/abilities/](../abilities/) for ability system documentation.
+
 ## Related
 
+- [src/abilities/](../abilities/) - Ability system with combat integration
 - [src/command/commands/attack.command.ts](../command/commands/attack.command.ts) - Initiates combat
 - [src/timer/](../timer/) - Game timer triggers combat ticks
 - [src/room/](../room/) - Combat is room-scoped

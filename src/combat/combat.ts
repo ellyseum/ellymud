@@ -14,6 +14,7 @@ import { formatUsername } from '../utils/formatters';
 import { CombatSystem } from './combatSystem';
 import { ItemManager } from '../utils/itemManager';
 import { createMechanicsLogger } from '../utils/logger';
+import { AbilityManager } from '../abilities/abilityManager';
 
 // Create a context-specific logger for Combat
 const combatLogger = createMechanicsLogger('Combat');
@@ -26,6 +27,7 @@ export class Combat {
   // Add timestamp to track last activity
   lastActivityTime: number = Date.now();
   private itemManager: ItemManager;
+  private abilityManager: AbilityManager | null = null;
 
   constructor(
     public player: ConnectedClient,
@@ -34,6 +36,10 @@ export class Combat {
     private combatSystem: CombatSystem
   ) {
     this.itemManager = ItemManager.getInstance();
+  }
+
+  public setAbilityManager(abilityManager: AbilityManager): void {
+    this.abilityManager = abilityManager;
   }
 
   addTarget(target: CombatEntity): void {
@@ -145,17 +151,58 @@ export class Combat {
   private processAttack(player: ConnectedClient, target: CombatEntity): void {
     if (!player.user || !player.user.currentRoomId) return;
 
-    // 50% chance to hit
+    const roomId = player.user.currentRoomId;
+    const username = player.user.username;
+
+    if (this.abilityManager?.hasActiveCombatAbility(username)) {
+      this.processCombatAbilityAttack(player, target, roomId);
+      this.abilityManager.decrementCombatAbility(username);
+      return;
+    }
+
+    this.processWeaponAttack(player, target, roomId);
+  }
+
+  private processCombatAbilityAttack(
+    player: ConnectedClient,
+    target: CombatEntity,
+    roomId: string
+  ): void {
+    if (!player.user || !this.abilityManager) return;
+
+    const result = this.abilityManager.executeCombatAbilityAttack(player, target.name, true);
+
+    if (result.hit) {
+      const actualDamage = target.takeDamage(result.damage);
+      target.addAggression(player.user.username, actualDamage);
+
+      writeFormattedMessageToClient(player, colorize(`${result.message}\r\n`, 'magenta'));
+
+      const username = formatUsername(player.user.username);
+      this.combatSystem.broadcastRoomCombatMessage(
+        roomId,
+        `${username}'s spell strikes the ${target.name} for ${result.damage} damage!\r\n`,
+        'magenta' as ColorType,
+        player.user.username
+      );
+    } else {
+      writeFormattedMessageToClient(player, colorize(`${result.message}\r\n`, 'cyan'));
+
+      const username = formatUsername(player.user.username);
+      this.combatSystem.broadcastRoomCombatMessage(
+        roomId,
+        `${username}'s spell fizzles!\r\n`,
+        'cyan' as ColorType,
+        player.user.username
+      );
+    }
+  }
+
+  private processWeaponAttack(player: ConnectedClient, target: CombatEntity, roomId: string): void {
     const hit = Math.random() >= 0.5;
 
-    // Get the room for broadcasting
-    const roomId = player.user.currentRoomId;
-
-    // Get the ItemManager for handling weapons and durability
     const itemManager = this.itemManager;
-
-    // Check if player has a weapon equipped
-    const weaponId = player.user.equipment?.weapon;
+    const weaponId = player.user!.equipment?.weapon;
     let weaponName = 'fists';
     let weaponDamage = 0;
 
@@ -163,71 +210,22 @@ export class Combat {
       const displayName = itemManager.getItemDisplayName(weaponId);
       if (displayName) {
         weaponName = displayName;
-
-        // Get base damage from the weapon
         const instance = itemManager.getItemInstance(weaponId);
         const template = instance
           ? itemManager.getItem(instance.templateId)
           : itemManager.getItem(weaponId);
-
-        if (template && template.stats && template.stats.attack) {
+        if (template?.stats?.attack) {
           weaponDamage = template.stats.attack;
-        }
-
-        // Degrade weapon durability with use (only for item instances)
-        if (instance && instance.properties?.durability) {
-          // 25% chance to degrade durability on hit, 10% on miss
-          const degradeChance = hit ? 0.25 : 0.1;
-          if (Math.random() < degradeChance) {
-            // Degrade by 1 point
-            instance.properties.durability.current = Math.max(
-              0,
-              instance.properties.durability.current - 1
-            );
-
-            // Check if weapon broke
-            if (instance.properties.durability.current === 0) {
-              // Weapon broke!
-              writeFormattedMessageToClient(
-                player,
-                colorize(`Your ${weaponName} breaks from excessive use!\r\n`, 'red')
-              );
-
-              // Broadcast to others
-              const username = formatUsername(player.user.username);
-              this.combatSystem.broadcastRoomCombatMessage(
-                roomId,
-                `${username}'s ${weaponName} breaks from excessive use!\r\n`,
-                'red' as ColorType,
-                player.user.username
-              );
-
-              // Remove the broken weapon from equipment
-              if (player.user.equipment) {
-                player.user.equipment.weapon = undefined as unknown as string;
-              }
-
-              // Set weapon name back to fists for this attack
-              weaponName = 'fists';
-              weaponDamage = 0;
-            }
-            // Save instance changes
-            itemManager.saveItemInstances();
-          }
         }
       }
     }
 
     if (hit) {
-      // Calculate damage (base damage 5-10 plus weapon damage)
       const baseDamage = Math.floor(Math.random() * 6) + 5;
       const totalDamage = baseDamage + weaponDamage;
       const actualDamage = target.takeDamage(totalDamage);
+      target.addAggression(player.user!.username, actualDamage);
 
-      // Add aggression only when damage is dealt
-      target.addAggression(player.user.username, actualDamage);
-
-      // Send message to the player
       writeFormattedMessageToClient(
         player,
         colorize(
@@ -236,39 +234,58 @@ export class Combat {
         )
       );
 
-      // Broadcast to ALL other players in room instead of just combat participants
-      const username = formatUsername(player.user.username);
+      const username = formatUsername(player.user!.username);
       this.combatSystem.broadcastRoomCombatMessage(
         roomId,
         `${username} hits the ${target.name} with their ${weaponName} for ${actualDamage} damage.\r\n`,
         'red' as ColorType,
-        player.user.username
+        player.user!.username
       );
 
-      // Reduce weapon durability after a successful hit
+      this.triggerWeaponProc(player, target, roomId);
       this.reduceWeaponDurability(player);
     } else {
-      // Add aggression for a miss (attack attempt)
-      target.addAggression(player.user.username, 0);
+      target.addAggression(player.user!.username, 0);
 
-      // Send message to the player
       writeFormattedMessageToClient(
         player,
         colorize(`You swing at the ${target.name} with your ${weaponName}, and miss!\r\n`, 'cyan')
       );
 
-      // Broadcast to ALL other players in room
-      const username = formatUsername(player.user.username);
+      const username = formatUsername(player.user!.username);
       this.combatSystem.broadcastRoomCombatMessage(
         roomId,
         `${username} swings at the ${target.name} with their ${weaponName}, and misses!\r\n`,
         'cyan' as ColorType,
-        player.user.username
+        player.user!.username
       );
     }
 
-    // Reduce armor durability after taking damage
     this.reduceArmorDurability(target);
+  }
+
+  private triggerWeaponProc(player: ConnectedClient, target: CombatEntity, roomId: string): void {
+    if (!player.user || !this.abilityManager) return;
+
+    const weaponId = player.user.equipment?.weapon;
+    if (!weaponId) return;
+
+    const result = this.abilityManager.checkWeaponProc(player, weaponId, target.name, true);
+
+    if (result.triggered && result.abilityName) {
+      writeFormattedMessageToClient(
+        player,
+        colorize(`Your weapon's ${result.abilityName} triggers!\r\n`, 'yellow')
+      );
+
+      const username = formatUsername(player.user.username);
+      this.combatSystem.broadcastRoomCombatMessage(
+        roomId,
+        `${username}'s weapon glows with ${result.abilityName}!\r\n`,
+        'yellow' as ColorType,
+        player.user.username
+      );
+    }
   }
 
   private reduceWeaponDurability(player: ConnectedClient): void {

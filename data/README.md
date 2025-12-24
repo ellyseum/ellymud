@@ -11,6 +11,7 @@ JSON files containing all persistent game data including users, rooms, items, NP
 | `items.json`            | Item templates defining all item types         |
 | `itemInstances.json`    | Instantiated items in the world                |
 | `npcs.json`             | NPC templates and behaviors                    |
+| `abilities.json`        | Spell and ability definitions                  |
 | `mud-config.json`       | Core game configuration                        |
 | `gametimer-config.json` | Timer and tick settings                        |
 | `admin.json`            | Admin and moderation configuration             |

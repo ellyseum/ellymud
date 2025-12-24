@@ -57,6 +57,10 @@ import { PlayedCommand } from './commands/played.command'; // Import our new Pla
 import { TimeCommand } from './commands/time.command'; // Import our new Time command
 import { WaveCommand } from './commands/wave.command'; // Import our new Wave command
 import { LaughCommand } from './commands/laugh.command'; // Import our new Laugh command
+import { CastCommand } from './commands/cast.command';
+import { AbilitiesCommand } from './commands/abilities.command';
+import { UseCommand } from './commands/use.command';
+import { AbilityManager } from '../abilities/abilityManager';
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -89,6 +93,7 @@ function levenshteinDistance(a: string, b: string): number {
 export class CommandRegistry {
   private commands: Map<string, Command>;
   private aliases: Map<string, { commandName: string; args?: string }>;
+  private abilityManager: AbilityManager;
 
   // Add static instance for singleton pattern
   private static instance: CommandRegistry | null = null;
@@ -99,10 +104,12 @@ export class CommandRegistry {
     private roomManager: RoomManager,
     private combatSystem: CombatSystem,
     private userManager: UserManager,
-    private stateMachine: any // Add StateMachine instance
+    private stateMachine: any, // Add StateMachine instance
+    abilityManager: AbilityManager
   ) {
     this.commands = new Map<string, Command>();
     this.aliases = new Map<string, { commandName: string; args?: string }>();
+    this.abilityManager = abilityManager;
     this.registerCommands();
   }
 
@@ -112,7 +119,8 @@ export class CommandRegistry {
     roomManager: RoomManager,
     combatSystem: CombatSystem,
     userManager: UserManager,
-    stateMachine: any // Add StateMachine instance
+    stateMachine: any, // Add StateMachine instance
+    abilityManager: AbilityManager
   ): CommandRegistry {
     if (!CommandRegistry.instance) {
       commandLogger.info('Creating CommandRegistry instance');
@@ -121,7 +129,8 @@ export class CommandRegistry {
         roomManager,
         combatSystem,
         userManager,
-        stateMachine
+        stateMachine,
+        abilityManager
       );
     } else {
       // Update references if they've changed
@@ -130,6 +139,7 @@ export class CommandRegistry {
       CommandRegistry.instance.combatSystem = combatSystem;
       CommandRegistry.instance.userManager = userManager;
       CommandRegistry.instance.stateMachine = stateMachine;
+      CommandRegistry.instance.abilityManager = abilityManager;
     }
     return CommandRegistry.instance;
   }
@@ -188,6 +198,9 @@ export class CommandRegistry {
       new TimeCommand(), // Add our new Time command
       new WaveCommand(this.clients), // Add our new Wave command
       new LaughCommand(this.clients), // Add our new Laugh command
+      new CastCommand(this.abilityManager), // Add cast command for abilities
+      new AbilitiesCommand(this.abilityManager), // Add abilities listing command
+      new UseCommand(this.abilityManager), // Add use command for item abilities
     ];
 
     // Register all commands
@@ -280,6 +293,10 @@ export class CommandRegistry {
     this.aliases.set('changepass', { commandName: 'changepassword' });
     // Add alias for wait command
     this.aliases.set('wa', { commandName: 'wait' });
+    // Add aliases for cast and abilities commands
+    this.aliases.set('c', { commandName: 'cast' });
+    this.aliases.set('ab', { commandName: 'abilities' });
+    this.aliases.set('spells', { commandName: 'abilities' });
   }
 
   private registerDirectionCommands(): void {

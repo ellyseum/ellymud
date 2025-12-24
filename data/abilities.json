@@ -1,0 +1,206 @@
+[
+  {
+    "id": "fireball",
+    "name": "Fireball",
+    "description": "Hurls a ball of fire at your enemy, dealing damage over time.",
+    "type": "standard",
+    "mpCost": 15,
+    "cooldownType": "rounds",
+    "cooldownValue": 3,
+    "targetType": "enemy",
+    "effects": [
+      {
+        "effectType": "damage_over_time",
+        "payload": { "damagePerTick": 5 },
+        "durationTicks": 4,
+        "tickInterval": 1,
+        "name": "Burning",
+        "description": "Taking fire damage"
+      }
+    ]
+  },
+  {
+    "id": "heal",
+    "name": "Heal",
+    "description": "Restore health to yourself over time.",
+    "type": "standard",
+    "mpCost": 20,
+    "cooldownType": "rounds",
+    "cooldownValue": 5,
+    "targetType": "self",
+    "effects": [
+      {
+        "effectType": "heal_over_time",
+        "payload": { "healPerTick": 8 },
+        "durationTicks": 3,
+        "tickInterval": 1,
+        "name": "Regenerating",
+        "description": "Health regenerating"
+      }
+    ]
+  },
+  {
+    "id": "poison",
+    "name": "Poison",
+    "description": "Inflict a deadly poison on your enemy.",
+    "type": "standard",
+    "mpCost": 12,
+    "cooldownType": "rounds",
+    "cooldownValue": 4,
+    "targetType": "enemy",
+    "effects": [
+      {
+        "effectType": "poison",
+        "payload": { "damagePerTick": 3 },
+        "durationTicks": 6,
+        "tickInterval": 1,
+        "name": "Poisoned",
+        "description": "Taking poison damage"
+      }
+    ]
+  },
+  {
+    "id": "strength_boost",
+    "name": "Strength Boost",
+    "description": "Temporarily increase your strength.",
+    "type": "standard",
+    "mpCost": 10,
+    "cooldownType": "rounds",
+    "cooldownValue": 10,
+    "targetType": "self",
+    "effects": [
+      {
+        "effectType": "strength_buff",
+        "payload": { "statModifiers": { "strength": 5 } },
+        "durationTicks": 5,
+        "tickInterval": 0,
+        "name": "Empowered",
+        "description": "Strength increased"
+      }
+    ]
+  },
+  {
+    "id": "flame_blade",
+    "name": "Flame Blade",
+    "description": "Enchant your weapon with flames, replacing attacks with fire strikes.",
+    "type": "combat",
+    "mpCost": 25,
+    "cooldownType": "rounds",
+    "cooldownValue": 8,
+    "targetType": "self",
+    "effects": [
+      {
+        "effectType": "damage_over_time",
+        "payload": { "damageAmount": 12, "damagePerTick": 3 },
+        "durationTicks": 3,
+        "tickInterval": 1,
+        "name": "Burning",
+        "description": "Burning from flame blade"
+      }
+    ]
+  },
+  {
+    "id": "ice_shield",
+    "name": "Ice Shield",
+    "description": "Encase yourself in ice, reducing damage taken.",
+    "type": "combat",
+    "mpCost": 20,
+    "cooldownType": "rounds",
+    "cooldownValue": 6,
+    "targetType": "self",
+    "effects": [
+      {
+        "effectType": "defense_buff",
+        "payload": { "statModifiers": { "defense": 10 } },
+        "durationTicks": 4,
+        "tickInterval": 0,
+        "name": "Ice Shield",
+        "description": "Defense increased"
+      }
+    ]
+  },
+  {
+    "id": "venomous_strike",
+    "name": "Venomous Strike",
+    "description": "Weapon proc that poisons the target.",
+    "type": "proc",
+    "mpCost": 0,
+    "cooldownType": "rounds",
+    "cooldownValue": 0,
+    "targetType": "enemy",
+    "procChance": 0.15,
+    "effects": [
+      {
+        "effectType": "poison",
+        "payload": { "damagePerTick": 4 },
+        "durationTicks": 5,
+        "tickInterval": 1,
+        "name": "Venom",
+        "description": "Poisoned by venom"
+      }
+    ]
+  },
+  {
+    "id": "shocking_touch",
+    "name": "Shocking Touch",
+    "description": "Weapon proc that stuns briefly.",
+    "type": "proc",
+    "mpCost": 0,
+    "cooldownType": "rounds",
+    "cooldownValue": 0,
+    "targetType": "enemy",
+    "procChance": 0.1,
+    "effects": [
+      {
+        "effectType": "stun",
+        "payload": { "blockCombat": true },
+        "durationTicks": 1,
+        "tickInterval": 0,
+        "name": "Shocked",
+        "description": "Stunned by electricity"
+      }
+    ]
+  },
+  {
+    "id": "healing_potion_effect",
+    "name": "Healing Potion",
+    "description": "Instantly restore health.",
+    "type": "item",
+    "mpCost": 0,
+    "cooldownType": "seconds",
+    "cooldownValue": 30,
+    "targetType": "self",
+    "consumesItem": true,
+    "effects": [
+      {
+        "effectType": "heal_over_time",
+        "payload": { "healAmount": 50 },
+        "durationTicks": 1,
+        "tickInterval": 0,
+        "name": "Healing",
+        "description": "Restoring health"
+      }
+    ]
+  },
+  {
+    "id": "mana_potion_effect",
+    "name": "Mana Potion",
+    "description": "Instantly restore mana.",
+    "type": "item",
+    "mpCost": 0,
+    "cooldownType": "seconds",
+    "cooldownValue": 30,
+    "targetType": "self",
+    "consumesItem": true,
+    "effects": [
+      {
+        "effectType": "regen",
+        "payload": { "healPerTick": 0, "metadata": { "manaRestore": 40 } },
+        "durationTicks": 1,
+        "tickInterval": 0,
+        "name": "Mana Restoration",
+        "description": "Restoring mana"
+      }
+    ]
+  }
+]

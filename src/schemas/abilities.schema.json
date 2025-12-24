@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "name", "description", "type", "mpCost", "cooldownType", "cooldownValue", "targetType", "effects"],
+    "properties": {
+      "id": { "type": "string" },
+      "name": { "type": "string" },
+      "description": { "type": "string" },
+      "type": { "enum": ["standard", "combat", "proc", "item"] },
+      "mpCost": { "type": "integer", "minimum": 0 },
+      "cooldownType": { "enum": ["rounds", "seconds", "uses"] },
+      "cooldownValue": { "type": "integer", "minimum": 0 },
+      "targetType": { "enum": ["self", "enemy", "ally", "room"] },
+      "effects": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["effectType", "payload", "durationTicks", "tickInterval"],
+          "properties": {
+            "effectType": { "type": "string" },
+            "payload": { "type": "object" },
+            "durationTicks": { "type": "integer" },
+            "tickInterval": { "type": "integer" },
+            "stackingBehavior": { "type": "string" },
+            "name": { "type": "string" },
+            "description": { "type": "string" }
+          }
+        }
+      },
+      "requirements": {
+        "type": "object",
+        "properties": {
+          "level": { "type": "integer" },
+          "stats": { "type": "object" }
+        }
+      },
+      "procChance": { "type": "number", "minimum": 0, "maximum": 1 },
+      "consumesItem": { "type": "boolean" }
+    }
+  }
+}

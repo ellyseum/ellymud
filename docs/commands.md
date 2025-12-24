@@ -10,6 +10,7 @@ Complete reference guide for all available commands in EllyMUD.
 - [Communication Commands](#communication-commands)
 - [Item Commands](#item-commands)
 - [Combat Commands](#combat-commands)
+- [Ability Commands](#ability-commands)
 - [Character Commands](#character-commands)
 - [Admin Commands](#admin-commands)
 - [Utility Commands](#utility-commands)
@@ -599,6 +600,84 @@ damage self 10
 - Admin or testing command
 - Bypasses normal combat mechanics
 - Useful for testing
+
+## Ability Commands
+
+### cast
+
+Cast a spell or ability at a target.
+
+**Usage:**
+
+```
+cast <ability> [target]
+```
+
+**Examples:**
+
+```
+cast fireball goblin
+cast heal
+cast poison orc
+cast strength_boost
+```
+
+**Notes:**
+
+- Requires mana (MP) to cast
+- Most offensive spells require a target
+- Self-targeting spells don't need a target argument
+- Abilities have cooldowns between uses
+- Use `abilities` command to see available spells
+
+### abilities
+
+View your available abilities and their status.
+
+**Usage:**
+
+```
+abilities
+```
+
+**Shows:**
+
+- List of all available abilities
+- Mana cost for each ability
+- Current cooldown status (Ready or rounds remaining)
+- Ability descriptions
+
+**Notes:**
+
+- Displays current mana pool
+- Shows which abilities are on cooldown
+- Helps plan spell usage during combat
+
+### use
+
+Use an item from your inventory.
+
+**Usage:**
+
+```
+use <item>
+```
+
+**Examples:**
+
+```
+use health potion
+use scroll of fire
+use healing salve
+```
+
+**Notes:**
+
+- Item must be in your inventory
+- Item must have a usable ability
+- Some items are consumed on use
+- Items may have cooldowns
+- Use `inventory` to see usable items
 
 ## Character Commands
 

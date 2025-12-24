@@ -16,6 +16,8 @@ import { ItemManager } from '../utils/itemManager';
 import { CommandRegistry } from '../command/commandRegistry';
 import { StateMachine } from '../state/stateMachine'; // Add StateMachine import
 import { createContextLogger } from '../utils/logger';
+import { EffectManager } from '../effects/effectManager';
+import { AbilityManager } from '../abilities/abilityManager';
 
 // Create context-specific logger for authenticated state
 const authStateLogger = createContextLogger('AuthenticatedState');
@@ -27,6 +29,7 @@ export class AuthenticatedState implements ClientState {
   private combatSystem: CombatSystem;
   private commandHandler: CommandHandler;
   private commandRegistry: CommandRegistry;
+  private abilityManager: AbilityManager;
 
   constructor(
     private clients: Map<string, ConnectedClient>,
@@ -38,13 +41,25 @@ export class AuthenticatedState implements ClientState {
     this.combatSystem = CombatSystem.getInstance(this.userManager, this.roomManager);
     this.commandHandler = new CommandHandler(this.roomManager, this.userManager);
 
+    // Get effect manager for ability system
+    const effectManager = EffectManager.getInstance(this.userManager, this.roomManager);
+    this.abilityManager = AbilityManager.getInstance(
+      this.userManager,
+      this.roomManager,
+      effectManager
+    );
+
+    // Wire AbilityManager to CombatSystem for combat abilities
+    this.combatSystem.setAbilityManager(this.abilityManager);
+
     // Use the singleton instance of CommandRegistry
     this.commandRegistry = CommandRegistry.getInstance(
       clients,
       this.roomManager,
       this.combatSystem,
       this.userManager,
-      this.stateMachine || null // Pass stateMachine instance or null if not provided
+      this.stateMachine || null, // Pass stateMachine instance or null if not provided
+      this.abilityManager
     );
 
     // Connect the command registry to the command handler

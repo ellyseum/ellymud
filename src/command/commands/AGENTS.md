@@ -19,27 +19,30 @@ This directory contains 40+ command implementations. Each command is a single Ty
 
 ### Combat Commands
 
-| File                | Purpose                  |
-| ------------------- | ------------------------ |
-| `attack.command.ts` | Initiate combat with NPC |
-| `break.command.ts`  | Attempt to flee combat   |
-| `heal.command.ts`   | Restore health (testing) |
-| `damage.command.ts` | Take damage (testing)    |
+| File                    | Purpose                              |
+| ----------------------- | ------------------------------------ |
+| `attack.command.ts`     | Initiate combat with NPC             |
+| `break.command.ts`      | Attempt to flee combat               |
+| `heal.command.ts`       | Restore health (testing)             |
+| `damage.command.ts`     | Take damage (testing)                |
+| `cast.command.ts`       | Cast spells and abilities at targets |
+| `abilities.command.ts`  | List available abilities & cooldowns |
 
 ### Item Commands
 
-| File                   | Purpose                 |
-| ---------------------- | ----------------------- |
-| `pickup.command.ts`    | Pick up items from room |
-| `drop.command.ts`      | Drop items in room      |
-| `get.command.ts`       | Alias for pickup        |
-| `equip.command.ts`     | Equip items             |
-| `unequip.command.ts`   | Remove equipped items   |
-| `equipment.command.ts` | View equipped items     |
-| `destroy.command.ts`   | Permanently delete item |
-| `rename.command.ts`    | Give item custom name   |
-| `resetname.command.ts` | Restore original name   |
-| `repair.command.ts`    | Fix damaged items       |
+| File                   | Purpose                       |
+| ---------------------- | ----------------------------- |
+| `pickup.command.ts`    | Pick up items from room       |
+| `drop.command.ts`      | Drop items in room            |
+| `get.command.ts`       | Alias for pickup              |
+| `equip.command.ts`     | Equip items                   |
+| `unequip.command.ts`   | Remove equipped items         |
+| `equipment.command.ts` | View equipped items           |
+| `destroy.command.ts`   | Permanently delete item       |
+| `rename.command.ts`    | Give item custom name         |
+| `resetname.command.ts` | Restore original name         |
+| `repair.command.ts`    | Fix damaged items             |
+| `use.command.ts`       | Use consumable items/potions  |
 
 ### Communication Commands
 

@@ -242,6 +242,54 @@ calculateDamage(attacker: CombatEntity, defender: CombatEntity): number {
 - ⚠️ **No Persistence**: Combat state is NOT saved—server restart ends all combats
 - ⚠️ **Tick Dependency**: Combat requires `GameTimerManager` to be running
 - ⚠️ **Death Handling**: Player death teleports to start room, resets stats
+- ⚠️ **Ability Manager**: Must call `setAbilityManager()` for spell/proc support
+
+## Ability Integration
+
+The combat system integrates with `AbilityManager` for spells and weapon procs:
+
+### Combat Abilities
+
+Combat abilities (type: `combat`) replace normal weapon attacks for N rounds:
+
+```typescript
+// In combatSystem.ts
+combatSystem.setAbilityManager(abilityManager);
+
+// In combat.ts processAttack()
+if (this.abilityManager?.hasActiveCombatAbility(username)) {
+  this.processCombatAbilityAttack(player, target, roomId);
+  this.abilityManager.decrementCombatAbility(username);
+  return;
+}
+// Falls through to normal weapon attack if no active combat ability
+```
+
+### Weapon Procs
+
+Weapons with `procAbility` field can trigger special effects on hit:
+
+```typescript
+// After successful weapon hit
+this.triggerWeaponProc(player, target, roomId);
+
+// Inside triggerWeaponProc()
+const result = this.abilityManager.checkWeaponProc(player, weaponId, target.name, true);
+if (result.triggered) {
+  // Effect already applied by AbilityManager
+  writeFormattedMessageToClient(player, colorize(`Your weapon's ${result.abilityName} triggers!\r\n`, 'magenta'));
+}
+```
+
+### Round Synchronization
+
+Combat rounds sync with ability cooldowns:
+
+```typescript
+// In GameTimerManager tick
+abilityManager.setCurrentRound(combatSystem.getCurrentRound());
+abilityManager.onGameTick();
+```
 
 ## Related Context
 
