@@ -168,223 +168,19 @@ Save stats to: `.github/agents/metrics/stats/plan_YYYY-MM-DD_task-name-stats.md`
 
 ### Stats File Template
 
-```markdown
-# Planning Stats: [Task Name]
+Save to: `.github/agents/metrics/stats/plan_YYYY-MM-DD_task-name-stats.md`
 
-## Timing
-
-| Metric     | Value                    |
-| ---------- | ------------------------ |
-| Start Time | YYYY-MM-DD HH:MM:SS UTC  |
-| End Time   | YYYY-MM-DD HH:MM:SS UTC  |
-| Duration   | X minutes                |
-| Status     | completed/failed/blocked |
-
-## Token Usage (Estimated)
-
-| Type      | Count      |
-| --------- | ---------- |
-| Input     | ~X,XXX     |
-| Output    | ~X,XXX     |
-| **Total** | **~X,XXX** |
-
-## Tool Calls
-
-| Tool            | Count |
-| --------------- | ----- |
-| read_file       | X     |
-| grep_search     | X     |
-| semantic_search | X     |
-| create_file     | X     |
-| **Total**       | **X** |
-
-## Files Processed
-
-| Operation | Count        |
-| --------- | ------------ |
-| Read      | X            |
-| Created   | 1 (plan doc) |
-
-## Output
-
-| Metric      | Value                               |
-| ----------- | ----------------------------------- |
-| Output File | `.github/agents/planning/plan_*.md` |
-| Line Count  | X lines                             |
-
-## Quality Indicators
-
-| Metric        | Value |
-| ------------- | ----- |
-| Tasks Defined | X     |
-| Phases        | X     |
-| Code Snippets | X     |
-
-## Handoff
-
-| Field      | Value          |
-| ---------- | -------------- |
-| Next Stage | implementation |
-| Ready      | Yes/No         |
-
-## Agent Info
-
-| Field         | Value           |
-| ------------- | --------------- |
-| Agent Version | 1.0.0           |
-| Model         | claude-4.5-opus |
-```
-
-### Token Estimation
-
-- **Short message** (~100 words): ~150 tokens
-- **File read** (~100 lines): ~500 tokens
-- **File read** (~500 lines): ~2500 tokens
-- **Tool call**: ~100-200 tokens input
-
----
-
-## Tool Reference
-
-This section documents each tool available to this agent and when to use it.
-
-### `search/codebase` (semantic_search)
-
-**Purpose**: Semantic search across the workspace for relevant code snippets  
-**When to Use**: When verifying research findings or exploring related areas not covered in research  
-**Example**: Confirming patterns described in research document exist  
-**Tips**: Use to validate research claims before basing decisions on them; use sparingly—prefer targeted textSearch when you know what to look for
-
-### `search/textSearch` (grep_search)
-
-**Purpose**: Fast text/regex search across files  
-**When to Use**: When finding all occurrences of patterns that need modification  
-**Example**: Finding all files that import a module being changed  
-**Tips**: Essential for impact analysis—find everything that might be affected
-
-### `search/fileSearch` (file_search)
-
-**Purpose**: Find files by glob pattern  
-**When to Use**: When mapping all files that match a pattern for bulk operations  
-**Example**: Finding all command files to understand registration pattern  
-**Tips**: Use to verify scope of planned changes
-
-### `search/listDirectory` (list_dir)
-
-**Purpose**: List contents of a directory  
-**When to Use**: When planning file placement or understanding existing structure  
-**Example**: Listing `src/command/commands/` before planning new command location  
-**Tips**: Verify planned file paths exist and follow project conventions
-
-### `read` (read_file)
-
-**Purpose**: Read contents of a specific file with line range  
-**When to Use**: When examining files referenced in research or verifying code structure  
-**Example**: Reading exact implementation to plan precise modifications  
-**Tips**: Read complete functions/classes to understand full context for planning
-
-### `edit/createFile` (create_file)
-
-**Purpose**: Create a new file with specified content  
-**When to Use**: When creating the implementation plan document  
-**Example**: Creating `.github/agents/planning/plan_20241219_combat_feature.md`  
-**Tips**: Only use for creating planning output documents, not for code
-
-### `edit/replaceInFile` (replace_string_in_file)
-
-**Purpose**: Edit an existing file by replacing exact text  
-**When to Use**: When updating existing plan documents with additional details  
-**Example**: Adding task specifications to an in-progress plan  
-**Tips**: Include 3-5 lines of context around the replacement target
-
-### `todo` (manage_todo_list)
-
-**Purpose**: Track planning progress through design phases  
-**When to Use**: At START of every planning session, update after each phase  
-**Example**: Creating todos for architecture design, task breakdown, verification criteria  
-**Tips**: Mark ONE todo in-progress at a time; keep todos aligned with planning phases
+Include: Timing (start/end/duration/status), Token estimates, Tool call counts, Files processed, Output location, Quality indicators (tasks defined, phases, code snippets), Handoff info.
 
 ---
 
 ## Project Context: EllyMUD
 
-### Technology Stack
-
-- **Runtime**: Node.js with TypeScript
-- **Module System**: CommonJS (compiled from TypeScript)
-- **Build Tool**: TypeScript Compiler (tsc)
-- **Package Manager**: npm
-- **Primary Framework**: Express.js, Custom Telnet/WebSocket servers
-- **Key Libraries**: Socket.IO, Winston, AJV, MCP SDK
-
-### Import Conventions
-
-```typescript
-// Relative imports within src/
-import { UserManager } from '../user/userManager';
-import { Client } from '../types';
-
-// Node.js built-ins
-import * as fs from 'fs';
-import * as path from 'path';
-
-// External packages
-import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
-```
-
-### File Naming Conventions
-
-```
-Commands:     {name}.command.ts     (e.g., attack.command.ts)
-Interfaces:   {name}.interface.ts   (e.g., combatEntity.interface.ts)
-States:       {name}.state.ts       (e.g., authenticated.state.ts)
-Managers:     {name}Manager.ts      (e.g., userManager.ts)
-Services:     {name}Service.ts      (e.g., roomService.ts)
-```
-
-### Standard File Structure
-
-```typescript
-// 1. Imports (grouped: node builtins, external, internal)
-import * as fs from 'fs';
-import express from 'express';
-import { UserManager } from '../user/userManager';
-
-// 2. Type definitions (if local to file)
-interface LocalType { ... }
-
-// 3. Constants
-const SOME_CONSTANT = 'value';
-
-// 4. Main class/functions
-export class MyClass {
-  private static instance: MyClass;
-
-  private constructor() { }
-
-  public static getInstance(): MyClass {
-    if (!MyClass.instance) {
-      MyClass.instance = new MyClass();
-    }
-    return MyClass.instance;
-  }
-
-  // Public methods
-  // Private methods
-}
-
-// 5. Exports (if not inline)
-```
-
-### Build & Test Commands
-
-```bash
-npm run build          # Compile TypeScript (tsc --build --verbose)
-npm start              # Build and run server
-npm run dev            # Development mode with hot reload
-npm run validate       # Validate data files against schemas
-```
+- **Stack**: Node.js/TypeScript, CommonJS, Express.js, Socket.IO, Winston, AJV, MCP SDK
+- **Build**: `npm run build`
+- **Naming**: Commands=`{name}.command.ts`, States=`{name}.state.ts`, Managers=`{name}Manager.ts`
+- **Imports**: Relative within src/, grouped (node builtins, external, internal)
+- **Standard Structure**: Imports → Types → Constants → Main class → Exports
 
 ---
 
@@ -480,165 +276,29 @@ Document each decision with research evidence:
 
 ### Phase 4: Task Decomposition
 
-#### 4.1 Work Unit Definition
+**Task Sizing:**
+- **Too Large** (break down): Touches >3 files, takes >30 min, multiple verification steps
+- **Just Right**: Single file, single logical change, one verification step, independently rollback-able
+- **Too Small** (combine): Single line, trivial formatting, pure rename
 
-Break work into tasks that are:
+**Dependencies**: For each task, determine what must exist before, what this enables, parallelization potential
 
-**Too Large** (break down further):
-
-- Touches more than 3 files
-- Takes more than 30 minutes
-- Has multiple independent verification steps
-
-**Just Right**:
-
-- Single file or tightly coupled file set
-- Single logical change
-- One clear verification step
-- Can be rolled back independently
-
-**Too Small** (combine):
-
-- Single line change with no logic
-- Trivial formatting
-- Pure rename without logic change
-
-#### 4.2 Dependency Identification
-
-For each task, determine:
-
-- What must exist before this task can start?
-- What does this task enable?
-- Can this run in parallel with other tasks?
-
-#### 4.3 Task Sequencing
-
-Order tasks by:
-
-1. **Types/Interfaces first** - Define contracts before implementation
-2. **Utilities second** - Build tools before using them
-3. **Core logic third** - Implement main functionality
-4. **Integration fourth** - Wire components together
-5. **Tests fifth** - Verify behavior
-6. **Documentation last** - Document final state
+**Sequencing**: Types/Interfaces → Utilities → Core Logic → Integration → Tests → Documentation
 
 ### Phase 5: Task Specification
 
-For each task, provide complete specifications:
+For each task provide:
 
-#### 5.1 File Operations
-
-```markdown
-**Task ID**: TASK-001
-**Title**: [Brief descriptive title]
-**Type**: CREATE | MODIFY | DELETE
-
-**File**: `src/path/to/file.ts`
-**Operation**: CREATE new file | MODIFY lines 45-67 | DELETE file
-```
-
-#### 5.2 Code Changes (for MODIFY operations)
-
-````markdown
-**Current Code** (lines 45-67 of src/path/to/file.ts):
-
-```typescript
-// Exact current code that will be replaced
-export function existingFunction(): void {
-  // current implementation
-}
-```
-````
-
-**New Code**:
-
-```typescript
-// Exact replacement code
-export function existingFunction(): void {
-  // new implementation with changes
-}
-```
-
-**Explanation**: [Why this change is needed]
-
-````
-
-#### 5.3 New File Contents (for CREATE operations)
-```markdown
-**File**: `src/path/to/newFile.ts`
-**Purpose**: [What this file does]
-
-**Complete Contents**:
-```typescript
-/**
- * [JSDoc description]
- */
-import { Dependency } from '../path/to/dependency';
-
-export interface NewInterface {
-  // Complete interface definition
-}
-
-export class NewClass {
-  // Complete class implementation
-}
-````
-
-````
-
-#### 5.4 Dependencies
-```markdown
-**Depends On**: [TASK-000] - [Why dependency exists]
-**Blocks**: [TASK-002, TASK-003] - [What this enables]
-````
-
-#### 5.5 Verification Steps
-
-```markdown
-**Verification**:
-
-1. File exists at correct path
-2. `npm run build` succeeds with no errors
-3. [Specific test or check]
-4. [Integration verification if applicable]
-```
-
-#### 5.6 Rollback Plan
-
-```markdown
-**Rollback**:
-
-1. Delete file `src/path/to/newFile.ts`
-2. Revert changes to `src/path/to/modified.ts`
-3. Remove dependency from `package.json` if added
-4. Run `npm run build` to verify clean state
-```
+1. **File Operations**: Task ID, Title, Type (CREATE/MODIFY/DELETE), File path, Operation description
+2. **Code Changes**: For MODIFY - exact current code and exact new code with explanation
+3. **New File Contents**: For CREATE - complete file contents with purpose
+4. **Dependencies**: What this depends on, what it blocks
+5. **Verification Steps**: How to verify the task succeeded
+6. **Rollback Plan**: How to undo if needed
 
 ### Phase 6: Risk Assessment
 
-#### 6.1 Technical Risks
-
-| Risk               | Likelihood   | Impact   | Mitigation            |
-| ------------------ | ------------ | -------- | --------------------- |
-| [Risk description] | HIGH/MED/LOW | [Impact] | [Mitigation strategy] |
-
-#### 6.2 Integration Risks
-
-- Breaking changes to existing APIs
-- Data migration requirements
-- Backward compatibility concerns
-
-#### 6.3 Performance Risks
-
-- New operations in hot paths
-- Memory allocation concerns
-- Network/IO considerations
-
-#### 6.4 Security Risks
-
-- Input validation requirements
-- Authentication/authorization changes
-- Data exposure concerns
+Document risks in categories: Technical, Integration, Performance, Security. For each: Likelihood, Impact, Mitigation strategy.
 
 ---
 
@@ -646,723 +306,74 @@ export class NewClass {
 
 Save planning documents to: `.github/agents/planning/plan_<YYYYMMDD_HHMMSS>.md`
 
-### Implementation Plan Template
-
-```markdown
-# Implementation Plan: [Feature/Fix Name]
-
-**Generated**: [YYYY-MM-DD HH:MM:SS]
-**Based On**: `.github/agents/research/research_[timestamp].md`
-**Planner**: Planning Agent
-**Status**: READY | NEEDS_INFO | BLOCKED
-
----
-
-## 1. Executive Summary
-
-### 1.1 Objective
-
-[Single paragraph describing what will be implemented]
-
-### 1.2 Scope
-
-- **In Scope**: [What will be done]
-- **Out of Scope**: [What will NOT be done]
-- **Future Considerations**: [Deferred items]
-
-### 1.3 Success Criteria
-
-- [ ] [Measurable criterion 1]
-- [ ] [Measurable criterion 2]
-- [ ] [Measurable criterion 3]
-
-### 1.4 Effort Estimate
-
-- **Tasks**: [count]
-- **Files**: [count] new, [count] modified, [count] deleted
-- **Estimated Time**: [duration]
-- **Risk Level**: LOW | MEDIUM | HIGH
-
----
-
-## 2. Solution Architecture
-
-### 2.1 Overview
-
-[High-level description of the solution approach]
-
-### 2.2 Component Diagram
-```
-
-[ASCII diagram showing component relationships]
-
-┌─────────────────┐ ┌─────────────────┐
-│ Component A │────▶│ Component B │
-└─────────────────┘ └─────────────────┘
-│ │
-▼ ▼
-┌─────────────────┐ ┌─────────────────┐
-│ Component C │◀────│ Component D │
-└─────────────────┘ └─────────────────┘
-
-```
-
-### 2.3 Data Flow
-```
-
-[Data flow description]
-
-1. Input received at [location]
-2. Processed by [component]
-3. Stored in [location]
-4. Output via [mechanism]
-
-````
-
-### 2.4 Design Decisions
-| Decision | Rationale | Research Reference |
-|----------|-----------|-------------------|
-| [Decision 1] | [Why] | [research doc section] |
-| [Decision 2] | [Why] | [research doc section] |
-
-### 2.5 Assumptions
-| Assumption | Basis | Impact if Wrong |
-|------------|-------|-----------------|
-| [Assumption] | [Research evidence] | [Consequence] |
-
----
-
-## 3. Implementation Phases
-
-### Phase 1: Foundation
-- [ ] TASK-001: [Title]
-- [ ] TASK-002: [Title]
-
-### Phase 2: Core Implementation
-- [ ] TASK-003: [Title]
-- [ ] TASK-004: [Title]
-- [ ] TASK-005: [Title]
-
-### Phase 3: Integration
-- [ ] TASK-006: [Title]
-- [ ] TASK-007: [Title]
-
-### Phase 4: Testing & Validation
-- [ ] TASK-008: [Title]
-- [ ] TASK-009: [Title]
-
-### Phase 5: Cleanup & Documentation
-- [ ] TASK-010: [Title]
-
----
-
-## 4. Task Specifications
-
-### TASK-001: [Descriptive Title]
-
-**Type**: CREATE | MODIFY | DELETE
-**Priority**: P0-CRITICAL | P1-HIGH | P2-MEDIUM | P3-LOW
-**Phase**: Foundation | Core | Integration | Testing | Cleanup
-
-#### File Operations
-| Operation | File | Description |
-|-----------|------|-------------|
-| CREATE | `src/path/to/file.ts` | [Purpose] |
-
-#### Detailed Changes
-
-**File**: `src/path/to/file.ts`
-
-**Complete New File Contents**:
-```typescript
-/**
- * [Description of file purpose]
- * @module path/to/file
- */
-
-import { ExistingType } from '../types';
-import { ManagerClass } from '../manager/managerClass';
-
-/**
- * [Interface description]
- */
-export interface NewInterface {
-  /** Property description */
-  propertyName: string;
-
-  /** Method description */
-  methodName(): void;
-}
-
-/**
- * [Class description]
- */
-export class NewClass implements NewInterface {
-  private static instance: NewClass;
-
-  /**
-   * Private constructor for singleton pattern
-   */
-  private constructor() {
-    // Initialization
-  }
-
-  /**
-   * Get singleton instance
-   */
-  public static getInstance(): NewClass {
-    if (!NewClass.instance) {
-      NewClass.instance = new NewClass();
-    }
-    return NewClass.instance;
-  }
-
-  /**
-   * [Method description]
-   */
-  public methodName(): void {
-    // Implementation
-  }
-}
-````
-
-#### Dependencies
-
-- **Depends On**: None (first task)
-- **Blocks**: TASK-002, TASK-003
-
-#### Verification
-
-```bash
-# 1. Verify file exists
-ls -la src/path/to/file.ts
-
-# 2. Verify build succeeds
-npm run build
-
-# 3. Verify no type errors
-# (Included in build step)
-
-# 4. Verify exports are accessible
-# Implementation Agent will verify imports work in dependent tasks
-```
-
-#### Rollback
-
-```bash
-# Remove created file
-rm src/path/to/file.ts
-
-# Verify build still works
-npm run build
-```
-
----
-
-### TASK-002: [Modify Existing Component]
-
-**Type**: MODIFY
-**Priority**: P1-HIGH
-**Phase**: Core
-
-#### File Operations
-
-| Operation | File                   | Lines | Description    |
-| --------- | ---------------------- | ----- | -------------- |
-| MODIFY    | `src/existing/file.ts` | 45-67 | Add new method |
-
-#### Detailed Changes
-
-**File**: `src/existing/file.ts`
-
-**Current Code** (lines 45-67):
-
-```typescript
-export class ExistingClass {
-  private data: Map<string, unknown>;
-
-  constructor() {
-    this.data = new Map();
-  }
-
-  public getData(key: string): unknown {
-    return this.data.get(key);
-  }
-}
-```
-
-**New Code**:
-
-```typescript
-export class ExistingClass {
-  private data: Map<string, unknown>;
-
-  constructor() {
-    this.data = new Map();
-  }
-
-  public getData(key: string): unknown {
-    return this.data.get(key);
-  }
-
-  /**
-   * New method to process data
-   * @param key - The data key to process
-   * @returns Processed result
-   */
-  public processData(key: string): ProcessedResult {
-    const raw = this.getData(key);
-    if (!raw) {
-      throw new Error(`No data found for key: ${key}`);
-    }
-    return this.transform(raw);
-  }
-
-  private transform(data: unknown): ProcessedResult {
-    // Transformation logic
-    return { processed: true, data };
-  }
-}
-```
-
-**Explanation**: Adding processData method to support [feature]. This follows the existing pattern of public methods delegating to private helpers as seen in [research reference].
-
-#### Dependencies
-
-- **Depends On**: TASK-001 (requires ProcessedResult type)
-- **Blocks**: TASK-004
-
-#### Verification
-
-```bash
-# 1. Verify build succeeds
-npm run build
-
-# 2. Verify method exists
-grep -n "processData" src/existing/file.ts
-
-# 3. Run related tests (if they exist)
-npm test -- --grep "ExistingClass"
-```
-
-#### Rollback
-
-```bash
-# Revert to previous version
-git checkout HEAD -- src/existing/file.ts
-
-# Verify build
-npm run build
-```
-
----
-
-### TASK-003: [Add Command Handler]
-
-**Type**: CREATE
-**Priority**: P1-HIGH
-**Phase**: Core
-
-#### File Operations
-
-| Operation | File                                         | Description                |
-| --------- | -------------------------------------------- | -------------------------- |
-| CREATE    | `src/command/commands/newfeature.command.ts` | New command implementation |
-| MODIFY    | `src/command/commands/index.ts`              | Register new command       |
-
-#### Detailed Changes
-
-**File 1**: `src/command/commands/newfeature.command.ts`
-
-**Complete New File Contents**:
-
-```typescript
-/**
- * NewFeature Command - [Description]
- * @module command/commands/newfeature
- */
-
-import { BaseCommand } from '../baseCommand';
-import { Command } from '../command.interface';
-import { Client } from '../../types';
-import { writeMessageToClient } from '../../utils/socketWriter';
-import { colors } from '../../utils/colors';
-
-/**
- * Command to [description of what the command does]
- *
- * Usage: newfeature [args]
- * Aliases: nf, feature
- *
- * @example
- * > newfeature
- * > nf something
- */
-export class NewFeatureCommand extends BaseCommand implements Command {
-  public name = 'newfeature';
-  public description = '[Command description]';
-  public aliases = ['nf', 'feature'];
-  public usage = 'newfeature [optional_arg]';
-
-  /**
-   * Execute the newfeature command
-   * @param client - The client executing the command
-   * @param args - Command arguments
-   */
-  public async execute(client: Client, args: string[]): Promise<void> {
-    // Validate client state
-    if (!client.user) {
-      writeMessageToClient(
-        client,
-        `${colors.red}You must be logged in to use this command.${colors.reset}`
-      );
-      return;
-    }
-
-    // Parse arguments
-    const targetArg = args[0];
-
-    // Execute command logic
-    try {
-      // Implementation here
-      const result = await this.performAction(client, targetArg);
-
-      // Send success response
-      writeMessageToClient(client, `${colors.green}${result}${colors.reset}`);
-    } catch (error) {
-      // Handle errors
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      writeMessageToClient(client, `${colors.red}Error: ${message}${colors.reset}`);
-    }
-  }
-
-  /**
-   * Perform the main command action
-   * @param client - The client
-   * @param target - Optional target argument
-   * @returns Result message
-   */
-  private async performAction(client: Client, target?: string): Promise<string> {
-    // Implementation
-    return `Action completed${target ? ` on ${target}` : ''}`;
-  }
-}
-```
-
-**File 2**: `src/command/commands/index.ts`
-
-**Current Code** (append to end of imports):
-
-```typescript
-// ... existing imports ...
-import { YellCommand } from './yell.command';
-```
-
-**New Code**:
-
-```typescript
-// ... existing imports ...
-import { YellCommand } from './yell.command';
-import { NewFeatureCommand } from './newfeature.command';
-```
-
-**Current Code** (append to command registrations):
-
-```typescript
-// ... existing registrations ...
-registry.register(new YellCommand());
-```
-
-**New Code**:
-
-```typescript
-// ... existing registrations ...
-registry.register(new YellCommand());
-registry.register(new NewFeatureCommand());
-```
-
-#### Dependencies
-
-- **Depends On**: None
-- **Blocks**: TASK-006 (integration testing)
-
-#### Verification
-
-```bash
-# 1. Verify files exist
-ls -la src/command/commands/newfeature.command.ts
-
-# 2. Verify build succeeds
-npm run build
-
-# 3. Verify command is registered (runtime test)
-# Start server and test command execution
-
-# 4. Verify help includes new command
-# > help newfeature
-```
-
-#### Rollback
-
-```bash
-# Remove new command file
-rm src/command/commands/newfeature.command.ts
-
-# Revert index.ts changes
-git checkout HEAD -- src/command/commands/index.ts
-
-# Verify build
-npm run build
-```
+### Implementation Plan Sections
+
+1. **Executive Summary**: Objective, Scope (in/out), Success Criteria, Effort Estimate
+2. **Solution Architecture**: Overview, Component Diagram, Data Flow, Design Decisions, Assumptions
+3. **Implementation Phases**: Foundation → Core → Integration → Testing → Cleanup
+4. **Task Specifications**: For each task - Type, Priority, File Operations, Code Changes, Dependencies, Verification, Rollback
+5. **Dependency Graph**: Visual task dependencies, Critical Path, Parallelizable Tasks
+6. **Test Plan**: Unit Tests, Integration Tests, Manual Verification
+7. **Risk Assessment**: Technical/Integration Risks, Rollback Plan
+8. **Open Questions**: Blocking and Non-Blocking
+9. **Implementation Checklist**: Pre/During/Post checklists
+10. **Appendix**: Type Definitions, API Specs, Data Changes, Environment Variables
+
+### Task Specification Format
+
+Each task must include:
+- **ID/Title/Type**: TASK-XXX, descriptive title, CREATE/MODIFY/DELETE
+- **Priority/Phase**: P0-P3, Foundation/Core/Integration/Testing/Cleanup
+- **File Operations**: Table of files with operations
+- **Detailed Changes**: Exact current code → exact new code (for MODIFY) or complete contents (for CREATE)
+- **Dependencies**: What this depends on, what it blocks
+- **Verification**: Specific commands to verify success
+- **Rollback**: How to undo the change
 
 ---
 
 ## 5. Dependency Graph
 
-```
-TASK-001 (Types)
-    │
-    ├──▶ TASK-002 (Core Logic)
-    │        │
-    │        └──▶ TASK-004 (Integration)
-    │                 │
-    │                 └──▶ TASK-006 (Integration Tests)
-    │
-    └──▶ TASK-003 (Command)
-             │
-             └──▶ TASK-005 (Command Tests)
-                      │
-                      └──▶ TASK-006 (Integration Tests)
-
-TASK-006 ──▶ TASK-007 (Documentation)
-```
-
-### Critical Path
-
-TASK-001 → TASK-002 → TASK-004 → TASK-006 → TASK-007
-
-### Parallelizable Tasks
-
-- TASK-002 and TASK-003 can run in parallel after TASK-001
-- TASK-004 and TASK-005 can run in parallel after their dependencies
+Include: Visual ASCII diagram, Critical Path, Parallelizable Tasks
 
 ---
 
 ## 6. Test Plan
 
-### 6.1 Unit Tests
-
-| Component         | Test File                          | Test Cases                       |
-| ----------------- | ---------------------------------- | -------------------------------- |
-| NewClass          | `test/newClass.test.ts`            | Constructor, methods, edge cases |
-| NewFeatureCommand | `test/commands/newfeature.test.ts` | Args parsing, execution, errors  |
-
-### 6.2 Integration Tests
-
-| Scenario     | Steps   | Expected Result |
-| ------------ | ------- | --------------- |
-| [Scenario 1] | [Steps] | [Result]        |
-| [Scenario 2] | [Steps] | [Result]        |
-
-### 6.3 Manual Verification
-
-```bash
-# Start server
-npm start
-
-# Test 1: Basic functionality
-> newfeature
-# Expected: [output]
-
-# Test 2: With arguments
-> newfeature target
-# Expected: [output]
-
-# Test 3: Error handling
-> newfeature invalid
-# Expected: [error message]
-```
+Include: Unit tests table, Integration tests table, Manual verification steps
 
 ---
 
 ## 7. Risk Assessment
 
-### 7.1 Technical Risks
-
-| Risk                            | Likelihood | Impact | Mitigation                            |
-| ------------------------------- | ---------- | ------ | ------------------------------------- |
-| Type errors in integration      | LOW        | MEDIUM | Verify build after each task          |
-| Breaking existing functionality | MEDIUM     | HIGH   | Run full test suite after integration |
-
-### 7.2 Integration Risks
-
-| Risk   | Components            | Mitigation |
-| ------ | --------------------- | ---------- |
-| [Risk] | [Components affected] | [Strategy] |
-
-### 7.3 Rollback Plan
-
-If implementation fails at any point:
-
-1. **Single Task Failure**: Execute task-specific rollback
-2. **Multiple Task Failure**:
-   ```bash
-   git stash  # Save any work in progress
-   git checkout HEAD -- src/  # Revert all src changes
-   npm run build  # Verify clean state
-   ```
-3. **Complete Rollback**:
-   ```bash
-   git reset --hard HEAD~N  # Where N = number of commits
-   npm install  # Restore dependencies if changed
-   npm run build  # Verify clean state
-   ```
-
----
-
-## 8. Open Questions
-
-### Blocking Questions
-
-These must be answered before implementation:
-
-1. [Question requiring stakeholder input]
-
-### Non-Blocking Questions
-
-Can be resolved during implementation:
-
-1. [Question that can be decided by Implementation Agent]
-
----
-
-## 9. Implementation Checklist
-
-### Pre-Implementation
-
-- [ ] Research document reviewed and validated
-- [ ] All blocking questions answered
-- [ ] Development environment ready
-- [ ] Git branch created (if applicable)
-
-### Implementation
-
-- [ ] TASK-001: [Title]
-- [ ] TASK-002: [Title]
-- [ ] TASK-003: [Title]
-- [ ] TASK-004: [Title]
-- [ ] TASK-005: [Title]
-- [ ] TASK-006: [Title]
-- [ ] TASK-007: [Title]
-
-### Post-Implementation
-
-- [ ] All tasks verified
-- [ ] Full build succeeds
-- [ ] All tests pass
-- [ ] Manual verification complete
-- [ ] Documentation updated
-- [ ] Ready for Validation Agent review
-
----
-
-## 10. Appendix
-
-### A. Type Definitions
-
-```typescript
-// All new types defined in this plan
-interface ProcessedResult {
-  processed: boolean;
-  data: unknown;
-}
-```
-
-### B. API Specifications
-
-```typescript
-// Any new APIs exposed
-```
-
-### C. Database/Data Changes
-
-```json
-// Any changes to data files in data/
-```
-
-### D. Environment Variables
-
-```bash
-# Any new environment variables
-NEW_VAR=description  # What this controls
-```
-
-### E. Research Document Reference
-
-- Source: `.github/agents/research/research_[timestamp].md`
-- Key Sections Used: [list]
-
-```
+Include: Technical risks with likelihood/impact/mitigation, Rollback plan (single task, multiple task, complete)
 
 ---
 
 ## Session Flow Example
 
-### Example: Plan Combat Enhancement
-
-```
-
-USER: Create implementation plan based on .github/agents/research/research_20241219_143052.md
-
-PLANNING AGENT:
-
-1. LOAD RESEARCH
-   [Read research document completely]
-   [Validate completeness]
-2. SYNTHESIZE
-   - Problem: Combat damage calculation needs enhancement
-   - Current: Basic damage formula exists
-   - Target: Include equipment modifiers and critical hits
-   - Constraints: Must maintain backward compatibility
-3. DESIGN ARCHITECTURE
-   - New: CriticalHitCalculator class
-   - Modify: CombatSystem.calculateDamage()
-   - Modify: Equipment interface for damage modifiers
-4. DECOMPOSE TASKS
-   TASK-001: Add CriticalHit types
-   TASK-002: Create CriticalHitCalculator
-   TASK-003: Modify Equipment interface
-   TASK-004: Update CombatSystem
-   TASK-005: Add unit tests
-   TASK-006: Integration testing
-5. SPECIFY TASKS
-   [Complete specifications for each task]
-   [Include exact code for all changes]
-   [Include verification steps]
-   [Include rollback procedures]
-6. ASSESS RISKS
-   - Risk: Breaking existing combat
-   - Mitigation: Feature flag for new calculation
-7. GENERATE PLAN
-   [Create .github/agents/planning/plan_20241219_150000.md]
-
-```
+1. LOAD RESEARCH → Read and validate research document
+2. SYNTHESIZE → Problem, Current State, Target State, Constraints
+3. DESIGN ARCHITECTURE → New components, modifications needed
+4. DECOMPOSE TASKS → Break into atomic tasks with dependencies
+5. SPECIFY TASKS → Complete specifications with code
+6. ASSESS RISKS → Identify risks and mitigations
+7. GENERATE PLAN → Save to `.github/agents/planning/`
 
 ---
 
 ## Quality Checklist
 
-Before completing a plan, verify:
-
+Before completing a plan:
 - [ ] Every decision cites research document evidence
 - [ ] All tasks are atomic and independently verifiable
-- [ ] Complete code is provided (no placeholders)
-- [ ] Line numbers are accurate for modifications
-- [ ] Dependencies between tasks are explicit
-- [ ] Verification steps are specific and executable
-- [ ] Rollback procedures are provided for each task
-- [ ] Risks are identified with mitigations
-- [ ] Plan is saved to `.github/agents/planning/`
+- [ ] Complete code provided (no placeholders)
+- [ ] Line numbers accurate for modifications
+- [ ] Dependencies between tasks explicit
+- [ ] Verification steps specific and executable
+- [ ] Rollback procedures provided
+- [ ] Risks identified with mitigations
+- [ ] Plan saved to `.github/agents/planning/`
 
 ---
 
@@ -1370,12 +381,4 @@ Before completing a plan, verify:
 
 **Ready to transform research into detailed implementation plans for EllyMUD.**
 
-Provide a research document path (e.g., `.github/agents/research/research_20241219_143052.md`) or describe the feature/fix needed, and I'll produce a comprehensive implementation plan with:
-- Complete task specifications
-- Exact code changes with line numbers
-- Dependency ordering
-- Verification procedures
-- Rollback strategies
-
-All plans will be saved to `.github/agents/planning/plan_<timestamp>.md` for the Implementation Agent to execute.
-```
+Provide a research document path or describe the feature/fix needed, and I'll produce a comprehensive plan with complete task specifications, exact code changes, dependency ordering, verification procedures, and rollback strategies.
