@@ -98,6 +98,13 @@ Keep formats consistent and simple. Complex documentation becomes outdated faste
 - [ ] Content matches actual code
 - [ ] README and AGENTS.md are paired
 
+### Report File (MANDATORY)
+
+- [ ] **Report file created** at `.github/agents/documentation/docs_<topic>_<timestamp>.md`
+- [ ] Report includes summary of changes (created/updated counts)
+- [ ] Report lists all files modified with directory paths
+- [ ] Report notes any skipped directories with reasons
+
 ### Stats File
 
 - [ ] Stats file created at `.github/agents/metrics/stats/docs_*-stats.md`
@@ -110,6 +117,7 @@ Keep formats consistent and simple. Complex documentation becomes outdated faste
 - [ ] All todos marked completed
 - [ ] Documentation coverage improved
 - [ ] No orphaned files
+- [ ] **Report returned to caller** (summary of what was done)
 
 **STOP when done.** Do not modify source code. Do not restructure directories.
 
@@ -685,34 +693,56 @@ When running a documentation audit:
 
 ### Update Report
 
-After creating/updating documentation:
+**MANDATORY**: After creating/updating documentation, save this report to:
+`.github/agents/documentation/docs_<topic>_<timestamp>.md`
 
 ```markdown
-## Documentation Update Complete
+# Documentation Update Report: [Topic]
 
-### Summary
+**Timestamp**: YYYYMMDD_HHMMSS
+**Task**: [Brief description of what triggered this update]
+**Directories Affected**: [count]
 
-- README.md created: {count}
-- README.md updated: {count}
-- AGENTS.md created: {count}
-- AGENTS.md updated: {count}
+## Summary
 
-### Changes
+| Metric | Count |
+|--------|-------|
+| README.md created | X |
+| README.md updated | X |
+| AGENTS.md created | X |
+| AGENTS.md updated | X |
+| Directories skipped | X |
+
+## Changes
 
 | Directory | README.md  | AGENTS.md  | Action            |
 | --------- | ---------- | ---------- | ----------------- |
 | `{path}`  | ✅ Created | ✅ Created | New documentation |
 | `{path}`  | ✅ Updated | ⏭️ Skipped | Files changed     |
 
-### Skipped
+## Files Modified
+
+- `{full/path/to/README.md}` - [created/updated]
+- `{full/path/to/AGENTS.md}` - [created/updated]
+
+## Skipped
 
 - `{path}` - {reason}
 
-### Follow-up Needed
+## Quality Verification
 
-- [ ] {Manual review suggested}
+- [ ] All links tested and working
+- [ ] README.md files have no code blocks
+- [ ] AGENTS.md files have code examples
+- [ ] Paired documentation complete
+
+## Follow-up Needed
+
+- [ ] {Any manual review suggested}
 - [ ] {Additional context needed}
 ```
+
+**Return this report summary to the caller** so they can pass it to Output Review Agent.
 
 ---
 

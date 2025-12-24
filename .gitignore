@@ -120,6 +120,9 @@ backups/
 !.github/agents/metrics/stats/README.md
 !.github/agents/metrics/stats/AGENTS.md
 .github/agents/metrics/pipeline-report.md
+.github/agents/documentation/*.md
+!.github/agents/documentation/README.md
+!.github/agents/documentation/AGENTS.md
 # Todos (session-based planning, not committed)
 todos/*.md
 !todos/README.md
