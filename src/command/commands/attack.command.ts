@@ -4,6 +4,7 @@ import { writeFormattedMessageToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
 import { CombatSystem } from '../../combat/combatSystem';
 import { RoomManager } from '../../room/roomManager';
+import { AbilityManager } from '../../abilities/abilityManager';
 import { systemLogger, getPlayerLogger } from '../../utils/logger'; // Import our loggers
 
 export class AttackCommand implements Command {
@@ -12,7 +13,8 @@ export class AttackCommand implements Command {
 
   constructor(
     private combatSystem: CombatSystem,
-    private roomManager: RoomManager
+    private roomManager: RoomManager,
+    private abilityManager?: AbilityManager
   ) {}
 
   execute(client: ConnectedClient, args: string): void {
@@ -129,6 +131,16 @@ export class AttackCommand implements Command {
         colorize(`You don't see a '${args.trim()}' here to attack.\r\n`, 'yellow')
       );
       return;
+    }
+
+    // Deactivate any active combat ability - switch back to weapon attacks
+    if (this.abilityManager?.hasActiveCombatAbility(client.user.username)) {
+      this.abilityManager.deactivateCombatAbility(client.user.username);
+      writeFormattedMessageToClient(
+        client,
+        colorize('You switch back to your weapon.\r\n', 'yellow')
+      );
+      playerLogger.info('Deactivated combat ability, switching to weapon attacks');
     }
 
     // If already in combat, add the new target

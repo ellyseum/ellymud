@@ -1,12 +1,32 @@
 [
   {
+    "id": "shock",
+    "name": "Shock",
+    "description": "Strike your enemy with a bolt of lightning for instant damage.",
+    "type": "standard",
+    "mpCost": 8,
+    "cooldownType": "rounds",
+    "cooldownValue": 1,
+    "targetType": "enemy",
+    "effects": [
+      {
+        "effectType": "instant_damage",
+        "payload": { "damageAmount": 15 },
+        "durationTicks": 0,
+        "tickInterval": 0,
+        "name": "Shock",
+        "description": "Struck by lightning"
+      }
+    ]
+  },
+  {
     "id": "fireball",
     "name": "Fireball",
     "description": "Hurls a ball of fire at your enemy, dealing damage over time.",
     "type": "standard",
     "mpCost": 15,
     "cooldownType": "rounds",
-    "cooldownValue": 3,
+    "cooldownValue": 1,
     "targetType": "enemy",
     "effects": [
       {
@@ -26,7 +46,7 @@
     "type": "standard",
     "mpCost": 20,
     "cooldownType": "rounds",
-    "cooldownValue": 5,
+    "cooldownValue": 1,
     "targetType": "self",
     "effects": [
       {
@@ -46,7 +66,7 @@
     "type": "standard",
     "mpCost": 12,
     "cooldownType": "rounds",
-    "cooldownValue": 4,
+    "cooldownValue": 1,
     "targetType": "enemy",
     "effects": [
       {
@@ -66,7 +86,7 @@
     "type": "standard",
     "mpCost": 10,
     "cooldownType": "rounds",
-    "cooldownValue": 10,
+    "cooldownValue": 1,
     "targetType": "self",
     "effects": [
       {

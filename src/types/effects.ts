@@ -14,6 +14,7 @@ export enum EffectType {
   DAMAGE_OVER_TIME = 'damage_over_time',
   HEAL_OVER_TIME = 'heal_over_time',
   MOVEMENT_BLOCK = 'movement_block',
+  INSTANT_DAMAGE = 'instant_damage',
   // Add more effect types as needed
 }
 
@@ -90,5 +91,6 @@ export const effectStackingRules: { [key in EffectType]?: StackingBehavior } = {
   [EffectType.DAMAGE_OVER_TIME]: StackingBehavior.STACK_INTENSITY,
   [EffectType.HEAL_OVER_TIME]: StackingBehavior.STACK_INTENSITY,
   [EffectType.MOVEMENT_BLOCK]: StackingBehavior.REFRESH,
+  [EffectType.INSTANT_DAMAGE]: StackingBehavior.STACK_INTENSITY, // Each cast applies damage
   // Default: REFRESH if not specified in this map
 };

@@ -170,7 +170,7 @@ export class CommandRegistry {
       new GetCommand(this.clients, this.userManager),
       new YellCommand(this.clients),
       new HistoryCommand(),
-      new AttackCommand(this.combatSystem, this.roomManager),
+      new AttackCommand(this.combatSystem, this.roomManager, this.abilityManager),
       new BreakCommand(this.combatSystem, this.userManager),
       new SpawnCommand(this.roomManager),
       new EquipCommand(),
