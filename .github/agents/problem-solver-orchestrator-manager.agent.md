@@ -215,18 +215,38 @@ Your ONLY pre-pipeline actions should be:
 
 ```
 1. [completed] Assess problem complexity
-2. [completed] Research phase - delegate to Research Agent
-3. [completed] Review research output
-4. [in-progress] Planning phase - delegate to Planning Agent
-5. [not-started] Review planning output
-6. [not-started] Create checkpoint before implementation
-7. [not-started] Implementation phase - delegate to Implementation Agent
-8. [not-started] Review implementation output
-9. [not-started] Validation phase - delegate to Validation Agent
-10. [not-started] Post-mortem analysis
-11. [not-started] Documentation updates
-12. [not-started] Create pull request
+2. [completed] Confirm scope with user
+3. [completed] Create feature branch
+4. [in-progress] Research phase - delegate to Research Agent
+5. [not-started] Review research - delegate to Output Review Agent
+6. [not-started] Planning phase - delegate to Planning Agent
+7. [not-started] Review planning - delegate to Output Review Agent
+8. [not-started] Create checkpoint - delegate to Rollback Agent
+9. [not-started] Implementation phase - delegate to Implementation Agent
+10. [not-started] Review implementation - delegate to Output Review Agent
+11. [not-started] Validation phase - delegate to Validation Agent
+12. [not-started] Review validation - delegate to Output Review Agent
+13. [not-started] Post-mortem analysis - delegate to Post-Mortem Agent
+14. [not-started] Review post-mortem - delegate to Output Review Agent
+15. [not-started] Documentation updates - delegate to Documentation Updater
+16. [not-started] Review documentation - delegate to Output Review Agent
+17. [not-started] Create pull request
 ```
+
+### ⚠️ CRITICAL: Never Skip Review Steps
+
+**Every main agent output MUST be reviewed by the Output Review Agent before proceeding.**
+
+| Main Agent            | Review Step Required | Skip Allowed? |
+|-----------------------|---------------------|---------------|
+| Research Agent        | Phase 2 Review      | ❌ NEVER      |
+| Planning Agent        | Phase 4 Review      | ❌ NEVER      |
+| Implementation Agent  | Phase 6 Review      | ❌ NEVER      |
+| Validation Agent      | Phase 8 Review      | ❌ NEVER      |
+| Post-Mortem Agent     | Phase 11.5 Review   | ❌ NEVER      |
+| Documentation Updater | Phase 12.5 Review   | ❌ NEVER      |
+
+**Enforcement**: If you find yourself about to proceed to the next phase without a review step, STOP and invoke the Output Review Agent first.
 
 ### Best Practices
 
@@ -2234,15 +2254,49 @@ Invoke Post-Mortem Agent with the brief.
    git push origin feature/<branch-name>
    ```
 
-#### 11.4 Update PR Description
+#### 11.4 Review Post-Mortem Output
+
+##### 11.4.1 Prepare Review Brief
+
+```markdown
+## Output Review Agent Task Brief
+
+**Document to Review**: `.github/agents/suggestions/post-mortem-suggestions-<topic>-<timestamp>.md`
+**Document Type**: Post-Mortem Suggestions
+**Next Consumer**: Problem Solver (for PR) and future pipeline executions
+
+### Review Focus
+- Verify lessons learned are specific and actionable
+- Confirm agent improvement suggestions are concrete (not vague)
+- Ensure pipeline health scores are justified with evidence
+- Check that proposed agent file changes include specific diffs
+
+### Quality Gate
+- Minimum acceptable grade: B (80/100)
+- If below threshold: Note issues but proceed (post-mortem is advisory)
+
+### Expected Output
+`.github/agents/suggestions/post-mortem-suggestions-<topic>-<timestamp>-reviewed.md`
+```
+
+##### 11.4.2 Execute Review
+
+Invoke Output Review Agent with the brief.
+
+##### 11.4.3 Quality Check
+
+If grade < B (80), assess whether post-mortem suggestions need refinement or can proceed with caveats.
+
+#### 11.5 Update PR Description
 
 Add the Agent Ecosystem Improvements section to the PR description (see PR template above).
 
-#### 11.5 Post-Mortem Quality Gate
+#### 11.6 Post-Mortem Quality Gate
 
 | Check                                | Required | Action if Failed                    |
 | ------------------------------------ | -------- | ----------------------------------- |
 | Suggestions document created         | Yes      | Re-run post-mortem                  |
+| **Output Review completed**          | **Yes**  | **Run Output Review Agent first**   |
 | Pipeline health scores assigned      | Yes      | Re-run post-mortem                  |
 | At least 1 lesson learned documented | Yes      | Accept (may indicate good pipeline) |
 | Agent improvements reviewed          | Yes      | Must review before marking PR ready |
@@ -2371,14 +2425,65 @@ Invoke Documentation Updater Agent with the brief.
    git push origin feature/<branch-name>
    ```
 
-#### 12.5 Documentation Quality Gate
+#### 12.5 Review Documentation Output
 
-| Check                                   | Required    | Action if Failed             |
-| --------------------------------------- | ----------- | ---------------------------- |
-| All affected directories have README.md | Yes         | Create missing files         |
-| All affected directories have AGENTS.md | Yes         | Create missing files         |
-| AGENTS.md has code examples             | Recommended | Accept, note for improvement |
-| All links working                       | Yes         | Fix broken links             |
+##### 12.5.1 Prepare Review Brief
+
+```markdown
+## Output Review Agent Task Brief
+
+**Documents to Review**: All README.md and AGENTS.md files modified in affected directories
+**Document Type**: Documentation (README.md + AGENTS.md pairs)
+**Next Consumer**: Humans (README.md) and LLMs (AGENTS.md)
+
+### Review Focus
+
+#### For README.md files:
+- No code blocks (human-readable only)
+- Accurate directory/file listings
+- Clear and concise language
+- Working relative links
+
+#### For AGENTS.md files:
+- Code examples included for new patterns
+- Conventions explained with examples
+- Gotchas and warnings documented
+- Complete technical detail for LLM consumption
+
+#### Paired Documentation Rule:
+- Every README.md has a matching AGENTS.md
+- Both files are consistent in their descriptions
+- Neither references information the other contradicts
+
+### Quality Gate
+- Minimum acceptable grade: B (80/100)
+- If below threshold: Request Documentation Updater to fix issues
+
+### Expected Output
+For each directory, confirm documentation meets standards.
+Create summary: `.github/agents/documentation/docs-review-<topic>-<timestamp>.md`
+```
+
+##### 12.5.2 Execute Review
+
+Invoke Output Review Agent with the brief.
+
+##### 12.5.3 Quality Check
+
+If grade < B (80):
+- Identify specific issues in README.md or AGENTS.md files
+- Request Documentation Updater to address issues
+- Re-run review after fixes
+
+#### 12.6 Documentation Quality Gate
+
+| Check                                   | Required    | Action if Failed               |
+| --------------------------------------- | ----------- | ------------------------------ |
+| All affected directories have README.md | Yes         | Create missing files           |
+| All affected directories have AGENTS.md | Yes         | Create missing files           |
+| **Output Review completed**             | **Yes**     | **Run Output Review Agent first** |
+| AGENTS.md has code examples             | Recommended | Accept, note for improvement   |
+| All links working                       | Yes         | Fix broken links               |
 
 ---
 
@@ -2419,15 +2524,16 @@ Invoke Documentation Updater Agent with the brief.
 
 ## Quality Gates Summary
 
-| Phase Transition            | Minimum Grade       | Escalation Trigger                |
-| --------------------------- | ------------------- | --------------------------------- |
-| Research → Planning         | B (80)              | Research incomplete or inaccurate |
-| Planning → Implementation   | B (80)              | Plan has gaps or ambiguities      |
-| Implementation → Validation | B (80)              | Implementation incomplete         |
-| Validation → PR             | PASS verdict        | 3 consecutive FAILs               |
-| PR → Post-Mortem            | N/A (always runs)   | N/A                               |
-| Post-Mortem → Documentation | Suggestions created | Post-mortem agent failure         |
-| Documentation → Final PR    | Docs updated        | Documentation agent failure       |
+| Phase Transition            | Minimum Grade       | Review Required? | Escalation Trigger                |
+| --------------------------- | ------------------- | ---------------- | --------------------------------- |
+| Research → Planning         | B (80)              | ✅ Yes           | Research incomplete or inaccurate |
+| Planning → Implementation   | B (80)              | ✅ Yes           | Plan has gaps or ambiguities      |
+| Implementation → Validation | B (80)              | ✅ Yes           | Implementation incomplete         |
+| Validation → PR             | PASS verdict        | ✅ Yes           | 3 consecutive FAILs               |
+| Post-Mortem → Documentation | B (80)              | ✅ Yes           | Post-mortem suggestions unclear   |
+| Documentation → Final PR    | B (80)              | ✅ Yes           | Documentation incomplete          |
+
+**⚠️ CRITICAL**: Every transition requires Output Review Agent approval. No exceptions.
 
 **Note**: Instant Mode bypasses ALL quality gates. Use only for trivial, zero-risk changes.
 
@@ -2578,9 +2684,20 @@ User provided exact file, line number, and value. Single-file config change with
 
 ## Final PR Checklist
 
-- [ ] All pipeline phases completed (1-10)
+### Pipeline Phases
+- [ ] All pipeline phases completed (1-12)
 - [ ] Post-mortem analysis completed (Phase 11)
 - [ ] Documentation updated (Phase 12)
+
+### Output Review Verification (MANDATORY)
+- [ ] Research output reviewed (Phase 2)
+- [ ] Planning output reviewed (Phase 4)
+- [ ] Implementation output reviewed (Phase 6)
+- [ ] Validation output reviewed (Phase 8)
+- [ ] Post-mortem output reviewed (Phase 11.4)
+- [ ] Documentation output reviewed (Phase 12.5)
+
+### Deliverables
 - [ ] Agent improvements applied and committed
 - [ ] PR description includes Agent Ecosystem Improvements section
 - [ ] README.md files created/updated for affected directories
