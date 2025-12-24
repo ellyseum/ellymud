@@ -1,7 +1,7 @@
 ---
 name: Pipeline Executor
-description: Executes pipeline phases through agent delegation. Called by Problem Solver to run phases.
-infer: false
+description: Executes pipeline phases through agent delegation for Research, Planning, Implementation, Validation, and Documentation.
+infer: true
 model: claude-4.5-opus
 argument-hint: Provide pipeline phase to execute and context from previous phases
 tools:

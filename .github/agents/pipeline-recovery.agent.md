@@ -1,7 +1,7 @@
 ---
 name: Pipeline Recovery
-description: Handles pipeline failures, timeouts, validation failures, and emergency recovery operations.
-infer: false
+description: Handles pipeline failures, timeouts, validation failures, and executes recovery or rollback operations.
+infer: true
 model: claude-sonnet-4-20250514
 argument-hint: Describe the failure scenario or recovery operation needed
 tools:
