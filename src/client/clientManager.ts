@@ -74,7 +74,9 @@ export class ClientManager {
     this.clients.set(clientId, client);
 
     // Start the state machine
-    this.stateMachine.transitionTo(client, ClientStateType.CONNECTING);
+    if (this.stateMachine) {
+      this.stateMachine.transitionTo(client, ClientStateType.CONNECTING);
+    }
 
     // Handle data from client
     connection.on('data', (data) => {
@@ -269,7 +271,9 @@ export class ClientManager {
 
     // If the client is in a special state (Snake game or Waiting), route all input to the state machine
     if (client.state === ClientStateType.SNAKE_GAME || client.state === ClientStateType.WAITING) {
-      this.stateMachine.handleInput(client, data);
+      if (this.stateMachine) {
+        this.stateMachine.handleInput(client, data);
+      }
       return; // Prevent further processing
     }
 

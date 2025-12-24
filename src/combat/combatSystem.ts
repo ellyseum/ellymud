@@ -22,6 +22,7 @@ import { CombatNotifier } from './components/CombatNotifier';
 import { PlayerDeathHandler } from './components/PlayerDeathHandler';
 import { CombatEventBus } from './components/CombatEventBus';
 import { CombatState, ActiveCombatState, FleeingCombatState } from './components/CombatState';
+import { CombatCommandFactory } from './components/CombatCommand';
 import { ColorType } from '../utils/colors';
 
 /**
@@ -80,15 +81,19 @@ export class CombatSystem {
    */
   private setupEventListeners(): void {
     // Listen for player death events
-    this.eventBus.on('player.damage', (data: { player: ConnectedClient; roomId: string }) => {
-      if (data.player.user && data.player.user.health <= 0) {
-        this.playerDeathHandler.handlePlayerHealth(data.player, data.roomId);
+    this.eventBus.on('player.damage', (data?: unknown) => {
+      const typedData = data as { player: ConnectedClient; roomId: string } | undefined;
+      if (typedData?.player.user && typedData.player.user.health <= 0) {
+        this.playerDeathHandler.handlePlayerHealth(typedData.player, typedData.roomId);
       }
     });
 
     // Listen for combat end events
-    this.eventBus.on('combat.end', (username: string) => {
-      this.removeCombatForPlayer(username);
+    this.eventBus.on('combat.end', (data?: unknown) => {
+      const username = data as string | undefined;
+      if (username) {
+        this.removeCombatForPlayer(username);
+      }
     });
 
     // More event listeners can be added here

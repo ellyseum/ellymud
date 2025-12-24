@@ -1,4 +1,4 @@
-import { ConnectedClient } from '../../types';
+import { ConnectedClient, GameItem } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
@@ -115,7 +115,7 @@ export class InventoryCommand implements Command {
 
       // Group items by type
       for (const itemId of inventory.items) {
-        let item: unknown;
+        let item: GameItem | undefined;
         let customName: string | undefined;
         let type = 'Unknown';
         const isEquipped = equippedIds.includes(itemId);

@@ -170,8 +170,8 @@ export class Combat {
           ? itemManager.getItem(instance.templateId)
           : itemManager.getItem(weaponId);
 
-        if (template && template.stats && template.stats.damage) {
-          weaponDamage = template.stats.damage;
+        if (template && template.stats && template.stats.attack) {
+          weaponDamage = template.stats.attack;
         }
 
         // Degrade weapon durability with use (only for item instances)

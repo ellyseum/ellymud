@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Debug commands use dynamic typing for inspecting game state
-import { ConnectedClient } from '../../types';
+import { ConnectedClient, ItemInstance } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
@@ -223,9 +223,9 @@ export class DebugCommand implements Command {
   /**
    * Find item instances by name match (searches both custom names and template names)
    */
-  private findInstancesByNameMatch(nameQuery: string): unknown[] {
+  private findInstancesByNameMatch(nameQuery: string): ItemInstance[] {
     const normalizedQuery = nameQuery.toLowerCase();
-    const matchingInstances: unknown[] = [];
+    const matchingInstances: ItemInstance[] = [];
 
     // Get all item instances
     const allInstances = this.itemManager.getAllItemInstances();
