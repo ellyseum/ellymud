@@ -202,5 +202,30 @@
         "description": "Restoring mana"
       }
     ]
+  },
+  {
+    "id": "magic-missile",
+    "name": "Magic Missile",
+    "description": "Channel arcane energy into deadly missiles that replace your weapon attacks.",
+    "type": "combat",
+    "mpCost": 5,
+    "mpCostPerRound": 3,
+    "cooldownType": "rounds",
+    "cooldownValue": 0,
+    "targetType": "enemy",
+    "combatDuration": 99,
+    "baseDamage": 8,
+    "damageScaling": "intelligence",
+    "hitChance": 0.85,
+    "effects": [
+      {
+        "effectType": "instant_damage",
+        "payload": { "damageAmount": 8 },
+        "durationTicks": 0,
+        "tickInterval": 0,
+        "name": "Magic Missile",
+        "description": "Struck by arcane force"
+      }
+    ]
   }
 ]

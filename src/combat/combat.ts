@@ -170,6 +170,29 @@ export class Combat {
   ): void {
     if (!player.user || !this.abilityManager) return;
 
+    const username = player.user.username;
+    const ability = this.abilityManager.getActiveCombatAbility(username);
+
+    // Check and deduct per-round MP cost
+    if (ability) {
+      const mpCostPerRound =
+        (ability as unknown as { mpCostPerRound?: number }).mpCostPerRound ?? 0;
+      if (mpCostPerRound > 0) {
+        if (!this.abilityManager.hasMana(username, mpCostPerRound)) {
+          // Out of mana - cancel combat ability
+          writeFormattedMessageToClient(
+            player,
+            colorize('You run out of mana! Your spell fades...\r\n', 'yellow')
+          );
+          this.abilityManager.deactivateCombatAbility(username);
+          // Fall back to weapon attack
+          this.processWeaponAttack(player, target, roomId);
+          return;
+        }
+        this.abilityManager.useMana(username, mpCostPerRound);
+      }
+    }
+
     const result = this.abilityManager.executeCombatAbilityAttack(player, target.name, true);
 
     if (result.hit) {

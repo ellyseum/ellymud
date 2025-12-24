@@ -60,6 +60,7 @@ import { LaughCommand } from './commands/laugh.command'; // Import our new Laugh
 import { CastCommand } from './commands/cast.command';
 import { AbilitiesCommand } from './commands/abilities.command';
 import { UseCommand } from './commands/use.command';
+import { MagicMissileCommand } from './commands/mmis.command';
 import { AbilityManager } from '../abilities/abilityManager';
 
 // Function to calculate Levenshtein distance between two strings
@@ -201,6 +202,7 @@ export class CommandRegistry {
       new CastCommand(this.abilityManager), // Add cast command for abilities
       new AbilitiesCommand(this.abilityManager), // Add abilities listing command
       new UseCommand(this.abilityManager), // Add use command for item abilities
+      new MagicMissileCommand(this.abilityManager, this.combatSystem, this.roomManager), // Add magic missile combat ability command
     ];
 
     // Register all commands
@@ -297,6 +299,9 @@ export class CommandRegistry {
     this.aliases.set('c', { commandName: 'cast' });
     this.aliases.set('ab', { commandName: 'abilities' });
     this.aliases.set('spells', { commandName: 'abilities' });
+    // Add aliases for magic missile
+    this.aliases.set('magicmissile', { commandName: 'mmis' });
+    this.aliases.set('mm', { commandName: 'mmis' });
   }
 
   private registerDirectionCommands(): void {

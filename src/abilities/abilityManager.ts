@@ -273,6 +273,13 @@ export class AbilityManager extends EventEmitter {
     }
   }
 
+  public deactivateCombatAbility(username: string): void {
+    if (this.activeCombatAbilities.has(username)) {
+      this.activeCombatAbilities.delete(username);
+      abilityLogger.info(`${username} combat ability deactivated`);
+    }
+  }
+
   public executeCombatAbilityAttack(
     client: ConnectedClient,
     targetId: string,
