@@ -56,6 +56,7 @@ import { ChangePasswordCommand } from './commands/changePassword.command'; // Im
 import { PlayedCommand } from './commands/played.command'; // Import our new Played command
 import { TimeCommand } from './commands/time.command'; // Import our new Time command
 import { WaveCommand } from './commands/wave.command'; // Import our new Wave command
+import { LaughCommand } from './commands/laugh.command'; // Import our new Laugh command
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -186,6 +187,7 @@ export class CommandRegistry {
       new PlayedCommand(this.userManager), // Add our new Played command
       new TimeCommand(), // Add our new Time command
       new WaveCommand(this.clients), // Add our new Wave command
+      new LaughCommand(this.clients), // Add our new Laugh command
     ];
 
     // Register all commands
