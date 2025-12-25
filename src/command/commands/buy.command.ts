@@ -6,13 +6,17 @@ import { RoomManager } from '../../room/roomManager';
 import { ItemManager } from '../../utils/itemManager';
 import { Merchant } from '../../combat/merchant';
 import { MerchantStateManager } from '../../combat/merchantStateManager';
+import { UserManager } from '../../user/userManager';
 
 export class BuyCommand implements Command {
   name = 'buy';
   description = 'Buy an item from a merchant';
   usage = 'buy <item name>';
 
-  constructor(private roomManager: RoomManager) {}
+  constructor(
+    private roomManager: RoomManager,
+    private userManager: UserManager
+  ) {}
 
   async execute(client: ConnectedClient, args: string): Promise<void> {
     if (!client.user) return;
@@ -73,6 +77,9 @@ export class BuyCommand implements Command {
     merchant.removeItem(foundInstanceId);
     client.user.inventory.currency.gold -= foundTemplate.value;
     client.user.inventory.items.push(foundInstanceId);
+
+    // Persist user inventory changes
+    this.userManager.updateUserInventory(client.user.username, client.user.inventory);
 
     // Save merchant state for persistence across restarts
     const stateManager = MerchantStateManager.getInstance();
