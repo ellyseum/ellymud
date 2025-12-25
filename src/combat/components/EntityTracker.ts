@@ -2,6 +2,7 @@ import { CombatEntity } from '../combatEntity.interface';
 import { systemLogger } from '../../utils/logger';
 import { NPC, NPCData } from '../npc';
 import { Merchant, MerchantData } from '../merchant';
+import { MerchantStateManager } from '../merchantStateManager';
 import { RoomManager } from '../../room/roomManager';
 
 /**
@@ -23,7 +24,21 @@ export class EntityTracker {
   private createNpcInstance(npcTemplate: NPCData): NPC {
     if (npcTemplate.merchant) {
       const merchant = Merchant.fromMerchantData(npcTemplate as MerchantData);
-      merchant.initializeInventory();
+      
+      // Check if we have saved state for this merchant
+      const stateManager = MerchantStateManager.getInstance();
+      if (stateManager.hasSavedState(npcTemplate.id)) {
+        const savedState = stateManager.getMerchantState(npcTemplate.id);
+        if (savedState) {
+          // Restore inventory from saved state
+          merchant.restoreInventory(savedState);
+          systemLogger.info(`[EntityTracker] Restored merchant ${npcTemplate.id} from saved state`);
+        }
+      } else {
+        // Initialize fresh inventory
+        merchant.initializeInventory();
+      }
+      
       return merchant;
     }
     return NPC.fromNPCData(npcTemplate);

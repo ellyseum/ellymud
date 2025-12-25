@@ -6,13 +6,17 @@ import { RoomManager } from '../../room/roomManager';
 import { ItemManager } from '../../utils/itemManager';
 import { Merchant } from '../../combat/merchant';
 import { MerchantStateManager } from '../../combat/merchantStateManager';
+import { UserManager } from '../../user/userManager';
 
 export class SellCommand implements Command {
   name = 'sell';
   description = 'Sell an item to a merchant';
   usage = 'sell <item name>';
 
-  constructor(private roomManager: RoomManager) {}
+  constructor(
+    private roomManager: RoomManager,
+    private userManager: UserManager
+  ) {}
 
   async execute(client: ConnectedClient, args: string): Promise<void> {
     if (!client.user) return;
@@ -61,6 +65,9 @@ export class SellCommand implements Command {
     client.user.inventory.items.splice(itemIndex, 1);
     client.user.inventory.currency.gold += value;
 
+    // Persist user inventory changes
+    this.userManager.updateUserInventory(client.user.username, client.user.inventory);
+
     // Add history entry to the item
     if (item.history) {
       item.history.push({
@@ -69,9 +76,6 @@ export class SellCommand implements Command {
         details: `Sold by ${client.user.username} to ${merchant.name} for ${value} gold`,
       });
     }
-
-    // Update item creator to reflect merchant ownership
-    item.createdBy = `merchant:${merchant.name}`;
 
     // Add the actual item instance to merchant's inventory (not just template)
     merchant.addItem(instanceId);

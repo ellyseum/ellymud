@@ -3,13 +3,17 @@ import { ConnectedClient } from '../../types';
 import { writeMessageToClient } from '../../utils/socketWriter';
 import { colors } from '../../utils/colors';
 import { RoomManager } from '../../room/roomManager';
+import { UserManager } from '../../user/userManager';
 
 export class WithdrawCommand implements Command {
   name = 'withdraw';
   description = 'Withdraw gold from the bank';
   usage = 'withdraw <amount>';
 
-  constructor(private roomManager: RoomManager) {}
+  constructor(
+    private roomManager: RoomManager,
+    private userManager: UserManager
+  ) {}
 
   async execute(client: ConnectedClient, args: string): Promise<void> {
     if (!client.user) return;
@@ -44,6 +48,12 @@ export class WithdrawCommand implements Command {
 
     client.user.bank.gold -= amount;
     client.user.inventory.currency.gold += amount;
+
+    // Persist changes to user database
+    this.userManager.updateUserStats(client.user.username, {
+      inventory: client.user.inventory,
+      bank: client.user.bank,
+    });
 
     writeMessageToClient(
       client,

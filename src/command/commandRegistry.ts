@@ -214,11 +214,11 @@ export class CommandRegistry {
       new MeditateCommand(), // Add meditate command for MP regen
       new TrainCommand(this.userManager, this.clients, this.roomManager), // Add train command for leveling and editor
       new ExpCommand(), // Add exp command for experience display
-      new BuyCommand(this.roomManager),
-      new SellCommand(this.roomManager),
+      new BuyCommand(this.roomManager, this.userManager),
+      new SellCommand(this.roomManager, this.userManager),
       new WaresCommand(this.roomManager),
-      new DepositCommand(this.roomManager),
-      new WithdrawCommand(this.roomManager),
+      new DepositCommand(this.roomManager, this.userManager),
+      new WithdrawCommand(this.roomManager, this.userManager),
       new BalanceCommand(this.roomManager),
     ];
 
@@ -285,6 +285,9 @@ export class CommandRegistry {
     this.aliases.set('shop', { commandName: 'wares' });
     this.aliases.set('merchandise', { commandName: 'wares' });
     this.aliases.set('list', { commandName: 'wares' });
+    // Add aliases for who command
+    this.aliases.set('users', { commandName: 'who' });
+    this.aliases.set('online', { commandName: 'who' });
     // Add aliases for effects command
     this.aliases.set('eff', { commandName: 'effect' });
     this.aliases.set('effs', { commandName: 'effect', args: 'list' });

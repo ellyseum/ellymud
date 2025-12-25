@@ -76,7 +76,7 @@
       {
         "itemId": "the_one_ring",
         "itemCount": 1,
-        "spawnRate": 1.0
+        "spawnRate": 0.01
       }
     ]
   },
