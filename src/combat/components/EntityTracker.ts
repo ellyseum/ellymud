@@ -24,7 +24,6 @@ export class EntityTracker {
   private createNpcInstance(npcTemplate: NPCData): NPC {
     if (npcTemplate.merchant) {
       const merchant = Merchant.fromMerchantData(npcTemplate as MerchantData);
-      
       // Check if we have saved state for this merchant
       const stateManager = MerchantStateManager.getInstance();
       if (stateManager.hasSavedState(npcTemplate.id)) {
@@ -38,7 +37,6 @@ export class EntityTracker {
         // Initialize fresh inventory
         merchant.initializeInventory();
       }
-      
       return merchant;
     }
     return NPC.fromNPCData(npcTemplate);
