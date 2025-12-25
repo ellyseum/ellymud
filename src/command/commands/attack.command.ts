@@ -29,6 +29,15 @@ export class AttackCommand implements Command {
       return;
     }
 
+    const room = this.roomManager.getRoom(client.user.currentRoomId);
+    if (room && room.flags.includes('safe')) {
+      writeFormattedMessageToClient(
+        client,
+        colorize(`You cannot fight here. This is a safe zone.\r\n`, 'yellow')
+      );
+      return;
+    }
+
     // Get player logger for this user
     const playerLogger = getPlayerLogger(client.user.username);
 
@@ -66,8 +75,8 @@ export class AttackCommand implements Command {
     }
 
     // Find target in the room - first try to get exact NPC by instance ID
-    const room = this.roomManager.getRoom(roomId);
-    if (!room) {
+    const targetRoom = this.roomManager.getRoom(roomId);
+    if (!targetRoom) {
       playerLogger.info(`Attack command: Invalid room ${roomId}`);
       writeFormattedMessageToClient(
         client,
@@ -80,13 +89,13 @@ export class AttackCommand implements Command {
     const targetName = args.trim().toLowerCase();
 
     // First try direct instance ID match
-    if (room.npcs.has(targetName)) {
-      target = room.npcs.get(targetName);
+    if (targetRoom.npcs.has(targetName)) {
+      target = targetRoom.npcs.get(targetName);
       playerLogger.info(`Attack command: Found direct match for instance ID ${targetName}`);
     }
     // Then try by instance ID with partial match
     else {
-      const npcsInRoom = Array.from(room.npcs.values());
+      const npcsInRoom = Array.from(targetRoom.npcs.values());
       const matchByInstanceId = npcsInRoom.find((npc) =>
         npc.instanceId.toLowerCase().includes(targetName)
       );

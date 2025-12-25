@@ -174,6 +174,7 @@ export interface User {
     items: string[]; // Now stores item instanceIds instead of templateIds
     currency: Currency;
   };
+  bank?: Currency; // Bank balance for economy system
   commandHistory?: string[]; // Store the user's command history (up to 30 entries)
   currentHistoryIndex?: number; // Current position in command history when browsing
   savedCurrentCommand?: string; // Save the current command when browsing history

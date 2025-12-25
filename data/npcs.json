@@ -82,5 +82,20 @@
       "whines pitifully and falls to the ground with glazed eyes",
       "howls mournfully as its strength fades away"
     ]
+  },
+  {
+    "id": "merchant_1",
+    "name": "Marcus the Merchant",
+    "description": "A friendly merchant selling basic goods.",
+    "health": 100,
+    "maxHealth": 100,
+    "damage": [1, 2],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Marcus slaps you!"],
+    "deathMessages": ["Marcus runs away!"],
+    "merchant": true,
+    "inventory": ["potion_healing_1", "sword_iron_1"]
   }
 ]

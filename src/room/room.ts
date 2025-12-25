@@ -13,6 +13,7 @@ export class Room {
   description: string;
   exits: Exit[];
   players: string[] = [];
+  public flags: string[] = [];
 
   // Replace items array with a map of instanceId -> templateId
   private itemInstances: Map<string, string> = new Map(); // instanceId -> templateId
@@ -31,6 +32,7 @@ export class Room {
     this.description = room.description || room.longDescription;
     this.exits = room.exits || [];
     this.players = room.players || [];
+    this.flags = room.flags || [];
 
     // Initialize itemInstances
     this.itemInstances = new Map();

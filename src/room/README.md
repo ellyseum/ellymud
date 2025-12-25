@@ -38,7 +38,7 @@ Each room has:
 - `exits` - Map of direction → destination room ID
 - `items` - Items on the ground
 - `npcs` - NPCs currently in the room
-- `properties` - Special room flags (safe zone, etc.)
+- `flags` - Special room properties (`safe`, `training`, `bank`, `shop`)
 
 ## Services
 

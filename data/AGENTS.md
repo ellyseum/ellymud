@@ -31,6 +31,7 @@ JSON files containing all persistent game data. Modified at runtime and saved pe
     "wisdom": 10,
     "charisma": 10,
     "gold": 100,
+    "bank": { "gold": 1000, "silver": 0, "copper": 0 },
     "inventory": [],
     "equipment": {},
     "flags": [],
@@ -58,6 +59,7 @@ JSON files containing all persistent game data. Modified at runtime and saved pe
     ],
     "items": [],
     "npcs": [],
+    "flags": ["safe", "bank"],
     "currency": { "gold": 0, "silver": 0, "copper": 0 }
   }
 ]
@@ -118,7 +120,9 @@ JSON files containing all persistent game data. Modified at runtime and saved pe
     "experience": 10,
     "loot": ["gold:10-20", "item:dagger:0.1"],
     "respawnTime": 60,
-    "aggressive": true
+    "aggressive": true,
+    "merchant": false,
+    "inventory": []
   }
 ]
 ```

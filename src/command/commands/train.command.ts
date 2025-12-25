@@ -5,6 +5,7 @@ import { Command } from '../command.interface';
 import { UserManager } from '../../user/userManager';
 import { formatUsername } from '../../utils/formatters';
 import { getPlayerLogger } from '../../utils/logger';
+import { RoomManager } from '../../room/roomManager';
 
 /**
  * Calculate the experience required for a given level using exponential scaling.
@@ -35,7 +36,8 @@ export class TrainCommand implements Command {
 
   constructor(
     private userManager: UserManager,
-    private clients: Map<string, ConnectedClient>
+    private clients: Map<string, ConnectedClient>,
+    private roomManager: RoomManager
   ) {}
 
   execute(client: ConnectedClient, args: string): void {
@@ -55,6 +57,14 @@ export class TrainCommand implements Command {
 
     // Handle 'train' with no args - attempt to level up
     if (trimmedArgs === '') {
+      const room = this.roomManager.getRoom(client.user.currentRoomId);
+      if (!room || !room.flags.includes('training')) {
+        writeToClient(
+          client,
+          colorize('You can only train in a designated training room.\r\n', 'yellow')
+        );
+        return;
+      }
       this.attemptLevelUp(client, playerLogger);
       return;
     }

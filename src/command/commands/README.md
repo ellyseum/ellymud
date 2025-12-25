@@ -55,6 +55,17 @@ Individual command classes that handle specific player actions. Each file export
 | `equip.command.ts`     | equip, wear, wield | Equip items        |
 | `unequip.command.ts`   | unequip, remove    | Remove equipment   |
 
+### Economy
+
+| File                  | Command            | Description                  |
+| --------------------- | ------------------ | ---------------------------- |
+| `buy.command.ts`      | buy                | Buy items from a shop        |
+| `sell.command.ts`     | sell               | Sell items to a shop         |
+| `wares.command.ts`    | wares, list, shop  | List items for sale in shop  |
+| `deposit.command.ts`  | deposit            | Deposit gold into bank       |
+| `withdraw.command.ts` | withdraw           | Withdraw gold from bank      |
+| `balance.command.ts`  | balance, bal       | Check bank balance           |
+
 ### Character
 
 | File               | Command          | Description          |

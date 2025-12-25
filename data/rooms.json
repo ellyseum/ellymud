@@ -7,14 +7,18 @@
       {
         "direction": "north",
         "roomId": "room2"
+      },
+      {
+        "direction": "east",
+        "roomId": "training_room"
+      },
+      {
+        "direction": "west",
+        "roomId": "shop"
       }
     ],
     "items": [],
     "itemInstances": [
-      {
-        "instanceId": "c905155b-eec6-4bb1-80db-041ba16c3808",
-        "templateId": "sword-uncommon"
-      },
       {
         "instanceId": "464c6c66-2724-470d-a3be-e90beac53d9f",
         "templateId": "sword-rare"
@@ -23,7 +27,7 @@
     "npcs": [],
     "currency": {
       "gold": 0,
-      "silver": 3,
+      "silver": 0,
       "copper": 0
     }
   },
@@ -47,6 +51,46 @@
       "goblin",
       "goblin",
       "goblin"
+    ],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    }
+  },
+  {
+    "id": "training_room",
+    "name": "The Dojo",
+    "description": "A quiet room with mats on the floor, perfect for training.",
+    "exits": [
+      {
+        "direction": "west",
+        "roomId": "start"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    }
+  },
+  {
+    "id": "shop",
+    "name": "General Store",
+    "description": "A well-stocked general store.",
+    "exits": [
+      {
+        "direction": "east",
+        "roomId": "start"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [
+      "merchant_1"
     ],
     "currency": {
       "gold": 0,

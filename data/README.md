@@ -6,11 +6,11 @@ JSON files containing all persistent game data including users, rooms, items, NP
 
 | Path                    | Description                                    |
 | ----------------------- | ---------------------------------------------- |
-| `users.json`            | User accounts and character data               |
-| `rooms.json`            | World room definitions with exits and contents |
-| `items.json`            | Item templates defining all item types         |
+| `users.json`            | User accounts, character data, and bank balances |
+| `rooms.json`            | World room definitions, exits, contents, and flags |
+| `items.json`            | Item templates defining all item types and prices |
 | `itemInstances.json`    | Instantiated items in the world                |
-| `npcs.json`             | NPC templates and behaviors                    |
+| `npcs.json`             | NPC templates, behaviors, and merchant data    |
 | `abilities.json`        | Spell and ability definitions                  |
 | `mud-config.json`       | Core game configuration                        |
 | `gametimer-config.json` | Timer and tick settings                        |

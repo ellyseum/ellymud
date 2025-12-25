@@ -454,5 +454,25 @@
     "value": 30,
     "weight": 0.5,
     "ability": "mana_potion_effect"
+  },
+  {
+    "id": "potion_healing_1",
+    "name": "Healing Potion",
+    "description": "A small vial of red liquid.",
+    "type": "consumable",
+    "value": 10,
+    "weight": 0.5
+  },
+  {
+    "id": "sword_iron_1",
+    "name": "Iron Sword",
+    "description": "A standard iron sword.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 50,
+    "weight": 5,
+    "stats": {
+      "attack": 5
+    }
   }
 ]
