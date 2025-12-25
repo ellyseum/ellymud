@@ -10,6 +10,7 @@ Complete reference guide for all available commands in EllyMUD.
 - [Communication Commands](#communication-commands)
 - [Item Commands](#item-commands)
 - [Combat Commands](#combat-commands)
+- [Recovery Commands](#recovery-commands)
 - [Ability Commands](#ability-commands)
 - [Character Commands](#character-commands)
 - [Admin Commands](#admin-commands)
@@ -600,6 +601,65 @@ damage self 10
 - Admin or testing command
 - Bypasses normal combat mechanics
 - Useful for testing
+
+## Recovery Commands
+
+Commands for regenerating health and mana outside of combat.
+
+### rest
+
+Sit down and rest to regenerate health faster.
+
+**Usage:**
+
+```
+rest
+```
+
+**Notes:**
+
+- Increases HP regeneration by 2x after 4 ticks (~24 seconds)
+- Cannot rest while in combat
+- Cannot rest while unconscious
+- Automatically interrupted by:
+  - Taking damage
+  - Moving to another room
+  - Attacking something
+  - Entering combat
+- Mutually exclusive with meditating (rest cancels meditation)
+
+### meditate
+
+Sit down and meditate to regenerate mana faster.
+
+**Usage:**
+
+```
+meditate
+```
+
+**Notes:**
+
+- Increases MP regeneration by 2x after 4 ticks (~24 seconds)
+- Provides small MP gains every 6 ticks while meditating (mini meditation bonus)
+- Mini bonus scales with Wisdom and Intelligence stats
+- Cannot meditate while in combat
+- Cannot meditate while unconscious
+- Automatically interrupted by:
+  - Taking damage
+  - Moving to another room
+  - Attacking something
+  - Entering combat
+- Mutually exclusive with resting (meditate cancels rest)
+
+### Prompt Indicators
+
+When resting or meditating, your prompt will show a special indicator:
+
+- `[R]` - Currently resting
+- `[M]` - Currently meditating
+
+Example prompt while resting: `[R][HP:100/100 MP:50/50] > `
 
 ## Ability Commands
 

@@ -11,6 +11,7 @@ Shared utility functions used throughout EllyMUD. Contains critical infrastructu
 | `logger.ts`            | Winston-based logging system                   |
 | `formatters.ts`        | Text formatting utilities                      |
 | `promptFormatter.ts`   | Command prompt rendering                       |
+| `stateInterruption.ts` | Resting/meditating state interruption utility  |
 | `messageFormatter.ts`  | Game message formatting                        |
 | `fileUtils.ts`         | File I/O helpers                               |
 | `jsonUtils.ts`         | JSON parsing and validation                    |

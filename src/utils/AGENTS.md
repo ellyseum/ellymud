@@ -162,6 +162,48 @@ export function logRawInput(sessionId: string, input: string): void;
 export function logRawOutput(sessionId: string, output: string): void;
 ```
 
+### `stateInterruption.ts`
+
+**Purpose**: Handle interruption of resting/meditating states
+
+```typescript
+export type InterruptionReason = 'damage' | 'movement' | 'combat' | 'aggression';
+
+// Clear resting/meditating state with appropriate message
+export function clearRestingMeditating(
+  client: ConnectedClient,
+  reason: InterruptionReason,
+  silent?: boolean  // true = no message to player
+): boolean;  // Returns true if state was cleared
+
+// Check if player is in a resting/meditating state
+export function isRestingOrMeditating(client: ConnectedClient): boolean;
+```
+
+**Usage** (call from combat, movement, or attack commands):
+
+```typescript
+import { clearRestingMeditating } from '../utils/stateInterruption';
+
+// In move.command.ts
+clearRestingMeditating(client, 'movement');
+
+// In combat.ts (when damage received)
+clearRestingMeditating(client, 'damage');
+
+// In attack.command.ts (when player attacks)
+clearRestingMeditating(client, 'aggression');
+```
+
+**Interruption Messages** (automatically shown by reason):
+
+| Reason     | Rest Message                              | Meditate Message                         |
+|------------|-------------------------------------------|------------------------------------------|
+| damage     | You are jolted from your rest by the attack! | Your meditation is broken by the attack! |
+| movement   | You stand up and stop resting.            | You stand up, breaking your meditation.  |
+| combat     | You cannot rest while in combat!          | You cannot meditate while in combat!     |
+| aggression | You stand up and prepare for battle.      | You break your meditation to attack.     |
+
 ## Conventions
 
 ### Color Usage

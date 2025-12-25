@@ -28,6 +28,13 @@ This directory contains 40+ command implementations. Each command is a single Ty
 | `cast.command.ts`       | Cast spells and abilities at targets |
 | `abilities.command.ts`  | List available abilities & cooldowns |
 
+### Recovery Commands
+
+| File                   | Purpose                                      |
+| ---------------------- | -------------------------------------------- |
+| `rest.command.ts`      | Enter resting state for enhanced HP regen    |
+| `meditate.command.ts`  | Enter meditating state for enhanced MP regen |
+
 ### Item Commands
 
 | File                   | Purpose                       |

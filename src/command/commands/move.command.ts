@@ -6,6 +6,7 @@ import { UserManager } from '../../user/userManager';
 import { colorize } from '../../utils/colors';
 import { writeFormattedMessageToClient } from '../../utils/socketWriter';
 import { getPlayerLogger } from '../../utils/logger';
+import { clearRestingMeditating } from '../../utils/stateInterruption';
 
 export class MoveCommand implements Command {
   name = 'move';
@@ -46,6 +47,9 @@ export class MoveCommand implements Command {
     playerLogger.info(
       `Attempting to move ${direction} from room ${currentRoomId} (${currentRoomName})`
     );
+
+    // Interrupt resting/meditating on movement
+    clearRestingMeditating(client, 'movement');
 
     // Simply proceed with movement regardless of combat state
     // Combat system will handle checking rooms during next tick

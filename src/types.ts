@@ -181,6 +181,10 @@ export interface User {
   snakeHighScore?: number; // Add high score for Snake game
   movementRestricted?: boolean; // Flag to restrict player movement
   movementRestrictedReason?: string; // Custom reason why movement is restricted
+  isResting?: boolean; // Player is resting for HP regeneration bonus
+  isMeditating?: boolean; // Player is meditating for MP regeneration bonus
+  restingTicks?: number; // Number of ticks player has been resting
+  meditatingTicks?: number; // Number of ticks player has been meditating
   flags?: string[]; // Array to store player flags for permissions, quests, etc.
   pendingAdminMessages?: Array<{ message: string; timestamp: string }>; // Store admin messages for offline users
 

@@ -15,6 +15,7 @@ import { CombatSystem } from './combatSystem';
 import { ItemManager } from '../utils/itemManager';
 import { createMechanicsLogger } from '../utils/logger';
 import { AbilityManager } from '../abilities/abilityManager';
+import { clearRestingMeditating } from '../utils/stateInterruption';
 
 // Create a context-specific logger for Combat
 const combatLogger = createMechanicsLogger('Combat');
@@ -415,6 +416,9 @@ export class Combat {
 
       // Ensure health doesn't go below 0
       if (targetPlayer.user.health < 0) targetPlayer.user.health = 0;
+
+      // Interrupt resting/meditating when taking damage
+      clearRestingMeditating(targetPlayer, 'damage');
 
       // Update the player's health
       this.userManager.updateUserStats(targetPlayer.user.username, {

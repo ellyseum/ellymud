@@ -6,6 +6,8 @@ import { UserManager } from '../user/userManager';
 import { CombatSystem } from '../combat/combatSystem';
 import { EffectManager } from '../effects/effectManager';
 import { systemLogger, createContextLogger } from '../utils/logger';
+import { colorize } from '../utils/colors';
+import { writeFormattedMessageToClient } from '../utils/socketWriter';
 
 // Create a context-specific logger for GameTimerManager
 const timerLogger = createContextLogger('GameTimerManager');
@@ -192,11 +194,129 @@ export class GameTimerManager extends EventEmitter {
     // Process room-based combat for entities with aggression
     this.combatSystem.processRoomCombat();
 
+    // Process resting/meditating tick counters and mini meditation bonuses
+    this.processRestMeditateTicks();
+
+    // Process regeneration every 24 ticks (144 seconds)
+    if (this.tickCount % 24 === 0) {
+      this.processRegeneration();
+    }
+
     // Check if it's time to save
     if (this.tickCount % this.config.saveInterval === 0) {
       timerLogger.info('Saving all game data...');
       this.forceSave();
       timerLogger.info('Game data saved successfully');
+    }
+  }
+
+  /**
+   * Process tick counters for resting/meditating players and mini meditation bonuses
+   */
+  private processRestMeditateTicks(): void {
+    const activeUsers = this.userManager.getAllActiveUserSessions();
+
+    for (const [username, client] of activeUsers) {
+      if (!client.user) continue;
+
+      if (client.user.inCombat || client.user.isUnconscious) {
+        if (client.user.isResting || client.user.isMeditating) {
+          client.user.isResting = false;
+          client.user.isMeditating = false;
+          client.user.restingTicks = 0;
+          client.user.meditatingTicks = 0;
+        }
+        continue;
+      }
+
+      if (client.user.isResting) {
+        client.user.restingTicks = (client.user.restingTicks || 0) + 1;
+      }
+
+      if (client.user.isMeditating) {
+        client.user.meditatingTicks = (client.user.meditatingTicks || 0) + 1;
+
+        if (client.user.meditatingTicks >= 6 && client.user.meditatingTicks % 6 === 0) {
+          const wisBonus = Math.floor((client.user.wisdom || 10) / 10);
+          const intBonus = Math.floor((client.user.intelligence || 10) / 10);
+          const miniMpGain = Math.max(1, wisBonus + intBonus);
+
+          if (client.user.mana < client.user.maxMana) {
+            client.user.mana = Math.min(client.user.mana + miniMpGain, client.user.maxMana);
+            this.userManager.updateUserStats(username, { mana: client.user.mana });
+
+            writeFormattedMessageToClient(
+              client,
+              colorize(
+                `\r\nYou feel your mana slowly regenerating... (+${miniMpGain} MP)\r\n`,
+                'blue'
+              )
+            );
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Process HP/MP regeneration for all active players
+   * Called every 24 ticks (144 seconds)
+   */
+  private processRegeneration(): void {
+    timerLogger.debug('Processing player regeneration');
+    const activeUsers = this.userManager.getAllActiveUserSessions();
+
+    for (const [username, client] of activeUsers) {
+      if (!client.user) continue;
+      if (client.user.inCombat || client.user.isUnconscious) continue;
+
+      let hpGained = 0;
+      let mpGained = 0;
+      const messages: string[] = [];
+
+      const constitution = client.user.constitution || 10;
+      const baseHpRegen = Math.max(1, Math.floor(constitution / 5));
+
+      const wisdom = client.user.wisdom || 10;
+      const intelligence = client.user.intelligence || 10;
+      const baseMpRegen = Math.max(1, Math.floor((wisdom + intelligence) / 10));
+
+      if (client.user.health < client.user.maxHealth) {
+        let hpRegen = baseHpRegen;
+        if (client.user.isResting && (client.user.restingTicks || 0) >= 4) {
+          hpRegen = Math.floor(hpRegen * 2);
+          messages.push('resting');
+        }
+        hpGained = Math.min(hpRegen, client.user.maxHealth - client.user.health);
+        client.user.health += hpGained;
+      }
+
+      if (client.user.mana < client.user.maxMana) {
+        let mpRegen = baseMpRegen;
+        if (client.user.isMeditating && (client.user.meditatingTicks || 0) >= 4) {
+          mpRegen = Math.floor(mpRegen * 2);
+          messages.push('meditating');
+        }
+        mpGained = Math.min(mpRegen, client.user.maxMana - client.user.mana);
+        client.user.mana += mpGained;
+      }
+
+      if (hpGained > 0 || mpGained > 0) {
+        this.userManager.updateUserStats(username, {
+          health: client.user.health,
+          mana: client.user.mana,
+        });
+
+        const parts: string[] = [];
+        if (hpGained > 0) parts.push(`+${hpGained} HP`);
+        if (mpGained > 0) parts.push(`+${mpGained} MP`);
+
+        const bonusText = messages.length > 0 ? ` (${messages.join(', ')})` : '';
+        writeFormattedMessageToClient(
+          client,
+          colorize(`\r\nYou regenerate ${parts.join(', ')}${bonusText}.\r\n`, 'green')
+        );
+      }
     }
   }
 

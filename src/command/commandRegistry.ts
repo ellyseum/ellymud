@@ -62,6 +62,8 @@ import { AbilitiesCommand } from './commands/abilities.command';
 import { UseCommand } from './commands/use.command';
 import { MagicMissileCommand } from './commands/mmis.command';
 import { AbilityManager } from '../abilities/abilityManager';
+import { RestCommand } from './commands/rest.command';
+import { MeditateCommand } from './commands/meditate.command';
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -203,6 +205,8 @@ export class CommandRegistry {
       new AbilitiesCommand(this.abilityManager), // Add abilities listing command
       new UseCommand(this.abilityManager), // Add use command for item abilities
       new MagicMissileCommand(this.abilityManager, this.combatSystem, this.roomManager), // Add magic missile combat ability command
+      new RestCommand(), // Add rest command for HP regen
+      new MeditateCommand(), // Add meditate command for MP regen
     ];
 
     // Register all commands
@@ -302,6 +306,9 @@ export class CommandRegistry {
     // Add aliases for magic missile
     this.aliases.set('magicmissile', { commandName: 'mmis' });
     this.aliases.set('mm', { commandName: 'mmis' });
+    // Add aliases for rest and meditate commands
+    this.aliases.set('r', { commandName: 'rest' });
+    this.aliases.set('med', { commandName: 'meditate' });
   }
 
   private registerDirectionCommands(): void {

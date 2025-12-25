@@ -19,6 +19,13 @@ Individual command classes that handle specific player actions. Each file export
 | `attack.command.ts` | attack, a, kill | Initiate combat with target |
 | `flee.command.ts`   | flee, run       | Escape from combat          |
 
+### Recovery
+
+| File                   | Command  | Description                         |
+| ---------------------- | -------- | ----------------------------------- |
+| `rest.command.ts`      | rest     | Sit and rest for enhanced HP regen  |
+| `meditate.command.ts`  | meditate | Meditate for enhanced MP regen      |
+
 ### Abilities
 
 | File                    | Command            | Description              |

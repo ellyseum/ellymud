@@ -354,6 +354,14 @@ export class UserManager {
     return this.activeUserSessions.get(standardized);
   }
 
+  /**
+   * Get all active user sessions as a Map of username -> ConnectedClient
+   * Used by regeneration system to process all players
+   */
+  public getAllActiveUserSessions(): Map<string, ConnectedClient> {
+    return new Map(this.activeUserSessions);
+  }
+
   public registerUserSession(username: string, client: ConnectedClient): void {
     const standardized = standardizeUsername(username);
     this.activeUserSessions.set(standardized, client);

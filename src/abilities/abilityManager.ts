@@ -7,6 +7,7 @@ import {
   CooldownType,
   PlayerCooldowns,
   AbilityCooldownState,
+  TargetType,
 } from './types';
 import { EffectManager } from '../effects/effectManager';
 import { UserManager } from '../user/userManager';
@@ -16,6 +17,7 @@ import { createMechanicsLogger } from '../utils/logger';
 import { writeFormattedMessageToClient } from '../utils/socketWriter';
 import { colorize } from '../utils/colors';
 import { ItemManager } from '../utils/itemManager';
+import { clearRestingMeditating } from '../utils/stateInterruption';
 
 const abilityLogger = createMechanicsLogger('AbilityManager');
 
@@ -506,6 +508,11 @@ export class AbilityManager extends EventEmitter {
     const resolvedTarget = this.resolveTarget(client, ability, targetId);
     if (!resolvedTarget) {
       return false;
+    }
+
+    // Interrupt resting/meditating for enemy-targeted abilities only
+    if (ability.targetType === TargetType.ENEMY) {
+      clearRestingMeditating(client, 'aggression');
     }
 
     if (!this.useMana(username, ability.mpCost)) {

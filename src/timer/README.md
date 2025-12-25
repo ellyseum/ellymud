@@ -15,7 +15,8 @@ The `GameTimerManager` runs the game's heartbeat - periodic ticks that drive:
 - **Combat Processing**: Each tick processes combat rounds
 - **Effect Duration**: Status effects tick down and expire
 - **NPC AI**: NPCs make decisions and take actions
-- **Regeneration**: Health/mana regeneration over time
+- **Rest/Meditate Tracking**: Tracks resting and meditating tick counters with mini meditation bonuses
+- **Regeneration**: Health/mana regeneration with bonuses for resting/meditating players
 - **Spawning**: NPC and item respawn timers
 - **Auto-save**: Periodic data persistence
 
@@ -34,10 +35,11 @@ The timer uses Node.js `setInterval` for each tick type:
 
 ```
 GameTimerManager
-    ├── combatInterval → CombatSystem.processTick()
-    ├── effectInterval → EffectManager.processTick()
-    ├── regenInterval → UserManager.processRegen()
-    └── saveInterval → saveAllData()
+    ├── effectInterval → EffectManager.processGameTick()
+    ├── combatInterval → CombatSystem.processCombatRound()
+    ├── restMeditate  → processRestMeditateTicks() [with mini MP bonuses]
+    ├── regenInterval → processRegeneration() [every 24 ticks]
+    └── saveInterval  → saveAllData()
 ```
 
 ## Related

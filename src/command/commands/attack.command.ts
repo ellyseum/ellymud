@@ -6,6 +6,7 @@ import { CombatSystem } from '../../combat/combatSystem';
 import { RoomManager } from '../../room/roomManager';
 import { AbilityManager } from '../../abilities/abilityManager';
 import { systemLogger, getPlayerLogger } from '../../utils/logger'; // Import our loggers
+import { clearRestingMeditating } from '../../utils/stateInterruption';
 
 export class AttackCommand implements Command {
   name = 'attack';
@@ -40,6 +41,9 @@ export class AttackCommand implements Command {
       );
       return;
     }
+
+    // Interrupt resting/meditating when attacking
+    clearRestingMeditating(client, 'aggression');
 
     // Check if combat system is unavailable
     if (!this.combatSystem) {

@@ -44,6 +44,13 @@ export function getPromptText(client: ConnectedClient): string {
     prompt += colorize(' [COMBAT]', 'boldYellow');
   }
 
+  // Add resting/meditating indicators
+  if (client.user.isResting) {
+    prompt += colorize(' (Resting)', 'green');
+  } else if (client.user.isMeditating) {
+    prompt += colorize(' (Meditating)', 'blue');
+  }
+
   // Check if user has admin privileges using the static method
   // This guarantees we're checking the same admin status across the entire application
   if (SudoCommand.isAuthorizedUser(client.user.username)) {
