@@ -235,6 +235,11 @@ export class CombatSystem {
     // Update the global combat round in processor
     this.combatProcessor.processCombatRound();
 
+    // Update ability manager round for cooldown tracking
+    if (this.abilityManager) {
+      this.abilityManager.onGameTick();
+    }
+
     systemLogger.debug(
       `Processing combat round ${this.combatProcessor.getCurrentRound()} for ${this.combats.size} active combats`
     );
