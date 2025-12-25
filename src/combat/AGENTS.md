@@ -103,6 +103,10 @@ export class NPC implements CombatEntity {
   attack: number;
   defense: number;
   roomId: string;
+  
+  // Merchant properties
+  merchant: boolean;
+  inventory: string[]; // List of item IDs
 
   // Combat methods
   isAlive(): boolean;
@@ -172,6 +176,10 @@ combatSystem.processCombatTick();
 ```
 
 ## Conventions
+
+### Safe Zones
+
+Combat cannot be initiated in rooms with the `safe` flag. The `CombatSystem` or `CombatProcessor` checks this flag before starting combat.
 
 ### Damage Calculation
 

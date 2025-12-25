@@ -1,0 +1,7 @@
+- [x] Load and assess document structure
+- [x] Identify source agent and instructions
+- [x] Score against grading rubric
+- [x] Identify issues and improvements
+- [x] Rewrite problematic sections
+- [x] Generate reviewed document with -reviewed suffix
+- [x] Generate grade report

@@ -33,6 +33,7 @@ interface RoomData {
   players?: string[];
   npcs?: string[];
   currency: Currency;
+  flags?: string[];
 }
 
 export class RoomManager implements IRoomManager {

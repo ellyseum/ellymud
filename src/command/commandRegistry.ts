@@ -65,6 +65,12 @@ import { RestCommand } from './commands/rest.command';
 import { MeditateCommand } from './commands/meditate.command';
 import { TrainCommand } from './commands/train.command'; // Import Train command for leveling
 import { ExpCommand } from './commands/exp.command'; // Import Exp command for experience display
+import { BuyCommand } from './commands/buy.command';
+import { SellCommand } from './commands/sell.command';
+import { WaresCommand } from './commands/wares.command';
+import { DepositCommand } from './commands/deposit.command';
+import { WithdrawCommand } from './commands/withdraw.command';
+import { BalanceCommand } from './commands/balance.command';
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -206,8 +212,14 @@ export class CommandRegistry {
       new MagicMissileCommand(this.abilityManager, this.combatSystem, this.roomManager), // Add magic missile combat ability command
       new RestCommand(), // Add rest command for HP regen
       new MeditateCommand(), // Add meditate command for MP regen
-      new TrainCommand(this.userManager, this.clients), // Add train command for leveling and editor
+      new TrainCommand(this.userManager, this.clients, this.roomManager), // Add train command for leveling and editor
       new ExpCommand(), // Add exp command for experience display
+      new BuyCommand(this.roomManager),
+      new SellCommand(this.roomManager),
+      new WaresCommand(this.roomManager),
+      new DepositCommand(this.roomManager),
+      new WithdrawCommand(this.roomManager),
+      new BalanceCommand(this.roomManager),
     ];
 
     // Register all commands
@@ -265,6 +277,9 @@ export class CommandRegistry {
     this.aliases.set('gi', { commandName: 'giveitem' });
     this.aliases.set('admin', { commandName: 'adminmanage' });
     this.aliases.set('admins', { commandName: 'adminmanage', args: 'list' });
+    this.aliases.set('bal', { commandName: 'balance' });
+    this.aliases.set('dep', { commandName: 'deposit' });
+    this.aliases.set('with', { commandName: 'withdraw' });
     // Add aliases for effects command
     this.aliases.set('eff', { commandName: 'effect' });
     this.aliases.set('effs', { commandName: 'effect', args: 'list' });

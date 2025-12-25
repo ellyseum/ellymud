@@ -20,6 +20,8 @@ export interface NPCData {
   experienceValue: number;
   attackTexts: string[];
   deathMessages: string[];
+  merchant?: boolean;
+  inventory?: string[];
 }
 
 export class NPC implements CombatEntity {
@@ -39,6 +41,8 @@ export class NPC implements CombatEntity {
   public readonly instanceId: string;
   // Template ID (original ID from npcs.json)
   public readonly templateId: string;
+  public merchant: boolean = false;
+  public inventory: string[] = [];
 
   constructor(
     public name: string,
@@ -52,7 +56,9 @@ export class NPC implements CombatEntity {
     attackTexts?: string[],
     deathMessages?: string[],
     templateId?: string,
-    instanceId?: string
+    instanceId?: string,
+    merchant: boolean = false,
+    inventory: string[] = []
   ) {
     this.description = description || `A ${name} standing here.`;
     this.attackTexts = attackTexts || [
@@ -63,6 +69,8 @@ export class NPC implements CombatEntity {
     this.deathMessages = deathMessages || [`collapses to the ground and dies`];
     this.templateId = templateId || name.toLowerCase();
     this.instanceId = instanceId || uuidv4();
+    this.merchant = merchant;
+    this.inventory = inventory;
   }
 
   /**
@@ -163,7 +171,10 @@ export class NPC implements CombatEntity {
       npcData.description,
       npcData.attackTexts,
       npcData.deathMessages,
-      npcData.id
+      npcData.id,
+      undefined, // instanceId
+      npcData.merchant,
+      npcData.inventory
     );
   }
 

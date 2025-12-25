@@ -31,6 +31,7 @@ Each user record contains:
 - `inventory` - Array of item instance IDs
 - `equipment` - Currently equipped items by slot
 - `currentRoom` - Room ID where player is located
+- `bank` - Bank account balance (gold, silver, copper)
 - `isAdmin` - Admin privilege flag
 - `createdAt` / `lastLogin` - Timestamps
 

@@ -44,6 +44,16 @@ NPCs have different aggression levels:
 - **Neutral**: Attacks if provoked
 - **Aggressive**: Attacks players on sight
 
+## Safe Zones
+
+Rooms flagged as `safe` prevent combat initiation. Players cannot attack or be attacked in these rooms.
+
+## Merchants
+
+Some NPCs are flagged as merchants and can trade items. They have:
+- `merchant` flag: True if they can trade
+- `inventory`: List of items they sell
+
 ## Ability Integration
 
 The combat system integrates with the ability system for:

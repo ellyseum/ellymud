@@ -95,31 +95,6 @@
     ]
   },
   {
-    "instanceId": "c905155b-eec6-4bb1-80db-041ba16c3808",
-    "templateId": "sword-uncommon",
-    "created": "2025-04-13T08:04:33.675Z",
-    "createdBy": "asdf",
-    "properties": {
-      "durability": {
-        "current": 100,
-        "max": 100
-      },
-      "quality": "uncommon"
-    },
-    "history": [
-      {
-        "timestamp": "2025-04-13T08:04:33.675Z",
-        "event": "created",
-        "details": "Created by asdf"
-      },
-      {
-        "timestamp": "2025-04-13T08:04:35.575Z",
-        "event": "drop",
-        "details": "Dropped by asdf in room start"
-      }
-    ]
-  },
-  {
     "instanceId": "464c6c66-2724-470d-a3be-e90beac53d9f",
     "templateId": "sword-rare",
     "created": "2025-04-13T08:04:49.479Z",
@@ -167,6 +142,22 @@
         "timestamp": "2025-04-13T16:38:11.826Z",
         "event": "drop",
         "details": "Dropped by asdf in room room2"
+      }
+    ]
+  },
+  {
+    "instanceId": "d38cdc60-1c7f-4aaf-b529-038951ee9ea8",
+    "templateId": "potion_healing_1",
+    "created": "2025-12-25T08:09:11.519Z",
+    "createdBy": "testuser",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2025-12-25T08:09:11.519Z",
+        "event": "created",
+        "details": "Created by testuser"
       }
     ]
   }

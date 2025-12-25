@@ -88,6 +88,7 @@ interface User {
   gold: number;
   silver: number;
   copper: number;
+  bank: Currency; // Bank account balance
 
   // Items
   inventory: Item[];

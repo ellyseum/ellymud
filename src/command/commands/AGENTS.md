@@ -51,6 +51,17 @@ This directory contains 40+ command implementations. Each command is a single Ty
 | `repair.command.ts`    | Fix damaged items             |
 | `use.command.ts`       | Use consumable items/potions  |
 
+### Economy Commands
+
+| File                  | Purpose                                      |
+| --------------------- | -------------------------------------------- |
+| `buy.command.ts`      | Purchase items from merchant NPCs            |
+| `sell.command.ts`     | Sell items to merchant NPCs                  |
+| `wares.command.ts`    | List items available for sale                |
+| `deposit.command.ts`  | Deposit gold into bank account (in bank room)|
+| `withdraw.command.ts` | Withdraw gold from bank account              |
+| `balance.command.ts`  | Check current bank balance                   |
+
 ### Communication Commands
 
 | File                | Purpose                      |

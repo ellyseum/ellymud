@@ -1,0 +1,18 @@
+[0;34mScanning all directories for README.md and AGENTS.md pairs...[0m
+
+[0;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;31mUNDOCUMENTED DIRECTORIES (missing both README.md and AGENTS.md):[0m
+[0;31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [0;31m✗[0m ./.github/agents/reviews/
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;34mSummary:[0m
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  [0;32mValid pairs:[0m        52
+  [0;31mUndocumented:[0m       1
+  [1;33mMissing AGENTS.md:[0m  0
+  [1;33mMissing README.md:[0m  0
+
+[1;33mHint:[0m Create missing paired files to maintain documentation consistency.
+See AGENTS.md 'Paired Documentation Rule' for details.
+

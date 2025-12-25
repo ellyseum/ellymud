@@ -69,12 +69,12 @@ const roomManager = new RoomManager(clients);
 export class Room {
   id: string;
   name: string;
-  shortDescription: string;
-  longDescription: string;
+  description: string;
   exits: Exit[];
   items: Item[];
-  npcs: NPC[];
+  npcs: Map<string, NPC>;
   players: string[]; // usernames
+  flags: string[]; // e.g. ['safe', 'training']
   currency: Currency;
 
   getExit(direction: string): Exit | undefined;
@@ -112,6 +112,17 @@ Modular services for room operations:
 | `playerMovementService.ts`     | Handle player movement                    |
 | `roomUINotificationService.ts` | Send room messages                        |
 | `teleportationService.ts`      | Teleport operations                       |
+
+## Room Flags
+
+Rooms can have special behaviors defined by flags in the `flags` array:
+
+| Flag | Description |
+|------|-------------|
+| `safe` | No combat allowed. Players cannot attack or be attacked. |
+| `training` | Allows use of the `train` command to improve stats. |
+| `bank` | Allows use of `deposit`, `withdraw`, and `balance` commands. |
+| `shop` | Indicates a trading area (often combined with merchant NPCs). |
 
 ## Room Data
 

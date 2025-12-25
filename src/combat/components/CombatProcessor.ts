@@ -59,6 +59,11 @@ export class CombatProcessor {
         continue;
       }
 
+      if (room.flags.includes('safe')) {
+        systemLogger.debug(`Room ${roomId} is a safe zone, skipping combat processing`);
+        continue;
+      }
+
       // Get all players in this room
       const playersInRoom = room.players;
       if (playersInRoom.length === 0) {
@@ -387,6 +392,10 @@ export class CombatProcessor {
     let hostileNpcsFound = 0;
 
     for (const room of rooms) {
+      if (room.flags.includes('safe')) {
+        continue;
+      }
+
       // Skip rooms with no NPCs or no players
       if (!room.npcs || room.npcs.size === 0 || !room.players || room.players.length === 0) {
         continue;
