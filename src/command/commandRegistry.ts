@@ -39,7 +39,6 @@ import { GiveItemCommand } from './commands/giveitem.command';
 import { SudoCommand } from './commands/sudo.command';
 import { AdminManageCommand } from './commands/adminmanage.command';
 import { SnakeCommand } from './commands/snake.command';
-import { WaitCommand } from './commands/wait.command'; // Import our new Wait command
 import { ScoresCommand } from './commands/scores.command';
 import { DebugCommand } from './commands/debug.command'; // Import our new Debug command
 import { RestrictCommand } from './commands/restrict.command'; // Import our new Restrict command
@@ -64,6 +63,8 @@ import { MagicMissileCommand } from './commands/mmis.command';
 import { AbilityManager } from '../abilities/abilityManager';
 import { RestCommand } from './commands/rest.command';
 import { MeditateCommand } from './commands/meditate.command';
+import { TrainCommand } from './commands/train.command'; // Import Train command for leveling
+import { ExpCommand } from './commands/exp.command'; // Import Exp command for experience display
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -155,7 +156,6 @@ export class CommandRegistry {
   private registerCommands(): void {
     // Create command instances
     const snakeCommand = new SnakeCommand(this.stateMachine); // Pass StateMachine instance
-    const waitCommand = new WaitCommand(this.stateMachine); // Pass StateMachine instance for our new WaitCommand
     const commands: Command[] = [
       new SayCommand(this.clients),
       new ListCommand(this.clients),
@@ -183,7 +183,6 @@ export class CommandRegistry {
       SudoCommand.getInstance(),
       new AdminManageCommand(this.userManager),
       snakeCommand, // Add SnakeCommand instance
-      waitCommand, // Add WaitCommand instance
       new ScoresCommand(), // Add ScoresCommand instance
       new DebugCommand(this.roomManager, this.userManager, this.combatSystem), // Add our new Debug command
       new RestrictCommand(this.userManager), // Add our new Restrict command
@@ -207,6 +206,8 @@ export class CommandRegistry {
       new MagicMissileCommand(this.abilityManager, this.combatSystem, this.roomManager), // Add magic missile combat ability command
       new RestCommand(), // Add rest command for HP regen
       new MeditateCommand(), // Add meditate command for MP regen
+      new TrainCommand(this.userManager, this.clients), // Add train command for leveling and editor
+      new ExpCommand(), // Add exp command for experience display
     ];
 
     // Register all commands

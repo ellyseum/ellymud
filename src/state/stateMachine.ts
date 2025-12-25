@@ -7,7 +7,8 @@ import { ConfirmationState } from '../states/confirmation.state';
 import { AuthenticatedState } from '../states/authenticated.state';
 import { TransferRequestState } from '../states/transfer-request.state';
 import { SnakeGameState } from '../states/snake-game.state';
-import { WaitingState } from '../states/waiting.state';
+import { GameState } from '../states/game.state';
+import { EditorState } from '../states/editor.state';
 import { createContextLogger } from '../utils/logger';
 
 // Create a context-specific logger for StateMachine
@@ -35,7 +36,8 @@ export class StateMachine {
   private authenticatedState: AuthenticatedState;
   private transferRequestState: TransferRequestState;
   private snakeGameState: SnakeGameState;
-  private waitingState: WaitingState;
+  private gameState: GameState;
+  private editorState: EditorState;
 
   constructor(
     userManager: UserManager,
@@ -51,7 +53,8 @@ export class StateMachine {
     this.authenticatedState = new AuthenticatedState(clients, this); // Pass this (StateMachine) as second parameter
     this.transferRequestState = new TransferRequestState(userManager);
     this.snakeGameState = new SnakeGameState(); // Initialize snake game state
-    this.waitingState = new WaitingState(); // Initialize waiting state
+    this.gameState = new GameState(clients); // Initialize game state
+    this.editorState = new EditorState(); // Initialize editor state
 
     // Register states
     this.registerState(this.connectingState);
@@ -61,7 +64,8 @@ export class StateMachine {
     this.registerState(this.authenticatedState);
     this.registerState(this.transferRequestState);
     this.registerState(this.snakeGameState); // Register snake game state
-    this.registerState(this.waitingState); // Register waiting state
+    this.registerState(this.gameState); // Register game state
+    this.registerState(this.editorState); // Register editor state
   }
 
   public registerState(state: ClientState): void {
@@ -69,12 +73,19 @@ export class StateMachine {
   }
 
   public transitionTo(client: ConnectedClient, stateName: ClientStateType): void {
+    // Set transitionTo so exiting state knows the target
+    client.stateData.transitionTo = stateName;
+
     // Call exit on old state if implemented
     const oldStateName = client.state;
     const oldState = this.states.get(oldStateName);
     if (oldState && typeof oldState.exit === 'function') {
       oldState.exit(client);
     }
+
+    // Clear transitionTo after exit is called
+    delete client.stateData.transitionTo;
+
     // Transition to new state
     client.state = stateName;
     stateLogger.info(`State transition: ${oldStateName} -> ${stateName}`);

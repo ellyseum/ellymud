@@ -11,7 +11,8 @@ export enum ClientStateType {
   AUTHENTICATED = 'authenticated',
   TRANSFER_REQUEST = 'transfer_request', // New state for handling session transfers
   SNAKE_GAME = 'snake_game', // New state for playing Snake game
-  WAITING = 'waiting', // New state for debugging state transitions
+  GAME = 'game', // Active gameplay state (player in world)
+  EDITOR = 'editor', // Editor state (player detached from world for stat/character editing)
 }
 
 // Define equipment slots

@@ -190,6 +190,16 @@ export class AuthenticatedState implements ClientState {
       }
     }
 
+    // Check if returning from editor state
+    const returningFromEditor = client.stateData.previousState === ClientStateType.EDITOR;
+
+    // If returning from editor, restore the room from previousRoomId
+    if (returningFromEditor && client.stateData.previousRoomId) {
+      client.user.currentRoomId = client.stateData.previousRoomId;
+      delete client.stateData.previousRoomId;
+      delete client.stateData.previousState;
+    }
+
     // Ensure client is in the room
     if (client.user.currentRoomId) {
       // Try to use the most likely method - let's use the direct Room approach
@@ -208,6 +218,17 @@ export class AuthenticatedState implements ClientState {
           this.checkForHostileNPCs(client, room);
         }
       }
+    }
+
+    // If returning from editor, broadcast re-entry message and show room
+    if (returningFromEditor) {
+      const username = formatUsername(client.user.username);
+      // Broadcast to all players
+      this.broadcastToAllPlayers(`${username} has entered the game.\r\n`, client);
+      // Show room and prompt
+      this.roomManager.lookRoom(client);
+      drawCommandPrompt(client);
+      return; // Skip the banner since this is a re-entry
     }
 
     // Draw banner and show room description
@@ -354,9 +375,31 @@ export class AuthenticatedState implements ClientState {
     // Clean up any authenticated state specific resources
     // This is crucial for ensuring the state doesn't continue processing commands after transitioning away
     if (client.user && client.authenticated) {
-      // Just log that we're leaving authenticated state but don't clear authentication
       const username = client.user.username;
-      authStateLogger.debug(`User ${username} leaving authenticated state`);
+      const nextState = client.stateData?.transitionTo;
+
+      // If transitioning to EDITOR, handle game exit
+      if (nextState === ClientStateType.EDITOR) {
+        // Save current room for return
+        client.stateData.previousRoomId = client.user.currentRoomId;
+
+        authStateLogger.debug(
+          `User ${username} leaving authenticated state for EDITOR from room ${client.user.currentRoomId}`
+        );
+      } else {
+        authStateLogger.debug(`User ${username} leaving authenticated state for ${nextState}`);
+      }
     }
+  }
+
+  /**
+   * Broadcasts a message to all authenticated players in the game
+   */
+  private broadcastToAllPlayers(message: string, excludeClient?: ConnectedClient): void {
+    this.clients.forEach((c) => {
+      if (c !== excludeClient && c.authenticated && c.user && c.user.currentRoomId) {
+        writeFormattedMessageToClient(c, colorize(message, 'yellow'));
+      }
+    });
   }
 }

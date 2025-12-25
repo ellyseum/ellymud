@@ -16,7 +16,7 @@ import { WebSocketServer } from './server/webSocketServer';
 import { AdminSetup } from './setup/adminSetup'; // Import AdminSetup
 import { StateMachine } from './state/stateMachine';
 import { SnakeGameState } from './states/snake-game.state';
-import { WaitingState } from './states/waiting.state';
+import { EditorState } from './states/editor.state';
 import { GameTimerManager } from './timer/gameTimerManager';
 import { ConnectedClient, GlobalWithSkipMCP, MUDConfig, ServerStats } from './types';
 import { UserManager } from './user/userManager';
@@ -109,8 +109,8 @@ export class GameServer {
       // Share the global clients map with SnakeGameState
       SnakeGameState.setGlobalClients(this.clientManager.getClients());
 
-      // Share the global clients map with WaitingState
-      WaitingState.setGlobalClients(this.clientManager.getClients());
+      // Share the global clients map with EditorState
+      EditorState.setGlobalClients(this.clientManager.getClients());
 
       // Create the API server first (since WebSocket server needs its HTTP server)
       this.apiServer = new APIServer(
@@ -221,6 +221,13 @@ export class GameServer {
     if (client.authenticated && client.user) {
       // Process command from authenticated user in normal game states
       this.commandHandler.handleCommand(client, trimmedInput);
+
+      // Check for state transitions triggered by commands (e.g., 'state' command)
+      if (client.stateData.forcedTransition) {
+        const nextState = client.stateData.forcedTransition;
+        delete client.stateData.forcedTransition;
+        this.stateMachine.transitionTo(client, nextState);
+      }
     } else {
       // Handle authentication via state machine for non-authenticated users
       this.stateMachine.handleInput(client, trimmedInput);
