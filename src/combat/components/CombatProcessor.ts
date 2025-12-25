@@ -8,6 +8,7 @@ import { UserManager } from '../../user/userManager';
 // import { NPC } from '../npc';
 import { CombatNotifier } from './CombatNotifier';
 import { formatUsername } from '../../utils/formatters';
+import { clearRestingMeditating } from '../../utils/stateInterruption';
 
 /**
  * Responsible for processing attack logic and combat rounds
@@ -190,6 +191,9 @@ export class CombatProcessor {
    */
   private processNpcAttack(npc: CombatEntity, player: ConnectedClient, roomId: string): void {
     if (!player.user) return;
+
+    // Any aggressive action from an NPC interrupts resting/meditating (silently)
+    clearRestingMeditating(player, 'damage', true);
 
     // 50% chance to hit
     const hit = Math.random() >= 0.5;

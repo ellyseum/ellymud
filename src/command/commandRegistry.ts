@@ -201,7 +201,7 @@ export class CommandRegistry {
       new TimeCommand(), // Add our new Time command
       new WaveCommand(this.clients), // Add our new Wave command
       new LaughCommand(this.clients), // Add our new Laugh command
-      new CastCommand(this.abilityManager), // Add cast command for abilities
+      new CastCommand(this.abilityManager, this.combatSystem), // Add cast command for abilities
       new AbilitiesCommand(this.abilityManager), // Add abilities listing command
       new UseCommand(this.abilityManager), // Add use command for item abilities
       new MagicMissileCommand(this.abilityManager, this.combatSystem, this.roomManager), // Add magic missile combat ability command

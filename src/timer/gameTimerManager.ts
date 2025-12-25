@@ -6,8 +6,7 @@ import { UserManager } from '../user/userManager';
 import { CombatSystem } from '../combat/combatSystem';
 import { EffectManager } from '../effects/effectManager';
 import { systemLogger, createContextLogger } from '../utils/logger';
-import { colorize } from '../utils/colors';
-import { writeFormattedMessageToClient } from '../utils/socketWriter';
+import { drawCommandPrompt } from '../utils/socketWriter';
 
 // Create a context-specific logger for GameTimerManager
 const timerLogger = createContextLogger('GameTimerManager');
@@ -267,18 +266,20 @@ export class GameTimerManager extends EventEmitter {
       let mpGained = 0;
 
       // Sub-regen HP while fully resting
+      // Base: 4 HP, scaling with constitution (10-200 gives 1-20 bonus)
       if (isFullyResting && client.user.health < client.user.maxHealth) {
         const constitution = client.user.constitution || 10;
-        const subHpRegen = Math.max(1, Math.floor(constitution / 10));
+        const subHpRegen = 4 + Math.floor(constitution / 10);
         hpGained = Math.min(subHpRegen, client.user.maxHealth - client.user.health);
         client.user.health += hpGained;
       }
 
       // Sub-regen MP while fully meditating
+      // Base: 4 MP, scaling with wisdom+intelligence (20-400 gives 1-20 bonus)
       if (isFullyMeditating && client.user.mana < client.user.maxMana) {
         const wisdom = client.user.wisdom || 10;
         const intelligence = client.user.intelligence || 10;
-        const subMpRegen = Math.max(1, Math.floor((wisdom + intelligence) / 20));
+        const subMpRegen = 4 + Math.floor((wisdom + intelligence) / 20);
         mpGained = Math.min(subMpRegen, client.user.maxMana - client.user.mana);
         client.user.mana += mpGained;
       }
@@ -289,14 +290,8 @@ export class GameTimerManager extends EventEmitter {
           mana: client.user.mana,
         });
 
-        const parts: string[] = [];
-        if (hpGained > 0) parts.push(`+${hpGained} HP`);
-        if (mpGained > 0) parts.push(`+${mpGained} MP`);
-
-        writeFormattedMessageToClient(
-          client,
-          colorize(`\r\nYou feel yourself recovering... (${parts.join(', ')})\r\n`, 'cyan')
-        );
+        // Silently redraw prompt with updated HP/MP values
+        drawCommandPrompt(client);
       }
     }
   }
@@ -317,12 +312,14 @@ export class GameTimerManager extends EventEmitter {
       let mpGained = 0;
       const messages: string[] = [];
 
+      // Base HP regen: 4 HP, scaling with constitution (10-200 gives 1-20 bonus)
       const constitution = client.user.constitution || 10;
-      const baseHpRegen = Math.max(1, Math.floor(constitution / 5));
+      const baseHpRegen = 4 + Math.floor(constitution / 10);
 
+      // Base MP regen: 4 MP, scaling with wisdom+intelligence (20-400 gives 1-20 bonus)
       const wisdom = client.user.wisdom || 10;
       const intelligence = client.user.intelligence || 10;
-      const baseMpRegen = Math.max(1, Math.floor((wisdom + intelligence) / 10));
+      const baseMpRegen = 4 + Math.floor((wisdom + intelligence) / 20);
 
       if (client.user.health < client.user.maxHealth) {
         let hpRegen = baseHpRegen;
@@ -350,15 +347,8 @@ export class GameTimerManager extends EventEmitter {
           mana: client.user.mana,
         });
 
-        const parts: string[] = [];
-        if (hpGained > 0) parts.push(`+${hpGained} HP`);
-        if (mpGained > 0) parts.push(`+${mpGained} MP`);
-
-        const bonusText = messages.length > 0 ? ` (${messages.join(', ')})` : '';
-        writeFormattedMessageToClient(
-          client,
-          colorize(`\r\nYou regenerate ${parts.join(', ')}${bonusText}.\r\n`, 'green')
-        );
+        // Silently redraw prompt with updated HP/MP values instead of sending a message
+        drawCommandPrompt(client);
       }
     }
   }

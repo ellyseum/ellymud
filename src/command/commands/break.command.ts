@@ -24,7 +24,7 @@ export class BreakCommand implements Command {
     // Stop combat if in combat
     if (client.user.inCombat) {
       this.combatSystem.breakCombat(client);
-      writeToClient(client, colorize('*Combat off*\r\n', 'yellow'));
+      // Note: combatSystem.breakCombat already sends *Combat Off* message
       playerLogger.info(`Player ${client.user.username} broke away from combat`);
     }
 

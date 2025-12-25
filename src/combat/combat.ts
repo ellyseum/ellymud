@@ -404,6 +404,9 @@ export class Combat {
     // Mark that this entity has attacked in this round
     this.combatSystem.markEntityAttacked(entityId);
 
+    // Any aggressive action from an NPC interrupts resting/meditating (silently)
+    clearRestingMeditating(targetPlayer, 'damage', true);
+
     // 50% chance to hit
     const hit = Math.random() >= 0.5;
 
@@ -416,9 +419,6 @@ export class Combat {
 
       // Ensure health doesn't go below 0
       if (targetPlayer.user.health < 0) targetPlayer.user.health = 0;
-
-      // Interrupt resting/meditating when taking damage
-      clearRestingMeditating(targetPlayer, 'damage');
 
       // Update the player's health
       this.userManager.updateUserStats(targetPlayer.user.username, {

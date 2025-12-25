@@ -80,27 +80,25 @@ export class MagicMissileCommand implements Command {
       return;
     }
 
-    // Deduct initial MP cost
-    if (!this.abilityManager.useMana(username, ability.mpCost)) {
-      writeFormattedMessageToClient(client, colorize('Failed to use mana.\r\n', 'red'));
-      return;
-    }
+    // Note: Mana is NOT deducted on engage - it's deducted per round when the spell lands in combat.ts
+    // This prevents wasting mana if the player disengages before landing any hits
 
     // Activate the combat ability
     const duration = (ability as unknown as { combatDuration?: number }).combatDuration ?? 99;
     this.abilityManager.activateCombatAbility(username, 'magic-missile', duration);
 
-    writeFormattedMessageToClient(
-      client,
-      colorize('\r\n✨ ', 'cyan') +
-        colorize('You begin channeling arcane energy...', 'white') +
-        colorize(' ✨\r\n', 'cyan') +
+    // Only show the channeling message if already in combat (switching modes)
+    // When engaging combat, let the combat system handle the *Combat Engaged* message
+    if (isInCombat) {
+      writeFormattedMessageToClient(
+        client,
         colorize('Your attacks are now Magic Missiles!\r\n', 'magenta') +
-        colorize(
-          `(Costs ${(ability as unknown as { mpCostPerRound?: number }).mpCostPerRound ?? 3} MP per round)\r\n`,
-          'gray'
-        )
-    );
+          colorize(
+            `(Costs ${(ability as unknown as { mpCostPerRound?: number }).mpCostPerRound ?? 3} MP per round)\r\n`,
+            'gray'
+          )
+      );
+    }
 
     playerLogger.info('Activated Magic Missile combat ability');
 
@@ -128,18 +126,10 @@ export class MagicMissileCommand implements Command {
         return;
       }
 
-      // Initiate combat
+      // Initiate combat - combat system will show *Combat Engaged*
+      // Mana will be deducted on first spell landing, not on engage
       this.combatSystem.engageCombat(client, npc);
-      writeFormattedMessageToClient(
-        client,
-        colorize(`You attack ${npc.name} with Magic Missile!\r\n`, 'cyan')
-      );
       playerLogger.info(`Initiated combat with ${npc.name} using Magic Missile`);
-    } else if (isInCombat) {
-      writeFormattedMessageToClient(
-        client,
-        colorize('Your next attacks will be Magic Missiles!\r\n', 'cyan')
-      );
     }
   }
 }

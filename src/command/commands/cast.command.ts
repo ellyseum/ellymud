@@ -5,12 +5,16 @@ import { Command } from '../command.interface';
 import { AbilityManager } from '../../abilities/abilityManager';
 import { AbilityType } from '../../abilities/types';
 import { getPlayerLogger } from '../../utils/logger';
+import { CombatSystem } from '../../combat/combatSystem';
 
 export class CastCommand implements Command {
   name = 'cast';
   description = 'Cast an ability at a target';
 
-  constructor(private abilityManager: AbilityManager) {}
+  constructor(
+    private abilityManager: AbilityManager,
+    private combatSystem?: CombatSystem
+  ) {}
 
   execute(client: ConnectedClient, args: string): void {
     if (!client.user) {
@@ -48,6 +52,11 @@ export class CastCommand implements Command {
         colorize(`${ability.name} cannot be cast directly.\r\n`, 'yellow')
       );
       return;
+    }
+
+    // Break combat when casting an ability - player must re-engage or re-cast
+    if (client.user.inCombat && this.combatSystem) {
+      this.combatSystem.breakCombat(client);
     }
 
     playerLogger.info(`Casting ${ability.name}${targetId ? ` on ${targetId}` : ''}`);
