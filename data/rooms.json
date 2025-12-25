@@ -7,24 +7,12 @@
       {
         "direction": "north",
         "roomId": "room2"
-      },
-      {
-        "direction": "east",
-        "roomId": "training_room"
-      },
-      {
-        "direction": "west",
-        "roomId": "shop"
       }
     ],
     "items": [],
-    "itemInstances": [
-      {
-        "instanceId": "464c6c66-2724-470d-a3be-e90beac53d9f",
-        "templateId": "sword-rare"
-      }
-    ],
+    "itemInstances": [],
     "npcs": [],
+    "flags": [],
     "currency": {
       "gold": 0,
       "silver": 0,
@@ -39,19 +27,26 @@
       {
         "direction": "south",
         "roomId": "start"
+      },
+      {
+        "direction": "west",
+        "roomId": "shop"
+      },
+      {
+        "direction": "north",
+        "roomId": "training_room"
+      },
+      {
+        "direction": "east",
+        "roomId": "bank"
       }
     ],
     "items": [
       "crystal ball"
     ],
     "itemInstances": [],
-    "npcs": [
-      "goblin",
-      "goblin",
-      "goblin",
-      "goblin",
-      "goblin"
-    ],
+    "npcs": [],
+    "flags": [],
     "currency": {
       "gold": 0,
       "silver": 0,
@@ -60,17 +55,23 @@
   },
   {
     "id": "training_room",
-    "name": "The Dojo",
-    "description": "A quiet room with mats on the floor, perfect for training.",
+    "name": "The Training Hall",
+    "description": "A spacious hall with training dummies, weapon racks, and a seasoned warrior watching over the room. This is a safe zone where you can hone your skills.",
     "exits": [
       {
-        "direction": "west",
-        "roomId": "start"
+        "direction": "south",
+        "roomId": "room2"
       }
     ],
     "items": [],
     "itemInstances": [],
-    "npcs": [],
+    "npcs": [
+      "trainer_1"
+    ],
+    "flags": [
+      "training",
+      "safe"
+    ],
     "currency": {
       "gold": 0,
       "silver": 0,
@@ -80,17 +81,46 @@
   {
     "id": "shop",
     "name": "General Store",
-    "description": "A well-stocked general store.",
+    "description": "A well-stocked general store with various wares on display. Marcus the Merchant stands behind a wooden counter, ready to haggle.",
     "exits": [
       {
         "direction": "east",
-        "roomId": "start"
+        "roomId": "room2"
       }
     ],
     "items": [],
     "itemInstances": [],
     "npcs": [
       "merchant_1"
+    ],
+    "flags": [
+      "shop",
+      "safe"
+    ],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    }
+  },
+  {
+    "id": "bank",
+    "name": "The Vault Bank",
+    "description": "A secure stone building with iron bars on the windows. A stern banker sits behind a reinforced desk, managing ledgers and coin purses.",
+    "exits": [
+      {
+        "direction": "west",
+        "roomId": "room2"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [
+      "banker_1"
+    ],
+    "flags": [
+      "bank",
+      "safe"
     ],
     "currency": {
       "gold": 0,

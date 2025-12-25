@@ -166,6 +166,36 @@ export class AuthenticatedState implements ClientState {
       });
     }
 
+    // Clean up orphaned item instances from inventory
+    if (client.user.inventory?.items && client.user.inventory.items.length > 0) {
+      const validItems: string[] = [];
+      const orphanedItems: string[] = [];
+
+      for (const instanceId of client.user.inventory.items) {
+        const instance = itemManager.getItemInstance(instanceId);
+        if (instance) {
+          validItems.push(instanceId);
+        } else {
+          orphanedItems.push(instanceId);
+        }
+      }
+
+      if (orphanedItems.length > 0) {
+        client.user.inventory.items = validItems;
+        this.userManager.updateUserInventory(client.user.username, client.user.inventory);
+        authStateLogger.warn(
+          `Cleaned up ${orphanedItems.length} orphaned item(s) from ${client.user.username}'s inventory: ${orphanedItems.join(', ')}`
+        );
+        writeToClient(
+          client,
+          colorize(
+            `${orphanedItems.length} corrupted item(s) were removed from your inventory.\r\n`,
+            'yellow'
+          )
+        );
+      }
+    }
+
     // Check and fix inconsistent unconscious state
     if (client.user.isUnconscious && client.user.health > 0) {
       authStateLogger.info(

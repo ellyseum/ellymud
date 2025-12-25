@@ -1,163 +1,151 @@
 [
   {
-    "instanceId": "71f498fb-ebc3-4f4b-940c-93875f80f807",
-    "templateId": "sword-epic",
-    "created": "2025-04-13T08:04:03.769Z",
-    "createdBy": "asdf",
-    "properties": {
-      "durability": {
-        "current": 100,
-        "max": 100
-      },
-      "quality": "epic"
-    },
-    "history": [
-      {
-        "timestamp": "2025-04-13T08:04:03.769Z",
-        "event": "created",
-        "details": "Created by asdf"
-      },
-      {
-        "timestamp": "2025-04-13T08:04:09.411Z",
-        "event": "drop",
-        "details": "Dropped by asdf in room start"
-      },
-      {
-        "timestamp": "2025-04-13T08:21:30.332Z",
-        "event": "pickup",
-        "details": "Picked up by asdf from room start"
-      },
-      {
-        "timestamp": "2025-04-13T08:21:38.084Z",
-        "event": "drop",
-        "details": "Dropped by asdf in room start"
-      },
-      {
-        "timestamp": "2025-04-13T08:26:03.652Z",
-        "event": "pickup",
-        "details": "Picked up by asdf from room start"
-      },
-      {
-        "timestamp": "2025-04-13T08:26:07.938Z",
-        "event": "drop",
-        "details": "Dropped by asdf in room start"
-      },
-      {
-        "timestamp": "2025-04-13T08:26:11.129Z",
-        "event": "pickup",
-        "details": "Picked up by asdf from room start"
-      },
-      {
-        "timestamp": "2025-04-13T08:26:19.423Z",
-        "event": "drop",
-        "details": "Dropped by asdf in room start"
-      },
-      {
-        "timestamp": "2025-05-02T02:39:16.842Z",
-        "event": "pickup",
-        "details": "Picked up by test from room start"
-      }
-    ]
-  },
-  {
-    "instanceId": "cfd67a90-5e7a-44d9-88d1-caa505bfd2b9",
-    "templateId": "sword-common",
-    "created": "2025-04-13T08:04:26.153Z",
-    "createdBy": "asdf",
-    "properties": {
-      "durability": {
-        "current": 100,
-        "max": 100
-      },
-      "quality": "common"
-    },
-    "history": [
-      {
-        "timestamp": "2025-04-13T08:04:26.153Z",
-        "event": "created",
-        "details": "Created by asdf"
-      },
-      {
-        "timestamp": "2025-04-13T08:04:28.684Z",
-        "event": "drop",
-        "details": "Dropped by asdf in room start"
-      },
-      {
-        "timestamp": "2025-05-02T02:39:29.282Z",
-        "event": "pickup",
-        "details": "Picked up by test from room start"
-      },
-      {
-        "timestamp": "2025-05-02T02:39:37.003Z",
-        "event": "equip",
-        "details": "Equipped by test in slot mainHand"
-      }
-    ]
-  },
-  {
-    "instanceId": "464c6c66-2724-470d-a3be-e90beac53d9f",
-    "templateId": "sword-rare",
-    "created": "2025-04-13T08:04:49.479Z",
-    "createdBy": "asdf",
-    "properties": {
-      "durability": {
-        "current": 100,
-        "max": 100
-      },
-      "quality": "rare"
-    },
-    "history": [
-      {
-        "timestamp": "2025-04-13T08:04:49.479Z",
-        "event": "created",
-        "details": "Created by asdf"
-      },
-      {
-        "timestamp": "2025-04-13T08:04:53.738Z",
-        "event": "drop",
-        "details": "Dropped by asdf in room start"
-      }
-    ]
-  },
-  {
-    "instanceId": "78fc215c-d9ea-4893-a4fe-68dccc37ce35",
-    "templateId": "crystal ball",
-    "created": "2025-04-13T16:30:19.407Z",
-    "createdBy": "asdf",
-    "properties": {
-      "quality": "common"
-    },
-    "history": [
-      {
-        "timestamp": "2025-04-13T16:30:19.407Z",
-        "event": "created",
-        "details": "Created by asdf"
-      },
-      {
-        "timestamp": "2025-04-13T16:30:19.409Z",
-        "event": "pickup",
-        "details": "Picked up by asdf from room room2 (migrated from legacy item)"
-      },
-      {
-        "timestamp": "2025-04-13T16:38:11.826Z",
-        "event": "drop",
-        "details": "Dropped by asdf in room room2"
-      }
-    ]
-  },
-  {
-    "instanceId": "d38cdc60-1c7f-4aaf-b529-038951ee9ea8",
+    "instanceId": "9ac6fe03-5073-4ffc-aedf-b18c3e1142be",
     "templateId": "potion_healing_1",
-    "created": "2025-12-25T08:09:11.519Z",
-    "createdBy": "testuser",
+    "created": "2025-12-25T22:54:59.804Z",
+    "createdBy": "merchant:Marcus the Merchant",
     "properties": {
       "quality": "common"
     },
     "history": [
       {
-        "timestamp": "2025-12-25T08:09:11.519Z",
+        "timestamp": "2025-12-25T22:54:59.804Z",
         "event": "created",
-        "details": "Created by testuser"
+        "details": "Created by merchant:Marcus the Merchant"
+      }
+    ]
+  },
+  {
+    "instanceId": "824058d3-a8f5-4c1d-838a-8bdacc47d1ea",
+    "templateId": "potion_healing_1",
+    "created": "2025-12-25T22:54:59.805Z",
+    "createdBy": "merchant:Marcus the Merchant",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2025-12-25T22:54:59.805Z",
+        "event": "created",
+        "details": "Created by merchant:Marcus the Merchant"
+      }
+    ]
+  },
+  {
+    "instanceId": "6211580c-7cfb-4f20-9c52-f84d5afc448b",
+    "templateId": "potion_healing_1",
+    "created": "2025-12-25T22:54:59.805Z",
+    "createdBy": "merchant:Marcus the Merchant",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2025-12-25T22:54:59.805Z",
+        "event": "created",
+        "details": "Created by merchant:Marcus the Merchant"
+      }
+    ]
+  },
+  {
+    "instanceId": "5d517710-ecef-4d59-a5f2-c172e12f6c61",
+    "templateId": "potion_healing_1",
+    "created": "2025-12-25T22:54:59.806Z",
+    "createdBy": "merchant:Marcus the Merchant",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2025-12-25T22:54:59.806Z",
+        "event": "created",
+        "details": "Created by merchant:Marcus the Merchant"
+      }
+    ]
+  },
+  {
+    "instanceId": "9758ab23-ed3f-4eb5-ab6d-fad3ec42e2c2",
+    "templateId": "potion_healing_1",
+    "created": "2025-12-25T22:54:59.807Z",
+    "createdBy": "merchant:Marcus the Merchant",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2025-12-25T22:54:59.807Z",
+        "event": "created",
+        "details": "Created by merchant:Marcus the Merchant"
+      }
+    ]
+  },
+  {
+    "instanceId": "7f3279ad-8183-482a-9041-b98ca1f0431c",
+    "templateId": "sword_iron_1",
+    "created": "2025-12-25T22:54:59.808Z",
+    "createdBy": "merchant:Marcus the Merchant",
+    "properties": {
+      "durability": {
+        "current": 100,
+        "max": 100
+      },
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2025-12-25T22:54:59.808Z",
+        "event": "created",
+        "details": "Created by merchant:Marcus the Merchant"
+      }
+    ]
+  },
+  {
+    "instanceId": "b20c3bdb-1a04-4601-97d6-d064978685ad",
+    "templateId": "sword_iron_1",
+    "created": "2025-12-25T22:54:59.809Z",
+    "createdBy": "merchant:Marcus the Merchant",
+    "properties": {
+      "durability": {
+        "current": 100,
+        "max": 100
+      },
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2025-12-25T22:54:59.809Z",
+        "event": "created",
+        "details": "Created by merchant:Marcus the Merchant"
+      }
+    ]
+  },
+  {
+    "instanceId": "113c4f56-2a08-43af-b5cf-cf77f6ee7e31",
+    "templateId": "the_one_ring",
+    "created": "2025-12-25T23:00:29.649Z",
+    "createdBy": "merchant:Marcus the Merchant",
+    "properties": {
+      "durability": {
+        "current": 100,
+        "max": 100
+      },
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2025-12-25T23:00:29.649Z",
+        "event": "created",
+        "details": "Created by npc:goblin:goblin-1766703622317-570"
+      },
+      {
+        "timestamp": "2025-12-25T23:00:32.697Z",
+        "event": "pickup",
+        "details": "Picked up by admin from room room2"
+      },
+      {
+        "timestamp": "2025-12-25T23:00:38.606Z",
+        "event": "sold",
+        "details": "Sold by admin to Marcus the Merchant for 5000 gold"
       }
     ]
   }

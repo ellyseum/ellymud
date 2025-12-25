@@ -49,6 +49,16 @@ export class TrainCommand implements Command {
     const playerLogger = getPlayerLogger(client.user.username);
     const trimmedArgs = args.trim().toLowerCase();
 
+    // Check if in training room for all train commands
+    const room = this.roomManager.getRoom(client.user.currentRoomId);
+    if (!room || !room.flags.includes('training')) {
+      writeToClient(
+        client,
+        colorize('You can only train in a designated training room.\r\n', 'yellow')
+      );
+      return;
+    }
+
     // Handle 'train stats' - enter editor state
     if (trimmedArgs === 'stats') {
       this.enterEditorState(client);
@@ -57,14 +67,6 @@ export class TrainCommand implements Command {
 
     // Handle 'train' with no args - attempt to level up
     if (trimmedArgs === '') {
-      const room = this.roomManager.getRoom(client.user.currentRoomId);
-      if (!room || !room.flags.includes('training')) {
-        writeToClient(
-          client,
-          colorize('You can only train in a designated training room.\r\n', 'yellow')
-        );
-        return;
-      }
       this.attemptLevelUp(client, playerLogger);
       return;
     }

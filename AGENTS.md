@@ -220,7 +220,7 @@ Functions:
 - `writeMessageToClient()` - Message with prompt redraw
 - `writeFormattedMessageToClient()` - Formatted with color options
 
-### 2. Line Endings
+### 2. Line Endings (CRITICAL)
 
 Always use `\r\n` for Telnet compatibility:
 
@@ -228,8 +228,24 @@ Always use `\r\n` for Telnet compatibility:
 // ✅ Correct
 writeMessageToClient(client, 'Message\r\n');
 
-// ❌ Incorrect
+// ❌ Incorrect - message will be OVERWRITTEN by prompt redraw
 writeMessageToClient(client, 'Message\n');
+writeMessageToClient(client, 'Message'); // WORST - completely invisible!
+```
+
+**⚠️ BUG WARNING**: Messages without `\r\n` at the end will be **overwritten** when the prompt redraws, making them invisible to the user. The command will execute successfully but the user sees nothing!
+
+**Multi-line output**: Build all output as a single string with `\r\n` between lines, then call `writeMessageToClient` ONCE:
+
+```typescript
+// ✅ Correct - single call with all lines
+const lines = ['Header:', '  Item 1', '  Item 2'];
+writeMessageToClient(client, lines.join('\r\n') + '\r\n');
+
+// ❌ Wrong - each call triggers prompt redraw, lines get clipped
+writeMessageToClient(client, 'Header:');
+writeMessageToClient(client, '  Item 1');
+writeMessageToClient(client, '  Item 2');
 ```
 
 ### 3. Singleton Managers

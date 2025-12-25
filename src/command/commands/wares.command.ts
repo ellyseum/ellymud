@@ -3,12 +3,12 @@ import { ConnectedClient } from '../../types';
 import { writeMessageToClient } from '../../utils/socketWriter';
 import { colors } from '../../utils/colors';
 import { RoomManager } from '../../room/roomManager';
-import { ItemManager } from '../../utils/itemManager';
+import { Merchant } from '../../combat/merchant';
 
 export class WaresCommand implements Command {
   name = 'wares';
   description = 'List items for sale by a merchant';
-  aliases = ['list'];
+  aliases = ['shop', 'merchandise', 'list'];
 
   constructor(private roomManager: RoomManager) {}
 
@@ -18,22 +18,34 @@ export class WaresCommand implements Command {
     const room = this.roomManager.getRoom(client.user.currentRoomId);
     if (!room) return;
 
-    const merchant = Array.from(room.npcs.values()).find((npc) => npc.merchant);
+    // Find merchant in room (must be a Merchant instance)
+    const merchant = Array.from(room.npcs.values()).find((npc) => npc.isMerchant()) as
+      | Merchant
+      | undefined;
     if (!merchant) {
-      writeMessageToClient(client, `${colors.yellow}There is no merchant here.${colors.reset}`);
+      writeMessageToClient(client, `${colors.yellow}There is no merchant here.${colors.reset}\r\n`);
       return;
     }
 
-    writeMessageToClient(client, `${colors.cyan}${merchant.name} is selling:${colors.reset}`);
-    const itemManager = ItemManager.getInstance();
-    merchant.inventory.forEach((id) => {
-      const template = itemManager.getItem(id);
-      if (template) {
-        writeMessageToClient(
-          client,
-          `  ${template.name} - ${colors.yellow}${template.value} gold${colors.reset}`
+    // Build the entire output as a single string to avoid prompt redraws between lines
+    const lines: string[] = [];
+    lines.push(`${colors.cyan}${merchant.name} is selling:${colors.reset}`);
+
+    // Get grouped inventory (item name -> count) for display
+    const groupedInventory = merchant.getInventoryGrouped();
+
+    if (groupedInventory.size === 0) {
+      lines.push(`${colors.gray}  Nothing for sale.${colors.reset}`);
+    } else {
+      for (const [, { template, count }] of groupedInventory) {
+        if (!template) continue;
+        const countDisplay = count > 1 ? ` (x${count})` : '';
+        lines.push(
+          `  ${template.name}${countDisplay} - ${colors.yellow}${template.value} gold${colors.reset}`
         );
       }
-    });
+    }
+
+    writeMessageToClient(client, lines.join('\r\n') + '\r\n');
   }
 }

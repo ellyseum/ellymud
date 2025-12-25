@@ -1369,6 +1369,78 @@ Before completing implementation:
 
 ---
 
+## EllyMUD Coding Pitfalls
+
+**CRITICAL**: These are common bugs that cause silent failures. Check for these in EVERY implementation.
+
+### 1. Missing `\r\n` Line Endings
+
+**Symptom**: Command executes successfully but user sees NO output.
+
+**Cause**: `writeMessageToClient` redraws the prompt after sending. Without `\r\n`, the message stays on the same line and gets overwritten.
+
+```typescript
+// ❌ WRONG - message is invisible
+writeMessageToClient(client, `${colors.green}Success!${colors.reset}`);
+
+// ✅ CORRECT - message is visible
+writeMessageToClient(client, `${colors.green}Success!${colors.reset}\r\n`);
+```
+
+### 2. Multiple `writeMessageToClient` Calls for Lists
+
+**Symptom**: Multi-line output appears garbled, lines are missing or cut off.
+
+**Cause**: Each `writeMessageToClient` call clears the line and redraws the prompt. Calling it in a loop causes prompt spam.
+
+```typescript
+// ❌ WRONG - each line triggers prompt redraw
+items.forEach(item => {
+  writeMessageToClient(client, `  ${item.name}`);
+});
+
+// ✅ CORRECT - build string first, single write
+const lines: string[] = [];
+lines.push(`${colors.cyan}Items for sale:${colors.reset}`);
+items.forEach(item => {
+  lines.push(`  ${item.name} - ${item.price} gold`);
+});
+writeMessageToClient(client, lines.join('\r\n') + '\r\n');
+```
+
+### 3. Command Aliases Not Registered
+
+**Symptom**: Command works by name but aliases don't work (e.g., `wares` works but `list` doesn't).
+
+**Cause**: The `aliases` property on Command classes is NOT automatically processed. Aliases must be registered manually in `commandRegistry.ts`.
+
+```typescript
+// In the command class (NOT sufficient alone)
+export class WaresCommand implements Command {
+  name = 'wares';
+  aliases = ['shop', 'list']; // These are IGNORED!
+}
+
+// Must ALSO add in commandRegistry.ts registerAliases():
+this.aliases.set('shop', { commandName: 'wares' });
+this.aliases.set('list', { commandName: 'wares' });
+```
+
+### 4. Forgetting to Use socketWriter
+
+**Symptom**: Direct socket writes bypass prompt management, causing display corruption.
+
+```typescript
+// ❌ NEVER do this
+client.connection.write('Hello!');
+
+// ✅ ALWAYS use socketWriter
+import { writeMessageToClient } from '../../utils/socketWriter';
+writeMessageToClient(client, 'Hello!\r\n');
+```
+
+---
+
 ## Ready Statement
 
 **Ready to execute implementation plans precisely for EllyMUD.**

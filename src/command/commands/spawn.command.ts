@@ -86,7 +86,8 @@ export class SpawnCommand implements Command {
         npcTemplate.attackTexts,
         npcTemplate.deathMessages,
         npcType, // templateId
-        instanceId // instanceId
+        instanceId, // instanceId
+        npcTemplate.inventory || [] // inventory for drops
       );
 
       // Add the NPC to the room with the proper object

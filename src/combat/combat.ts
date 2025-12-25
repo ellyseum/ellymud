@@ -16,6 +16,8 @@ import { ItemManager } from '../utils/itemManager';
 import { createMechanicsLogger } from '../utils/logger';
 import { AbilityManager } from '../abilities/abilityManager';
 import { clearRestingMeditating } from '../utils/stateInterruption';
+import { handleNpcDrops } from './npcDeathHandler';
+import { NPC } from './npc';
 
 // Create a context-specific logger for Combat
 const combatLogger = createMechanicsLogger('Combat');
@@ -571,6 +573,27 @@ export class Combat {
       combatLogger.warn(`Cannot remove NPC ${npc.name} from room: no instanceId available`);
       // Fallback to using name, though this likely won't work with the new Map implementation
       this.roomManager.removeNPCFromRoom(roomId, npc.name);
+    }
+
+    // Generate and drop items from NPC inventory using shared handler
+    if (npc instanceof NPC || (npc as any).generateDrops) {
+      const drops = handleNpcDrops(npc as NPC, roomId, this.roomManager, this.itemManager);
+
+      // Notify players about dropped items
+      for (const drop of drops) {
+        writeFormattedMessageToClient(
+          this.player,
+          colorize(`The ${npc.name} dropped ${drop.itemName}!\r\n`, 'yellow')
+        );
+        if (this.player.user) {
+          this.combatSystem.broadcastRoomCombatMessage(
+            roomId,
+            `The ${npc.name} dropped ${drop.itemName}!\r\n`,
+            'yellow',
+            this.player.user.username
+          );
+        }
+      }
     }
 
     // Clean up the shared entity reference

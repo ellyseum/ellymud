@@ -50,6 +50,34 @@ export interface Currency {
   copper: number;
 }
 
+// Number range for variable quantities
+export interface NumberRange {
+  min: number;
+  max: number;
+}
+
+// NPC inventory item configuration (for drops and merchant stock)
+export interface NPCInventoryItem {
+  itemId: string; // Item template ID (e.g., "sword-001")
+  itemCount: number | NumberRange; // Fixed count or random range
+  spawnRate: number; // 0-1 probability (0 = 0%, 1 = 100%)
+  spawnPeriod?: number; // Cooldown in seconds before another can spawn (optional)
+  lastSpawned?: string; // ISO timestamp of last spawn (for tracking cooldown)
+}
+
+// Restock period units for merchant inventory
+export type RestockPeriodUnit = 'minutes' | 'hours' | 'days' | 'weeks';
+
+// Merchant stock configuration for a single item type
+export interface MerchantStockConfig {
+  templateId: string; // Item template ID
+  maxStock: number; // Maximum quantity that can be stocked
+  restockAmount: number; // How many to restock each period
+  restockPeriod: number; // Restock interval value
+  restockUnit: RestockPeriodUnit; // Restock interval unit
+  lastRestock?: string; // ISO timestamp of last restock (for persistence)
+}
+
 // Define GameItem interface for equipment
 export interface GameItem {
   id: string;
@@ -59,6 +87,7 @@ export interface GameItem {
   slot?: EquipmentSlot; // Where the item is equipped, using the EquipmentSlot enum
   value: number; // Currency value
   weight?: number;
+  globalLimit?: number; // Maximum instances that can exist in the entire game (undefined = unlimited)
   stats?: {
     attack?: number;
     defense?: number;
@@ -86,6 +115,7 @@ export interface ItemTemplate {
   slot?: EquipmentSlot;
   value: number;
   weight?: number;
+  globalLimit?: number; // Maximum instances that can exist in the entire game (undefined = unlimited)
   stats?: {
     attack?: number;
     defense?: number;
