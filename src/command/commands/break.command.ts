@@ -20,14 +20,12 @@ export class BreakCommand implements Command {
     if (!client.user) return;
 
     const playerLogger = getPlayerLogger(client.user.username);
-    let didSomething = false;
 
     // Stop combat if in combat
     if (client.user.inCombat) {
       this.combatSystem.breakCombat(client);
       writeToClient(client, colorize('*Combat off*\r\n', 'yellow'));
       playerLogger.info(`Player ${client.user.username} broke away from combat`);
-      didSomething = true;
     }
 
     // Stop resting or meditating
@@ -46,11 +44,8 @@ export class BreakCommand implements Command {
         writeToClient(client, colorize('You stop meditating.\r\n', 'yellow'));
         playerLogger.info(`Player ${client.user.username} stopped meditating`);
       }
-      didSomething = true;
     }
 
-    if (!didSomething) {
-      writeToClient(client, colorize('You have nothing to break from.\r\n', 'gray'));
-    }
+    // Silently fail if nothing to break from
   }
 }
