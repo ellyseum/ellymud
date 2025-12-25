@@ -194,11 +194,16 @@ export class GameTimerManager extends EventEmitter {
     // Process room-based combat for entities with aggression
     this.combatSystem.processRoomCombat();
 
-    // Process resting/meditating tick counters and mini meditation bonuses
+    // Process resting/meditating tick counters
     this.processRestMeditateTicks();
 
-    // Process regeneration every 24 ticks (144 seconds)
-    if (this.tickCount % 24 === 0) {
+    // Sub-regen ticks every 3 ticks (1/4 of 12) for players in full rest/meditate state
+    if (this.tickCount % 3 === 0) {
+      this.processSubRegeneration();
+    }
+
+    // Process full regeneration every 12 ticks (72 seconds)
+    if (this.tickCount % 12 === 0) {
       this.processRegeneration();
     }
 
@@ -211,14 +216,15 @@ export class GameTimerManager extends EventEmitter {
   }
 
   /**
-   * Process tick counters for resting/meditating players and mini meditation bonuses
+   * Process tick counters for resting/meditating players
    */
   private processRestMeditateTicks(): void {
     const activeUsers = this.userManager.getAllActiveUserSessions();
 
-    for (const [username, client] of activeUsers) {
+    for (const [, client] of activeUsers) {
       if (!client.user) continue;
 
+      // Clear rest/meditate states if in combat or unconscious
       if (client.user.inCombat || client.user.isUnconscious) {
         if (client.user.isResting || client.user.isMeditating) {
           client.user.isResting = false;
@@ -229,38 +235,75 @@ export class GameTimerManager extends EventEmitter {
         continue;
       }
 
+      // Increment tick counters
       if (client.user.isResting) {
         client.user.restingTicks = (client.user.restingTicks || 0) + 1;
       }
 
       if (client.user.isMeditating) {
         client.user.meditatingTicks = (client.user.meditatingTicks || 0) + 1;
+      }
+    }
+  }
 
-        if (client.user.meditatingTicks >= 6 && client.user.meditatingTicks % 6 === 0) {
-          const wisBonus = Math.floor((client.user.wisdom || 10) / 10);
-          const intBonus = Math.floor((client.user.intelligence || 10) / 10);
-          const miniMpGain = Math.max(1, wisBonus + intBonus);
+  /**
+   * Process sub-regeneration for players in full rest/meditate state (4+ ticks)
+   * Called every 3 ticks (1/4 of main regen cycle)
+   */
+  private processSubRegeneration(): void {
+    const activeUsers = this.userManager.getAllActiveUserSessions();
 
-          if (client.user.mana < client.user.maxMana) {
-            client.user.mana = Math.min(client.user.mana + miniMpGain, client.user.maxMana);
-            this.userManager.updateUserStats(username, { mana: client.user.mana });
+    for (const [username, client] of activeUsers) {
+      if (!client.user) continue;
+      if (client.user.inCombat || client.user.isUnconscious) continue;
 
-            writeFormattedMessageToClient(
-              client,
-              colorize(
-                `\r\nYou feel your mana slowly regenerating... (+${miniMpGain} MP)\r\n`,
-                'blue'
-              )
-            );
-          }
-        }
+      // Sub-regen only applies to players in full rest/meditate state (4+ ticks)
+      const isFullyResting = client.user.isResting && (client.user.restingTicks || 0) >= 4;
+      const isFullyMeditating = client.user.isMeditating && (client.user.meditatingTicks || 0) >= 4;
+
+      if (!isFullyResting && !isFullyMeditating) continue;
+
+      let hpGained = 0;
+      let mpGained = 0;
+
+      // Sub-regen HP while fully resting
+      if (isFullyResting && client.user.health < client.user.maxHealth) {
+        const constitution = client.user.constitution || 10;
+        const subHpRegen = Math.max(1, Math.floor(constitution / 10));
+        hpGained = Math.min(subHpRegen, client.user.maxHealth - client.user.health);
+        client.user.health += hpGained;
+      }
+
+      // Sub-regen MP while fully meditating
+      if (isFullyMeditating && client.user.mana < client.user.maxMana) {
+        const wisdom = client.user.wisdom || 10;
+        const intelligence = client.user.intelligence || 10;
+        const subMpRegen = Math.max(1, Math.floor((wisdom + intelligence) / 20));
+        mpGained = Math.min(subMpRegen, client.user.maxMana - client.user.mana);
+        client.user.mana += mpGained;
+      }
+
+      if (hpGained > 0 || mpGained > 0) {
+        this.userManager.updateUserStats(username, {
+          health: client.user.health,
+          mana: client.user.mana,
+        });
+
+        const parts: string[] = [];
+        if (hpGained > 0) parts.push(`+${hpGained} HP`);
+        if (mpGained > 0) parts.push(`+${mpGained} MP`);
+
+        writeFormattedMessageToClient(
+          client,
+          colorize(`\r\nYou feel yourself recovering... (${parts.join(', ')})\r\n`, 'cyan')
+        );
       }
     }
   }
 
   /**
    * Process HP/MP regeneration for all active players
-   * Called every 24 ticks (144 seconds)
+   * Called every 12 ticks (72 seconds)
    */
   private processRegeneration(): void {
     timerLogger.debug('Processing player regeneration');

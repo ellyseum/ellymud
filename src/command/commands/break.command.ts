@@ -5,11 +5,11 @@ import { colorize } from '../../utils/colors';
 import { CombatSystem } from '../../combat/combatSystem';
 import { UserManager } from '../../user/userManager';
 import { getPlayerLogger } from '../../utils/logger';
-import { CombatEntity } from '../../combat/combatEntity.interface';
+import { clearRestingMeditating } from '../../utils/stateInterruption';
 
 export class BreakCommand implements Command {
   name = 'break';
-  description = 'Attempt to break away from combat';
+  description = 'Stop combat, resting, or meditating';
 
   constructor(
     private combatSystem: CombatSystem,
@@ -19,49 +19,38 @@ export class BreakCommand implements Command {
   execute(client: ConnectedClient, _args: string): void {
     if (!client.user) return;
 
-    // Get player-specific logger
     const playerLogger = getPlayerLogger(client.user.username);
+    let didSomething = false;
 
-    if (!client.user.inCombat) {
-      writeToClient(client, colorize('You are not in combat.\r\n', 'yellow'));
-      return;
-    }
-
-    // Get the opponents of the player
-    const opponents = this.combatSystem.getOpponents(client.user.username);
-    if (!opponents || opponents.length === 0) {
-      writeToClient(client, colorize('You have no opponents to break away from.\r\n', 'yellow'));
-      playerLogger.info(
-        `Player ${client.user.username} tried to break from combat but had no opponents`
-      );
-      return;
-    }
-
-    // 50% chance to break combat
-    const success = Math.random() >= 0.5;
-    if (success) {
-      // Iterate through opponents and remove the player from their target lists
-      opponents.forEach((opponent: CombatEntity) => {
-        // Fix accessing instanceId which doesn't exist on CombatEntity
-        // Use only the name property which is more likely to exist on all CombatEntity instances
-        const opponentId = opponent.name;
-
-        // Add null check for client.user
-        if (client.user) {
-          playerLogger.info(
-            `Player ${client.user.username} successfully broke away from ${opponent.name} (${opponentId})`
-          );
-        } else {
-          playerLogger.info(`Player successfully broke away from ${opponent.name} (${opponentId})`);
-        }
-      });
-
+    // Stop combat if in combat
+    if (client.user.inCombat) {
       this.combatSystem.breakCombat(client);
-      writeToClient(client, colorize('You break away from combat!\r\n', 'green'));
-      playerLogger.info(`Player ${client.user.username} successfully broke away from combat`);
-    } else {
-      writeToClient(client, colorize('You failed to break away from combat!\r\n', 'red'));
-      playerLogger.info(`Player ${client.user.username} failed to break away from combat`);
+      writeToClient(client, colorize('*Combat off*\r\n', 'yellow'));
+      playerLogger.info(`Player ${client.user.username} broke away from combat`);
+      didSomething = true;
+    }
+
+    // Stop resting or meditating
+    if (client.user.isResting || client.user.isMeditating) {
+      const wasResting = client.user.isResting;
+      const wasMeditating = client.user.isMeditating;
+
+      // Clear the states silently (we'll show our own message)
+      clearRestingMeditating(client, 'movement', true);
+
+      if (wasResting) {
+        writeToClient(client, colorize('You stop resting.\r\n', 'yellow'));
+        playerLogger.info(`Player ${client.user.username} stopped resting`);
+      }
+      if (wasMeditating) {
+        writeToClient(client, colorize('You stop meditating.\r\n', 'yellow'));
+        playerLogger.info(`Player ${client.user.username} stopped meditating`);
+      }
+      didSomething = true;
+    }
+
+    if (!didSomething) {
+      writeToClient(client, colorize('You have nothing to break from.\r\n', 'gray'));
     }
   }
 }

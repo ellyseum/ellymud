@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Data files (may have manual formatting)
+data/
+
+# Logs
+logs/
+
+# Backups
+backups/

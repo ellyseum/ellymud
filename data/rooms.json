@@ -37,7 +37,9 @@
         "roomId": "start"
       }
     ],
-    "items": ["crystal ball"],
+    "items": [
+      "crystal ball"
+    ],
     "itemInstances": [],
     "npcs": [],
     "currency": {
