@@ -73,6 +73,22 @@ Provide exact file paths, exact line numbers, complete code snippets. The Implem
 
 Identify potential failure points for every task. Plan rollback strategies. Sequence tasks to minimize blast radius of failures.
 
+### 5. Verify All References
+
+For every method, class, or constant referenced in the plan:
+1. **Read the actual file** to verify the method exists with exact signature
+2. **Confirm parameter types and order** match actual code
+3. **Validate line numbers** against current file state
+4. **Quote actual code** when referencing existing patterns
+
+Example verification:
+```typescript
+// Verify: RoomManager.removePlayerFromAllRooms
+// Actual (src/room/roomManager.ts:308):
+public removePlayerFromAllRooms(username: string): void
+// Use: roomManager.removePlayerFromAllRooms(client.user.username)
+```
+
 ---
 
 ## Definition of Done
@@ -95,6 +111,42 @@ Identify potential failure points for every task. Plan rollback strategies. Sequ
 - [ ] Every MODIFY task has before/after code snippets
 - [ ] Every CREATE task has complete file content or template
 - [ ] Task sequence respects dependencies (no forward references)
+
+### Line Number Precision
+
+When specifying line numbers for MODIFY operations:
+- Use EXACT line numbers (e.g., "line 58") not approximate ("~58", "around line 58")
+- Verify by reading the target file before finalizing
+- If line numbers may shift due to earlier tasks, note the anchor pattern:
+  ```
+  Line 58 (anchor: `import { WaveCommand }`)
+  ```
+- Include verification command in plan: `grep -n 'pattern' file.ts`
+
+### Edge Case Identification
+
+For every command/feature plan, explicitly consider and document:
+
+| Edge Case | Question | Add to Tests? |
+|-----------|----------|---------------|
+| Self-targeting | What if user targets themselves? | ✅ Yes |
+| Empty input | What if no arguments provided? | ✅ Yes |
+| Invalid input | What if argument is gibberish? | ✅ Yes |
+| Boundary cases | What at min/max values? | ✅ If applicable |
+| Race conditions | What if in combat/moving/etc? | ✅ If state-dependent |
+
+Add discovered edge cases to the test scenarios table.
+
+### Stateful Class Requirements
+
+Every CREATE task for a stateful class (State, Manager, etc.) must include:
+- [ ] Constructor with all dependencies
+- [ ] `enter()` method with setup logic
+- [ ] `exit()` method with cleanup logic  
+- [ ] `handle()` method (if event-driven)
+- [ ] All lifecycle methods documented in code snippet
+
+Do NOT leave lifecycle methods as "placeholders for implementation agent to fill in."
 
 ### Stats File
 
@@ -645,6 +697,42 @@ export class NewClass {
 ## Output Format
 
 Save planning documents to: `.github/agents/planning/plan_<YYYYMMDD_HHMMSS>.md`
+
+### Multi-Part Plan Coordination
+
+When a plan must be split into multiple parts:
+
+1. **Part 1 must be self-contained and buildable**
+   - All types and interfaces complete
+   - Build verification after every phase
+   - No forward references to Part 2
+
+2. **Part 2+ must explicitly list prerequisites**
+   - List all Part 1 tasks that must complete
+   - Include verification: `npm run build` must succeed before Part 2
+   - Reference exact file states from Part 1
+
+3. **Cross-part dependencies table** (required):
+   | Part 2 Task | Depends On (Part 1) | Verification |
+   |-------------|---------------------|--------------|
+   | TASK-011    | TASK-004            | AbilityManager class exists |
+
+4. **JSON modification syntax** when adding to arrays:
+   ```json
+   // After last existing item, before closing ]
+   ,
+   {
+     "id": "new-item"
+   }
+   ```
+
+### TypeScript Best Practices in Plans
+
+When planning TypeScript modifications:
+- Never use `require()` inside method bodies - all imports at file top
+- Use ES6 `import` statements exclusively
+- Plan import additions as explicit, separate changes
+- Avoid `(user as any)` - find proper type or extend interface
 
 ### Implementation Plan Template
 

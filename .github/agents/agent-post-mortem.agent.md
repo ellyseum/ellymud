@@ -607,6 +607,85 @@ Read each document completely. Note:
 
 ````
 
+#### Agent File Changes - MANDATORY
+
+For EVERY agent mentioned in "Suggested Agent Improvements":
+1. Include the full `.agent.md` filename
+2. Provide specific section name to modify
+3. Include EXACT diff with `+` and `-` prefixes
+4. State the priority (HIGH/MEDIUM/LOW)
+
+**Required format:**
+```diff
+### research-agent.agent.md
+**Priority**: HIGH
+**Section**: Definition of Done
+
+- [ ] Document is under 500 lines
++ [ ] Document is under 500 lines (verify with `wc -l` before saving)
++ [ ] Line number citations spot-checked against actual files
+```
+
+If you mention an agent improvement but cannot provide a diff, explicitly state:
+`[DIFF PENDING - requires further investigation]`
+
+Do NOT leave agent improvements as prose descriptions without diffs.
+
+#### Action Item Requirements
+
+Each action item MUST include:
+- Priority label (P0/P1/P2 or HIGH/MEDIUM/LOW)
+- Suggested owner (role, not person name)
+- Success criteria (how to verify completion)
+- Urgency (Do within 24h / Do within 1 week / Add to backlog)
+
+**Required format:**
+| # | Priority | Action | Owner | Urgency | Success Criteria |
+|---|----------|--------|-------|---------|------------------|
+| 1 | P0 | Fix line verification | Research Agent | 24h | Next research doc has accurate line numbers |
+| 2 | P1 | Add stats file | Validation Agent | 1 week | Stats file created in next validation |
+
+Owner options:
+- Research Agent, Planning Agent, Implementation Agent, Validation Agent
+- Post-Mortem Agent, Documentation Updater, Output Review Agent
+- Pipeline Owner (for cross-cutting concerns)
+- User (for manual decisions)
+
+#### Action Item Specificity
+
+**Avoid vague action items:**
+- ❌ "Improve testing framework"
+- ❌ "Add better validation"
+- ❌ "Enhance documentation"
+
+**Require specific actions:**
+- ✅ "Add `combat.test.ts` with 5 test cases for damage calculation"
+- ✅ "Add line count verification to research-agent.agent.md Definition of Done"
+- ✅ "Create `docs/combat-testing.md` with setup instructions"
+
+Every action item must answer:
+- What specifically needs to change?
+- In which file?
+- What does "done" look like?
+
+#### Appendix Completeness
+
+All appendix sections MUST contain content or explicit "None identified":
+
+**Required appendix sections:**
+- Agent File Changes (diffs)
+- Instruction File Changes (if any)
+- README Changes (if any)
+- Documentation Changes (if any)
+
+**If a section has no changes:**
+```markdown
+### Instruction File Changes
+None identified for this pipeline.
+```
+
+Do NOT leave sections empty or omit them entirely.
+
 #### 4.2 Instructions File Improvements
 
 ```markdown
@@ -778,6 +857,51 @@ Save to: `.github/agents/suggestions/post-mortem-suggestions-<topic>-<YYYYMMDD_H
 | Validation (Original)     | [path] | Analyzed |
 | Validation (Reviewed)     | [path] | Analyzed |
 ```
+
+---
+
+## Token Estimation Methodology
+
+When estimating tokens:
+
+1. **Check stats files first**: Look in `.github/agents/metrics/stats/` for actual data
+2. **If stats available**: Use actual values, cite source file
+3. **If stats unavailable**: 
+   - Note "ESTIMATED - no stats file"
+   - Base estimates on line counts: `lines × ~4 tokens average`
+   - Be explicit about estimation method
+
+**Example:**
+| Stage | Tokens | Source |
+|-------|--------|--------|
+| Research | 12,450 | `stats/research-wave-20251223.json` |
+| Planning | ~8,000 | ESTIMATED: 2000 lines × 4 |
+
+Do NOT present estimates as if they were measured values.
+
+---
+
+## Review Agent Analysis
+
+When analyzing pipeline outputs, include Review Agent itself:
+
+1. **Grading consistency**: Were grades proportional to issues found?
+2. **Issue detection**: Did reviews miss issues that caused downstream problems?
+3. **Instruction gaps**: What changes to `output-review.agent.md` would prevent future issues?
+
+Add a section to the post-mortem:
+
+## Review Agent Assessment
+| Metric | Value |
+|--------|-------|
+| Documents Graded | 5 |
+| Average Grade | 88/100 |
+| Issues Caught | 12 |
+| Issues Missed (found in validation) | 2 |
+
+### Review Agent Improvements
+- [ ] Add check for X
+- [ ] Strengthen Y requirement
 
 ---
 

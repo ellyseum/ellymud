@@ -173,6 +173,56 @@ Regression checks performed:
 Checks NOT performed: [NONE or list what was skipped and why]
 ```
 
+### Server Cleanup Compliance
+
+**CRITICAL**: When stopping the server after functional testing:
+
+✅ **CORRECT** - Use safe termination:
+```bash
+lsof -i :8023 -t | xargs kill    # Telnet server
+lsof -i :8080 -t | xargs kill    # WebSocket server
+```
+
+❌ **NEVER** use broad kill patterns:
+```bash
+pkill -f node       # WILL CRASH VS CODE
+killall node        # WILL CRASH VS CODE
+```
+
+Document the cleanup method used in the report.
+
+### Verbatim Test Output Requirement
+
+When documenting test results, include EXACT output from session log:
+
+**Use `tail_user_session` MCP tool to capture literal output:**
+
+```
+> laugh bob
+You laugh at Bob.
+```
+
+**Do NOT paraphrase as:**
+- "Command worked as expected"
+- "User saw success message"
+- "Output matched expectations"
+
+Always show the actual text the user sees.
+
+### File Metric Verification
+
+When verifying file changes:
+- Use `wc -l <file>` to get accurate line counts
+- Cross-check against implementation report's claimed counts
+- Note any discrepancies
+
+Example:
+```bash
+$ wc -l src/command/commands/wave.command.ts
+84 src/command/commands/wave.command.ts
+# Note: Impl report claimed 79 lines - discrepancy logged
+```
+
 ---
 
 ## Definition of Done
@@ -1407,6 +1457,47 @@ git diff HEAD~1 -- src/file.ts
 ## Output Format
 
 Save validation reports to: `.github/agents/validation/validate_<YYYYMMDD_HHMMSS>.md`
+
+### Regression Checks Section (REQUIRED)
+
+Every validation report MUST include a dedicated regression checks section:
+
+## Regression Checks
+
+| Command | Result | Notes |
+|---------|--------|-------|
+| look | ✅ Pass | Room description displayed |
+| say | ✅ Pass | Message broadcast to room |
+| stats | ✅ Pass | User stats displayed |
+| move | ✅ Pass | Room transition works |
+
+**Minimum 4 core commands** must be tested. If not performed, state:
+`[NOT PERFORMED - reason]`
+
+This section is MANDATORY even if all tests pass.
+
+### Appendix Guidelines
+
+Appendix sections should be concise references, not exhaustive transcripts:
+
+- List files examined with line counts, not full read operations
+- Summarize MCP session commands as categories, not individual calls
+- Target: Each appendix section ≤20 lines
+- If appendix duplicates main sections, remove it
+
+**Good appendix entry:**
+| File | Lines | Purpose |
+|------|-------|---------|
+| wave.command.ts | 84 | New command implementation |
+
+**Avoid:**
+Full transcripts of every MCP tool call made during validation.
+
+### Stats File Requirement
+
+Create a stats file for every validation:
+
+**Path**: `.github/agents/validation/validation_{task}_{timestamp}-stats.md`
 
 ### Validation Report Template
 

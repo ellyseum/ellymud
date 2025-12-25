@@ -123,6 +123,9 @@ backups/
 .github/agents/documentation/*.md
 !.github/agents/documentation/README.md
 !.github/agents/documentation/AGENTS.md
+.github/agents/updates/*.md
+!.github/agents/updates/README.md
+!.github/agents/updates/AGENTS.md
 # Todos (session-based planning, not committed)
 todos/*.md
 !todos/README.md

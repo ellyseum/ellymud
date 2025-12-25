@@ -361,6 +361,30 @@ Summary:
 
 ## Documentation Specifications
 
+### When to Update Each File Type
+
+**Update BOTH README.md and AGENTS.md when:**
+- Adding new directories (always paired)
+- Changing directory structure or file inventory
+- Adding new files to a directory
+
+**Update only AGENTS.md when:**
+- Adding technical implementation details
+- Adding code examples or API documentation
+- Documenting integration with other systems
+- Adding gotchas/warnings for developers
+
+**Update only README.md when:**
+- Changing high-level purpose description
+- Updating navigation links for humans
+- Fixing human-readable content (no technical details)
+
+**Decision flowchart:**
+1. Is it a new directory? → Update both
+2. Is it technical/code-related? → Update AGENTS.md only
+3. Is it structural/navigational? → Update README.md only
+4. Not sure? → Update AGENTS.md (technical is default)
+
 ### README.md (Human Documentation)
 
 **Purpose**: Help developers understand and navigate the directory
@@ -372,6 +396,24 @@ Summary:
 - Focus on "what" and "why"
 - Quick to scan
 - Relative links only
+
+### README.md Code Block Rules
+
+**No executable code snippets** - README.md is for humans, not copy-paste coding.
+
+**ASCII diagrams ARE acceptable** for architecture visualization:
+```
+✅ Acceptable:
+Component
+    ├── SubComponent
+    └── AnotherComponent
+
+❌ Not acceptable:
+```typescript
+export function example() { ... }
+```
+
+The rule targets executable code, not visual structure diagrams.
 
 **Template**:
 
@@ -408,6 +450,28 @@ Summary:
 - Explain implicit knowledge
 - Include useful commands
 - No length limit
+
+### Document Length Management
+
+For complex systems requiring extensive documentation:
+
+1. **Target**: AGENTS.md files should be under 500 lines
+2. **If over 500 lines**:
+   - Split into sub-documents (e.g., `AGENTS-combat.md`, `AGENTS-abilities.md`)
+   - Use the main AGENTS.md as an index pointing to sub-documents
+3. **Code examples**:
+   - Show patterns, not full implementations
+   - Use `// ...` to indicate omitted code
+   - Never include examples over 50 lines
+
+Example structure for complex directories:
+```
+src/combat/
+├── AGENTS.md          # Index + core concepts (~200 lines)
+├── AGENTS-damage.md   # Damage calculation details
+├── AGENTS-abilities.md # Ability integration
+└── README.md          # Human overview
+```
 
 **Template**:
 
@@ -735,6 +799,19 @@ When running a documentation audit:
 - [ ] README.md files have no code blocks
 - [ ] AGENTS.md files have code examples
 - [ ] Paired documentation complete
+
+### Quality Verification Evidence
+
+For each verification checkbox, include method:
+
+| Check | Status | Verified By |
+|-------|--------|-------------|
+| README.md has no code blocks | ✅ | `grep -c '```' README.md` returned 0 |
+| AGENTS.md has code examples | ✅ | Manual review, 3 examples found |
+| Files match actual codebase | ✅ | `ls src/command/commands/` matches doc |
+| Links work | ✅ | All 5 internal links tested |
+
+Do NOT use bare checkmarks without verification method.
 
 ## Follow-up Needed
 

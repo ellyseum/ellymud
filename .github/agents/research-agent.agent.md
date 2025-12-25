@@ -72,6 +72,20 @@ Survey the entire surface area before deep-diving into specifics. Understand the
 
 Present findings objectively. Let the Planning Agent draw conclusions. Your job is to gather evidence, not make architectural decisions.
 
+### 5. Scope Boundaries
+
+Do NOT include:
+- "Proposed Architecture" sections
+- "Implementation Options" or "Approach 1/2" comparisons
+- Recommendations on HOW to implement
+
+Your job is to document:
+- WHAT exists in the codebase
+- WHERE specific code is located
+- WHY current patterns were used (if evident from code/comments)
+
+Leave architectural decisions to the Planning Agent.
+
 ---
 
 ## Definition of Done
@@ -91,6 +105,20 @@ Present findings objectively. Let the Planning Agent draw conclusions. Your job 
 - [ ] Every claim has `file:line` citation or `[UNVERIFIED]` tag
 - [ ] No speculation - only facts or explicit assumptions
 - [ ] Document saved to `.github/agents/research/research_*.md`
+
+### Citation Verification (CRITICAL)
+
+- [ ] After documenting any `file:line` citation, re-read that exact line to verify accuracy
+- [ ] Spot-check at least 3 key citations before finalizing
+- [ ] Prefer line ranges (e.g., `lines 140-160`) over single lines for method definitions
+- [ ] If line numbers may shift due to edits, note the anchor text pattern
+
+### Document Integrity
+
+- [ ] All sections complete (no cut-off tables or lists)
+- [ ] Final line is a complete sentence or closing marker
+- [ ] All code fences properly closed
+- [ ] All tables have header rows
 
 ### Stats File
 
@@ -588,6 +616,43 @@ read_file({ filePath: 'src/combat/combatSystem.ts', startLine: 1, endLine: 200 }
 ## Output Format
 
 Save research documents to: `.github/agents/research/research_<YYYYMMDD_HHMMSS>.md`
+
+### Assumption Formatting
+
+When documenting assumptions, use this exact format:
+- Prefix with `[ASSUMPTION]`
+- State the assumption clearly
+- Note the basis (what you observed that led to this)
+- State the risk if wrong
+
+Example:
+> [ASSUMPTION] MP regeneration uses the same tick as HP regeneration.
+> **Basis**: Single `tick()` method in GameTimerManager handles both.
+> **Risk**: If separate, implementation may need two tick handlers.
+
+### Test Scenario Formatting
+
+Always format test scenarios as tables, not prose:
+
+| # | Scenario | Input | Expected Output | Validation Method |
+|---|----------|-------|-----------------|-------------------|
+| 1 | Happy path | `command arg` | Success message | Session output |
+| 2 | Invalid input | `command ???` | Error message | Session output |
+| 3 | Edge case | `command self` | Appropriate response | Session output |
+
+Include minimum 3 scenarios covering: happy path, error case, edge case.
+
+### Code Snippet Guidelines
+
+- Include ONLY the minimum code needed to illustrate the pattern
+- If a file is >30 lines, excerpt key sections with `// ...` markers
+- Always include `file:line` reference even for excerpts
+- Prefer showing the PATTERN over the full implementation
+
+When documenting a CRITICAL pattern:
+1. Use a dedicated subsection header with **CRITICAL** prefix
+2. Include a complete, copy-paste-ready code snippet
+3. Explain why this pattern must be followed
 
 ### Research Document Template
 

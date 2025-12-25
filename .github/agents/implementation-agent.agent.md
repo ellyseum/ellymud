@@ -85,6 +85,23 @@ Complete one task fully before moving to the next. Never leave a task partially 
 - Document all deviations, no matter how small
 - Never assume—verify
 
+### 5. Deferral Policy
+
+When a planned task is NOT strictly required for core feature functionality:
+
+1. **Assess necessity**: Can the feature work without this task?
+2. **If deferrable**:
+   - Document the deferral with explicit rationale
+   - Verify core feature works without deferred task
+   - Add to "Follow-Up Tasks" section with priority
+3. **Continue implementation** rather than blocking on non-essential tasks
+
+**Deferral criteria**:
+- Performance optimizations → Defer
+- Edge case handling for rare scenarios → Defer (if not in acceptance criteria)
+- Refactoring of existing code not touched by feature → Defer
+- Core functionality → NEVER defer
+
 ---
 
 ## Definition of Done
@@ -113,6 +130,37 @@ Complete one task fully before moving to the next. Never leave a task partially 
 - [ ] No unrelated changes introduced
 - [ ] All imports added/updated correctly
 - [ ] Code follows project conventions (from copilot-instructions.md)
+
+### Documenting Unplanned Changes (CRITICAL)
+
+When implementing a task requires modifying files NOT specified in the plan:
+
+1. **Document immediately** in the Deviations section
+2. **Update the Files Modified count** to include all files
+3. **Add to Files Summary** with clear notation: `[ADDED - not in plan]`
+4. **Explain rationale** for why this file needed modification
+
+Example:
+| File | Changes | Purpose |
+|------|---------|--------|
+| `src/user/userManager.ts` | +10 lines [ADDED] | Required method for GameTimerManager integration |
+
+The final report MUST account for EVERY file touched, not just those in the plan.
+
+### Metric Verification
+
+When documenting file changes:
+- Use `wc -l <file>` to get accurate line counts
+- Verify file exists with `ls -la <file>`
+- Cross-check claimed metrics against actual tool output
+
+Example:
+```bash
+$ wc -l src/command/commands/laugh.command.ts
+113 src/command/commands/laugh.command.ts
+```
+
+Do NOT estimate or copy line counts from the plan - verify with tools.
 
 ### Stats File
 
@@ -913,6 +961,60 @@ find src -name "*.ts" | xargs grep "UniqueIdentifier"
 ## Output Format
 
 Save implementation reports to: `.github/agents/implementation/implement_<YYYYMMDD_HHMMSS>.md`
+
+### Report Conciseness Guidelines
+
+**Target**: Under 150 lines for simple implementations, under 300 for complex.
+
+Avoid redundancy:
+- Each task needs ONE verification table, not separate "Operations" and "Verification" tables
+- Build verification summarized ONCE at the end, not after every task
+- Combine related tasks into summary rows
+
+**Example of redundant (avoid):**
+| Operation | Target | Result |
+|-----------|--------|--------|
+| CREATE | file.ts | SUCCESS |
+
+| Check | Result |
+|-------|--------|
+| File created | PASS |
+| Build | PASS |
+
+**Example of concise (preferred):**
+| Operation | Target | Result | Verified |
+|-----------|--------|--------|----------|
+| CREATE | file.ts | SUCCESS | 79 lines, builds ✅ |
+
+### Deviation Documentation Format
+
+For each deviation, include:
+
+| Task | Plan | Actual | Location | Impact |
+|------|------|--------|----------|--------|
+| TASK-003 | Line 145 | Line 152 | `combat.ts:152` | None - line shift |
+| TASK-007 | New method | Modified existing | `userManager.ts:361` | Minor - reused existing |
+
+The Location column must have exact `file:line` reference.
+
+### Handoff Section Requirements
+
+Include test scenarios directly in handoff, not just a reference:
+
+## Validation Handoff
+
+### Test Scenarios
+| # | Scenario | Command | Expected |
+|---|----------|---------|----------|
+| 1 | Basic usage | `laugh` | "You laugh out loud" |
+| 2 | With target | `laugh bob` | "You laugh at Bob" |
+| 3 | Invalid target | `laugh xyz` | "xyz is not here" |
+
+### Build Status
+- Last build: ✅ SUCCESS
+- Compiled files: `dist/command/commands/laugh.command.js`
+
+This allows Validation Agent to proceed without cross-referencing the plan.
 
 ### Implementation Report Template
 
