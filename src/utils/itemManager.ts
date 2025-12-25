@@ -408,6 +408,41 @@ export class ItemManager {
   }
 
   /**
+   * Count how many instances of a specific template exist in the game
+   * @param templateId The item template ID to count
+   * @returns The number of existing instances
+   */
+  public countInstancesByTemplate(templateId: string): number {
+    let count = 0;
+    for (const instance of this.itemInstances.values()) {
+      if (instance.templateId === templateId) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Check if creating a new instance of the template would exceed the global limit
+   * @param templateId The item template ID to check
+   * @returns true if the item can be created, false if at global limit
+   */
+  public canCreateInstance(templateId: string): boolean {
+    const template = this.getItem(templateId);
+    if (!template) {
+      return false;
+    }
+
+    // If no global limit defined, always allow creation
+    if (template.globalLimit === undefined) {
+      return true;
+    }
+
+    const currentCount = this.countInstancesByTemplate(templateId);
+    return currentCount < template.globalLimit;
+  }
+
+  /**
    * Create a new item instance with optional properties like durability and quality
    */
   public createItemInstance(
@@ -419,6 +454,14 @@ export class ItemManager {
     const template = this.getItem(templateId);
     if (!template) {
       itemLogger.error(`Cannot create instance: Template ${templateId} not found.`);
+      return null;
+    }
+
+    // Check global limit before creating
+    if (!this.canCreateInstance(templateId)) {
+      itemLogger.warn(
+        `Cannot create instance of ${templateId}: Global limit of ${template.globalLimit} reached.`
+      );
       return null;
     }
 

@@ -4,6 +4,8 @@ import { writeMessageToClient } from '../../utils/socketWriter';
 import { colors } from '../../utils/colors';
 import { RoomManager } from '../../room/roomManager';
 import { ItemManager } from '../../utils/itemManager';
+import { Merchant } from '../../combat/merchant';
+import { MerchantStateManager } from '../../combat/merchantStateManager';
 
 export class BuyCommand implements Command {
   name = 'buy';
@@ -15,60 +17,82 @@ export class BuyCommand implements Command {
   async execute(client: ConnectedClient, args: string): Promise<void> {
     if (!client.user) return;
     if (!args) {
-      writeMessageToClient(client, `${colors.yellow}Usage: buy <item name>${colors.reset}`);
+      writeMessageToClient(client, `${colors.yellow}Usage: buy <item name>${colors.reset}\r\n`);
       return;
     }
 
     const room = this.roomManager.getRoom(client.user.currentRoomId);
     if (!room) return;
 
-    // Find merchant in room
-    const merchant = Array.from(room.npcs.values()).find((npc) => npc.merchant);
+    // Find merchant in room (must be a Merchant instance)
+    const merchant = Array.from(room.npcs.values()).find((npc) => npc.isMerchant()) as
+      | Merchant
+      | undefined;
     if (!merchant) {
-      writeMessageToClient(client, `${colors.yellow}There is no merchant here.${colors.reset}`);
+      writeMessageToClient(client, `${colors.yellow}There is no merchant here.${colors.reset}\r\n`);
       return;
     }
 
-    const itemName = args.toLowerCase();
-    // Find item in merchant inventory
-    // Note: merchant.inventory contains template IDs
     const itemManager = ItemManager.getInstance();
-    const itemTemplateId = merchant.inventory.find((id) => {
-      const template = itemManager.getItem(id);
-      return template && template.name.toLowerCase().includes(itemName);
-    });
+    const itemName = args.toLowerCase();
 
-    if (!itemTemplateId) {
+    // Find item in merchant's actual inventory using merchant's method
+    const foundInstanceId = merchant.findItemByName(itemName);
+    if (!foundInstanceId) {
       writeMessageToClient(
         client,
-        `${colors.yellow}The merchant doesn't have that.${colors.reset}`
+        `${colors.yellow}The merchant doesn't have that.${colors.reset}\r\n`
       );
       return;
     }
 
-    const template = itemManager.getItem(itemTemplateId);
-    if (!template) return;
-
-    if (client.user.inventory.currency.gold < template.value) {
+    // Get the item instance and template
+    const foundInstance = itemManager.getItemInstance(foundInstanceId);
+    if (!foundInstance) {
       writeMessageToClient(
         client,
-        `${colors.red}You can't afford that. It costs ${template.value} gold.${colors.reset}`
+        `${colors.yellow}The merchant doesn't have that.${colors.reset}\r\n`
+      );
+      return;
+    }
+    const foundTemplate = itemManager.getItem(foundInstance.templateId);
+    if (!foundTemplate) {
+      writeMessageToClient(client, `${colors.yellow}Item data not found.${colors.reset}\r\n`);
+      return;
+    }
+
+    if (client.user.inventory.currency.gold < foundTemplate.value) {
+      writeMessageToClient(
+        client,
+        `${colors.red}You can't afford that. It costs ${foundTemplate.value} gold.${colors.reset}\r\n`
       );
       return;
     }
 
-    // Transaction
-    client.user.inventory.currency.gold -= template.value;
-    const newItem = itemManager.createItemInstance(itemTemplateId, client.user.username);
-    if (!newItem) {
-      writeMessageToClient(client, `${colors.red}Failed to create item.${colors.reset}`);
-      return;
+    // Transaction - remove from merchant, add to player
+    merchant.removeItem(foundInstanceId);
+    client.user.inventory.currency.gold -= foundTemplate.value;
+    client.user.inventory.items.push(foundInstanceId);
+
+    // Save merchant state for persistence across restarts
+    const stateManager = MerchantStateManager.getInstance();
+    stateManager.updateMerchantState(merchant.getInventoryState());
+    stateManager.saveState();
+
+    // Add history entry to the item
+    const instance = itemManager.getItemInstance(foundInstanceId);
+    if (instance && instance.history) {
+      instance.history.push({
+        timestamp: new Date(),
+        event: 'purchased',
+        details: `Purchased by ${client.user.username} from ${merchant.name} for ${foundTemplate.value} gold`,
+      });
+      itemManager.saveItemInstances();
     }
-    client.user.inventory.items.push(newItem.instanceId);
 
     writeMessageToClient(
       client,
-      `${colors.green}You bought ${template.name} for ${template.value} gold.${colors.reset}`
+      `${colors.green}You bought ${foundTemplate.name} for ${foundTemplate.value} gold.${colors.reset}\r\n`
     );
   }
 }

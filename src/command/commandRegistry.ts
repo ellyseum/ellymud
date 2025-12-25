@@ -14,7 +14,7 @@ const commandLogger = createContextLogger('CommandRegistry');
 
 // Command imports
 import { SayCommand } from './commands/say.command';
-import { ListCommand } from './commands/list.command';
+import { WhoCommand } from './commands/who.command';
 import { StatsCommand } from './commands/stats.command';
 import { HealCommand } from './commands/heal.command';
 import { DamageCommand } from './commands/damage.command';
@@ -164,7 +164,7 @@ export class CommandRegistry {
     const snakeCommand = new SnakeCommand(this.stateMachine); // Pass StateMachine instance
     const commands: Command[] = [
       new SayCommand(this.clients),
-      new ListCommand(this.clients),
+      new WhoCommand(this.clients),
       new StatsCommand(),
       new HealCommand(this.userManager),
       new DamageCommand(this.userManager),
@@ -278,8 +278,13 @@ export class CommandRegistry {
     this.aliases.set('admin', { commandName: 'adminmanage' });
     this.aliases.set('admins', { commandName: 'adminmanage', args: 'list' });
     this.aliases.set('bal', { commandName: 'balance' });
+    this.aliases.set('bank', { commandName: 'balance' });
     this.aliases.set('dep', { commandName: 'deposit' });
     this.aliases.set('with', { commandName: 'withdraw' });
+    // Add aliases for wares/shop command
+    this.aliases.set('shop', { commandName: 'wares' });
+    this.aliases.set('merchandise', { commandName: 'wares' });
+    this.aliases.set('list', { commandName: 'wares' });
     // Add aliases for effects command
     this.aliases.set('eff', { commandName: 'effect' });
     this.aliases.set('effs', { commandName: 'effect', args: 'list' });

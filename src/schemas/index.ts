@@ -203,6 +203,32 @@ export const itemInstanceSchema = {
   },
 };
 
+// NPC inventory item schema (for drops and merchant stock)
+const npcInventoryItemSchema = {
+  type: 'object',
+  required: ['itemId', 'itemCount', 'spawnRate'],
+  properties: {
+    itemId: { type: 'string' },
+    itemCount: {
+      oneOf: [
+        { type: 'number' },
+        {
+          type: 'object',
+          required: ['min', 'max'],
+          properties: {
+            min: { type: 'number' },
+            max: { type: 'number' },
+          },
+        },
+      ],
+    },
+    spawnRate: { type: 'number', minimum: 0, maximum: 1 },
+    spawnPeriod: { type: 'number' },
+    lastSpawned: { type: 'string' },
+  },
+  additionalProperties: false,
+};
+
 // NPC schema
 export const npcSchema = {
   type: 'array',
@@ -221,9 +247,25 @@ export const npcSchema = {
       },
       inventory: {
         type: 'array',
-        items: { type: 'string' },
+        items: npcInventoryItemSchema,
+      },
+      merchant: { type: 'boolean' },
+      stockConfig: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            templateId: { type: 'string' },
+            maxStock: { type: 'number' },
+            restockAmount: { type: 'number' },
+            restockPeriod: { type: 'number' },
+            restockUnit: { type: 'string', enum: ['minutes', 'hours', 'days', 'weeks'] },
+            lastRestock: { type: 'string' },
+          },
+        },
       },
     },
+    additionalProperties: true,
   },
 };
 

@@ -1,6 +1,7 @@
 import { CombatEntity } from '../combatEntity.interface';
 import { systemLogger } from '../../utils/logger';
-import { NPC } from '../npc';
+import { NPC, NPCData } from '../npc';
+import { Merchant, MerchantData } from '../merchant';
 import { RoomManager } from '../../room/roomManager';
 
 /**
@@ -15,6 +16,18 @@ export class EntityTracker {
   private entityTargeters: Map<string, Set<string>> = new Map();
 
   constructor(private roomManager: RoomManager) {}
+
+  /**
+   * Create an NPC or Merchant instance from template data
+   */
+  private createNpcInstance(npcTemplate: NPCData): NPC {
+    if (npcTemplate.merchant) {
+      const merchant = Merchant.fromMerchantData(npcTemplate as MerchantData);
+      merchant.initializeInventory();
+      return merchant;
+    }
+    return NPC.fromNPCData(npcTemplate);
+  }
 
   /**
    * Add an entity to the active combat entities for a room
@@ -132,7 +145,7 @@ export class EntityTracker {
     // Check if we have data for this NPC
     if (npcData.has(name)) {
       systemLogger.debug(`Creating NPC ${name} from data`);
-      return NPC.fromNPCData(npcData.get(name)!);
+      return this.createNpcInstance(npcData.get(name)!);
     }
 
     // Fallback to default NPC if no data found

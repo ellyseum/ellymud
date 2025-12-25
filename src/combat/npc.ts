@@ -6,6 +6,8 @@ import { systemLogger } from '../utils/logger';
 import { parseAndValidateJson } from '../utils/jsonUtils';
 import { loadAndValidateJsonFile } from '../utils/fileUtils';
 import config from '../config';
+import { MerchantStockConfig, NPCInventoryItem, NumberRange } from '../types';
+import { ItemManager } from '../utils/itemManager';
 
 // Interface for NPC data loaded from JSON
 export interface NPCData {
@@ -21,7 +23,8 @@ export interface NPCData {
   attackTexts: string[];
   deathMessages: string[];
   merchant?: boolean;
-  inventory?: string[];
+  inventory?: NPCInventoryItem[]; // Items the NPC can drop on death or sell
+  stockConfig?: MerchantStockConfig[]; // For merchants: detailed stock configuration
 }
 
 export class NPC implements CombatEntity {
@@ -41,8 +44,8 @@ export class NPC implements CombatEntity {
   public readonly instanceId: string;
   // Template ID (original ID from npcs.json)
   public readonly templateId: string;
-  public merchant: boolean = false;
-  public inventory: string[] = [];
+  // Inventory configuration for drops
+  public inventory: NPCInventoryItem[] = [];
 
   constructor(
     public name: string,
@@ -57,8 +60,7 @@ export class NPC implements CombatEntity {
     deathMessages?: string[],
     templateId?: string,
     instanceId?: string,
-    merchant: boolean = false,
-    inventory: string[] = []
+    inventory?: NPCInventoryItem[]
   ) {
     this.description = description || `A ${name} standing here.`;
     this.attackTexts = attackTexts || [
@@ -69,8 +71,95 @@ export class NPC implements CombatEntity {
     this.deathMessages = deathMessages || [`collapses to the ground and dies`];
     this.templateId = templateId || name.toLowerCase();
     this.instanceId = instanceId || uuidv4();
-    this.merchant = merchant;
-    this.inventory = inventory;
+    this.inventory = inventory || [];
+  }
+
+  /**
+   * Check if this NPC is a merchant (override in Merchant subclass)
+   */
+  public isMerchant(): boolean {
+    return false;
+  }
+
+  /**
+   * Calculate item count from a number or range
+   */
+  private calculateItemCount(count: number | NumberRange): number {
+    if (typeof count === 'number') {
+      return count;
+    }
+    // Random number between min and max (inclusive)
+    return Math.floor(Math.random() * (count.max - count.min + 1)) + count.min;
+  }
+
+  /**
+   * Check if an item's spawn cooldown has passed
+   */
+  private canSpawnItem(item: NPCInventoryItem): boolean {
+    if (!item.spawnPeriod || !item.lastSpawned) {
+      return true;
+    }
+    const lastSpawnTime = new Date(item.lastSpawned).getTime();
+    const cooldownMs = item.spawnPeriod * 1000;
+    return Date.now() - lastSpawnTime >= cooldownMs;
+  }
+
+  /**
+   * Generate item drops when NPC dies
+   * @returns Array of item instance IDs that were dropped
+   */
+  public generateDrops(): string[] {
+    const drops: string[] = [];
+    const itemManager = ItemManager.getInstance();
+
+    for (const invItem of this.inventory) {
+      // Check spawn cooldown
+      if (!this.canSpawnItem(invItem)) {
+        systemLogger.debug(`Item ${invItem.itemId} is on cooldown for NPC ${this.name}`);
+        continue;
+      }
+
+      // Roll for spawn rate
+      const roll = Math.random();
+      if (roll > invItem.spawnRate) {
+        systemLogger.debug(
+          `Item ${invItem.itemId} spawn roll failed (${roll.toFixed(2)} > ${invItem.spawnRate})`
+        );
+        continue;
+      }
+
+      // Calculate how many to drop
+      const count = this.calculateItemCount(invItem.itemCount);
+
+      // Create item instances
+      for (let i = 0; i < count; i++) {
+        // Check global limit before creating
+        if (!itemManager.canCreateInstance(invItem.itemId)) {
+          systemLogger.debug(`Cannot create ${invItem.itemId}: global limit reached`);
+          break;
+        }
+
+        const instance = itemManager.createItemInstance(
+          invItem.itemId,
+          `npc:${this.templateId}:${this.instanceId}`
+        );
+
+        if (instance) {
+          drops.push(instance.instanceId);
+          systemLogger.debug(
+            `NPC ${this.name} dropped ${invItem.itemId} (instance: ${instance.instanceId})`
+          );
+        }
+      }
+
+      // Update lastSpawned timestamp if spawnPeriod is set
+      if (invItem.spawnPeriod) {
+        invItem.lastSpawned = new Date().toISOString();
+      }
+    }
+
+    systemLogger.info(`NPC ${this.name} (${this.instanceId}) dropped ${drops.length} items`);
+    return drops;
   }
 
   /**
@@ -159,6 +248,7 @@ export class NPC implements CombatEntity {
   }
 
   // Factory method to create NPC from NPC data
+  // NOTE: For merchant NPCs, use Merchant.fromMerchantData() instead
   static fromNPCData(npcData: NPCData): NPC {
     return new NPC(
       npcData.name,
@@ -173,8 +263,7 @@ export class NPC implements CombatEntity {
       npcData.deathMessages,
       npcData.id,
       undefined, // instanceId
-      npcData.merchant,
-      npcData.inventory
+      npcData.inventory || []
     );
   }
 

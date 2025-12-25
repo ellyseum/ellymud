@@ -3,10 +3,13 @@
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
 import { CombatSystem } from '../combat/combatSystem';
+import { handleNpcDrops } from '../combat/npcDeathHandler';
+import { NPC } from '../combat/npc';
 import { RoomManager } from '../room/roomManager';
 import { ConnectedClient } from '../types';
 import { ActiveEffect, StackingBehavior, effectStackingRules } from '../types/effects';
 import { UserManager } from '../user/userManager';
+import { ItemManager } from '../utils/itemManager';
 import { createMechanicsLogger } from '../utils/logger';
 import { writeFormattedMessageToClient } from '../utils/socketWriter';
 
@@ -647,6 +650,26 @@ export class EffectManager extends EventEmitter {
    * Handle NPC death (similar to CombatSystem logic)
    */
   private handleNpcDeath(npc: any, npcId: string, roomId: string): void {
+    effectLogger.info(`handleNpcDeath called for ${npc?.name}, npcId=${npcId}, roomId=${roomId}`);
+    effectLogger.info(
+      `NPC instanceof NPC: ${npc instanceof NPC}, has generateDrops: ${typeof npc?.generateDrops}, inventory: ${JSON.stringify(npc?.inventory || [])}`
+    );
+
+    // Generate and drop items from NPC inventory using shared handler
+    if (npc instanceof NPC || npc.generateDrops) {
+      const itemManager = ItemManager.getInstance();
+      const drops = handleNpcDrops(npc as NPC, roomId, this.roomManager, itemManager);
+
+      effectLogger.info(`handleNpcDrops returned ${drops.length} drops`);
+
+      // Notify room about dropped items
+      for (const drop of drops) {
+        this.notifyRoom(npcId, `The ${npc.name} dropped ${drop.itemName}!`);
+      }
+    } else {
+      effectLogger.warn(`NPC ${npc?.name} is not an NPC instance and has no generateDrops`);
+    }
+
     // Remove NPC from room
     this.roomManager.removeNPCFromRoom(roomId, npcId);
 

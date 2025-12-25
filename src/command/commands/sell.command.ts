@@ -4,6 +4,8 @@ import { writeMessageToClient } from '../../utils/socketWriter';
 import { colors } from '../../utils/colors';
 import { RoomManager } from '../../room/roomManager';
 import { ItemManager } from '../../utils/itemManager';
+import { Merchant } from '../../combat/merchant';
+import { MerchantStateManager } from '../../combat/merchantStateManager';
 
 export class SellCommand implements Command {
   name = 'sell';
@@ -15,16 +17,19 @@ export class SellCommand implements Command {
   async execute(client: ConnectedClient, args: string): Promise<void> {
     if (!client.user) return;
     if (!args) {
-      writeMessageToClient(client, `${colors.yellow}Usage: sell <item name>${colors.reset}`);
+      writeMessageToClient(client, `${colors.yellow}Usage: sell <item name>${colors.reset}\r\n`);
       return;
     }
 
     const room = this.roomManager.getRoom(client.user.currentRoomId);
     if (!room) return;
 
-    const merchant = Array.from(room.npcs.values()).find((npc) => npc.merchant);
+    // Find merchant in room (must be a Merchant instance)
+    const merchant = Array.from(room.npcs.values()).find((npc) => npc.isMerchant()) as
+      | Merchant
+      | undefined;
     if (!merchant) {
-      writeMessageToClient(client, `${colors.yellow}There is no merchant here.${colors.reset}`);
+      writeMessageToClient(client, `${colors.yellow}There is no merchant here.${colors.reset}\r\n`);
       return;
     }
 
@@ -39,7 +44,7 @@ export class SellCommand implements Command {
     });
 
     if (itemIndex === -1) {
-      writeMessageToClient(client, `${colors.yellow}You don't have that item.${colors.reset}`);
+      writeMessageToClient(client, `${colors.yellow}You don't have that item.${colors.reset}\r\n`);
       return;
     }
 
@@ -52,15 +57,36 @@ export class SellCommand implements Command {
 
     const value = Math.floor(template.value * 0.5); // 50% sell price
 
+    // Remove from player inventory
     client.user.inventory.items.splice(itemIndex, 1);
     client.user.inventory.currency.gold += value;
 
-    // Remove the item instance from the game
-    itemManager.deleteItemInstance(instanceId);
+    // Add history entry to the item
+    if (item.history) {
+      item.history.push({
+        timestamp: new Date(),
+        event: 'sold',
+        details: `Sold by ${client.user.username} to ${merchant.name} for ${value} gold`,
+      });
+    }
+
+    // Update item creator to reflect merchant ownership
+    item.createdBy = `merchant:${merchant.name}`;
+
+    // Add the actual item instance to merchant's inventory (not just template)
+    merchant.addItem(instanceId);
+
+    // Save merchant state for persistence across restarts
+    const stateManager = MerchantStateManager.getInstance();
+    stateManager.updateMerchantState(merchant.getInventoryState());
+    stateManager.saveState();
+
+    // Save item instance changes
+    itemManager.saveItemInstances();
 
     writeMessageToClient(
       client,
-      `${colors.green}You sold ${template.name} for ${value} gold.${colors.reset}`
+      `${colors.green}You sold ${template.name} for ${value} gold.${colors.reset}\r\n`
     );
   }
 }

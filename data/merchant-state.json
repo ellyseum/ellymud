@@ -1,0 +1,34 @@
+[
+  {
+    "npcInstanceId": "86257db5-177b-4e20-b627-0cb3d1a0ff45",
+    "npcTemplateId": "merchant_1",
+    "actualInventory": [
+      "9ac6fe03-5073-4ffc-aedf-b18c3e1142be",
+      "824058d3-a8f5-4c1d-838a-8bdacc47d1ea",
+      "6211580c-7cfb-4f20-9c52-f84d5afc448b",
+      "5d517710-ecef-4d59-a5f2-c172e12f6c61",
+      "9758ab23-ed3f-4eb5-ab6d-fad3ec42e2c2",
+      "7f3279ad-8183-482a-9041-b98ca1f0431c",
+      "b20c3bdb-1a04-4601-97d6-d064978685ad",
+      "113c4f56-2a08-43af-b5cf-cf77f6ee7e31"
+    ],
+    "stockConfig": [
+      {
+        "templateId": "potion_healing_1",
+        "maxStock": 5,
+        "restockAmount": 5,
+        "restockPeriod": 24,
+        "restockUnit": "hours",
+        "lastRestock": "2025-12-25T22:54:59.808Z"
+      },
+      {
+        "templateId": "sword_iron_1",
+        "maxStock": 2,
+        "restockAmount": 2,
+        "restockPeriod": 24,
+        "restockUnit": "hours",
+        "lastRestock": "2025-12-25T22:54:59.810Z"
+      }
+    ]
+  }
+]

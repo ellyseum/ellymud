@@ -2,7 +2,9 @@
 // NPC interaction service uses any for NPC template data
 import { INPCInteractionService } from '../interfaces';
 import { Room } from '../room';
-import { NPC } from '../../combat/npc';
+import { NPC, NPCData } from '../../combat/npc';
+import { Merchant, MerchantData } from '../../combat/merchant';
+import { MerchantStateManager } from '../../combat/merchantStateManager';
 import { systemLogger } from '../../utils/logger';
 
 export class NPCInteractionService implements INPCInteractionService {
@@ -12,6 +14,50 @@ export class NPCInteractionService implements INPCInteractionService {
 
   constructor(roomManager: { updateRoom: (room: Room) => void }) {
     this.roomManager = roomManager;
+  }
+
+  /**
+   * Create an NPC or Merchant instance from template data
+   * @param npcTemplate The NPC template data
+   * @returns NPC or Merchant instance
+   */
+  private createNpcInstance(npcTemplate: NPCData): NPC {
+    // Check if this is a merchant NPC
+    if (npcTemplate.merchant) {
+      const merchant = Merchant.fromMerchantData(npcTemplate as MerchantData);
+
+      // Check for saved inventory state
+      const stateManager = MerchantStateManager.getInstance();
+      systemLogger.info(`[Merchant] Looking up state for template ID: ${npcTemplate.id}`);
+      systemLogger.info(
+        `[Merchant] Has saved state: ${stateManager.hasSavedState(npcTemplate.id)}`
+      );
+      const savedState = stateManager.getMerchantState(npcTemplate.id);
+
+      if (savedState) {
+        // Restore from saved state
+        systemLogger.info(
+          `[Merchant] Found saved state with ${savedState.actualInventory.length} items`
+        );
+        merchant.restoreInventory(savedState);
+        systemLogger.info(`[Merchant] Restored inventory for ${merchant.name} from saved state`);
+      } else {
+        // Initialize fresh inventory (creates new item instances)
+        systemLogger.info(
+          `[Merchant] No saved state, initializing fresh inventory for ${merchant.name}`
+        );
+        merchant.initializeInventory();
+
+        // Save the initial state so it persists
+        const inventoryState = merchant.getInventoryState();
+        stateManager.updateMerchantState(inventoryState);
+        stateManager.saveState();
+        systemLogger.info(`[Merchant] Saved initial inventory state for ${merchant.name}`);
+      }
+
+      return merchant;
+    }
+    return NPC.fromNPCData(npcTemplate);
   }
 
   /**
@@ -34,12 +80,13 @@ export class NPCInteractionService implements INPCInteractionService {
       if (npcData.has(templateId)) {
         // Create a new NPC instance from the template
         const npcTemplate = npcData.get(templateId);
-        const npc = NPC.fromNPCData(npcTemplate);
+        const npc = this.createNpcInstance(npcTemplate);
 
         // Add the NPC to the room
         room.addNPC(npc);
+        const npcType = npc.isMerchant() ? 'Merchant' : 'NPC';
         systemLogger.info(
-          `Added NPC instance ${npc.instanceId} (template: ${templateId}) to room ${room.id}`
+          `Added ${npcType} instance ${npc.instanceId} (template: ${templateId}) to room ${room.id}`
         );
       } else {
         // If template doesn't exist, log a warning and try to create a basic NPC
@@ -78,7 +125,7 @@ export class NPCInteractionService implements INPCInteractionService {
         // Check if cat is defined in our NPC data
         if (npcData.has('cat')) {
           const npcTemplate = npcData.get('cat')!;
-          const npc = NPC.fromNPCData(npcTemplate);
+          const npc = this.createNpcInstance(npcTemplate);
           room.addNPC(npc);
         } else {
           systemLogger.warn('Cat NPC not found in data, using default values');
@@ -90,7 +137,7 @@ export class NPCInteractionService implements INPCInteractionService {
       // Add a dog to the room
       if (npcData.has('dog')) {
         const npcTemplate = npcData.get('dog')!;
-        const npc = NPC.fromNPCData(npcTemplate);
+        const npc = this.createNpcInstance(npcTemplate);
         room.addNPC(npc);
       }
     }

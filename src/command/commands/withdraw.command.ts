@@ -18,26 +18,26 @@ export class WithdrawCommand implements Command {
     if (!room || !room.flags.includes('bank')) {
       writeMessageToClient(
         client,
-        `${colors.yellow}You can only withdraw gold at a bank.${colors.reset}`
+        `${colors.yellow}You can only withdraw gold at a bank.${colors.reset}\r\n`
       );
       return;
     }
 
     if (!args) {
-      writeMessageToClient(client, `${colors.yellow}Usage: withdraw <amount>${colors.reset}`);
+      writeMessageToClient(client, `${colors.yellow}Usage: withdraw <amount>${colors.reset}\r\n`);
       return;
     }
 
     const amount = parseInt(args);
     if (isNaN(amount) || amount <= 0) {
-      writeMessageToClient(client, `${colors.red}Invalid amount.${colors.reset}`);
+      writeMessageToClient(client, `${colors.red}Invalid amount.${colors.reset}\r\n`);
       return;
     }
 
     if (!client.user.bank || client.user.bank.gold < amount) {
       writeMessageToClient(
         client,
-        `${colors.red}You don't have that much gold in the bank.${colors.reset}`
+        `${colors.red}You don't have that much gold in the bank.${colors.reset}\r\n`
       );
       return;
     }
@@ -47,7 +47,7 @@ export class WithdrawCommand implements Command {
 
     writeMessageToClient(
       client,
-      `${colors.green}You withdrew ${amount} gold. Bank balance: ${client.user.bank.gold}${colors.reset}`
+      `${colors.green}You withdrew ${amount} gold. Bank balance: ${client.user.bank.gold}${colors.reset}\r\n`
     );
   }
 }

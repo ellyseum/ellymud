@@ -599,6 +599,25 @@ export class PickupCommand implements Command {
     const instance = this.itemManager.getItemInstance(instanceId);
     const template = this.itemManager.getItem(templateId);
 
+    // Validate the item instance exists in ItemManager
+    if (!instance) {
+      // Remove orphaned item reference from room
+      room.removeItemInstance(instanceId);
+      const roomManager = RoomManager.getInstance(this.clients);
+      roomManager.updateRoom(room);
+
+      const playerLogger = getPlayerLogger(client.user.username);
+      playerLogger.warn(
+        `Attempted to pick up orphaned item instance ${instanceId} - removed from room`
+      );
+
+      writeToClient(
+        client,
+        colorize(`That item no longer exists and has been removed.\r\n`, 'red')
+      );
+      return;
+    }
+
     if (!template) {
       writeToClient(
         client,

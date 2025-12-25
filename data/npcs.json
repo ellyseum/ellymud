@@ -60,6 +60,24 @@
       "screams in agony and falls to the ground, twitching",
       "clutches its wounds and curses you before dying",
       "gurgles on its own blood and collapses in a heap"
+    ],
+    "inventory": [
+      {
+        "itemId": "potion_healing_1",
+        "itemCount": 1,
+        "spawnRate": 0.3
+      },
+      {
+        "itemId": "sword-001",
+        "itemCount": 1,
+        "spawnRate": 0.1,
+        "spawnPeriod": 3600
+      },
+      {
+        "itemId": "the_one_ring",
+        "itemCount": 1,
+        "spawnRate": 1.0
+      }
     ]
   },
   {
@@ -81,6 +99,13 @@
       "snarls defiantly one last time before collapsing",
       "whines pitifully and falls to the ground with glazed eyes",
       "howls mournfully as its strength fades away"
+    ],
+    "inventory": [
+      {
+        "itemId": "potion_healing_1",
+        "itemCount": { "min": 1, "max": 2 },
+        "spawnRate": 0.5
+      }
     ]
   },
   {
@@ -96,6 +121,43 @@
     "attackTexts": ["Marcus slaps you!"],
     "deathMessages": ["Marcus runs away!"],
     "merchant": true,
-    "inventory": ["potion_healing_1", "sword_iron_1"]
+    "inventory": [
+      {
+        "itemId": "potion_healing_1",
+        "itemCount": 5,
+        "spawnRate": 1.0
+      },
+      {
+        "itemId": "sword_iron_1",
+        "itemCount": 2,
+        "spawnRate": 1.0
+      }
+    ]
+  },
+  {
+    "id": "trainer_1",
+    "name": "Gareth the Trainer",
+    "description": "A grizzled veteran warrior with scars crisscrossing his arms. He studies newcomers with a critical eye.",
+    "health": 200,
+    "maxHealth": 200,
+    "damage": [5, 10],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Gareth demonstrates a painful strike on you!"],
+    "deathMessages": ["Gareth falls, muttering about his old war wounds..."]
+  },
+  {
+    "id": "banker_1",
+    "name": "Goldwin the Banker",
+    "description": "A stern-faced man in a crisp suit, his fingers stained with ink from ledger work. He peers at you over wire-rimmed spectacles.",
+    "health": 50,
+    "maxHealth": 50,
+    "damage": [1, 2],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Goldwin whacks you with a heavy ledger!"],
+    "deathMessages": ["Goldwin gasps 'My ledgers!' and collapses..."]
   }
 ]

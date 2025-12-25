@@ -212,6 +212,7 @@ export class RoomManager implements IRoomManager {
           items: room.items, // Keep legacy items for backward compatibility
           itemInstances: serializedItemInstances, // Add new item instances
           npcs: npcTemplateIds, // Use the array of template IDs
+          flags: room.flags, // Preserve room flags (bank, training, safe, etc.)
           currency: room.currency,
         };
       });
