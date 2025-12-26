@@ -126,6 +126,9 @@ backups/
 .github/agents/updates/*.md
 !.github/agents/updates/README.md
 !.github/agents/updates/AGENTS.md
+.github/agents/unit-test-generation/*.md
+!.github/agents/unit-test-generation/README.md
+!.github/agents/unit-test-generation/AGENTS.md
 pull_request_description.md
 # Todos (session-based planning, not committed)
 todos/*.md

@@ -359,6 +359,51 @@ function handle(input: unknown) {
 - `@typescript-eslint/ban-types` - No `Function`, `Object`, `{}` types
 - `@typescript-eslint/no-unused-vars` - Prefix unused params with `_`
 
+### 9. Unit Test ESLint Compliance (CRITICAL)
+
+**Pre-commit hooks enforce `--max-warnings 0`.** Unit tests must also pass ESLint.
+
+**Common test-specific violations to avoid:**
+
+```typescript
+// ❌ WRONG - unused variable from function call
+it('should call function', () => {
+  const result = myFunction();  // 'result' unused
+  expect(myMock).toHaveBeenCalled();
+});
+
+// ✅ CORRECT - no assignment if checking side effects only
+it('should call function', () => {
+  myFunction();
+  expect(myMock).toHaveBeenCalled();
+});
+
+// ❌ WRONG - regex with ANSI control characters
+expect(output).toMatch(/^\r\x1B\[K/);  // no-control-regex error
+
+// ✅ CORRECT - use string methods
+expect(output.startsWith('\r\x1B[K')).toBe(true);
+
+// ❌ WRONG - require() in TypeScript
+const { func } = require('./module');
+
+// ✅ CORRECT - ES module import at top of file
+import { func } from './module';
+
+// ❌ WRONG - partial mock object missing required fields
+const user = { username: 'test' };  // Missing User properties
+
+// ✅ CORRECT - use helper that provides all fields
+const user = createMockUser({ username: 'test' });
+```
+
+**When `any` is unavoidable** (e.g., singleton reset), use explicit disable:
+
+```typescript
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(Manager as any)['instance'] = undefined;
+```
+
 ---
 
 ## Documentation Requirements

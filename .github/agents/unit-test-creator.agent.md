@@ -138,7 +138,7 @@ src/
 npm run test:unit
 
 # Run specific test file
-npm run test:unit -- --testPathPattern="colors.test"
+npx jest --no-coverage "colors.test"
 
 # Run with coverage for specific file
 npm run test:unit -- --coverage --collectCoverageFrom="src/utils/colors.ts"
@@ -505,7 +505,7 @@ describe('targetFile', () => {
 
 2. **Run tests**:
    ```bash
-   npm run test:unit -- --testPathPattern="filename.test"
+   npx jest --no-coverage "filename.test"
    ```
 
 3. **Check coverage**:
@@ -614,7 +614,7 @@ On failure:
 
 ### Tests Pass
 
-- [ ] `npm run test:unit -- --testPathPattern="{file}"` passes
+- [ ] `npx jest --no-coverage "{file}"` passes
 - [ ] No TypeScript compilation errors
 - [ ] No ESLint errors in test file
 
@@ -714,6 +714,141 @@ it('should save user', async () => {
   await saveUser(user);
   expect(fs.writeFileSync).toHaveBeenCalled();
 });
+```
+
+---
+
+## ESLint Compliance (CRITICAL)
+
+**This project enforces `--max-warnings 0` in pre-commit hooks.** Tests MUST pass ESLint with zero warnings.
+
+### Rule: No `any` Type (`@typescript-eslint/no-explicit-any`)
+
+```typescript
+// ❌ BAD - will fail ESLint
+const mockData: any = { name: 'test' };
+(manager as any).privateMethod();
+
+// ✅ GOOD - use proper types or escape hatch with disable comment
+const mockData: Partial<User> = { name: 'test' };
+
+// When accessing private properties for singleton reset (with justification):
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(Manager as any)['instance'] = undefined;
+```
+
+### Rule: No Unused Variables (`@typescript-eslint/no-unused-vars`)
+
+```typescript
+// ❌ BAD - unused variable
+it('should call function', () => {
+  const result = myFunction();  // 'result' is never used
+  expect(myMock).toHaveBeenCalled();
+});
+
+// ✅ GOOD - call without assignment if only checking side effects
+it('should call function', () => {
+  myFunction();  // No unused variable
+  expect(myMock).toHaveBeenCalled();
+});
+
+// ✅ ALSO GOOD - use the variable
+it('should return expected value', () => {
+  const result = myFunction();
+  expect(result).toBe('expected');
+});
+```
+
+### Rule: No `require()` in TypeScript (`@typescript-eslint/no-var-requires`)
+
+```typescript
+// ❌ BAD - CommonJS require in test
+it('should test re-exports', () => {
+  const { func } = require('./module');  // ESLint error
+  expect(func).toBeDefined();
+});
+
+// ✅ GOOD - use ES module imports at top of file
+import { func } from './module';
+
+it('should test re-exports', () => {
+  expect(func).toBeDefined();
+});
+```
+
+### Rule: No Control Characters in Regex (`no-control-regex`)
+
+```typescript
+// ❌ BAD - regex with control characters (common with ANSI codes)
+it('should start with ANSI reset', () => {
+  expect(output).toMatch(/^\r\x1B\[K/);  // ESLint error
+});
+
+// ✅ GOOD - use string methods instead
+it('should start with ANSI reset', () => {
+  expect(output.startsWith('\r\x1B[K')).toBe(true);
+});
+
+// ✅ ALSO GOOD - check for contains
+it('should include ANSI codes', () => {
+  expect(output.includes('\x1b[31m')).toBe(true);
+});
+```
+
+### Creating Mock Objects with Full Types
+
+When mocking objects, provide ALL required properties or the test won't compile:
+
+```typescript
+// ❌ BAD - partial object doesn't match User type
+const user = { username: 'test', isResting: true };  // Missing health, mana, etc.
+const client = createMockClient({ user });  // TypeScript error
+
+// ✅ GOOD - use helper that provides all required fields
+const createMockUser = (overrides: Partial<User> = {}): User => ({
+  username: 'testuser',
+  health: 100,
+  maxHealth: 100,
+  mana: 50,
+  maxMana: 50,
+  // ... all required fields with defaults
+  ...overrides,
+});
+
+// Then use it
+const user = createMockUser({ isResting: true });  // Full User type
+const client = createMockClient({ user });  // Works!
+```
+
+### Accessing Private/Internal Properties
+
+When you need to access private properties (e.g., resetting singletons):
+
+```typescript
+// ❌ BAD - TypeScript type intersection fails on private properties
+type ManagerWithPrivate = typeof Manager & { instance: Manager };
+(Manager as unknown as ManagerWithPrivate).instance = undefined;  // TS error
+
+// ✅ GOOD - use bracket notation with explicit disable comment
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(Manager as any)['instance'] = undefined;
+```
+
+### Mock Type Extensions
+
+When mocks need additional properties not in the original type:
+
+```typescript
+// ❌ BAD - accessing property that doesn't exist on mock type
+const mockValidator = jest.fn();
+if (mockValidator.errors) { }  // 'errors' doesn't exist on jest.Mock
+
+// ✅ GOOD - extend the mock type definition
+const mockValidator = jest.fn() as jest.Mock & { errors?: unknown[] };
+mockValidator.errors = [{ message: 'test error' }];
+if (mockValidator.errors) {
+  // TypeScript knows about errors property
+}
 ```
 
 ---

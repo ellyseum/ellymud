@@ -52,6 +52,7 @@ Every directory should have both files, creating a dual documentation system tha
 - Create documentation for generated/build directories
 - Duplicate information that's better kept in code comments
 - Replace carefully crafted root README.md files
+- **NEVER create `.github/README.md`** - GitHub treats this file specially and it would override the root README.md when viewing the repository
 
 You are the documentation backbone of the project. Your work enables developers to navigate the codebase and AI agents to work effectively without reading every file.
 
@@ -597,6 +598,12 @@ Then create a structured audit report:
 - `/dist` - Build output
 - `/.git` - Version control
 - `/logs` - Runtime data
+
+### Unpaired Exceptions
+
+These files/directories are intentionally unpaired (do NOT create the missing pair):
+
+- `/.github/README.md` - **NEVER CREATE** - GitHub treats this specially and it would override the root README.md when viewing the repository. The `.github` directory should only have AGENTS.md, not README.md.
 
 ### Priority Order
 
