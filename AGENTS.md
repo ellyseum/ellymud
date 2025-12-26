@@ -113,6 +113,34 @@ This rule exists because:
 
 ---
 
+## ⚠️ CRITICAL: NEVER Create README.md in `.github/` Directory
+
+**STOP! GitHub treats `.github/README.md` specially - it will OVERRIDE the root README.md when viewing the repository!**
+
+```
+❌ NEVER: Create .github/README.md
+❌ NEVER: Create any README.md directly in the .github/ folder
+✅ OK:    Create README.md in subfolders like .github/agents/README.md
+✅ OK:    Create README.md in .github/agents/metrics/README.md
+```
+
+**Why this matters:**
+
+- GitHub displays `.github/README.md` as the repository's main README
+- This will hide your actual project documentation from visitors
+- The root `/README.md` becomes invisible on the repository homepage
+
+**Safe locations for README.md:**
+- `/README.md` (root - main project docs)
+- `.github/agents/README.md` (subfolder - OK)
+- `.github/agents/*/README.md` (nested subfolders - OK)
+- `.github/workflows/README.md` (subfolder - OK)
+
+**Forbidden location:**
+- `.github/README.md` ← **NEVER CREATE THIS FILE**
+
+---
+
 ## ⚠️ CRITICAL: Terminal Command Best Practices
 
 **STOP re-running commands blindly!** Always check output before retrying.

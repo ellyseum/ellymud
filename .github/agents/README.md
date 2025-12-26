@@ -14,23 +14,33 @@ Explicit invocation: _"Using the agent pipeline, implement [feature]"_
 
 ## Agents
 
-| Agent              | Purpose                   |
-| ------------------ | ------------------------- |
-| **Problem Solver** | Main orchestrator         |
-| **Research**       | Codebase investigation    |
-| **Planning**       | Implementation plans      |
-| **Implementation** | Code execution            |
-| **Validation**     | Quality verification      |
-| **Rollback**       | Safety checkpoints        |
-| **Post-Mortem**    | Pipeline analysis         |
-| **Documentation**  | README/AGENTS maintenance |
+| Agent                      | Purpose                       |
+| -------------------------- | ----------------------------- |
+| **Problem Solver**         | Main orchestrator             |
+| **Research**               | Codebase investigation        |
+| **Planning**               | Implementation plans          |
+| **Implementation**         | Code execution                |
+| **Validation**             | Quality verification          |
+| **Rollback**               | Safety checkpoints            |
+| **Post-Mortem**            | Pipeline analysis             |
+| **Documentation**          | README/AGENTS maintenance     |
+| **Unit Test Orchestrator** | Test coverage analysis        |
+| **Unit Test Creator**      | Individual test file creation |
 
 ## Directory Structure
 
 - `*.agent.md` - Agent prompts
-- `tools/` - Operational tooling (metrics, testing, MCP integration)
-- `metrics/` - Pipeline execution data
-- `research/`, `planning/`, `implementation/`, `validation/` - Stage outputs
+- `agent-tests/` - Agent testing framework
+- `documentation/` - Documentation agent outputs
+- `implementation/` - Implementation reports
+- `metrics/` - Pipeline execution data and stats
+- `planning/` - Implementation plans
+- `research/` - Research documents
+- `reviews/` - Temporary working files
+- `suggestions/` - Post-mortem improvement proposals
+- `unit-test-generation/` - Unit test orchestration outputs
+- `updates/` - Agent improvement tracking
+- `validation/` - Validation reports
 
 ## Key Features
 
