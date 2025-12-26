@@ -192,16 +192,23 @@ Your ONLY pre-pipeline actions should be:
 - [ ] Pull request created (if applicable)
 - [ ] User informed of outcome
 
-### Stats File
+### ⚠️ Metrics Files MUST Be Finalized (MANDATORY)
 
-- [ ] Pipeline stats file created at `.github/agents/metrics/stats/pipeline_*-stats.md`
-- [ ] All stage durations recorded
-- [ ] Total token usage estimated
-- [ ] Stage grades aggregated
+- [ ] **JSON metrics file UPDATED**: `.github/agents/metrics/executions/pipeline_*.json`
+  - `outcome`: set to "success", "failure", "escalated", or "rolled-back"
+  - `endDate`: set to completion timestamp
+  - `stages`: all grades and scores populated
+  - `filesChanged`: list of modified source files
+- [ ] **Stats markdown file UPDATED**: `.github/agents/metrics/stats/pipeline_*-stats.md`
+  - `Status`: changed from "in-progress" to final status
+  - `End Time`: populated
+  - `Stage Breakdown` table: all grades filled in
+
+**⛔ PIPELINE IS NOT COMPLETE UNTIL METRICS ARE FINALIZED**
 
 ### Exit Criteria
 
-- [ ] All todos marked completed
+- [ ] All todos marked completed (including "FINALIZE PIPELINE METRICS")
 - [ ] Pipeline outcome is clear (success/failure/escalated)
 - [ ] No stages left in-progress
 
@@ -247,7 +254,18 @@ Your ONLY pre-pipeline actions should be:
 15. [not-started] Documentation updates - delegate to Documentation Updater
 16. [not-started] Review documentation - delegate to Output Review Agent
 17. [not-started] Create pull request
+18. [not-started] FINALIZE PIPELINE METRICS (MANDATORY)
 ```
+
+### ⚠️ CRITICAL: Finalize Pipeline Metrics
+
+**EVERY pipeline MUST end with updating the metrics files.** This is NOT optional.
+
+After the PR is created, you MUST:
+1. Update `.github/agents/metrics/executions/pipeline_*.json` with final grades and outcomes
+2. Update `.github/agents/metrics/stats/pipeline_*-stats.md` with completion status
+
+**If you don't see "FINALIZE PIPELINE METRICS" in your todo list, ADD IT NOW.**
 
 ### ⚠️ CRITICAL: Never Skip Review Steps
 
