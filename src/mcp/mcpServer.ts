@@ -6,6 +6,7 @@ import { Server as HttpServer } from 'http';
 import { UserManager } from '../user/userManager';
 import { RoomManager } from '../room/roomManager';
 import { ClientManager } from '../client/clientManager';
+import { GameTimerManager } from '../timer/gameTimerManager';
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { systemLogger, mcpLogger } from '../utils/logger';
@@ -61,6 +62,7 @@ export class MCPServer {
   private userManager: UserManager;
   private roomManager: RoomManager;
   private clientManager: ClientManager;
+  private gameTimerManager: GameTimerManager;
   private virtualSessionManager: VirtualSessionManager;
   private port: number;
   private tempUsers: Set<string> = new Set(); // Track temp users for cleanup
@@ -69,11 +71,13 @@ export class MCPServer {
     userManager: UserManager,
     roomManager: RoomManager,
     clientManager: ClientManager,
+    gameTimerManager: GameTimerManager,
     port: number = 3100
   ) {
     this.userManager = userManager;
     this.roomManager = roomManager;
     this.clientManager = clientManager;
+    this.gameTimerManager = gameTimerManager;
     this.virtualSessionManager = new VirtualSessionManager(
       clientManager,
       userManager,
@@ -394,6 +398,30 @@ export class MCPServer {
             endpoint: '/api/virtual-sessions',
             method: 'GET',
           },
+          {
+            name: 'advance_game_ticks',
+            description: 'Advance the game timer by a specific number of ticks (Test Mode only)',
+            endpoint: '/api/test/advance-ticks',
+            method: 'POST',
+            body: {
+              ticks: 'number',
+            },
+          },
+          {
+            name: 'get_game_tick',
+            description: 'Get the current game tick count',
+            endpoint: '/api/test/tick-count',
+            method: 'GET',
+          },
+          {
+            name: 'set_test_mode',
+            description: 'Enable or disable test mode (pauses/resumes timer)',
+            endpoint: '/api/test/mode',
+            method: 'POST',
+            body: {
+              enabled: 'boolean',
+            },
+          },
         ],
       });
     });
@@ -713,6 +741,50 @@ export class MCPServer {
           success: false,
           error: error instanceof Error ? error.message : String(error),
         });
+      }
+    });
+
+    // Test Mode Endpoints
+    this.app.post('/api/test/advance-ticks', (req: Request, res: Response) => {
+      try {
+        const { ticks } = req.body;
+        if (typeof ticks !== 'number' || ticks <= 0) {
+          return res.status(400).json({ success: false, error: 'Invalid ticks value' });
+        }
+        this.gameTimerManager.advanceTicks(ticks);
+        mcpLogger.info(`Advanced game timer by ${ticks} ticks`);
+        res.json({
+          success: true,
+          data: { ticksAdvanced: ticks, currentTick: this.gameTimerManager.getTickCount() },
+        });
+      } catch (error) {
+        mcpLogger.error(`Error advancing ticks: ${error}`);
+        res.status(500).json({ success: false, error: String(error) });
+      }
+    });
+
+    this.app.get('/api/test/tick-count', (req: Request, res: Response) => {
+      try {
+        const count = this.gameTimerManager.getTickCount();
+        res.json({ success: true, data: { tickCount: count } });
+      } catch (error) {
+        mcpLogger.error(`Error getting tick count: ${error}`);
+        res.status(500).json({ success: false, error: String(error) });
+      }
+    });
+
+    this.app.post('/api/test/mode', (req: Request, res: Response) => {
+      try {
+        const { enabled } = req.body;
+        if (typeof enabled !== 'boolean') {
+          return res.status(400).json({ success: false, error: 'Invalid enabled value' });
+        }
+        this.gameTimerManager.setTestMode(enabled);
+        mcpLogger.info(`Set test mode to ${enabled}`);
+        res.json({ success: true, data: { testMode: enabled } });
+      } catch (error) {
+        mcpLogger.error(`Error setting test mode: ${error}`);
+        res.status(500).json({ success: false, error: String(error) });
       }
     });
   }

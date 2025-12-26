@@ -25,6 +25,9 @@ The MCP server is integrated into the main EllyMUD server and starts automatical
 - **virtual_session_info** - Get information about a virtual session
 - **virtual_session_close** - Close a virtual game session
 - **virtual_sessions_list** - List all active virtual sessions
+- **advance_game_ticks** - Advance the game timer by N ticks (Test Mode only)
+- **get_game_tick** - Get the current game tick count
+- **set_test_mode** - Enable or disable test mode (pauses/resumes timer)
 
 ## Running the MCP Server
 
@@ -55,6 +58,47 @@ You'll see the message "MCP Server started on http://localhost:3100" in the cons
 - `GET /api/virtual-session/:sessionId` - Get virtual session info
 - `DELETE /api/virtual-session/:sessionId` - Close virtual session
 - `GET /api/virtual-sessions` - List all virtual sessions
+- `POST /api/test/advance-ticks` - Advance game timer by N ticks (body: `{ticks}`)
+- `GET /api/test/tick-count` - Get current game tick count
+- `POST /api/test/mode` - Enable/disable test mode (body: `{enabled}`)
+
+## Test Mode Integration
+
+The MCP server provides tools for controlling the game timer during E2E testing:
+
+### Enabling Test Mode
+
+Start the server with the `--test-mode` flag:
+
+```bash
+npm start -- --test-mode
+```
+
+### Test Mode Workflow
+
+```javascript
+// 1. Verify test mode is active (timer should be paused)
+get_game_tick();
+// Returns: { tick: 0 }
+
+// 2. Set up test scenario via virtual session
+virtual_session_command(sessionId, 'attack goblin');
+
+// 3. Advance time to process combat
+advance_game_ticks({ ticks: 1 });
+// Returns: { ticksAdvanced: 1, currentTick: 1 }
+
+// 4. Check results
+get_combat_state();
+```
+
+### Test Mode API
+
+| Endpoint | Method | Body | Description |
+|----------|--------|------|-------------|
+| `/api/test/mode` | POST | `{enabled: boolean}` | Enable/disable test mode |
+| `/api/test/advance-ticks` | POST | `{ticks: number}` | Advance N ticks |
+| `/api/test/tick-count` | GET | - | Get current tick count |
 
 ## Integration with LLMs
 

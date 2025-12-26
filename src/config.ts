@@ -51,6 +51,7 @@ export const AUTO_ADMIN_SESSION = cliConfig.adminSession;
 export const AUTO_USER_SESSION = cliConfig.userSession;
 export const FORCE_SESSION_USERNAME = cliConfig.forceSession;
 export const FORCE = cliConfig.force; // Add force flag
+export const TEST_MODE = cliConfig.testMode;
 
 // Direct data
 export const DIRECT_ROOMS_DATA = cliConfig.rooms;

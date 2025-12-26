@@ -26,6 +26,7 @@ import { isDebugMode } from './utils/debugUtils'; // Import the isDebugMode func
 import { clearSessionReferenceFile } from './utils/fileUtils'; // Import the clearSessionReferenceFile function
 import { systemLogger } from './utils/logger';
 import { getPromptText } from './utils/promptFormatter'; // Import the getPromptText function
+import { TestModeOptions } from './testing/testMode';
 
 export class GameServer {
   private telnetServer: TelnetServer;
@@ -184,7 +185,12 @@ export class GameServer {
       }, config.IDLE_CHECK_INTERVAL);
 
       // Initialize MCP Server
-      this.mcpServer = new MCPServer(this.userManager, this.roomManager, this.clientManager);
+      this.mcpServer = new MCPServer(
+        this.userManager,
+        this.roomManager,
+        this.clientManager,
+        this.gameTimerManager
+      );
 
       // Setup keyboard listeners for console commands after server is started
       // We delegate this now to the ConsoleManager
@@ -359,6 +365,46 @@ export class GameServer {
     } catch (error) {
       systemLogger.error('Error starting game server:', error);
       return Promise.reject(error);
+    }
+  }
+
+  public async bootTestMode(options: TestModeOptions = {}): Promise<void> {
+    try {
+      // First check and create admin user if needed
+      await this.checkAndCreateAdminUser();
+
+      systemLogger.info('Starting server in TEST MODE...');
+
+      // Start the API server first
+      await this.apiServer.start();
+
+      // Start WebSocket server
+      await this.webSocketServer.start();
+
+      // Start Telnet server last
+      await this.telnetServer.start();
+
+      // Configure Game Timer for Test Mode
+      if (options.enableTimer) {
+        this.gameTimerManager.start();
+      } else {
+        this.gameTimerManager.setTestMode(true);
+      }
+
+      // Start MCP Server (only if API key is available)
+      const skipMCPServer = (global as GlobalWithSkipMCP).__SKIP_MCP_SERVER;
+      if (!skipMCPServer) {
+        try {
+          await this.mcpServer.start();
+        } catch (error) {
+          systemLogger.warn('MCP Server failed to start, continuing without it');
+        }
+      }
+
+      systemLogger.info('Game server started in TEST MODE!');
+    } catch (error) {
+      systemLogger.error(`Failed to boot test mode: ${error}`);
+      throw error;
     }
   }
 

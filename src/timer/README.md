@@ -42,8 +42,20 @@ GameTimerManager
     └── saveInterval  → saveAllData()
 ```
 
+## Test Mode
+
+The timer supports a test mode for deterministic E2E testing:
+
+- **Test Mode Enabled**: Timer does not start automatically; ticks must be advanced manually
+- **Manual Tick Advancement**: Call `advanceTicks(N)` to process N ticks immediately
+- **MCP Integration**: Use MCP tools to control timing from external test harnesses
+
+Test mode is activated via CLI: `npm start -- --test-mode`
+
 ## Related
 
 - [src/combat/](../combat/) - Combat processed on ticks
 - [src/effects/](../effects/) - Effects processed on ticks
+- [src/testing/](../testing/) - Test mode infrastructure
+- [src/mcp/](../mcp/) - MCP tools for test mode control
 - [data/gametimer-config.json](../../data/gametimer-config.json) - Timer configuration
