@@ -24,6 +24,12 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 │  │ Rollback │  │Post-Mort │  │  Output  │  │   Docs   │        │
 │  │ (safety) │  │(analysis)│  │  Review  │  │ Updater  │        │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘        │
+│                                                                  │
+│  Specialized Agents:                                             │
+│  ┌──────────────────────────┐  ┌──────────────────────────┐     │
+│  │ Unit Test Orchestrator   │→ │ Unit Test Creator        │     │
+│  │ (coverage analysis)      │  │ (test file generation)   │     │
+│  └──────────────────────────┘  └──────────────────────────┘     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -186,6 +192,41 @@ git stash push -m "CHECKPOINT: [pipeline-id] - [description]"
 **Role**: Maintain README/AGENTS files
 **When invoked**: After code changes, or explicit request
 **Scope**: All directories with README.md or AGENTS.md
+
+### Specialized Agents
+
+#### Unit Test Orchestrator
+
+**File**: `unit-test-generation/unit-test-orchestrator.agent.md`
+**Role**: Systematic test coverage improvement
+**Output**: `unit-test-generation/coverage-matrix-*.md`, `unit-test-generation/report-*.md`
+**Capabilities**:
+
+- Analyze current test coverage
+- Create prioritized task matrix
+- Delegate to Unit Test Creator for each file
+- Track progress and metrics
+- Generate comprehensive reports
+
+**Invocation**:
+```
+Using the Unit Test Orchestrator agent, generate unit tests for uncovered files
+```
+
+#### Unit Test Creator
+
+**File**: `unit-test-generation/unit-test-creator.agent.md`
+**Role**: Create individual test files
+**Output**: `src/**/*.test.ts` (co-located with source)
+**Capabilities**:
+
+- Analyze source file functionality
+- Create comprehensive Jest test suites
+- Mock dependencies appropriately
+- Verify tests compile and pass
+- Report coverage achieved
+
+**Usually invoked by**: Unit Test Orchestrator (as sub-agent)
 
 ---
 
