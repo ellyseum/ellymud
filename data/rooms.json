@@ -1,18 +1,34 @@
 [
   {
     "id": "start",
-    "name": "The Starting Room",
-    "description": "You are in the starting room. It is small and musty and smells like old clothes and cheese.",
+    "name": "Town Square",
+    "description": "You are standing in the central town square. A large fountain bubbles peacefully in the center. Cobblestone paths lead in various directions.",
     "exits": [
       {
         "direction": "north",
-        "roomId": "room2"
+        "roomId": "north-path"
+      },
+      {
+        "direction": "east",
+        "roomId": "east-road"
+      },
+      {
+        "direction": "south",
+        "roomId": "south-gate"
+      },
+      {
+        "direction": "west",
+        "roomId": "west-alley"
       }
     ],
     "items": [],
     "itemInstances": [],
-    "npcs": [],
-    "flags": [],
+    "npcs": [
+      "goblin"
+    ],
+    "flags": [
+      "safe"
+    ],
     "currency": {
       "gold": 0,
       "silver": 0,
@@ -20,30 +36,16 @@
     }
   },
   {
-    "id": "room2",
-    "name": "A New Room",
-    "description": "You are in a new room.",
+    "id": "north-path",
+    "name": "North Path",
+    "description": "A quiet path leading north from the town square. Trees line both sides of the path.",
     "exits": [
       {
         "direction": "south",
         "roomId": "start"
-      },
-      {
-        "direction": "west",
-        "roomId": "shop"
-      },
-      {
-        "direction": "north",
-        "roomId": "training_room"
-      },
-      {
-        "direction": "east",
-        "roomId": "bank"
       }
     ],
-    "items": [
-      "crystal ball"
-    ],
+    "items": [],
     "itemInstances": [],
     "npcs": [],
     "flags": [],
@@ -54,74 +56,61 @@
     }
   },
   {
-    "id": "training_room",
-    "name": "The Training Hall",
-    "description": "A spacious hall with training dummies, weapon racks, and a seasoned warrior watching over the room. This is a safe zone where you can hone your skills.",
-    "exits": [
-      {
-        "direction": "south",
-        "roomId": "room2"
-      }
-    ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [
-      "trainer_1"
-    ],
-    "flags": [
-      "training",
-      "safe"
-    ],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    }
-  },
-  {
-    "id": "shop",
-    "name": "General Store",
-    "description": "A well-stocked general store with various wares on display. Marcus the Merchant stands behind a wooden counter, ready to haggle.",
-    "exits": [
-      {
-        "direction": "east",
-        "roomId": "room2"
-      }
-    ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [
-      "merchant_1"
-    ],
-    "flags": [
-      "shop",
-      "safe"
-    ],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    }
-  },
-  {
-    "id": "bank",
-    "name": "The Vault Bank",
-    "description": "A secure stone building with iron bars on the windows. A stern banker sits behind a reinforced desk, managing ledgers and coin purses.",
+    "id": "east-road",
+    "name": "East Road",
+    "description": "A well-maintained road leading east. You can hear the sounds of commerce in the distance.",
     "exits": [
       {
         "direction": "west",
-        "roomId": "room2"
+        "roomId": "start"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "flags": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    }
+  },
+  {
+    "id": "south-gate",
+    "name": "South Gate",
+    "description": "The southern gate of the town. Heavy wooden doors stand open, guarded by stone towers.",
+    "exits": [
+      {
+        "direction": "north",
+        "roomId": "start"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "flags": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    }
+  },
+  {
+    "id": "west-alley",
+    "name": "West Alley",
+    "description": "A narrow alley leading west. Shadows gather in the corners.",
+    "exits": [
+      {
+        "direction": "east",
+        "roomId": "start"
       }
     ],
     "items": [],
     "itemInstances": [],
     "npcs": [
-      "banker_1"
+      "goblin"
     ],
-    "flags": [
-      "bank",
-      "safe"
-    ],
+    "flags": [],
     "currency": {
       "gold": 0,
       "silver": 0,

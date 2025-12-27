@@ -6,6 +6,7 @@
 import { NPCInteractionService } from './npcInteractionService';
 import { NPCData } from '../../combat/npc';
 import { MerchantData } from '../../combat/merchant';
+import { createMockRoom } from '../../test/helpers/mockFactories';
 
 // Mock dependencies
 jest.mock('../../utils/logger', () => ({

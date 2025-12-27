@@ -6,7 +6,7 @@ import { systemLogger } from '../utils/logger';
 import { createSystemMessageBox } from '../utils/messageFormatter';
 import { ClientManager } from '../client/clientManager';
 import readline from 'readline';
-import config from '../config';
+import config, { isNoConsole } from '../config';
 
 export class ConsoleInterface {
   private gameServer: GameServer;
@@ -68,7 +68,7 @@ export class ConsoleInterface {
       } else {
         systemLogger.info('Not running in a TTY, local client connection disabled.');
       }
-    } else if (config.NO_CONSOLE && process.stdout.isTTY) {
+    } else if (isNoConsole() && process.stdout.isTTY) {
       // If console commands are explicitly disabled, set up only a minimal Ctrl+C handler
       // for graceful shutdown, but no other keyboard shortcuts
       process.stdin.setRawMode(true);

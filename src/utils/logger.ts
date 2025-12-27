@@ -198,6 +198,18 @@ function getPlayerLogger(username: string): winston.Logger {
 // --- Context-Aware Logging Helpers ---
 
 /**
+ * Enable silent mode by removing console transports from the logger.
+ * Call this after bootTestMode() to suppress console output during tests.
+ */
+function enableSilentMode(): void {
+  // Remove console transports from systemLogger
+  const consoleTransports = systemLogger.transports.filter(
+    (t) => t instanceof winston.transports.Console
+  );
+  consoleTransports.forEach((t) => systemLogger.remove(t));
+}
+
+/**
  * Creates a context-aware logger with predefined metadata
  * Useful for consistently logging from a specific component
  */
@@ -236,4 +248,11 @@ function createMechanicsLogger(mechanicName: string) {
   };
 }
 
-export { systemLogger, mcpLogger, getPlayerLogger, createContextLogger, createMechanicsLogger };
+export {
+  systemLogger,
+  mcpLogger,
+  getPlayerLogger,
+  createContextLogger,
+  createMechanicsLogger,
+  enableSilentMode,
+};

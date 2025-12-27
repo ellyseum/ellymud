@@ -19,20 +19,22 @@ export class APIServer {
   private roomManager: RoomManager;
   private gameTimerManager: GameTimerManager;
   private serverStats: ServerStats;
-  private actualPort: number = config.HTTP_PORT;
+  private port: number;
 
   constructor(
     clients: Map<string, ConnectedClient>,
     userManager: UserManager,
     roomManager: RoomManager,
     gameTimerManager: GameTimerManager,
-    serverStats: ServerStats
+    serverStats: ServerStats,
+    port?: number
   ) {
     this.clients = clients;
     this.userManager = userManager;
     this.roomManager = roomManager;
     this.gameTimerManager = gameTimerManager;
     this.serverStats = serverStats;
+    this.port = port ?? config.HTTP_PORT;
 
     // Create the Express app
     this.app = express();
@@ -51,12 +53,10 @@ export class APIServer {
     // Add error handler
     this.httpServer.on('error', (err: Error & { code?: string }) => {
       if (err.code === 'EADDRINUSE') {
-        systemLogger.error(
-          `Port ${config.HTTP_PORT} is already in use. Is another instance running?`
-        );
-        systemLogger.info(`Trying alternative port ${config.HTTP_PORT + 1}...`);
-        this.actualPort = config.HTTP_PORT + 1;
-        this.httpServer.listen(this.actualPort);
+        systemLogger.error(`Port ${this.port} is already in use. Is another instance running?`);
+        systemLogger.info(`Trying alternative port ${this.port + 1}...`);
+        this.port = this.port + 1;
+        this.httpServer.listen(this.port);
       } else {
         systemLogger.error('HTTP server error:', err);
       }
@@ -153,10 +153,10 @@ export class APIServer {
 
   public start(): Promise<void> {
     return new Promise((resolve) => {
-      this.httpServer.listen(config.HTTP_PORT, () => {
+      this.httpServer.listen(this.port, () => {
         const address = this.httpServer.address();
         if (address && typeof address !== 'string') {
-          this.actualPort = address.port;
+          this.port = address.port;
           systemLogger.info(`HTTP server running on port ${address.port}`);
           systemLogger.info(`Admin interface available at http://localhost:${address.port}/admin`);
         } else {
@@ -177,7 +177,7 @@ export class APIServer {
   }
 
   public getActualPort(): number {
-    return this.actualPort;
+    return this.port;
   }
 
   public stop(): Promise<void> {

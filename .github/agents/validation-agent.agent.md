@@ -232,6 +232,8 @@ $ wc -l src/command/commands/wave.command.ts
 ### All Verification Complete
 
 - [ ] Build verification: `npm run build` passes with **command output, exit code, and timestamp included in report**
+- [ ] Unit tests: `npm test` passes
+- [ ] E2E tests: `npm run test:e2e` passes (silent, deterministic tests with TesterAgent)
 - [ ] All planned changes verified against plan **with file/line citations**
 - [ ] Basic functionality tested with **server start command, test steps, and session logs documented**
 - [ ] Regression checks performed and **explicitly documented with evidence**; if not performed, mark as [UNVERIFIED]
@@ -256,7 +258,7 @@ $ wc -l src/command/commands/wave.command.ts
 - [ ] Start/end times recorded
 - [ ] Token usage estimated
 - [ ] Tool call counts documented
-- [ ] Tests run/passed counts in quality indicators
+- [ ] Tests run/passed counts in quality indicators (unit + E2E)
 - [ ] Functional tests count in quality indicators
 
 ### Exit Criteria
@@ -375,13 +377,15 @@ Save stats to: `.github/agents/metrics/stats/validation_YYYY-MM-DD_task-name-sta
 
 ## Quality Indicators
 
-| Metric           | Value  |
-| ---------------- | ------ |
-| Build Success    | Yes/No |
-| Tests Run        | X      |
-| Tests Passed     | X      |
-| Functional Tests | X      |
-| Checks Passed    | X/Y    |
+| Metric             | Value  |
+| ------------------ | ------ |
+| Build Success      | Yes/No |
+| Unit Tests Run     | X      |
+| Unit Tests Passed  | X      |
+| E2E Tests Run      | X      |
+| E2E Tests Passed   | X      |
+| Functional Tests   | X      |
+| Checks Passed      | X/Y    |
 
 ## Handoff
 
@@ -519,8 +523,11 @@ This section documents each tool available to this agent and when to use it.
 # Build verification
 npm run build
 
-# Test execution
+# Unit test execution
 npm test
+
+# E2E test execution (TesterAgent - silent, deterministic)
+npm run test:e2e
 
 # Data validation
 npm run validate
@@ -707,6 +714,39 @@ Use these MCP tools for testing (server must be running):
 
 **Username Requirements**: Usernames must be 3-12 letters only (no numbers, underscores, or special characters).
 
+#### MCP Time Control APIs
+
+The MCP server provides time control endpoints for testing time-dependent features (regeneration, combat ticks, effects):
+
+| Endpoint | Method | Body | Purpose |
+|----------|--------|------|---------|
+| `/api/test/tick-count` | GET | - | Get current game tick count |
+| `/api/test/advance-ticks` | POST | `{ "ticks": N }` | Advance game by N ticks |
+| `/api/test/mode` | POST | `{ "enabled": true/false }` | Enable/disable test mode |
+
+**Usage Example (curl):**
+
+```bash
+# Get current tick count
+curl http://localhost:3100/api/test/tick-count
+
+# Advance by 12 ticks (one regeneration cycle)
+curl -X POST http://localhost:3100/api/test/advance-ticks \
+  -H "Content-Type: application/json" \
+  -d '{"ticks": 12}'
+
+# Enable test mode (pauses automatic timer)
+curl -X POST http://localhost:3100/api/test/mode \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": true}'
+```
+
+**Key Points:**
+- **Test mode pauses the timer**: When enabled, ticks only advance via `advance-ticks` API
+- **12 ticks = 1 regen cycle**: HP/MP regenerate every 12 ticks
+- **Synchronous processing**: All tick effects are processed before the API returns
+- **Server must be running**: These are REST endpoints on port 3100
+
 #### Recommended Test Flow (Using direct_login)
 
 The `direct_login` tool is the **fastest way to test**. It:
@@ -811,6 +851,8 @@ sleep 1
 **Must-Pass Criteria:**
 
 - [ ] `npm run build` - No compilation errors
+- [ ] `npm test` - Unit tests pass
+- [ ] `npm run test:e2e` - E2E tests pass (silent, deterministic TesterAgent tests)
 - [ ] Server starts (port 3100 responds to health check)
 - [ ] Can create virtual session and login (use `direct_login` for fastest testing)
 - [ ] Feature-specific commands work correctly
@@ -1072,7 +1114,134 @@ npm test -- --grep "NewComponent"
 3. Test summary (passed/failed/skipped counts)
 4. Any failure details or stack traces
 
-#### 5.2 Document Results
+#### 5.2 E2E Tests with TesterAgent (FAST & RECOMMENDED)
+
+**PREFERRED METHOD**: Use Jest E2E tests for comprehensive functional validation. These tests are **extremely fast** (38 tests in ~2 seconds) because they:
+
+1. **Boot server once** per test file (not per test)
+2. **Run in silent mode** - no console output overhead
+3. **Use in-memory virtual sessions** - no network latency
+4. **Control time programmatically** - no waiting for real-time ticks
+
+```bash
+# Run E2E tests - CAPTURE OUTPUT
+npm run test:e2e 2>&1
+echo "Exit code: $?"
+date +"Timestamp: %Y-%m-%d %H:%M:%S"
+```
+
+**Speed Comparison:**
+
+| Method | Time for 38 tests | Overhead |
+|--------|-------------------|----------|
+| **TesterAgent E2E** | **~2 seconds** | Minimal - in-memory |
+| MCP + curl | ~5-10 minutes | Server startup, network I/O |
+| Manual testing | 15+ minutes | Human interaction time |
+
+**E2E Test Features:**
+
+- **Silent Mode**: No console output cluttering test results (setup.ts enables this)
+- **Deterministic Timing**: Game timer is paused, advanced via `advanceTicks()`
+- **State Isolation**: Each test resets to clean state via `resetToClean()`
+- **Random Ports**: Uses ports 49152-65535 to avoid conflicts
+- **Automatic Cleanup**: `forceExit: true` ensures Jest terminates cleanly
+
+**Example E2E Test Evidence:**
+
+```
+$ npm run test:e2e
+> ellymud@1.0.1 test:e2e
+> jest --config jest.e2e.config.js
+
+PASS test/e2e/features.e2e.test.ts
+PASS test/e2e/combat.e2e.test.ts
+PASS test/e2e/regeneration.e2e.test.ts
+
+Test Suites: 3 passed, 3 total
+Tests:       38 passed, 38 total
+Time:        2.013 s
+
+Exit code: 0
+```
+
+**When to use E2E tests vs MCP virtual sessions:**
+
+| Scenario | Use E2E Tests | Use MCP Sessions |
+|----------|--------------|------------------|
+| **Repeatable regression checks** | ✅ Fastest, automated | |
+| **Time-dependent features** (regen, combat) | ✅ Deterministic tick control | ⚠️ Possible but slower |
+| **Multi-player interactions** | ✅ In-process, no network | |
+| **Validation evidence gathering** | ✅ Clean output, easy to cite | |
+| Ad-hoc exploratory testing | | ✅ Interactive |
+| Quick one-off feature check | | ✅ No test file needed |
+| Features not yet covered by E2E tests | | ✅ Immediate feedback |
+| Testing with live server data | | ✅ Uses real game state |
+
+**Validation Agent Recommendation:**
+
+1. **ALWAYS run `npm run test:e2e` first** - it's fast and catches most issues
+2. **Use MCP sessions for** specific edge cases not covered by E2E tests
+3. **Use MCP time control APIs** when you need to manually test time-based features
+
+**TesterAgent API Quick Reference:**
+
+```typescript
+// Create agent with server in test mode (~100ms startup)
+const agent = await TesterAgent.create();
+
+// Login (creates user if needed) - instant, no auth delay
+const sessionId = await agent.directLogin('testuser');
+
+// Execute commands - synchronous, returns immediately
+const output = agent.sendCommand(sessionId, 'look');
+
+// Time control - instant, deterministic
+agent.advanceTicks(12);    // Advance 12 ticks (one regen cycle)
+agent.advanceToRegen();    // Advance to next regen cycle
+agent.getTickCount();      // Get current tick count
+
+// Player stats - direct access, no command parsing
+const stats = agent.getPlayerStats(sessionId);
+agent.setPlayerStats(sessionId, { health: 50, mana: 25 });
+
+// State management - instant reset between tests
+await agent.resetToClean();
+await agent.loadSnapshot('combat-ready');
+
+// Cleanup
+agent.closeSession(sessionId);
+await agent.shutdown();
+```
+
+**Writing New E2E Tests:**
+
+If a feature isn't covered by existing E2E tests, consider adding one:
+
+```typescript
+// test/e2e/my-feature.e2e.test.ts
+import { TesterAgent } from '../../src/testing/testerAgent';
+
+describe('My Feature E2E', () => {
+  let agent: TesterAgent;
+  let sessionId: string;
+
+  beforeAll(async () => { agent = await TesterAgent.create(); });
+  afterAll(async () => { await agent.shutdown(); });
+  beforeEach(async () => {
+    await agent.resetToClean();
+    sessionId = await agent.directLogin('testuser');
+    agent.getOutput(sessionId, true); // Clear buffer
+  });
+  afterEach(() => { agent.closeSession(sessionId); });
+
+  it('should do the thing', async () => {
+    const output = agent.sendCommand(sessionId, 'mycommand');
+    expect(output).toContain('expected result');
+  });
+});
+```
+
+#### 5.3 Document Results
 
 Include actual test output excerpt:
 
@@ -1093,9 +1262,9 @@ Exit code: 0
 | Test Suite  | Passed | Failed | Skipped |
 | ----------- | ------ | ------ | ------- |
 | Unit        | 47     | 0      | 0       |
-| Integration | 12     | 0      | 0       |
+| E2E         | 38     | 0      | 0       |
 
-#### 5.3 Coverage Analysis (if available)
+#### 5.4 Coverage Analysis (if available)
 
 ```bash
 npm test -- --coverage

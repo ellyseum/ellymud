@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { ClientManager } from './client/clientManager';
 import { CommandHandler } from './command/commandHandler';
-import config from './config';
+import config, { applyTestModeOverrides, clearTestModeOverrides } from './config';
 import { ConsoleManager } from './console/consoleManager';
 import { LocalSessionManager } from './console/localSessionManager';
 import { UserAdminMenu } from './console/userAdminMenu';
@@ -19,14 +19,26 @@ import { SnakeGameState } from './states/snake-game.state';
 import { EditorState } from './states/editor.state';
 import { GameTimerManager } from './timer/gameTimerManager';
 import { ConnectedClient, GlobalWithSkipMCP, MUDConfig, ServerStats } from './types';
+import { EffectManager } from './effects/effectManager';
 import { UserManager } from './user/userManager';
 import { MCPServer } from './mcp/mcpServer';
+import { VirtualSessionManager } from './mcp/virtualSessionManager';
 import { CommandRegistry } from './command/commandRegistry';
 import { isDebugMode } from './utils/debugUtils'; // Import the isDebugMode function
 import { clearSessionReferenceFile } from './utils/fileUtils'; // Import the clearSessionReferenceFile function
-import { systemLogger } from './utils/logger';
+import { systemLogger, enableSilentMode } from './utils/logger';
 import { getPromptText } from './utils/promptFormatter'; // Import the getPromptText function
-import { TestModeOptions } from './testing/testMode';
+import { TestModeOptions, getDefaultTestModeOptions } from './testing/testMode';
+import { StateLoader } from './testing/stateLoader';
+
+/**
+ * Port configuration for GameServer
+ */
+export interface ServerPortConfig {
+  telnetPort?: number;
+  httpPort?: number;
+  mcpPort?: number;
+}
 
 export class GameServer {
   private telnetServer: TelnetServer;
@@ -48,8 +60,10 @@ export class GameServer {
   private userAdminMenu: UserAdminMenu;
   private shutdownManager: ShutdownManager;
   private mcpServer: MCPServer;
+  private isTestMode: boolean = false;
+  private statsUpdateInterval: NodeJS.Timeout;
 
-  constructor() {
+  constructor(portConfig?: ServerPortConfig) {
     try {
       // Initialize server stats
       this.serverStats = {
@@ -68,7 +82,7 @@ export class GameServer {
       };
 
       // Set up update interval for server stats
-      setInterval(() => {
+      this.statsUpdateInterval = setInterval(() => {
         this.serverStats.uptime = Math.floor(
           (Date.now() - this.serverStats.startTime.getTime()) / 1000
         );
@@ -119,7 +133,8 @@ export class GameServer {
         this.userManager,
         this.roomManager,
         this.gameTimerManager,
-        this.serverStats
+        this.serverStats,
+        portConfig?.httpPort
       );
 
       // Create the WebSocket server using the HTTP server from API server
@@ -140,7 +155,8 @@ export class GameServer {
         this.commandHandler,
         this.serverStats,
         this.setupClient.bind(this),
-        this.processInput.bind(this)
+        this.processInput.bind(this),
+        portConfig?.telnetPort
       );
 
       // Create the ShutdownManager
@@ -189,7 +205,8 @@ export class GameServer {
         this.userManager,
         this.roomManager,
         this.clientManager,
-        this.gameTimerManager
+        this.gameTimerManager,
+        portConfig?.mcpPort
       );
 
       // Setup keyboard listeners for console commands after server is started
@@ -370,8 +387,31 @@ export class GameServer {
 
   public async bootTestMode(options: TestModeOptions = {}): Promise<void> {
     try {
-      // First check and create admin user if needed
-      await this.checkAndCreateAdminUser();
+      // Mark that we're in test mode
+      this.isTestMode = true;
+
+      // Apply test mode configuration overrides
+      // These take precedence over CLI-parsed values
+      const mergedOptions = { ...getDefaultTestModeOptions(), ...options };
+      applyTestModeOverrides({
+        silent: mergedOptions.silent,
+        noColor: mergedOptions.noColor,
+        noConsole: mergedOptions.noConsole,
+        disableRemoteAdmin: mergedOptions.disableRemoteAdmin,
+      });
+
+      // Enable silent mode on the logger (removes console transports)
+      if (mergedOptions.silent) {
+        enableSilentMode();
+      }
+
+      // Skip admin setup unless explicitly requested (defaults to skip for tests)
+      if (options.skipAdminSetup !== false) {
+        systemLogger.info('Skipping admin setup in test mode');
+      } else {
+        // First check and create admin user if needed
+        await this.checkAndCreateAdminUser();
+      }
 
       systemLogger.info('Starting server in TEST MODE...');
 
@@ -449,6 +489,9 @@ export class GameServer {
     // Reset singleton instances
     GameTimerManager.resetInstance();
 
+    // Reset EffectManager to stop its real-time processor interval
+    EffectManager.resetInstance();
+
     // Also reset CommandRegistry instance
     CommandRegistry.resetInstance();
 
@@ -502,6 +545,84 @@ export class GameServer {
    */
   public getTelnetPort(): number {
     return this.telnetServer.getActualPort();
+  }
+
+  /**
+   * Get the VirtualSessionManager for programmatic session control
+   */
+  public getVirtualSessionManager(): VirtualSessionManager {
+    return this.mcpServer.getVirtualSessionManager();
+  }
+
+  /**
+   * Get the GameTimerManager for time manipulation
+   */
+  public getGameTimerManager(): GameTimerManager {
+    return this.gameTimerManager;
+  }
+
+  /**
+   * Get the StateLoader for snapshot management
+   */
+  public getStateLoader(): StateLoader {
+    return this.mcpServer.getStateLoader();
+  }
+
+  /**
+   * Stop the server (for test cleanup)
+   * Does graceful shutdown without calling process.exit()
+   */
+  public async stop(): Promise<void> {
+    systemLogger.info('Shutting down server...');
+
+    // Stop the game timer system
+    this.gameTimerManager.stop();
+
+    // Stop MCP Server
+    await this.mcpServer.stop().catch((error: unknown) => {
+      systemLogger.error('Error stopping MCP server:', error);
+    });
+
+    // Clear the idle check interval
+    clearInterval(this.idleCheckInterval);
+
+    // Clear the stats update interval
+    clearInterval(this.statsUpdateInterval);
+
+    try {
+      // Save the data directly
+      this.userManager.forceSave();
+      this.roomManager.forceSave();
+
+      // Log successful save
+      systemLogger.info('Game data saved successfully during shutdown');
+    } catch (error) {
+      systemLogger.error('Error saving data during shutdown:', error);
+    }
+
+    // Stop server components
+    this.telnetServer.stop();
+    this.webSocketServer.stop();
+    this.apiServer.stop();
+
+    // Reset singleton instances
+    GameTimerManager.resetInstance();
+
+    // Reset EffectManager to stop its real-time processor interval
+    EffectManager.resetInstance();
+
+    // Also reset CommandRegistry instance
+    CommandRegistry.resetInstance();
+
+    // Clear test mode configuration overrides
+    if (this.isTestMode) {
+      clearTestModeOverrides();
+    }
+
+    systemLogger.info('Server shutdown complete');
+
+    // Give time for async operations
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   // For automated sessions - delegate to LocalSessionManager

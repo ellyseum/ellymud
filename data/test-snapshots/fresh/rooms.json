@@ -1,0 +1,65 @@
+[
+  {
+    "id": "start",
+    "name": "Town Square",
+    "description": "You are standing in the central town square. A large fountain bubbles peacefully in the center. Cobblestone paths lead in various directions.",
+    "exits": [
+      { "direction": "north", "roomId": "north-path" },
+      { "direction": "east", "roomId": "east-road" },
+      { "direction": "south", "roomId": "south-gate" },
+      { "direction": "west", "roomId": "west-alley" }
+    ],
+    "items": [],
+    "npcs": [],
+    "flags": ["safe"],
+    "currency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "north-path",
+    "name": "North Path",
+    "description": "A quiet path leading north from the town square. Trees line both sides of the path.",
+    "exits": [
+      { "direction": "south", "roomId": "start" }
+    ],
+    "items": [],
+    "npcs": [],
+    "flags": [],
+    "currency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "east-road",
+    "name": "East Road",
+    "description": "A well-maintained road leading east. You can hear the sounds of commerce in the distance.",
+    "exits": [
+      { "direction": "west", "roomId": "start" }
+    ],
+    "items": [],
+    "npcs": [],
+    "flags": [],
+    "currency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "south-gate",
+    "name": "South Gate",
+    "description": "The southern gate of the town. Heavy wooden doors stand open, guarded by stone towers.",
+    "exits": [
+      { "direction": "north", "roomId": "start" }
+    ],
+    "items": [],
+    "npcs": [],
+    "flags": [],
+    "currency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "west-alley",
+    "name": "West Alley",
+    "description": "A narrow alley leading west. Shadows gather in the corners.",
+    "exits": [
+      { "direction": "east", "roomId": "start" }
+    ],
+    "items": [],
+    "npcs": [],
+    "flags": [],
+    "currency": { "gold": 0, "silver": 0, "copper": 0 }
+  }
+]

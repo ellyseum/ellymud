@@ -403,12 +403,25 @@ export class GameTimerManager extends EventEmitter {
    */
   public setTestMode(enabled: boolean): void {
     this.testMode = enabled;
+
+    // Propagate test mode to managers to disable file persistence
+    this.userManager.setTestMode(enabled);
+    this.roomManager.setTestMode(enabled);
+
     if (enabled && this.running) {
       this.stop();
       timerLogger.info('Game timer paused (Test Mode enabled)');
     } else if (!enabled && !this.running) {
       timerLogger.info('Test Mode disabled');
     }
+  }
+
+  /**
+   * Check if test mode is enabled
+   * @returns True if test mode is active
+   */
+  public isTestMode(): boolean {
+    return this.testMode;
   }
 
   /**
