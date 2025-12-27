@@ -6,6 +6,8 @@ import { Server as HttpServer } from 'http';
 import { UserManager } from '../user/userManager';
 import { RoomManager } from '../room/roomManager';
 import { ClientManager } from '../client/clientManager';
+import { GameTimerManager } from '../timer/gameTimerManager';
+import { StateLoader } from '../testing/stateLoader';
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { systemLogger, mcpLogger } from '../utils/logger';
@@ -61,24 +63,30 @@ export class MCPServer {
   private userManager: UserManager;
   private roomManager: RoomManager;
   private clientManager: ClientManager;
+  private gameTimerManager: GameTimerManager;
   private virtualSessionManager: VirtualSessionManager;
+  private stateLoader: StateLoader;
   private port: number;
   private tempUsers: Set<string> = new Set(); // Track temp users for cleanup
+  private cleanupInterval: NodeJS.Timeout;
 
   constructor(
     userManager: UserManager,
     roomManager: RoomManager,
     clientManager: ClientManager,
+    gameTimerManager: GameTimerManager,
     port: number = 3100
   ) {
     this.userManager = userManager;
     this.roomManager = roomManager;
     this.clientManager = clientManager;
+    this.gameTimerManager = gameTimerManager;
     this.virtualSessionManager = new VirtualSessionManager(
       clientManager,
       userManager,
       this.tempUsers
     );
+    this.stateLoader = new StateLoader(userManager, roomManager);
     this.port = port;
 
     this.app = express();
@@ -86,7 +94,7 @@ export class MCPServer {
     this.setupRoutes();
 
     // Clean up inactive virtual sessions every 10 minutes
-    setInterval(() => {
+    this.cleanupInterval = setInterval(() => {
       this.virtualSessionManager.cleanupInactiveSessions();
     }, 600000);
   }
@@ -393,6 +401,30 @@ export class MCPServer {
             description: 'List all active virtual sessions',
             endpoint: '/api/virtual-sessions',
             method: 'GET',
+          },
+          {
+            name: 'advance_game_ticks',
+            description: 'Advance the game timer by a specific number of ticks (Test Mode only)',
+            endpoint: '/api/test/advance-ticks',
+            method: 'POST',
+            body: {
+              ticks: 'number',
+            },
+          },
+          {
+            name: 'get_game_tick',
+            description: 'Get the current game tick count',
+            endpoint: '/api/test/tick-count',
+            method: 'GET',
+          },
+          {
+            name: 'set_test_mode',
+            description: 'Enable or disable test mode (pauses/resumes timer)',
+            endpoint: '/api/test/mode',
+            method: 'POST',
+            body: {
+              enabled: 'boolean',
+            },
           },
         ],
       });
@@ -715,6 +747,127 @@ export class MCPServer {
         });
       }
     });
+
+    // Test Mode Endpoints
+    this.app.post('/api/test/advance-ticks', (req: Request, res: Response) => {
+      try {
+        const { ticks } = req.body;
+        if (typeof ticks !== 'number' || ticks <= 0) {
+          return res.status(400).json({ success: false, error: 'Invalid ticks value' });
+        }
+        this.gameTimerManager.advanceTicks(ticks);
+        mcpLogger.info(`Advanced game timer by ${ticks} ticks`);
+        res.json({
+          success: true,
+          data: { ticksAdvanced: ticks, currentTick: this.gameTimerManager.getTickCount() },
+        });
+      } catch (error) {
+        mcpLogger.error(`Error advancing ticks: ${error}`);
+        res.status(500).json({ success: false, error: String(error) });
+      }
+    });
+
+    this.app.get('/api/test/tick-count', (req: Request, res: Response) => {
+      try {
+        const count = this.gameTimerManager.getTickCount();
+        res.json({ success: true, data: { tickCount: count } });
+      } catch (error) {
+        mcpLogger.error(`Error getting tick count: ${error}`);
+        res.status(500).json({ success: false, error: String(error) });
+      }
+    });
+
+    this.app.post('/api/test/mode', (req: Request, res: Response) => {
+      try {
+        const { enabled } = req.body;
+        if (typeof enabled !== 'boolean') {
+          return res.status(400).json({ success: false, error: 'Invalid enabled value' });
+        }
+        this.gameTimerManager.setTestMode(enabled);
+        mcpLogger.info(`Set test mode to ${enabled}`);
+        res.json({ success: true, data: { testMode: enabled } });
+      } catch (error) {
+        mcpLogger.error(`Error setting test mode: ${error}`);
+        res.status(500).json({ success: false, error: String(error) });
+      }
+    });
+
+    // State Management Endpoints
+    this.app.post('/api/test/snapshot/load', async (req: Request, res: Response) => {
+      try {
+        const { name } = req.body;
+        if (!name) {
+          return res.status(400).json({ success: false, error: 'Snapshot name is required' });
+        }
+        const result = await this.loadTestSnapshot(name);
+        mcpLogger.info(`Loaded test snapshot: ${name}`);
+        res.json({ success: true, data: result });
+      } catch (error) {
+        mcpLogger.error(`Error loading snapshot: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.post('/api/test/snapshot/save', async (req: Request, res: Response) => {
+      try {
+        const { name, overwrite } = req.body;
+        if (!name) {
+          return res.status(400).json({ success: false, error: 'Snapshot name is required' });
+        }
+        const result = await this.saveTestSnapshot(name, overwrite);
+        mcpLogger.info(`Saved test snapshot: ${name}`);
+        res.json({ success: true, data: result });
+      } catch (error) {
+        mcpLogger.error(`Error saving snapshot: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.post('/api/test/reset', async (req: Request, res: Response) => {
+      try {
+        const result = await this.resetGameState();
+        mcpLogger.info('Reset game state to fresh');
+        res.json({ success: true, data: result });
+      } catch (error) {
+        mcpLogger.error(`Error resetting game state: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.get('/api/test/snapshots', (req: Request, res: Response) => {
+      try {
+        const result = this.listTestSnapshots();
+        res.json({ success: true, data: result });
+      } catch (error) {
+        mcpLogger.error(`Error listing snapshots: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    this.app.post('/api/test/set-player-stats', (req: Request, res: Response) => {
+      try {
+        const result = this.setPlayerStats(req.body);
+        res.json({ success: true, data: result });
+      } catch (error) {
+        mcpLogger.error(`Error setting player stats: ${error}`);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
   }
 
   private async getOnlineUsers() {
@@ -738,6 +891,18 @@ export class MCPServer {
   }
 
   private async getUserData(username: string) {
+    // First check if user is online - runtime client.user has the actual current stats
+    const clients = Array.from(this.clientManager.getClients().values());
+    const onlineClient = clients.find(
+      (client) => client.user?.username?.toLowerCase() === username.toLowerCase()
+    );
+
+    if (onlineClient && onlineClient.user) {
+      // Return the runtime user data which reflects current state (regeneration, combat, etc.)
+      return onlineClient.user;
+    }
+
+    // Fall back to persisted data for offline users
     const user = this.userManager.getUser(username);
     if (!user) {
       throw new Error(`User '${username}' not found`);
@@ -1209,8 +1374,147 @@ export class MCPServer {
               type: 'string',
               description: "Username to login as. Will be created as temp user if doesn't exist.",
             },
+            isAdmin: {
+              type: 'boolean',
+              description: 'If true, grants admin flag to the user. Default: false',
+            },
           },
           required: ['username'],
+        },
+      },
+      {
+        name: 'load_test_snapshot',
+        description:
+          'Load a named test snapshot, replacing current game state. Use to reset to known states for testing.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Snapshot name (e.g., "fresh", "combat-ready")',
+            },
+          },
+          required: ['name'],
+        },
+      },
+      {
+        name: 'save_test_snapshot',
+        description: 'Save current game state as a named snapshot for future tests.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name for the snapshot',
+            },
+            overwrite: {
+              type: 'boolean',
+              description: 'If true, overwrites existing snapshot. Default: false',
+            },
+          },
+          required: ['name'],
+        },
+      },
+      {
+        name: 'reset_game_state',
+        description: 'Reset game to clean/fresh state by loading the "fresh" snapshot.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'list_test_snapshots',
+        description: 'List all available test snapshots.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'set_player_stats',
+        description:
+          'Directly set player stats for testing (health, mana, gold, etc). Only specified fields are updated.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            username: {
+              type: 'string',
+              description: 'Username of the player to modify',
+            },
+            health: {
+              type: 'number',
+              description: 'Set current health',
+            },
+            maxHealth: {
+              type: 'number',
+              description: 'Set maximum health',
+            },
+            mana: {
+              type: 'number',
+              description: 'Set current mana',
+            },
+            maxMana: {
+              type: 'number',
+              description: 'Set maximum mana',
+            },
+            gold: {
+              type: 'number',
+              description: 'Set gold in inventory',
+            },
+            experience: {
+              type: 'number',
+              description: 'Set experience points',
+            },
+            level: {
+              type: 'number',
+              description: 'Set player level',
+            },
+          },
+          required: ['username'],
+        },
+      },
+      {
+        name: 'advance_game_ticks',
+        description:
+          'Advance the game timer by a specific number of ticks. Used for testing time-based mechanics like regeneration (12 ticks = 1 regen cycle). Requires test mode to be enabled.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            ticks: {
+              type: 'number',
+              description: 'Number of ticks to advance (must be positive)',
+            },
+          },
+          required: ['ticks'],
+        },
+      },
+      {
+        name: 'get_game_tick',
+        description:
+          'Get the current game tick count. Useful for tracking time progression in tests.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'set_test_mode',
+        description:
+          'Enable or disable test mode. When enabled, the game timer is paused and can only be advanced manually via advance_game_ticks. Required before using advance_game_ticks.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            enabled: {
+              type: 'boolean',
+              description:
+                'True to enable test mode (pause timer), false to disable (resume timer)',
+            },
+          },
+          required: ['enabled'],
         },
       },
     ];
@@ -1272,7 +1576,31 @@ export class MCPServer {
           result = this.createTempUser(args.username);
           break;
         case 'direct_login':
-          result = this.directLogin(args.username);
+          result = this.directLogin(args.username, args.isAdmin);
+          break;
+        case 'load_test_snapshot':
+          result = await this.loadTestSnapshot(args.name);
+          break;
+        case 'save_test_snapshot':
+          result = await this.saveTestSnapshot(args.name, args.overwrite);
+          break;
+        case 'reset_game_state':
+          result = await this.resetGameState();
+          break;
+        case 'list_test_snapshots':
+          result = this.listTestSnapshots();
+          break;
+        case 'set_player_stats':
+          result = this.setPlayerStats(args);
+          break;
+        case 'advance_game_ticks':
+          result = this.advanceGameTicks(args.ticks);
+          break;
+        case 'get_game_tick':
+          result = this.getGameTick();
+          break;
+        case 'set_test_mode':
+          result = this.setTestMode(args.enabled);
           break;
         default:
           res.status(400).json({
@@ -1395,8 +1723,8 @@ export class MCPServer {
    * Direct login - create session and login directly
    * Session is returned immediately ready for commands via virtual_session_command
    */
-  private directLogin(username: string) {
-    const session = this.virtualSessionManager.directLogin(username);
+  private directLogin(username: string, isAdmin?: boolean) {
+    const session = this.virtualSessionManager.directLogin(username, isAdmin);
 
     return {
       sessionId: session.getSessionId(),
@@ -1404,7 +1732,197 @@ export class MCPServer {
       message:
         "Logged in directly. Session is ready. Use virtual_session_command with 'look' to see the room.",
       isTempUser: this.tempUsers.has(username.toLowerCase()),
+      isAdmin: isAdmin ?? false,
       sessionInfo: session.getInfo(),
+    };
+  }
+
+  /**
+   * Load a named test snapshot, replacing current game state
+   */
+  private async loadTestSnapshot(name: string) {
+    mcpLogger.info(`Loading test snapshot: ${name}`);
+    const result = await this.stateLoader.loadSnapshot(name);
+    return {
+      snapshot: name,
+      message: `Snapshot '${name}' loaded successfully`,
+      ...result,
+    };
+  }
+
+  /**
+   * Save current game state as a named snapshot
+   */
+  private async saveTestSnapshot(name: string, overwrite?: boolean) {
+    mcpLogger.info(`Saving test snapshot: ${name}`);
+    const result = await this.stateLoader.saveSnapshot(name, overwrite ?? false);
+    return {
+      snapshot: name,
+      message: `Snapshot '${name}' saved successfully`,
+      ...result,
+    };
+  }
+
+  /**
+   * Reset game to clean/fresh state
+   */
+  private async resetGameState() {
+    mcpLogger.info('Resetting game state to fresh snapshot');
+    const result = await this.stateLoader.resetToClean();
+    return {
+      message: 'Game state reset to fresh snapshot',
+      ...result,
+    };
+  }
+
+  /**
+   * List all available test snapshots
+   */
+  private listTestSnapshots() {
+    const snapshots = this.stateLoader.listSnapshots();
+    const snapshotInfo = snapshots.map((name) => this.stateLoader.getSnapshotInfo(name));
+    return {
+      count: snapshots.length,
+      snapshots: snapshotInfo,
+    };
+  }
+
+  /**
+   * Directly set player stats for testing
+   */
+  private setPlayerStats(args: {
+    username: string;
+    health?: number;
+    maxHealth?: number;
+    mana?: number;
+    maxMana?: number;
+    gold?: number;
+    experience?: number;
+    level?: number;
+  }) {
+    const user = this.userManager.getUser(args.username);
+    if (!user) {
+      throw new Error(`User '${args.username}' not found`);
+    }
+
+    const updates: Record<string, number> = {};
+
+    if (args.health !== undefined) {
+      updates.health = args.health;
+    }
+    if (args.maxHealth !== undefined) {
+      updates.maxHealth = args.maxHealth;
+    }
+    if (args.mana !== undefined) {
+      updates.mana = args.mana;
+    }
+    if (args.maxMana !== undefined) {
+      updates.maxMana = args.maxMana;
+    }
+    if (args.gold !== undefined) {
+      // Gold is nested in inventory.currency
+      if (!user.inventory) {
+        user.inventory = { items: [], currency: { gold: 0, silver: 0, copper: 0 } };
+      }
+      user.inventory.currency.gold = args.gold;
+    }
+    if (args.experience !== undefined) {
+      updates.experience = args.experience;
+    }
+    if (args.level !== undefined) {
+      updates.level = args.level;
+    }
+
+    // Apply updates using the UserManager's updateUser method
+    const success = this.userManager.updateUser(args.username, updates);
+
+    if (!success) {
+      throw new Error(`Failed to update stats for user '${args.username}'`);
+    }
+
+    // Also update the runtime client's user object if they are online
+    const clients = Array.from(this.clientManager.getClients().values());
+    const onlineClient = clients.find(
+      (client) => client.user?.username?.toLowerCase() === args.username.toLowerCase()
+    );
+    if (onlineClient && onlineClient.user) {
+      // Update the runtime user object directly
+      if (args.health !== undefined) onlineClient.user.health = args.health;
+      if (args.maxHealth !== undefined) onlineClient.user.maxHealth = args.maxHealth;
+      if (args.mana !== undefined) onlineClient.user.mana = args.mana;
+      if (args.maxMana !== undefined) onlineClient.user.maxMana = args.maxMana;
+      if (args.experience !== undefined) onlineClient.user.experience = args.experience;
+      if (args.level !== undefined) onlineClient.user.level = args.level;
+      if (args.gold !== undefined) {
+        if (!onlineClient.user.inventory) {
+          onlineClient.user.inventory = { items: [], currency: { gold: 0, silver: 0, copper: 0 } };
+        }
+        onlineClient.user.inventory.currency.gold = args.gold;
+      }
+      mcpLogger.info(`Also updated runtime client stats for ${args.username}`);
+    }
+
+    // Force save to persist changes
+    this.userManager.forceSave();
+
+    mcpLogger.info(`Set stats for user ${args.username}: ${JSON.stringify(updates)}`);
+
+    return {
+      username: args.username,
+      message: `Stats updated for '${args.username}'`,
+      updatedFields: Object.keys(updates).concat(args.gold !== undefined ? ['gold'] : []),
+      newValues: {
+        ...updates,
+        ...(args.gold !== undefined ? { gold: args.gold } : {}),
+      },
+    };
+  }
+
+  /**
+   * Advance the game timer by a specific number of ticks (for testing)
+   */
+  private advanceGameTicks(ticks: number) {
+    if (typeof ticks !== 'number' || ticks <= 0) {
+      throw new Error('Invalid ticks value: must be a positive number');
+    }
+
+    this.gameTimerManager.advanceTicks(ticks);
+    mcpLogger.info(`Advanced game timer by ${ticks} ticks`);
+
+    return {
+      ticksAdvanced: ticks,
+      currentTick: this.gameTimerManager.getTickCount(),
+      message: `Advanced game timer by ${ticks} ticks`,
+    };
+  }
+
+  /**
+   * Get the current game tick count
+   */
+  private getGameTick() {
+    const tickCount = this.gameTimerManager.getTickCount();
+    return {
+      tickCount,
+      message: `Current game tick: ${tickCount}`,
+    };
+  }
+
+  /**
+   * Enable or disable test mode (pauses/resumes the game timer)
+   */
+  private setTestMode(enabled: boolean) {
+    if (typeof enabled !== 'boolean') {
+      throw new Error('Invalid enabled value: must be a boolean');
+    }
+
+    this.gameTimerManager.setTestMode(enabled);
+    mcpLogger.info(`Set test mode to ${enabled}`);
+
+    return {
+      testMode: enabled,
+      message: enabled
+        ? 'Test mode enabled: timer paused, use advance_game_ticks to advance time'
+        : 'Test mode disabled: timer resumed',
     };
   }
 
@@ -1438,6 +1956,9 @@ export class MCPServer {
    * Stop the MCP server
    */
   async stop(): Promise<void> {
+    // Clear the cleanup interval
+    clearInterval(this.cleanupInterval);
+
     // Clean up temp users before stopping
     const cleanedCount = this.virtualSessionManager.cleanupTempUsers();
     if (cleanedCount > 0) {
@@ -1461,5 +1982,19 @@ export class MCPServer {
    */
   getPort(): number {
     return this.port;
+  }
+
+  /**
+   * Get the VirtualSessionManager for programmatic session control
+   */
+  getVirtualSessionManager(): VirtualSessionManager {
+    return this.virtualSessionManager;
+  }
+
+  /**
+   * Get the StateLoader for snapshot management
+   */
+  getStateLoader(): StateLoader {
+    return this.stateLoader;
   }
 }

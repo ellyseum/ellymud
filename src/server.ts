@@ -32,7 +32,11 @@ async function main() {
     gameServer = new GameServer();
 
     // Start the server
-    await gameServer.start();
+    if (config.TEST_MODE) {
+      await gameServer.bootTestMode({});
+    } else {
+      await gameServer.start();
+    }
 
     // If auto sessions are enabled, start them after server initialization
     if (config.AUTO_ADMIN_SESSION) {

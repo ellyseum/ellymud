@@ -130,6 +130,59 @@ for (const [username, client] of activeUsers) {
 }
 ```
 
+## Test Mode
+
+The timer supports a test mode for deterministic E2E testing where ticks are advanced programmatically.
+
+### Test Mode Methods
+
+```typescript
+// Enable/disable test mode (pauses timer when enabled)
+setTestMode(enabled: boolean): void;
+
+// Advance multiple ticks synchronously
+advanceTicks(count: number): void;
+
+// Get current tick count
+getTickCount(): number;
+
+// Reset tick count to zero
+resetTickCount(): void;
+```
+
+### Test Mode Behavior
+
+```typescript
+// When test mode is enabled:
+public start(): void {
+  if (this.testMode) {
+    timerLogger.info('Game timer start prevented (Test Mode active)');
+    return;  // Timer does NOT auto-start
+  }
+  // ... normal start
+}
+
+// Manual tick advancement:
+public advanceTicks(count: number): void {
+  for (let i = 0; i < count; i++) {
+    this.forceTick();  // Process one full tick
+  }
+}
+```
+
+### Usage in E2E Tests
+
+```typescript
+// 1. Boot server in test mode (timer paused)
+gameServer.bootTestMode({ enableTimer: false });
+
+// 2. Advance ticks as needed
+gameTimerManager.advanceTicks(1);   // Single tick
+gameTimerManager.advanceTicks(12);  // Full regen cycle
+
+// 3. Check game state after each advancement
+```
+
 ## Gotchas & Warnings
 
 - ⚠️ **Blocking Operations**: Don't do slow I/O in tick handlers
@@ -137,6 +190,8 @@ for (const [username, client] of activeUsers) {
 - ⚠️ **Singleton**: Use `getInstance()`, not constructor
 - ⚠️ **State Validation**: Always check `inCombat` and `isUnconscious` before applying regen
 - ⚠️ **Tick Order**: Effects process before combat, resting tracks before regen
+- ⚠️ **Test Mode Start**: Use `bootTestMode()` not `start()` then `setTestMode()` - order matters
+- ⚠️ **Synchronous Ticks**: `advanceTicks(N)` processes all N ticks synchronously in one call
 
 ## Related Context
 
@@ -144,4 +199,6 @@ for (const [username, client] of activeUsers) {
 - [`../effects/effectManager.ts`](../effects/effectManager.ts) - Effects processed here
 - [`../utils/stateInterruption.ts`](../utils/stateInterruption.ts) - State clearing utility
 - [`../user/userManager.ts`](../user/userManager.ts) - User session iteration
+- [`../testing/testMode.ts`](../testing/testMode.ts) - Test mode options interface
+- [`../mcp/mcpServer.ts`](../mcp/mcpServer.ts) - MCP tools for test mode control
 - [`../../data/gametimer-config.json`](../../data/gametimer-config.json) - Timer configuration

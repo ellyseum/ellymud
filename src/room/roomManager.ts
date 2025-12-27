@@ -39,6 +39,7 @@ interface RoomData {
 export class RoomManager implements IRoomManager {
   private rooms: Map<string, Room> = new Map();
   private clients: Map<string, ConnectedClient>;
+  private testMode: boolean = false;
 
   // Services - use definite assignment assertions to tell TypeScript they will be initialized
   private directionHelper!: DirectionHelper;
@@ -190,6 +191,11 @@ export class RoomManager implements IRoomManager {
   }
 
   private saveRooms(): void {
+    // Skip file persistence in test mode to avoid overwriting main game data
+    if (this.testMode) {
+      systemLogger.debug('[RoomManager] Skipping save - test mode active');
+      return;
+    }
     try {
       // Convert rooms to storable format (without players)
       const roomsData = Array.from(this.rooms.values()).map((room) => {
@@ -326,5 +332,98 @@ export class RoomManager implements IRoomManager {
    */
   public forceSave(): void {
     this.saveRooms();
+  }
+
+  /**
+   * Enable or disable test mode.
+   * When enabled, file persistence is skipped to avoid overwriting main game data.
+   * @param enabled True to enable test mode, false to disable
+   */
+  public setTestMode(enabled: boolean): void {
+    this.testMode = enabled;
+    systemLogger.info(
+      `[RoomManager] Test mode ${enabled ? 'enabled' : 'disabled'} - file persistence ${enabled ? 'disabled' : 'enabled'}`
+    );
+  }
+
+  /**
+   * Check if test mode is enabled
+   */
+  public isTestMode(): boolean {
+    return this.testMode;
+  }
+
+  /**
+   * Load room data from a specific file path (for testing/snapshots).
+   * This replaces the current rooms with data from the file.
+   *
+   * @param filePath - Absolute path to the rooms JSON file
+   */
+  public async loadFromPath(filePath: string): Promise<void> {
+    try {
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`Room data file not found: ${filePath}`);
+      }
+
+      const data = fs.readFileSync(filePath, 'utf8');
+      const roomData = JSON.parse(data);
+
+      if (!Array.isArray(roomData)) {
+        throw new Error('Room data must be an array');
+      }
+
+      // Load using the prevalidated method to ensure proper structure
+      this.loadPrevalidatedRooms(roomData);
+      systemLogger.info(`[RoomManager] Loaded ${roomData.length} rooms from ${filePath}`);
+    } catch (error) {
+      systemLogger.error(`[RoomManager] Error loading rooms from ${filePath}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Save room data to a specific file path (for testing/snapshots).
+   * This saves the current rooms to the specified file.
+   *
+   * @param filePath - Absolute path to save the rooms JSON file
+   * @returns Number of rooms saved
+   */
+  public async saveToPath(filePath: string): Promise<number> {
+    try {
+      // Ensure directory exists
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      // Convert rooms to storable format (same logic as saveRooms)
+      const roomsData = Array.from(this.rooms.values()).map((room) => {
+        const npcTemplateIds: string[] = [];
+        room.npcs.forEach((npc) => {
+          npcTemplateIds.push(npc.templateId);
+        });
+
+        const serializedItemInstances = room.serializeItemInstances();
+
+        return {
+          id: room.id,
+          name: room.name,
+          description: room.description,
+          exits: room.exits,
+          items: room.items,
+          itemInstances: serializedItemInstances,
+          npcs: npcTemplateIds,
+          flags: room.flags,
+          currency: room.currency,
+        };
+      });
+
+      fs.writeFileSync(filePath, JSON.stringify(roomsData, null, 2));
+      systemLogger.info(`[RoomManager] Saved ${roomsData.length} rooms to ${filePath}`);
+      return roomsData.length;
+    } catch (error) {
+      systemLogger.error(`[RoomManager] Error saving rooms to ${filePath}:`, error);
+      throw error;
+    }
   }
 }

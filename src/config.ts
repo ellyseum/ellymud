@@ -51,6 +51,7 @@ export const AUTO_ADMIN_SESSION = cliConfig.adminSession;
 export const AUTO_USER_SESSION = cliConfig.userSession;
 export const FORCE_SESSION_USERNAME = cliConfig.forceSession;
 export const FORCE = cliConfig.force; // Add force flag
+export const TEST_MODE = cliConfig.testMode;
 
 // Direct data
 export const DIRECT_ROOMS_DATA = cliConfig.rooms;
@@ -93,6 +94,66 @@ export const SILENT_MODE = cliConfig.silent;
 
 // Disable console commands if requested
 export const NO_CONSOLE = cliConfig.noConsole;
+
+/**
+ * Runtime overrides for test mode.
+ * These values take precedence over CLI-parsed values when set.
+ */
+export interface TestModeOverrides {
+  silent?: boolean;
+  noColor?: boolean;
+  noConsole?: boolean;
+  disableRemoteAdmin?: boolean;
+}
+
+// Internal store for test mode overrides
+let testModeOverrides: TestModeOverrides = {};
+
+/**
+ * Apply test mode overrides to configuration.
+ * Call this before any code that checks these config values.
+ */
+export function applyTestModeOverrides(overrides: TestModeOverrides): void {
+  testModeOverrides = { ...overrides };
+}
+
+/**
+ * Clear test mode overrides (for cleanup between tests)
+ */
+export function clearTestModeOverrides(): void {
+  testModeOverrides = {};
+}
+
+/**
+ * Get effective value for SILENT_MODE (respects test overrides)
+ */
+export function isSilentMode(): boolean {
+  return testModeOverrides.silent ?? SILENT_MODE;
+}
+
+/**
+ * Get effective value for NO_CONSOLE (respects test overrides)
+ */
+export function isNoConsole(): boolean {
+  return testModeOverrides.noConsole ?? NO_CONSOLE;
+}
+
+/**
+ * Get effective value for USE_COLORS (respects test overrides)
+ */
+export function useColors(): boolean {
+  if (testModeOverrides.noColor !== undefined) {
+    return !testModeOverrides.noColor;
+  }
+  return USE_COLORS;
+}
+
+/**
+ * Get effective value for DISABLE_REMOTE_ADMIN (respects test overrides)
+ */
+export function isRemoteAdminDisabled(): boolean {
+  return testModeOverrides.disableRemoteAdmin ?? DISABLE_REMOTE_ADMIN;
+}
 
 // Export all configuration as a single object for convenience
 export default {

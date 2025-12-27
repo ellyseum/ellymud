@@ -15,7 +15,6 @@ import './heal.command';
 import './help.command';
 import './history.command';
 import './inventory.command';
-import './list.command';
 import './look.command';
 import './move.command';
 import './pickup.command';

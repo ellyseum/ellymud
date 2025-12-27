@@ -1,28 +1,30 @@
 # Tests
 
-Test files for EllyMUD including unit tests, integration tests, and test utilities.
+Test files for EllyMUD including unit tests, E2E tests, and test utilities.
 
 ## Test Framework
 
 The project uses **Jest** with **ts-jest** for TypeScript testing:
 
 - **Framework**: Jest + ts-jest
-- **Configuration**: `jest.config.js` in project root
-- **Test Location**: `*.test.ts` files alongside source in `src/`
+- **Configuration**: `jest.config.js` (unit), `jest.e2e.config.js` (E2E)
+- **Unit Tests**: `*.test.ts` files alongside source in `src/`
+- **E2E Tests**: `test/e2e/*.e2e.test.ts` using TesterAgent
 
 ## Running Tests
 
 | Command | Description |
 |---------|-------------|
-| `npm test` | Run typecheck, validation, and all tests |
-| `npm run test:unit` | Run Jest tests only |
+| `npm test` | Run typecheck, validation, and all unit tests |
+| `npm run test:unit` | Run Jest unit tests only |
+| `npm run test:e2e` | Run E2E tests with TesterAgent |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage report |
 | `make test` | Alias for npm test |
 
 ## Test File Convention
 
-Tests are colocated with source files in `src/`:
+Unit tests are colocated with source files in `src/`:
 
 ```
 src/
@@ -33,10 +35,35 @@ src/
 │   └── formatters.test.ts  ← Test file next to source
 ```
 
-This convention:
-- Keeps tests close to the code they test
-- Makes it easy to find tests for any module
-- Allows Jest to discover all `*.test.ts` files automatically
+E2E tests are in `test/e2e/`:
+
+```
+test/
+└── e2e/
+    ├── setup.ts              ← Silent mode setup
+    ├── features.e2e.test.ts  ← TesterAgent showcase
+    ├── regeneration.e2e.test.ts
+    └── combat.e2e.test.ts
+```
+
+## E2E Testing with TesterAgent
+
+The `TesterAgent` provides a programmatic interface for E2E testing:
+
+- **Time Control**: Pause and advance game ticks deterministically
+- **Session Control**: Create virtual sessions and execute commands
+- **State Control**: Load/save snapshots for test isolation
+- **Silent Mode**: No console output during test runs
+
+Basic usage:
+
+```typescript
+const agent = await TesterAgent.create();
+const sessionId = await agent.directLogin('testuser');
+const output = agent.sendCommand(sessionId, 'look');
+agent.advanceTicks(12);
+await agent.shutdown();
+```
 
 ## Test Categories
 
@@ -48,13 +75,15 @@ Test individual functions and classes in isolation:
 - Command parsing
 - Data validation
 
-### Integration Tests
+### E2E Tests
 
-Test component interactions:
+Full game flow testing using the `TesterAgent` API:
 
-- State machine transitions
-- Command execution flow
+- Regeneration mechanics
 - Combat system
+- Command execution
+
+Uses programmatic time control and state snapshots for deterministic testing.
 
 ### Agent Tests
 
@@ -63,18 +92,10 @@ Specialized tests for the AI agent ecosystem:
 - Located in `.github/agents/agent-tests/`
 - Run with `npm run test-agents` or `make agent-test`
 
-## Current Test Coverage
-
-Tests exist for:
-
-| Module | File | Coverage |
-|--------|------|----------|
-| Utils | `src/utils/colors.test.ts` | Color codes, colorize, strip codes |
-| Utils | `src/utils/formatters.test.ts` | Username formatting and validation |
-
 ## Related
 
-- [src/](../src/) - Source code with colocated tests
-- [jest.config.js](../jest.config.js) - Jest configuration
-- [package.json](../package.json) - Test scripts
+- [src/](../src/) - Source code with colocated unit tests
+- [src/testing/](../src/testing/) - TesterAgent and test infrastructure
+- [jest.config.js](../jest.config.js) - Jest configuration for unit tests
+- [jest.e2e.config.js](../jest.e2e.config.js) - Jest configuration for E2E tests
 - [.github/agents/agent-tests/](../.github/agents/agent-tests/) - Agent ecosystem tests

@@ -30,6 +30,7 @@ export class UserManager {
   private activeUserSessions: Map<string, ConnectedClient> = new Map();
   private pendingTransfers: Map<string, ConnectedClient> = new Map();
   private snakeScores: SnakeScore[] = [];
+  private testMode: boolean = false;
 
   private static instance: UserManager | null = null;
 
@@ -201,6 +202,11 @@ export class UserManager {
   }
 
   private saveUsers(): void {
+    // Skip file persistence in test mode to avoid overwriting main game data
+    if (this.testMode) {
+      systemLogger.debug('[UserManager] Skipping save - test mode active');
+      return;
+    }
     try {
       fs.writeFileSync(USERS_FILE, JSON.stringify(this.users, null, 2));
     } catch (error) {
@@ -214,6 +220,77 @@ export class UserManager {
    */
   public forceSave(): void {
     this.saveUsers();
+  }
+
+  /**
+   * Enable or disable test mode.
+   * When enabled, file persistence is skipped to avoid overwriting main game data.
+   * @param enabled True to enable test mode, false to disable
+   */
+  public setTestMode(enabled: boolean): void {
+    this.testMode = enabled;
+    systemLogger.info(
+      `[UserManager] Test mode ${enabled ? 'enabled' : 'disabled'} - file persistence ${enabled ? 'disabled' : 'enabled'}`
+    );
+  }
+
+  /**
+   * Check if test mode is enabled
+   */
+  public isTestMode(): boolean {
+    return this.testMode;
+  }
+
+  /**
+   * Load user data from a specific file path (for testing/snapshots).
+   * This replaces the current users array with data from the file.
+   *
+   * @param filePath - Absolute path to the users JSON file
+   */
+  public async loadFromPath(filePath: string): Promise<void> {
+    try {
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`User data file not found: ${filePath}`);
+      }
+
+      const data = fs.readFileSync(filePath, 'utf8');
+      const userData = JSON.parse(data);
+
+      if (!Array.isArray(userData)) {
+        throw new Error('User data must be an array');
+      }
+
+      // Load using the prevalidated method to ensure proper structure
+      this.loadPrevalidatedUsers(userData);
+      systemLogger.info(`[UserManager] Loaded ${userData.length} users from ${filePath}`);
+    } catch (error) {
+      systemLogger.error(`[UserManager] Error loading users from ${filePath}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Save user data to a specific file path (for testing/snapshots).
+   * This saves the current users array to the specified file.
+   *
+   * @param filePath - Absolute path to save the users JSON file
+   * @returns Number of users saved
+   */
+  public async saveToPath(filePath: string): Promise<number> {
+    try {
+      // Ensure directory exists
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      fs.writeFileSync(filePath, JSON.stringify(this.users, null, 2));
+      systemLogger.info(`[UserManager] Saved ${this.users.length} users to ${filePath}`);
+      return this.users.length;
+    } catch (error) {
+      systemLogger.error(`[UserManager] Error saving users to ${filePath}:`, error);
+      throw error;
+    }
   }
 
   // Load snake scores from the dedicated file

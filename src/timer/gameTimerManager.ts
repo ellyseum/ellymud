@@ -67,6 +67,7 @@ export class GameTimerManager extends EventEmitter {
   private tickCount: number = 0;
   private intervalId: NodeJS.Timeout | null = null;
   private running: boolean = false;
+  private testMode: boolean = false;
   private userManager: UserManager;
   private roomManager: RoomManager;
   private combatSystem: CombatSystem;
@@ -136,6 +137,10 @@ export class GameTimerManager extends EventEmitter {
    */
   public start(): void {
     if (this.running) return;
+    if (this.testMode) {
+      timerLogger.info('Game timer start prevented (Test Mode active)');
+      return;
+    }
 
     this.running = true;
     this.intervalId = setInterval(() => this.tick(), this.config.tickInterval);
@@ -380,6 +385,43 @@ export class GameTimerManager extends EventEmitter {
    */
   public getTickCount(): number {
     return this.tickCount;
+  }
+
+  /**
+   * Advance the game timer by a specific number of ticks
+   * @param count Number of ticks to advance
+   */
+  public advanceTicks(count: number): void {
+    for (let i = 0; i < count; i++) {
+      this.forceTick();
+    }
+  }
+
+  /**
+   * Enable or disable test mode
+   * @param enabled True to enable test mode (pauses timer), false to disable
+   */
+  public setTestMode(enabled: boolean): void {
+    this.testMode = enabled;
+
+    // Propagate test mode to managers to disable file persistence
+    this.userManager.setTestMode(enabled);
+    this.roomManager.setTestMode(enabled);
+
+    if (enabled && this.running) {
+      this.stop();
+      timerLogger.info('Game timer paused (Test Mode enabled)');
+    } else if (!enabled && !this.running) {
+      timerLogger.info('Test Mode disabled');
+    }
+  }
+
+  /**
+   * Check if test mode is enabled
+   * @returns True if test mode is active
+   */
+  public isTestMode(): boolean {
+    return this.testMode;
   }
 
   /**

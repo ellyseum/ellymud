@@ -19,7 +19,7 @@ export class TelnetServer {
   private serverStats: ServerStats;
   private isAdminLoginPending: boolean = false;
   private forcedSessionUsername: string = ''; // Add new property to track forced session username
-  private actualPort: number = config.TELNET_PORT;
+  private port: number;
 
   constructor(
     clients: Map<string, ConnectedClient>,
@@ -28,13 +28,15 @@ export class TelnetServer {
     commandHandler: CommandHandler,
     serverStats: ServerStats,
     setupClientFn: (connection: any) => void,
-    processInputFn: (client: ConnectedClient, input: string) => void
+    processInputFn: (client: ConnectedClient, input: string) => void,
+    port?: number
   ) {
     this.clients = clients;
     this.userManager = userManager;
     this.stateMachine = stateMachine;
     this.commandHandler = commandHandler;
     this.serverStats = serverStats;
+    this.port = port ?? config.TELNET_PORT;
 
     // Create TELNET server
     this.server = net.createServer((socket) => {
@@ -197,12 +199,10 @@ export class TelnetServer {
     // Add error handler
     this.server.on('error', (err: Error & { code?: string }) => {
       if (err.code === 'EADDRINUSE') {
-        systemLogger.error(
-          `Port ${config.TELNET_PORT} is already in use. Is another instance running?`
-        );
-        systemLogger.info(`Trying alternative port ${config.TELNET_PORT + 1}...`);
-        this.actualPort = config.TELNET_PORT + 1;
-        this.server.listen(this.actualPort);
+        systemLogger.error(`Port ${this.port} is already in use. Is another instance running?`);
+        systemLogger.info(`Trying alternative port ${this.port + 1}...`);
+        this.port = this.port + 1;
+        this.server.listen(this.port);
       } else {
         systemLogger.error('TELNET server error:', err);
       }
@@ -211,10 +211,10 @@ export class TelnetServer {
 
   public start(): Promise<void> {
     return new Promise((resolve) => {
-      this.server.listen(config.TELNET_PORT, () => {
+      this.server.listen(this.port, () => {
         const address = this.server.address();
         if (address && typeof address !== 'string') {
-          this.actualPort = address.port;
+          this.port = address.port;
           systemLogger.info(`TELNET server running on port ${address.port}`);
         } else {
           systemLogger.info(`TELNET server running`);
@@ -229,7 +229,7 @@ export class TelnetServer {
   }
 
   public getActualPort(): number {
-    return this.actualPort;
+    return this.port;
   }
 
   public stop(): Promise<void> {

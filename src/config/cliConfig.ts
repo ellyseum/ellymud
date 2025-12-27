@@ -38,6 +38,7 @@ export interface CLIConfig {
   silent: boolean;
   noConsole: boolean;
   debug: boolean; // Debug mode flag
+  testMode: boolean; // Start server in test mode
 }
 
 // Parse command line arguments
@@ -170,6 +171,11 @@ export function parseCommandLineArgs(): CLIConfig {
       description: 'Enable debug mode with additional logging and diagnostics',
       default: false,
     })
+    .option('testMode', {
+      type: 'boolean',
+      description: 'Start server in test mode (timer paused)',
+      default: false,
+    })
     .help()
     .alias('help', 'h')
     .parseSync();
@@ -201,6 +207,7 @@ export function parseCommandLineArgs(): CLIConfig {
     noConsole:
       argv.noConsole || argv.adminSession || argv.userSession || Boolean(argv.forceSession),
     debug: argv.debug, // Updated to use the debug flag from command line arguments
+    testMode: argv.testMode, // Test mode flag
   };
 
   // Ensure data directory exists

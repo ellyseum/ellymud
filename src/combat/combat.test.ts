@@ -14,6 +14,7 @@ import {
   createMockUserManager,
   createMockRoomManager,
   createMockCombatSystem,
+  createMockCombatEntity,
 } from '../test/helpers/mockFactories';
 import { AbilityManager } from '../abilities/abilityManager';
 

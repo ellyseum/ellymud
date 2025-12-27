@@ -4,7 +4,7 @@
   "description": "Elly Mud / LLM Engineered Multi User Dungeon",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc --build --verbose",
+    "build": "tsc --build --verbose && echo '✓ BUILD SUCCESS' || (echo '✗ BUILD FAILED' && exit 1)",
     "build-watch": "tsc --build --watch",
     "clean": "rm -rf dist",
     "clean-all": "rm -rf dist node_modules",
@@ -24,6 +24,7 @@
     "test:unit": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:e2e": "jest --config jest.e2e.config.js",
     "test-agents": ".github/agents/agent-tests/run-tests.sh",
     "test-agents-dry": ".github/agents/agent-tests/run-tests.sh --dry-run",
     "test-agents-list": ".github/agents/agent-tests/run-tests.sh --show-tests",

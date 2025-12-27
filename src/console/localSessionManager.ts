@@ -4,7 +4,7 @@ import net from 'net';
 import { systemLogger } from '../utils/logger';
 import { TelnetServer } from '../server/telnetServer';
 import { ConsoleManager } from './consoleManager';
-import config from '../config';
+import { isSilentMode } from '../config';
 import { DebugModeManager } from '../utils/debugUtils';
 
 export class LocalSessionManager {
@@ -115,7 +115,7 @@ export class LocalSessionManager {
     this.telnetServer.setAdminLoginPending(false);
     this.telnetServer.setForcedSessionUsername('');
 
-    if (!config.SILENT_MODE) {
+    if (!isSilentMode()) {
       console.log('\nLocal session ended. Log output resumed.');
     }
 

@@ -72,7 +72,7 @@ export class VirtualSessionManager {
    * If user doesn't exist, creates as temp user first
    * Session is returned ready for commands - use virtual_session_command to interact
    */
-  directLogin(username: string): VirtualSession {
+  directLogin(username: string, isAdmin?: boolean): VirtualSession {
     const lowerUsername = username.toLowerCase();
 
     // Validate username format if creating new user
@@ -103,6 +103,18 @@ export class VirtualSessionManager {
       throw new Error(`User '${username}' not found after creation`);
     }
 
+    // Grant admin flag if requested
+    if (isAdmin) {
+      if (!user.flags) {
+        user.flags = [];
+      }
+      if (!user.flags.includes('admin')) {
+        user.flags.push('admin');
+        this.userManager.updateUserStats(lowerUsername, { flags: user.flags });
+        mcpLogger.info(`Granted admin flag to user: ${username}`);
+      }
+    }
+
     // Set up the client as authenticated
     client.user = user;
     client.authenticated = true;
@@ -120,7 +132,7 @@ export class VirtualSessionManager {
     this.sessions.set(connection.getId(), session);
 
     mcpLogger.info(
-      `Direct login session created for: ${username} (sessionId: ${connection.getId()})`
+      `Direct login session created for: ${username} (sessionId: ${connection.getId()})${isAdmin ? ' [ADMIN]' : ''}`
     );
 
     return session;

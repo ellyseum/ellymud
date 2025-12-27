@@ -2,7 +2,7 @@ import { ClientState, ClientStateType, ConnectedClient } from '../types';
 import { UserManager } from '../user/userManager';
 import { colorize } from '../utils/colors';
 import { writeToClient } from '../utils/socketWriter';
-import config, { DISABLE_REMOTE_ADMIN, RESTRICTED_USERNAMES } from '../config';
+import config, { RESTRICTED_USERNAMES, isRemoteAdminDisabled } from '../config';
 import { formatUsername, standardizeUsername } from '../utils/formatters';
 import { systemLogger } from '../utils/logger';
 import { createSessionReferenceFile } from '../utils/fileUtils';
@@ -114,7 +114,7 @@ export class LoginState implements ClientState {
     // Check if this is a restricted username trying to login remotely
     if (RESTRICTED_USERNAMES.includes(standardUsername) && !client.isConsoleClient) {
       // Check if remote admin login is disabled
-      if (DISABLE_REMOTE_ADMIN) {
+      if (isRemoteAdminDisabled()) {
         systemLogger.warn(
           `Blocked remote login attempt for restricted username: ${standardUsername} from ${client.ipAddress || 'unknown IP'}`
         );
@@ -123,7 +123,7 @@ export class LoginState implements ClientState {
       }
 
       // If specifically trying to login as 'admin' remotely
-      if (standardUsername === 'admin' && DISABLE_REMOTE_ADMIN) {
+      if (standardUsername === 'admin' && isRemoteAdminDisabled()) {
         systemLogger.warn(
           `Blocked remote admin login attempt from ${client.ipAddress || 'unknown IP'}`
         );
