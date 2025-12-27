@@ -62,6 +62,12 @@ check_staged_pair() {
     local dir=$(dirname "$file")
     local basename=$(basename "$file")
     
+    # Skip .github/README.md - it's intentionally unpaired
+    # GitHub treats .github/README.md specially and would override root README
+    if [ "$file" = ".github/README.md" ]; then
+        return
+    fi
+    
     # Skip if we already checked this directory
     if echo "$CHECKED_DIRS" | grep -q "^${dir}$"; then
         return
@@ -110,6 +116,10 @@ check_all_pairs() {
     # Pattern requires exact directory match (not substring) using word boundary or path separator
     local exclude_pattern='^\./node_modules($|/)|^\./dist($|/)|^\./\.git($|/)|^\./logs($|/)|^\./backups($|/)|^\./coverage($|/)|^\./\.husky/_|/results($|/)'
     
+    # Special files that are intentionally unpaired
+    # .github/README.md is excluded because GitHub treats it specially - it would override root README.md
+    local unpaired_exceptions=".github/README.md"
+    
     # Find ALL directories recursively (excluding standard ignores)
     while IFS= read -r dir; do
         # Skip the excluded directories
@@ -132,9 +142,15 @@ check_all_pairs() {
             missing_agents=$((missing_agents + 1))
             ERRORS=1
         elif ! $has_readme && $has_agents; then
-            partial_readme="$partial_readme$dir\n"
-            missing_readme=$((missing_readme + 1))
-            ERRORS=1
+            # Skip .github directory - README.md is intentionally absent
+            # GitHub treats .github/README.md specially and would override root README.md
+            if [ "$dir" = "./.github" ]; then
+                valid_pairs=$((valid_pairs + 1))  # Count as valid (intentional exception)
+            else
+                partial_readme="$partial_readme$dir\n"
+                missing_readme=$((missing_readme + 1))
+                ERRORS=1
+            fi
         else
             # Neither file exists - check if directory has meaningful content
             # Skip empty dirs or dirs with only subdirectories

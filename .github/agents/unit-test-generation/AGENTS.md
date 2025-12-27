@@ -244,7 +244,7 @@ jest.mock('../utils/logger', () => ({
 Before a test file is marked complete:
 
 1. **Compilation**: `npx tsc --noEmit {testFile}` passes
-2. **Tests Pass**: `npm run test:unit -- --testPathPattern="{file}"` passes
+2. **Tests Pass**: `npx jest --no-coverage "{file}"` passes
 3. **Coverage**: Meets minimum thresholds
 4. **No Lint Errors**: ESLint passes
 
