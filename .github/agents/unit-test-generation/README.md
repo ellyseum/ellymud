@@ -61,5 +61,6 @@ Tests use the project's existing Jest configuration:
 - **Framework**: Jest with ts-jest
 - **Location**: Co-located with source files
 - **Coverage**: Istanbul via Jest
+- **Test Command**: `npx jest --no-coverage "{file}"` for individual test validation
 
 See `jest.config.js` for full configuration.

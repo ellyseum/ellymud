@@ -288,7 +288,7 @@ Create a comprehensive unit test for:
    ```
 6. **Verify test passes**:
    ```bash
-   npm run test:unit -- --testPathPattern="{testFileName}" 2>&1
+   npx jest --no-coverage "{testFileName}" 2>&1
    ```
 7. **Update todo list** - mark current as complete
 8. **Move to next NOT_STARTED task**
@@ -531,12 +531,21 @@ const todos = matrix.tasks.map((task, index) => ({
 
 When invoked, the agent should:
 
-1. Announce the start of the orchestration session
-2. Run Phase 0 and display baseline coverage
-3. Display filtered file list (Phase 0.5)
-4. Create and display the task matrix (Phase 1)
-5. Begin delegation loop (Phase 2-3)
-6. After all tasks, generate and display report (Phase 4)
+1. Run Phase 0 (coverage analysis) silently
+2. Filter files and create task matrix (Phase 0.5 & 1) silently
+3. Execute delegation loop (Phase 2-3) silently
+4. Generate report file (Phase 4)
+5. Output only a brief final summary (1-2 lines) with path to report
+
+**CRITICAL: Minimal Output Mode**
+
+- Do NOT announce each phase or step
+- Do NOT display coverage tables to the user
+- Do NOT show task matrices inline
+- Do NOT narrate progress ("Now processing file X...")
+- Do NOT explain what you're doing
+- JUST execute the pipeline and write results to files
+- Only output: brief start message, brief completion message with report path
 
 **Expected runtime**: 2-5 minutes per file (depends on complexity)
 **Token efficiency**: Fresh context per file via sub-agent delegation

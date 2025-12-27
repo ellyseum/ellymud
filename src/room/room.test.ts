@@ -1,0 +1,364 @@
+/**
+ * Unit tests for Room class
+ * @module room/room.test
+ */
+
+import { Room } from './room';
+import { Currency, Exit } from '../types';
+import { createMockNPC } from '../test/helpers/mockFactories';
+
+// Mock dependencies
+jest.mock('../utils/colors', () => ({
+  colorize: jest.fn((text: string) => text),
+}));
+
+jest.mock('../utils/formatters', () => ({
+  formatUsername: jest.fn(
+    (username: string) => username.charAt(0).toUpperCase() + username.slice(1)
+  ),
+}));
+
+jest.mock('../utils/itemNameColorizer', () => ({
+  colorizeItemName: jest.fn((name: string) => name),
+}));
+
+jest.mock('../utils/itemManager', () => ({
+  ItemManager: {
+    getInstance: jest.fn().mockReturnValue({
+      getItem: jest.fn().mockImplementation((templateId: string) => ({
+        id: templateId,
+        name: `Item ${templateId}`,
+        description: `Description of ${templateId}`,
+        type: 'misc',
+        value: 100,
+      })),
+      getItemInstance: jest.fn().mockImplementation((instanceId: string) => ({
+        instanceId,
+        templateId: instanceId.split('-')[0],
+        properties: {},
+      })),
+    }),
+  },
+}));
+
+jest.mock('../utils/logger', () => ({
+  systemLogger: {
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+  createContextLogger: jest.fn(() => ({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  })),
+}));
+
+describe('Room', () => {
+  describe('constructor', () => {
+    it('should create a room with basic properties', () => {
+      const room = new Room({
+        id: 'town-square',
+        name: 'Town Square',
+        description: 'A bustling town square.',
+        exits: [],
+      });
+
+      expect(room.id).toBe('town-square');
+      expect(room.name).toBe('Town Square');
+      expect(room.description).toBe('A bustling town square.');
+    });
+
+    it('should use shortDescription if name is not provided', () => {
+      const room = new Room({
+        id: 'test',
+        shortDescription: 'Short Name',
+        description: 'Description',
+      });
+
+      expect(room.name).toBe('Short Name');
+    });
+
+    it('should use longDescription if description is not provided', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        longDescription: 'Long Description',
+      });
+
+      expect(room.description).toBe('Long Description');
+    });
+
+    it('should initialize with empty arrays and defaults', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+
+      expect(room.players).toEqual([]);
+      expect(room.exits).toEqual([]);
+      expect(room.items).toEqual([]);
+      expect(room.flags).toEqual([]);
+      expect(room.currency).toEqual({ gold: 0, silver: 0, copper: 0 });
+    });
+
+    it('should initialize with provided exits', () => {
+      const exits: Exit[] = [
+        { direction: 'north', roomId: 'market-street' },
+        { direction: 'south', roomId: 'alley' },
+      ];
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        exits,
+      });
+
+      expect(room.exits).toEqual(exits);
+    });
+
+    it('should initialize with provided currency', () => {
+      const currency: Currency = { gold: 100, silver: 50, copper: 25 };
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        currency,
+      });
+
+      expect(room.currency).toEqual(currency);
+    });
+
+    it('should initialize itemInstances from array format', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        itemInstances: [
+          { instanceId: 'sword-1', templateId: 'iron-sword' },
+          { instanceId: 'potion-1', templateId: 'health-potion' },
+        ],
+      });
+
+      const instances = room.getItemInstances();
+      expect(instances.get('sword-1')).toBe('iron-sword');
+      expect(instances.get('potion-1')).toBe('health-potion');
+    });
+
+    it('should initialize flags from room data', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        flags: ['safe', 'no-combat'],
+      });
+
+      expect(room.flags).toEqual(['safe', 'no-combat']);
+    });
+  });
+
+  describe('addPlayer', () => {
+    it('should add a player to the room', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+
+      room.addPlayer('testuser');
+
+      expect(room.players).toContain('testuser');
+    });
+
+    it('should not add duplicate players', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+
+      room.addPlayer('testuser');
+      room.addPlayer('testuser');
+
+      expect(room.players).toHaveLength(1);
+    });
+
+    it('should add multiple different players', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+
+      room.addPlayer('player1');
+      room.addPlayer('player2');
+      room.addPlayer('player3');
+
+      expect(room.players).toHaveLength(3);
+    });
+  });
+
+  describe('removePlayer', () => {
+    it('should remove a player from the room', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        players: ['player1', 'player2'],
+      });
+
+      room.removePlayer('player1');
+
+      expect(room.players).not.toContain('player1');
+      expect(room.players).toContain('player2');
+    });
+
+    it('should handle removing non-existent player', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        players: ['player1'],
+      });
+
+      room.removePlayer('nonexistent');
+
+      expect(room.players).toHaveLength(1);
+    });
+  });
+
+  describe('NPC management', () => {
+    describe('addNPC', () => {
+      it('should add an NPC to the room', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+        const npc = createMockNPC({ instanceId: 'npc-1' });
+
+        room.addNPC(npc);
+
+        expect(room.npcs.has('npc-1')).toBe(true);
+      });
+
+      it('should add multiple NPCs', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+
+        room.addNPC(createMockNPC({ instanceId: 'npc-1' }));
+        room.addNPC(createMockNPC({ instanceId: 'npc-2' }));
+
+        expect(room.npcs.size).toBe(2);
+      });
+    });
+
+    describe('removeNPC', () => {
+      it('should remove an NPC from the room', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+        const npc = createMockNPC({ instanceId: 'npc-1' });
+        room.addNPC(npc);
+
+        room.removeNPC('npc-1');
+
+        expect(room.npcs.has('npc-1')).toBe(false);
+      });
+    });
+
+    describe('getNPC', () => {
+      it('should return NPC by instance ID', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+        const npc = createMockNPC({ instanceId: 'npc-1' });
+        room.addNPC(npc);
+
+        const found = room.getNPC('npc-1');
+
+        expect(found).toBe(npc);
+      });
+
+      it('should return undefined for non-existent NPC', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+
+        const found = room.getNPC('nonexistent');
+
+        expect(found).toBeUndefined();
+      });
+    });
+
+    describe('findNPCsByTemplateId', () => {
+      it('should find NPCs by template ID', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+        const npc1 = createMockNPC({ instanceId: 'npc-1', templateId: 'goblin' });
+        const npc2 = createMockNPC({ instanceId: 'npc-2', templateId: 'goblin' });
+        const npc3 = createMockNPC({ instanceId: 'npc-3', templateId: 'orc' });
+        room.addNPC(npc1);
+        room.addNPC(npc2);
+        room.addNPC(npc3);
+
+        const goblins = room.findNPCsByTemplateId('goblin');
+
+        expect(goblins).toHaveLength(2);
+      });
+
+      it('should return empty array when no NPCs match', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+
+        const result = room.findNPCsByTemplateId('nonexistent');
+
+        expect(result).toEqual([]);
+      });
+    });
+  });
+
+  describe('getExit', () => {
+    it('should return room ID for valid exit', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        exits: [
+          { direction: 'north', roomId: 'market' },
+          { direction: 'south', roomId: 'alley' },
+        ],
+      });
+
+      expect(room.getExit('north')).toBe('market');
+      expect(room.getExit('south')).toBe('alley');
+    });
+
+    it('should return undefined for invalid exit', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        exits: [{ direction: 'north', roomId: 'market' }],
+      });
+
+      expect(room.getExit('west')).toBeNull();
+    });
+  });
+
+  describe('item instances', () => {
+    describe('addItemInstance', () => {
+      it('should add an item instance', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+
+        room.addItemInstance('sword-1', 'iron-sword');
+
+        const instances = room.getItemInstances();
+        expect(instances.get('sword-1')).toBe('iron-sword');
+      });
+    });
+
+    describe('removeItemInstance', () => {
+      it('should remove an item instance', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+        room.addItemInstance('sword-1', 'iron-sword');
+
+        room.removeItemInstance('sword-1');
+
+        const instances = room.getItemInstances();
+        expect(instances.has('sword-1')).toBe(false);
+      });
+    });
+
+    describe('getItemInstances', () => {
+      it('should return all item instances', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+        room.addItemInstance('sword-1', 'iron-sword');
+        room.addItemInstance('potion-1', 'health-potion');
+
+        const instances = room.getItemInstances();
+
+        expect(instances.size).toBe(2);
+      });
+    });
+  });
+
+  describe('hasChanged flag', () => {
+    it('should start as false', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      expect(room.hasChanged).toBe(false);
+    });
+
+    it('should be settable', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      room.hasChanged = true;
+      expect(room.hasChanged).toBe(true);
+    });
+  });
+});
