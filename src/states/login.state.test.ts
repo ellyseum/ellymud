@@ -39,9 +39,10 @@ jest.mock('../utils/fileUtils', () => ({
 
 jest.mock('../config', () => ({
   __esModule: true,
-  default: {},
+  default: { maxPasswordAttempts: 3 },
   DISABLE_REMOTE_ADMIN: false,
   RESTRICTED_USERNAMES: ['admin', 'system', 'root'],
+  isRemoteAdminDisabled: jest.fn().mockReturnValue(false),
 }));
 
 import { writeToClient } from '../utils/socketWriter';
@@ -217,6 +218,177 @@ describe('LoginState', () => {
         expect(client.stateData.awaitingPassword).toBe(true);
         expect(client.stateData.username).toBe('existinguser');
       });
+    });
+  });
+});
+
+describe('LoginState handlePassword', () => {
+  let loginState: LoginState;
+  let mockUserManager: UserManager;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUserManager = createMockUserManager();
+    loginState = new LoginState(mockUserManager);
+  });
+
+  describe('handlePassword', () => {
+    it('should return false when username is not set', () => {
+      const client = createMockClient({
+        stateData: {},
+      });
+
+      const result = loginState.handlePassword(client, 'password123');
+
+      expect(result).toBe(false);
+      expect(client.stateData.transitionTo).toBe(ClientStateType.LOGIN);
+    });
+
+    it('should return true on successful authentication', () => {
+      (mockUserManager.authenticateUser as jest.Mock).mockReturnValue(true);
+      (mockUserManager.isUserActive as jest.Mock).mockReturnValue(false);
+      (mockUserManager.getUser as jest.Mock).mockReturnValue({
+        username: 'testuser',
+        health: 100,
+        maxHealth: 100,
+        inCombat: false,
+      });
+
+      const client = createMockClient({
+        stateData: {
+          username: 'testuser',
+          passwordAttempts: 0,
+        },
+      });
+
+      const result = loginState.handlePassword(client, 'correctpassword');
+
+      expect(result).toBe(true);
+      expect(client.authenticated).toBe(true);
+      expect(client.user).not.toBeNull();
+    });
+
+    it('should track password attempts on failed authentication', () => {
+      (mockUserManager.authenticateUser as jest.Mock).mockReturnValue(false);
+
+      const client = createMockClient({
+        stateData: {
+          username: 'testuser',
+          passwordAttempts: 0,
+        },
+      });
+
+      loginState.handlePassword(client, 'wrongpassword');
+
+      expect(client.stateData.passwordAttempts).toBe(1);
+    });
+
+    it('should set disconnect flag after max password attempts', () => {
+      jest.resetModules();
+      jest.doMock('../config', () => ({
+        __esModule: true,
+        default: { maxPasswordAttempts: 3 },
+        DISABLE_REMOTE_ADMIN: false,
+        RESTRICTED_USERNAMES: ['admin', 'system', 'root'],
+        isRemoteAdminDisabled: jest.fn().mockReturnValue(false),
+      }));
+
+      (mockUserManager.authenticateUser as jest.Mock).mockReturnValue(false);
+
+      const client = createMockClient({
+        stateData: {
+          username: 'testuser',
+          passwordAttempts: 2,
+        },
+      });
+
+      loginState.handlePassword(client, 'wrongpassword');
+
+      expect(client.stateData.disconnect).toBe(true);
+    });
+
+    it('should prompt for transfer when user is already active', () => {
+      (mockUserManager.authenticateUser as jest.Mock).mockReturnValue(true);
+      (mockUserManager.isUserActive as jest.Mock).mockReturnValue(true);
+
+      const client = createMockClient({
+        stateData: {
+          username: 'testuser',
+          passwordAttempts: 0,
+        },
+      });
+
+      const result = loginState.handlePassword(client, 'correctpassword');
+
+      expect(result).toBe(false);
+      expect(client.stateData.awaitingTransferRequest).toBe(true);
+      expect(client.stateData.awaitingPassword).toBe(false);
+    });
+
+    it('should reset combat flag for non-transfer logins', () => {
+      (mockUserManager.authenticateUser as jest.Mock).mockReturnValue(true);
+      (mockUserManager.isUserActive as jest.Mock).mockReturnValue(false);
+      (mockUserManager.getUser as jest.Mock).mockReturnValue({
+        username: 'testuser',
+        health: 100,
+        maxHealth: 100,
+        inCombat: true,
+      });
+
+      const client = createMockClient({
+        stateData: {
+          username: 'testuser',
+          passwordAttempts: 0,
+          isSessionTransfer: false,
+        },
+      });
+
+      loginState.handlePassword(client, 'correctpassword');
+
+      expect(mockUserManager.updateUserStats).toHaveBeenCalledWith('testuser', { inCombat: false });
+    });
+
+    it('should preserve combat flag for session transfers', () => {
+      (mockUserManager.authenticateUser as jest.Mock).mockReturnValue(true);
+      (mockUserManager.isUserActive as jest.Mock).mockReturnValue(false);
+      (mockUserManager.getUser as jest.Mock).mockReturnValue({
+        username: 'testuser',
+        health: 100,
+        maxHealth: 100,
+        inCombat: true,
+      });
+
+      const client = createMockClient({
+        stateData: {
+          username: 'testuser',
+          passwordAttempts: 0,
+          isSessionTransfer: true,
+        },
+      });
+
+      loginState.handlePassword(client, 'correctpassword');
+
+      // Combat flag should not be reset for session transfers
+      expect(mockUserManager.updateUserStats).not.toHaveBeenCalledWith('testuser', {
+        inCombat: false,
+      });
+    });
+
+    it('should return false when user data is not found', () => {
+      (mockUserManager.authenticateUser as jest.Mock).mockReturnValue(true);
+      (mockUserManager.isUserActive as jest.Mock).mockReturnValue(false);
+      (mockUserManager.getUser as jest.Mock).mockReturnValue(null);
+
+      const client = createMockClient({
+        stateData: {
+          username: 'testuser',
+          passwordAttempts: 0,
+        },
+      });
+
+      const result = loginState.handlePassword(client, 'correctpassword');
+
+      expect(result).toBe(false);
     });
   });
 });

@@ -60,11 +60,13 @@ describe('GameTimerManager', () => {
     mockUserManager = {
       getUsers: jest.fn().mockReturnValue(new Map()),
       saveUsers: jest.fn().mockResolvedValue(undefined),
+      setTestMode: jest.fn(),
       getAllActiveUserSessions: jest.fn().mockReturnValue(new Map()),
     } as unknown as jest.Mocked<UserManager>;
 
     mockRoomManager = {
       saveRooms: jest.fn().mockResolvedValue(undefined),
+      setTestMode: jest.fn(),
     } as unknown as jest.Mocked<RoomManager>;
 
     mockCombatSystem = {
