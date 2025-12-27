@@ -30,10 +30,43 @@ export class StateLoader {
   ) {}
 
   /**
+   * Sanitize and validate a snapshot name to prevent path traversal.
+   * Only allow simple directory names (letters, numbers, underscore, dash).
+   */
+  private sanitizeSnapshotName(name: string): string {
+    if (typeof name !== 'string' || name.trim().length === 0) {
+      throw new Error('Snapshot name must be a non-empty string');
+    }
+
+    const trimmed = name.trim();
+
+    // Disallow path separators and parent directory references
+    if (trimmed.includes('/') || trimmed.includes('\\') || trimmed.includes('..')) {
+      throw new Error('Invalid snapshot name');
+    }
+
+    // Restrict to a safe character set
+    if (!/^[A-Za-z0-9_-]+$/.test(trimmed)) {
+      throw new Error('Invalid snapshot name');
+    }
+
+    return trimmed;
+  }
+
+  /**
    * Get the path to a named snapshot directory
    */
   private getSnapshotPath(name: string): string {
-    return path.join(SNAPSHOTS_DIR, name);
+    const safeName = this.sanitizeSnapshotName(name);
+    const snapshotPath = path.resolve(SNAPSHOTS_DIR, safeName);
+
+    // Ensure the resolved path is within the snapshots directory
+    const normalizedRoot = path.resolve(SNAPSHOTS_DIR) + path.sep;
+    if (!snapshotPath.startsWith(normalizedRoot)) {
+      throw new Error('Snapshot path is outside of the allowed directory');
+    }
+
+    return snapshotPath;
   }
 
   /**
