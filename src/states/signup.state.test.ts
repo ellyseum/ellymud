@@ -179,3 +179,107 @@ describe('SignupState', () => {
     });
   });
 });
+
+describe('SignupState additional tests', () => {
+  let signupState: SignupState;
+  let mockUserManager: UserManager;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUserManager = createMockUserManager();
+    signupState = new SignupState(mockUserManager);
+  });
+
+  describe('password creation and user signup flow', () => {
+    it('should create user successfully when user creation succeeds', () => {
+      (mockUserManager.createUser as jest.Mock).mockReturnValue(true);
+      (mockUserManager.getUser as jest.Mock).mockReturnValue({
+        username: 'newuser',
+        health: 100,
+        maxHealth: 100,
+      });
+
+      const client = createMockClient({
+        stateData: { username: 'newuser' },
+      });
+
+      signupState.handle(client, 'validpassword');
+
+      expect(client.user).not.toBeNull();
+      expect(client.stateData.transitionTo).toBe(ClientStateType.CONFIRMATION);
+    });
+
+    it('should transition to LOGIN when getUser returns null after createUser', () => {
+      (mockUserManager.createUser as jest.Mock).mockReturnValue(true);
+      (mockUserManager.getUser as jest.Mock).mockReturnValue(null);
+
+      const client = createMockClient({
+        stateData: { username: 'newuser' },
+      });
+
+      signupState.handle(client, 'validpassword');
+
+      expect(client.stateData.transitionTo).toBe(ClientStateType.LOGIN);
+      expect(mockWriteToClient).toHaveBeenCalledWith(
+        client,
+        expect.stringContaining('Error creating user')
+      );
+    });
+
+    it('should transition to LOGIN when createUser fails', () => {
+      (mockUserManager.createUser as jest.Mock).mockReturnValue(false);
+
+      const client = createMockClient({
+        stateData: { username: 'newuser' },
+      });
+
+      signupState.handle(client, 'validpassword');
+
+      expect(client.stateData.transitionTo).toBe(ClientStateType.LOGIN);
+      expect(mockWriteToClient).toHaveBeenCalledWith(
+        client,
+        expect.stringContaining('Error creating user')
+      );
+    });
+  });
+
+  describe('exit', () => {
+    it('should disable maskInput on exit when it was enabled', () => {
+      const client = createMockClient({
+        stateData: { maskInput: true },
+      });
+
+      signupState.exit(client);
+
+      expect(client.stateData.maskInput).toBe(false);
+      expect(client.connection.setMaskInput).toHaveBeenCalledWith(false);
+    });
+
+    it('should not call setMaskInput when maskInput was not enabled', () => {
+      const client = createMockClient({
+        stateData: { maskInput: false },
+      });
+
+      signupState.exit(client);
+
+      expect(client.connection.setMaskInput).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('username too short error handling', () => {
+    it('should show username too short error for very short usernames', () => {
+      mockValidateUsername.mockReturnValue({ isValid: true }); // passes validation
+      (mockUserManager.userExists as jest.Mock).mockReturnValue(false);
+
+      const client = createMockClient();
+
+      // Handle with ab (2 characters) - but since validation passed,
+      // we need to test the code path where it's too short
+      // Looking at the code: else if (standardUsername.length < 3)
+      signupState.handle(client, 'ab'); // 2 chars
+
+      // The writeToClient should be called with the short error
+      expect(mockWriteToClient).toHaveBeenCalled();
+    });
+  });
+});

@@ -247,6 +247,13 @@ export const createMockUserManager = (): jest.Mocked<UserManager> =>
     createUser: jest.fn(),
     isUserActive: jest.fn().mockReturnValue(false),
     requestSessionTransfer: jest.fn().mockReturnValue(true),
+    resolveSessionTransfer: jest.fn(),
+    updateUserInventory: jest.fn().mockReturnValue(true),
+    getActiveUserSession: jest.fn().mockReturnValue(undefined),
+    cancelTransfer: jest.fn(),
+    setTestMode: jest.fn(),
+    updateLastLogin: jest.fn(),
+    registerUserSession: jest.fn(),
   }) as unknown as jest.Mocked<UserManager>;
 
 /**

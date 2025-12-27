@@ -68,10 +68,7 @@ export class Merchant extends NPC {
       this.stockConfig = npcInventory.map((item) => {
         // Calculate max stock from itemCount
         const itemCount = item.itemCount;
-        const maxStock =
-          typeof itemCount === 'number'
-            ? itemCount
-            : itemCount.max;
+        const maxStock = typeof itemCount === 'number' ? itemCount : itemCount.max;
 
         // Convert spawnPeriod (seconds) to restockPeriod (hours by default)
         const restockPeriodHours = item.spawnPeriod
