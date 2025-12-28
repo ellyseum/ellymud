@@ -30,10 +30,11 @@ export class MemorySessionStore implements SessionStore {
     }, 60000); // Check every minute
     
     // Register the interval for automatic cleanup if the instance is garbage collected
-    // Store the token separately to avoid issues if cleanupInterval is nulled
+    // The held value (interval) is passed to the cleanup callback when 'this' is GC'd
+    // Store a stable token reference for unregistering
     if (this.cleanupInterval) {
       this.cleanupToken = this.cleanupInterval;
-      this.finalizationRegistry.register(this, this.cleanupToken, this.cleanupToken);
+      this.finalizationRegistry.register(this, this.cleanupInterval, this.cleanupToken);
     }
   }
 
