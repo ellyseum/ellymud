@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Virtual connection uses any for raw connection compatibility
 import { EventEmitter } from 'events';
@@ -16,7 +17,7 @@ export class VirtualConnection extends EventEmitter implements IConnection {
 
   constructor(sessionId?: string) {
     super();
-    this.id = sessionId || `virtual-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    this.id = sessionId || `virtual-${Date.now()}-${crypto.randomInt(1000)}`;
   }
 
   /**

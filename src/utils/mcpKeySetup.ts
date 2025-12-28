@@ -102,7 +102,9 @@ export async function ensureMCPApiKey(): Promise<boolean> {
 
   // Display success message with instructions
   console.log('\n✅ EllyMUD MCP Server key has been added as an environment variable:');
-  console.log(`\n   ${newApiKey}\n`);
+  // Note: Displaying API key to stdout is intentional - user needs to copy this key
+  // This is NOT logged to files, only shown in terminal for user to copy
+  process.stdout.write(`\n   ${newApiKey}\n\n`);
   console.log('📋 Copy this key and add it to your MCP client configuration!');
   console.log('   For GitHub Copilot: Add to .vscode/mcp.json or MCP server settings');
   console.log('   The key is also saved in your .env file.\n');

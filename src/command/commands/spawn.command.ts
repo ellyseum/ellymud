@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { ConnectedClient } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
@@ -71,7 +72,7 @@ export class SpawnCommand implements Command {
 
     for (let i = 0; i < count; i++) {
       // Generate a unique instance ID for this NPC
-      const instanceId = `${npcType}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const instanceId = `${npcType}-${Date.now()}-${crypto.randomInt(1000)}`;
 
       // Create a new NPC in the room using the template, passing the instanceId and templateId to the constructor
       const npc = new NPC(

@@ -10,6 +10,25 @@ import { UserManager } from '../user/userManager';
 import { RoomManager } from '../room/roomManager';
 import { GameTimerManager } from '../timer/gameTimerManager';
 import config from '../config';
+import rateLimit from 'express-rate-limit';
+
+// Rate limiter for API endpoints to prevent abuse
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: { success: false, message: 'Too many requests, please try again later.' },
+});
+
+// Stricter rate limiter for login endpoint
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 login attempts per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts, please try again later.' },
+});
 
 export class APIServer {
   private app: express.Application;
@@ -41,6 +60,9 @@ export class APIServer {
     this.app.use(cors());
     this.app.use(bodyParser.json());
 
+    // Apply rate limiting to all API routes
+    this.app.use('/api/', apiLimiter);
+
     // Configure API routes
     this.setupApiRoutes();
 
@@ -65,7 +87,7 @@ export class APIServer {
 
   private setupApiRoutes(): void {
     // Admin API routes
-    this.app.post('/api/admin/login', AdminApi.login);
+    this.app.post('/api/admin/login', loginLimiter, AdminApi.login);
     this.app.get(
       '/api/admin/stats',
       AdminApi.validateToken,
@@ -147,8 +169,17 @@ export class APIServer {
     // Serve static files from the public directory
     this.app.use(express.static(config.PUBLIC_DIR));
 
-    // Serve xterm.js files from node_modules
-    this.app.use('/node_modules', express.static(path.join(__dirname, '..', '..', 'node_modules')));
+    // Serve only specific xterm.js packages from node_modules to avoid exposing private files
+    const nodeModulesPath = path.join(__dirname, '..', '..', 'node_modules');
+    this.app.use('/node_modules/xterm', express.static(path.join(nodeModulesPath, 'xterm')));
+    this.app.use(
+      '/node_modules/xterm-addon-fit',
+      express.static(path.join(nodeModulesPath, 'xterm-addon-fit'))
+    );
+    this.app.use(
+      '/node_modules/xterm-addon-web-links',
+      express.static(path.join(nodeModulesPath, 'xterm-addon-web-links'))
+    );
   }
 
   public start(): Promise<void> {
