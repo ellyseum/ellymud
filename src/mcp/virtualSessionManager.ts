@@ -62,7 +62,7 @@ export class VirtualSessionManager {
     const letters = 'abcdefghijklmnopqrstuvwxyz';
     let name = 'temp';
     for (let i = 0; i < 4; i++) {
-      name += letters[Math.floor(Math.random() * letters.length)];
+      name += letters[crypto.randomInt(letters.length)];
     }
     return name;
   }

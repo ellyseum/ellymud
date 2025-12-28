@@ -20,6 +20,12 @@ function stripAnsi(str: string): string {
   // eslint-disable-next-line no-control-regex
   return str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
 }
+/**
+ * Escape special regex characters in a string to prevent regex injection
+ */
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 /**
  * Clean command output for LLM consumption:
@@ -650,7 +656,7 @@ export class MCPServer {
         session.sendCommand(command);
 
         // Wait a bit for the response (default 100ms)
-        const delay = waitMs !== undefined ? parseInt(waitMs) : 100;
+        const delay = Math.min(Math.max(waitMs !== undefined ? parseInt(waitMs) : 100, 0), 5000); // Cap at 5 seconds to prevent resource exhaustion
         await new Promise((resolve) => setTimeout(resolve, delay));
 
         // Get the output
@@ -1046,7 +1052,7 @@ export class MCPServer {
 
       // Search through log files
       const results: Array<{ file: string; matches: string[] }> = [];
-      const searchRegex = new RegExp(searchTerm, 'gi');
+      const searchRegex = new RegExp(escapeRegExp(searchTerm), 'gi');
 
       for (const file of logFiles.slice(-5)) {
         // Only search last 5 files
@@ -1665,7 +1671,10 @@ export class MCPServer {
     session.sendCommand(command);
 
     // Wait for response (default 200ms - increased from 100ms for more complete output)
-    const delay = waitMs !== undefined ? parseInt(waitMs.toString()) : 200;
+    const delay = Math.min(
+      Math.max(waitMs !== undefined ? parseInt(waitMs.toString()) : 200, 0),
+      5000
+    ); // Cap at 5 seconds to prevent resource exhaustion
     await new Promise((resolve) => setTimeout(resolve, delay));
 
     // Get the raw output and clean it for LLM consumption

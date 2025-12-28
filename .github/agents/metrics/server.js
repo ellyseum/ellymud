@@ -26,6 +26,19 @@ const AGENTS_DIR = path.dirname(METRICS_DIR);
 const PROJECT_ROOT = path.resolve(AGENTS_DIR, '../..');
 const SCRIPTS_DIR = path.join(PROJECT_ROOT, 'scripts');
 
+// HTML escape function to prevent XSS
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+
+
 // ============================================================================
 // Startup Tasks
 // ============================================================================
@@ -755,16 +768,16 @@ function generateDashboardHTML() {
             <tbody>
               ${executions.map(e => `
                 <tr>
-                  <td><code>${e.pipelineId || e.filename}</code></td>
-                  <td>${e.task || '-'}</td>
+                  <td><code>${escapeHtml(e.pipelineId || e.filename)}</code></td>
+                  <td>${escapeHtml(e.task || '-')}</td>
                   <td>${e.date ? new Date(e.date).toLocaleDateString() : '-'}</td>
-                  <td><span class="badge badge-info">${e.complexity || '-'}</span></td>
+                  <td><span class="badge badge-info">${escapeHtml(e.complexity || '-')}</span></td>
                   <td>
                     <span class="badge ${e.outcome === 'success' ? 'badge-success' : 'badge-danger'}">
-                      ${e.outcome === 'success' ? '✓' : '✗'} ${e.outcome || '-'}
+                      ${e.outcome === 'success' ? '✓' : '✗'} ${escapeHtml(e.outcome || '-')}
                     </span>
                   </td>
-                  <td><a href="/api/execution/${e.filename}">JSON</a></td>
+                  <td><a href="/api/execution/${escapeHtml(e.filename)}">JSON</a></td>
                 </tr>
               `).join('')}
             </tbody>
@@ -780,16 +793,16 @@ function generateDashboardHTML() {
         ${Object.entries(statsByStage).map(([stage, files]) => `
           <div class="card">
             <div class="card-header">
-              <h3>${stage} (${files.length})</h3>
-              <a href="/api/stats?stage=${stage}" class="badge badge-purple">API</a>
+              <h3>${escapeHtml(stage)} (${files.length})</h3>
+              <a href="/api/stats?stage=${escapeHtml(stage)}" class="badge badge-purple">API</a>
             </div>
             <div class="card-body" style="padding: 0; max-height: 300px; overflow-y: auto;">
               <ul class="file-list">
                 ${files.slice(0, 10).map(f => `
                   <li class="file-item">
                     <span class="file-icon">📄</span>
-                    <a class="file-name" href="/view/stats/${f.filename}">${f.filename.replace('-stats.md', '')}</a>
-                    <span class="badge badge-info">${stage}</span>
+                    <a class="file-name" href="/view/stats/${escapeHtml(f.filename)}">${escapeHtml(f.filename.replace('-stats.md', ''))}</a>
+                    <span class="badge badge-info">${escapeHtml(stage)}</span>
                   </li>
                 `).join('')}
                 ${files.length > 10 ? `
@@ -1002,8 +1015,8 @@ function generateStageHTML(stage) {
             <tbody>
               ${reports.map(r => `
                 <tr>
-                  <td><a href="/view/${stage}/${r.filename}">${r.filename}</a></td>
-                  <td><span class="badge ${r.type === 'grade' ? 'badge-warning' : r.type === 'reviewed' ? 'badge-success' : 'badge-info'}">${r.type}</span></td>
+                  <td><a href="/view/${escapeHtml(stage)}/${escapeHtml(r.filename)}">${escapeHtml(r.filename)}</a></td>
+                  <td><span class="badge ${r.type === 'grade' ? 'badge-warning' : r.type === 'reviewed' ? 'badge-success' : 'badge-info'}">${escapeHtml(r.type)}</span></td>
                   <td>${(r.size / 1024).toFixed(1)} KB</td>
                   <td>${new Date(r.modified).toLocaleString()}</td>
                 </tr>
@@ -1024,7 +1037,7 @@ function generateFileViewHTML(filepath, content, filename) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${filename} - Pipeline Metrics</title>
+  <title>${escapeHtml(filename)} - Pipeline Metrics</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>${CSS}
     .breadcrumb { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; font-size: 0.875rem; }
@@ -1056,17 +1069,17 @@ function generateFileViewHTML(filepath, content, filename) {
     <div class="breadcrumb">
       <a href="/">Dashboard</a>
       <span>›</span>
-      <a href="/${filepath.split('/')[0]}">${filepath.split('/')[0]}</a>
+      <a href="/${escapeHtml(filepath.split('/')[0])}">${escapeHtml(filepath.split('/')[0])}</a>
       <span>›</span>
-      <span>${filename}</span>
+      <span>${escapeHtml(filename)}</span>
     </div>
     
     <div class="card">
       <div class="card-header">
-        <h3>${filename}</h3>
+        <h3>${escapeHtml(filename)}</h3>
         <div style="display: flex; gap: 8px;">
-          <a href="/api/raw/${filepath}" class="badge badge-info">Raw</a>
-          ${filepath.includes('stats/') ? `<a href="/api/stat/${filename}" class="badge badge-purple">JSON</a>` : ''}
+          <a href="/api/raw/${escapeHtml(filepath)}" class="badge badge-info">Raw</a>
+          ${filepath.includes('stats/') ? `<a href="/api/stat/${escapeHtml(filename)}" class="badge badge-purple">JSON</a>` : ''}
         </div>
       </div>
       <div class="card-body">

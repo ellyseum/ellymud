@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Socket } from 'net';
 import { EventEmitter } from 'events';
 import { IConnection } from './interfaces/connection.interface';
@@ -32,7 +33,7 @@ export class TelnetConnection extends EventEmitter implements IConnection {
   constructor(socket: Socket) {
     super();
     this.socket = socket;
-    this.id = `telnet-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    this.id = `telnet-${Date.now()}-${crypto.randomInt(1000)}`;
 
     // Start telnet negotiations immediately
     this.negotiateTelnetOptions();
