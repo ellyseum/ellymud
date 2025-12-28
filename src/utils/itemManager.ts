@@ -1,25 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Item manager uses dynamic typing for flexible item property handling
-import fs from 'fs';
-import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import config from '../config';
 import { EquipmentSlot, GameItem, ItemInstance, User } from '../types';
-import { loadAndValidateJsonFile } from './fileUtils';
 import { parseAndValidateJson } from './jsonUtils';
 import { createContextLogger } from './logger';
 
 // Create a context-specific logger for ItemManager
 const itemLogger = createContextLogger('ItemManager');
 
-const DATA_DIR = path.join(__dirname, '..', '..', 'data');
-const ITEMS_FILE = path.join(DATA_DIR, 'items.json');
-const ITEM_INSTANCES_FILE = path.join(DATA_DIR, 'itemInstances.json');
+import { IItemRepository } from '../persistence/interfaces';
+import { FileItemRepository } from '../persistence/fileRepository';
 
 export class ItemManager {
   private static instance: ItemManager | null = null;
   private items: Map<string, GameItem> = new Map();
   private itemInstances: Map<string, ItemInstance> = new Map();
+  private repository: IItemRepository;
 
   public static getInstance(): ItemManager {
     if (!ItemManager.instance) {
@@ -28,7 +25,25 @@ export class ItemManager {
     return ItemManager.instance;
   }
 
-  private constructor() {
+  /**
+   * Reset the singleton instance (useful for testing)
+   */
+  public static resetInstance(): void {
+    ItemManager.instance = null;
+  }
+
+  /**
+   * Create an ItemManager with a custom repository (for testing)
+   * @param repository Optional repository implementation
+   */
+  public static createWithRepository(repository: IItemRepository): ItemManager {
+    ItemManager.resetInstance();
+    ItemManager.instance = new ItemManager(repository);
+    return ItemManager.instance;
+  }
+
+  private constructor(repository?: IItemRepository) {
+    this.repository = repository ?? new FileItemRepository();
     this.loadItems();
     this.loadItemInstances();
   }
@@ -92,35 +107,20 @@ export class ItemManager {
       }
     }
 
-    // If no items from command line, try loading from file
-    this.loadItemsFromFile();
+    // If no items from command line, load from repository
+    this.loadItemsFromRepository();
   }
 
-  private loadItemsFromFile(): void {
-    // Create data directory if it doesn't exist
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
+  private loadItemsFromRepository(): void {
+    const itemData = this.repository.loadItems();
 
-    // Create items file if it doesn't exist
-    if (!fs.existsSync(ITEMS_FILE)) {
-      this.createDefaultItems();
-      return;
-    }
-
-    // Validate file data using our validation system
-    const itemData = loadAndValidateJsonFile<GameItem[]>(ITEMS_FILE, 'items');
-
-    if (itemData && Array.isArray(itemData)) {
+    if (itemData.length > 0) {
       this.loadPrevalidatedItems(itemData);
     } else {
-      process.exit(1); // Exit if validation fails
+      // No items found, create defaults
+      this.createDefaultItems();
     }
   }
-
-  /**
-   * Creates default items when no items are found
-   */
   private createDefaultItems(): void {
     // Initialize with some default items
     const defaultItems: GameItem[] = [
@@ -285,7 +285,7 @@ export class ItemManager {
       },
     ];
 
-    fs.writeFileSync(ITEMS_FILE, JSON.stringify(defaultItems, null, 2));
+    this.repository.saveItems(defaultItems);
 
     // Load the default items into memory
     defaultItems.forEach((item) => {
@@ -320,47 +320,36 @@ export class ItemManager {
         }
       }
 
-      // If no item instances from command line, try loading from file
-      this.loadItemInstancesFromFile();
+      // If no item instances from command line, load from repository
+      this.loadItemInstancesFromRepository();
     } catch (error) {
       itemLogger.error('Error loading item instances:', error);
       this.itemInstances = new Map();
     }
   }
 
-  private loadItemInstancesFromFile(): void {
+  private loadItemInstancesFromRepository(): void {
     try {
-      if (!fs.existsSync(ITEM_INSTANCES_FILE)) {
-        // No instances file yet, will be created when saving
-        return;
-      }
+      const instanceData = this.repository.loadItemInstances();
 
-      // Try to validate the file first
-      const instanceData = loadAndValidateJsonFile<ItemInstance[]>(ITEM_INSTANCES_FILE, 'items');
-
-      if (instanceData && Array.isArray(instanceData)) {
+      if (instanceData.length > 0) {
         this.loadPrevalidatedItemInstances(instanceData);
-      } else {
-        // Instead of falling back to legacy loading, throw an error
-        throw new Error('Item instance data validation failed - data must conform to the schema');
       }
+      // No instances is fine - will be created when saving
     } catch (error: unknown) {
       itemLogger.error(
-        'Error loading item instances from file:',
+        'Error loading item instances from repository:',
         error instanceof Error ? error.message : String(error)
       );
-
-      process.exit(1); // Exit if validation fails
+      // Don't exit - just start with empty instances
+      this.itemInstances = new Map();
     }
   }
 
-  /**
-   * Save all item instances to disk
-   */
   public saveItemInstances(): void {
     try {
       const instances = Array.from(this.itemInstances.values());
-      fs.writeFileSync(ITEM_INSTANCES_FILE, JSON.stringify(instances, null, 2));
+      this.repository.saveItemInstances(instances);
       itemLogger.info(`Saved ${instances.length} item instances.`);
     } catch (error) {
       itemLogger.error('Error saving item instances:', error);
@@ -370,7 +359,7 @@ export class ItemManager {
   public saveItems(): void {
     try {
       const itemArray = Array.from(this.items.values());
-      fs.writeFileSync(ITEMS_FILE, JSON.stringify(itemArray, null, 2));
+      this.repository.saveItems(itemArray);
     } catch (error) {
       itemLogger.error('Error saving items:', error);
     }

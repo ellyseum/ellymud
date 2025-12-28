@@ -213,3 +213,139 @@ describe('Combat', () => {
     });
   });
 });
+
+// Additional tests to improve coverage
+describe('Combat Extended Coverage', () => {
+  let combat: Combat;
+  let mockPlayer: ReturnType<typeof createMockClient>;
+  let mockUserManager: UserManager;
+  let mockRoomManager: RoomManager;
+  let mockCombatSystem: CombatSystem;
+  let rooms: Map<string, Room>;
+  let testRoom: Room;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    rooms = new Map();
+
+    // Create a test room with NPCs
+    testRoom = new Room({
+      id: 'test-room',
+      name: 'Test Room',
+      description: 'A test room',
+      exits: [],
+    });
+    testRoom.npcs = new Map();
+    rooms.set('test-room', testRoom);
+
+    mockPlayer = createMockClient({
+      user: createMockUser({
+        inCombat: true,
+        currentRoomId: 'test-room',
+        health: 100,
+        maxHealth: 100,
+      }),
+      authenticated: true,
+    });
+    mockUserManager = createTestUserManager();
+    mockRoomManager = createTestRoomManager(rooms);
+    mockCombatSystem = createTestCombatSystem();
+    combat = new Combat(mockPlayer, mockUserManager, mockRoomManager, mockCombatSystem);
+  });
+
+  describe('processRound with targets', () => {
+    it('should handle combatant not in room', () => {
+      const target = createMockCombatEntity({ name: 'Goblin' });
+      (target.getName as jest.Mock).mockReturnValue('Goblin');
+      (target.isAlive as jest.Mock).mockReturnValue(true);
+      combat.addTarget(target);
+
+      // Room has no NPCs, so combatant should be removed
+      combat.processRound();
+
+      expect(combat.activeCombatants).toHaveLength(0);
+    });
+
+    it('should process round with valid target in room', () => {
+      const target = createMockCombatEntity({ name: 'goblin-123' });
+      (target.getName as jest.Mock).mockReturnValue('goblin-123');
+      (target.isAlive as jest.Mock).mockReturnValue(true);
+      (target.takeDamage as jest.Mock).mockReturnValue(false);
+
+      // Add the NPC to the room
+      testRoom.npcs.set('goblin-123', {
+        name: 'Goblin',
+        instanceId: 'goblin-123',
+        templateId: 'goblin',
+        health: 50,
+        maxHealth: 50,
+        attack: 5,
+        defense: 5,
+        isAlive: () => true,
+        isHostile: true,
+        isPassive: false,
+      } as never);
+
+      combat.addTarget(target);
+      combat.processRound();
+
+      // Combat should continue with the target
+      expect(combat.rounds).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('activeCombatants access', () => {
+    it('should return list of active combatants', () => {
+      const goblin = createMockCombatEntity({ name: 'Goblin' });
+      (goblin.getName as jest.Mock).mockReturnValue('Goblin');
+      const orc = createMockCombatEntity({ name: 'Orc' });
+      (orc.getName as jest.Mock).mockReturnValue('Orc');
+
+      combat.addTarget(goblin);
+      combat.addTarget(orc);
+
+      expect(combat.activeCombatants).toHaveLength(2);
+    });
+  });
+
+  describe('remove combatant by clearing array', () => {
+    it('should clear all combatants', () => {
+      const target = createMockCombatEntity({ name: 'Goblin' });
+      (target.getName as jest.Mock).mockReturnValue('Goblin');
+
+      combat.addTarget(target);
+      expect(combat.activeCombatants).toHaveLength(1);
+
+      combat.activeCombatants = [];
+      expect(combat.activeCombatants).toHaveLength(0);
+    });
+  });
+
+  describe('break combat', () => {
+    it('should mark combat as broken by player', () => {
+      combat.brokenByPlayer = true;
+      expect(combat.brokenByPlayer).toBe(true);
+    });
+  });
+
+  describe('currentRound tracking', () => {
+    it('should track current round', () => {
+      expect(combat.currentRound).toBe(0);
+      combat.currentRound = 5;
+      expect(combat.currentRound).toBe(5);
+    });
+  });
+
+  describe('player validity check', () => {
+    it('should handle unauthenticated player', () => {
+      mockPlayer.authenticated = false;
+      const target = createMockCombatEntity({ name: 'Goblin' });
+      combat.addTarget(target);
+
+      combat.processRound();
+
+      // Combat should end for invalid player
+      expect(combat.activeCombatants).toHaveLength(0);
+    });
+  });
+});

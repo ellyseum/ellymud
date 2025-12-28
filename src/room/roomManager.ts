@@ -8,7 +8,8 @@ import { systemLogger } from '../utils/logger';
 import { NPC } from '../combat/npc';
 import { IRoomManager } from './interfaces';
 import { parseAndValidateJson } from '../utils/jsonUtils';
-import { loadAndValidateJsonFile } from '../utils/fileUtils';
+import { IRoomRepository } from '../persistence/interfaces';
+import { FileRoomRepository } from '../persistence/fileRepository';
 import config from '../config';
 
 // Import our service classes
@@ -48,14 +49,16 @@ export class RoomManager implements IRoomManager {
   private playerMovementService!: PlayerMovementService;
   private roomUINotificationService!: RoomUINotificationService;
   private teleportationService!: TeleportationService;
+  private repository: IRoomRepository;
 
   // Add static instance for singleton pattern
   private static instance: RoomManager | null = null;
 
   // Make constructor private for singleton pattern
-  private constructor(clients: Map<string, ConnectedClient>) {
+  private constructor(clients: Map<string, ConnectedClient>, repository?: IRoomRepository) {
     systemLogger.info('Creating RoomManager instance');
     this.clients = clients;
+    this.repository = repository ?? new FileRoomRepository();
 
     // Initialize services
     this.initializeServices();
@@ -72,6 +75,27 @@ export class RoomManager implements IRoomManager {
       // Update clients reference if it's a different object
       RoomManager.instance.clients = clients;
     }
+    return RoomManager.instance;
+  }
+
+  /**
+   * Reset the singleton instance (useful for testing)
+   */
+  public static resetInstance(): void {
+    RoomManager.instance = null;
+  }
+
+  /**
+   * Create a RoomManager with a custom repository (for testing)
+   * @param clients The connected clients map
+   * @param repository Optional repository implementation
+   */
+  public static createWithRepository(
+    clients: Map<string, ConnectedClient>,
+    repository: IRoomRepository
+  ): RoomManager {
+    RoomManager.resetInstance();
+    RoomManager.instance = new RoomManager(clients, repository);
     return RoomManager.instance;
   }
 
@@ -170,22 +194,20 @@ export class RoomManager implements IRoomManager {
       }
     }
 
-    // If no rooms from command line, try loading from file
-    this.loadRoomsFromFile();
+    // If no rooms from command line, load from repository
+    this.loadRoomsFromRepository();
   }
 
-  private loadRoomsFromFile(): void {
-    // Validate file data using our validation system
-    if (fs.existsSync(ROOMS_FILE)) {
-      const roomDataArray = loadAndValidateJsonFile<any[]>(ROOMS_FILE, 'rooms');
+  private loadRoomsFromRepository(): void {
+    // Load rooms from repository
+    const roomsMap = this.repository.loadRooms();
 
-      if (roomDataArray && Array.isArray(roomDataArray)) {
-        this.loadPrevalidatedRooms(roomDataArray);
-      } else {
-        process.exit(1); // Exit if rooms data is invalid
-      }
+    if (roomsMap.size > 0) {
+      // Convert map values to array for loadPrevalidatedRooms
+      const roomDataArray = Array.from(roomsMap.values());
+      this.loadPrevalidatedRooms(roomDataArray as any[]);
     } else {
-      // Create initial rooms file if it doesn't exist
+      // No rooms found, save initial empty state
       this.saveRooms();
     }
   }

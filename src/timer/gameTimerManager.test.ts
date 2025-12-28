@@ -257,3 +257,158 @@ describe('GameTimerManager', () => {
     });
   });
 });
+
+// Additional tests to improve coverage
+describe('GameTimerManager Extended Coverage', () => {
+  let mockUserManager: jest.Mocked<UserManager>;
+  let mockRoomManager: jest.Mocked<RoomManager>;
+
+  beforeEach(() => {
+    resetSingleton();
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+
+    // Setup mocks
+    mockUserManager = {
+      getUsers: jest.fn().mockReturnValue(new Map()),
+      saveUsers: jest.fn().mockResolvedValue(undefined),
+      setTestMode: jest.fn(),
+      getAllActiveUserSessions: jest.fn().mockReturnValue(new Map()),
+    } as unknown as jest.Mocked<UserManager>;
+
+    mockRoomManager = {
+      saveRooms: jest.fn().mockResolvedValue(undefined),
+      setTestMode: jest.fn(),
+    } as unknown as jest.Mocked<RoomManager>;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+    manager.stop();
+  });
+
+  describe('start and stop', () => {
+    it('should start the game loop', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+
+      manager.start();
+
+      expect(manager.isRunning()).toBe(true);
+    });
+
+    it('should stop the game loop', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+      manager.start();
+
+      manager.stop();
+
+      expect(manager.isRunning()).toBe(false);
+    });
+
+    it('should handle stopping when not running', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+
+      // Should not throw
+      manager.stop();
+
+      expect(manager.isRunning()).toBe(false);
+    });
+  });
+
+  describe('getConfig', () => {
+    it('should return the config', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+
+      const config = manager.getConfig();
+
+      expect(config).toBeDefined();
+      expect(config.tickInterval).toBeGreaterThan(0);
+    });
+  });
+
+  describe('updateConfig', () => {
+    it('should update config values', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+
+      manager.updateConfig({ tickInterval: 5000 });
+
+      expect(manager.getConfig().tickInterval).toBe(5000);
+    });
+  });
+
+  describe('multiple tick processing', () => {
+    it('should process multiple ticks correctly', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+      manager.resetTickCount();
+
+      manager.advanceTicks(5);
+
+      expect(manager.getTickCount()).toBe(5);
+    });
+
+    it('should handle zero advance', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+      const initialCount = manager.getTickCount();
+
+      manager.advanceTicks(0);
+
+      expect(manager.getTickCount()).toBe(initialCount);
+    });
+  });
+
+  describe('singleton behavior', () => {
+    it('should return the same instance', () => {
+      const manager1 = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+      const manager2 = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+
+      expect(manager1).toBe(manager2);
+    });
+  });
+
+  describe('timer state', () => {
+    it('should track running state after start/stop cycle', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+
+      manager.start();
+      expect(manager.isRunning()).toBe(true);
+
+      manager.stop();
+      expect(manager.isRunning()).toBe(false);
+
+      manager.start();
+      expect(manager.isRunning()).toBe(true);
+    });
+  });
+
+  describe('testMode', () => {
+    it('should enable test mode', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+
+      manager.setTestMode(true);
+
+      expect(manager.isTestMode()).toBe(true);
+    });
+
+    it('should disable test mode', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+      manager.setTestMode(true);
+
+      manager.setTestMode(false);
+
+      expect(manager.isTestMode()).toBe(false);
+    });
+  });
+
+  describe('forceSave', () => {
+    it('should call save data', () => {
+      const manager = GameTimerManager.getInstance(mockUserManager, mockRoomManager);
+      manager.setTestMode(true);
+
+      // Should not throw
+      expect(() => {
+        manager.forceSave();
+      }).not.toThrow();
+    });
+  });
+});

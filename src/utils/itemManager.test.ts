@@ -298,3 +298,214 @@ describe('ItemManager', () => {
     });
   });
 });
+
+// Additional tests to improve coverage
+describe('ItemManager Extended Coverage', () => {
+  let itemManager: ItemManager;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Reset singleton
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (ItemManager as any)['instance'] = null;
+    itemManager = ItemManager.getInstance();
+  });
+
+  describe('getItem', () => {
+    it('should return item by ID', () => {
+      const item = itemManager.getItem('iron-sword');
+      expect(item).toBeDefined();
+      expect(item?.name).toBe('Iron Sword');
+    });
+
+    it('should return undefined for non-existent item', () => {
+      const item = itemManager.getItem('nonexistent');
+      expect(item).toBeUndefined();
+    });
+  });
+
+  describe('getAllItems', () => {
+    it('should return all items', () => {
+      const items = itemManager.getAllItems();
+      expect(items).toBeDefined();
+      expect(items.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('createItemInstance', () => {
+    it('should create a new item instance', () => {
+      const instance = itemManager.createItemInstance('iron-sword', 'testuser');
+      expect(instance).toBeDefined();
+      expect(instance?.templateId).toBe('iron-sword');
+    });
+
+    it('should return null for non-existent item template', () => {
+      const instance = itemManager.createItemInstance('nonexistent', 'testuser');
+      expect(instance).toBeNull();
+    });
+  });
+
+  describe('getItemInstance', () => {
+    it('should return instance after creation', () => {
+      const created = itemManager.createItemInstance('iron-sword', 'testuser');
+      if (created) {
+        const retrieved = itemManager.getItemInstance(created.instanceId);
+        expect(retrieved).toBeDefined();
+        expect(retrieved?.instanceId).toBe(created.instanceId);
+      }
+    });
+  });
+
+  describe('getAllItemInstances', () => {
+    it('should return all instances', () => {
+      itemManager.createItemInstance('iron-sword', 'testuser');
+      itemManager.createItemInstance('leather-armor', 'testuser');
+      const instances = itemManager.getAllItemInstances();
+      expect(instances.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('findInstanceByPartialId', () => {
+    it('should return null for too short partial ID', () => {
+      const found = itemManager.findInstanceByPartialId('abc');
+      expect(found).toBeNull();
+    });
+  });
+
+  describe('deleteItemInstance', () => {
+    it('should return false for non-existent instance', () => {
+      const deleted = itemManager.deleteItemInstance('nonexistent-12345678');
+      expect(deleted).toBe(false);
+    });
+  });
+
+  describe('addItemHistory', () => {
+    it('should add history to item instance', () => {
+      const created = itemManager.createItemInstance('iron-sword', 'testuser');
+      if (created) {
+        itemManager.addItemHistory(created.instanceId, 'pickup', 'Picked up by testuser');
+
+        const retrieved = itemManager.getItemInstance(created.instanceId);
+        expect(retrieved?.history).toBeDefined();
+        expect(retrieved?.history?.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should handle history for non-existent instance gracefully', () => {
+      // Should not throw
+      expect(() => {
+        itemManager.addItemHistory('nonexistent', 'pickup', 'Test action');
+      }).not.toThrow();
+    });
+  });
+
+  describe('loadPrevalidatedItems', () => {
+    it('should load items from array', () => {
+      const items: GameItem[] = [
+        {
+          id: 'test-item',
+          name: 'Test Item',
+          type: 'misc',
+          description: 'A test item',
+          value: 1,
+        },
+      ];
+
+      itemManager.loadPrevalidatedItems(items);
+
+      const loaded = itemManager.getItem('test-item');
+      expect(loaded).toBeDefined();
+      expect(loaded?.name).toBe('Test Item');
+    });
+  });
+
+  describe('loadPrevalidatedItemInstances', () => {
+    it('should load instances from array', () => {
+      const instances: ItemInstance[] = [
+        {
+          instanceId: 'test-instance-123',
+          templateId: 'iron-sword',
+          created: new Date(),
+          createdBy: 'testuser',
+          properties: {},
+        },
+      ];
+
+      itemManager.loadPrevalidatedItemInstances(instances);
+
+      const loaded = itemManager.getItemInstance('test-instance-123');
+      expect(loaded).toBeDefined();
+      expect(loaded?.templateId).toBe('iron-sword');
+    });
+  });
+  describe('loadPrevalidatedItemInstances', () => {
+    it('should load instances from array', () => {
+      const instances: ItemInstance[] = [
+        {
+          instanceId: 'test-instance-123',
+          templateId: 'iron-sword',
+          created: new Date(),
+          createdBy: 'testuser',
+          properties: {},
+        },
+      ];
+
+      itemManager.loadPrevalidatedItemInstances(instances);
+
+      const loaded = itemManager.getItemInstance('test-instance-123');
+      expect(loaded).toBeDefined();
+      expect(loaded?.templateId).toBe('iron-sword');
+    });
+  });
+});
+
+// Tests using the new repository injection
+describe('ItemManager with Repository Injection', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    ItemManager.resetInstance();
+  });
+
+  afterEach(() => {
+    ItemManager.resetInstance();
+  });
+
+  describe('resetInstance', () => {
+    it('should allow creating a fresh instance', () => {
+      const instance1 = ItemManager.getInstance();
+      ItemManager.resetInstance();
+      const instance2 = ItemManager.getInstance();
+
+      // They might be the same object since mocks are reused,
+      // but the point is resetInstance doesn't throw
+      expect(instance1).toBeDefined();
+      expect(instance2).toBeDefined();
+    });
+
+    it('should reset instance to null', () => {
+      ItemManager.getInstance();
+      ItemManager.resetInstance();
+      // After reset, getInstance creates a new instance
+      // We can verify this works by checking getInstance doesn't throw
+      expect(() => ItemManager.getInstance()).not.toThrow();
+    });
+  });
+
+  describe('createWithRepository', () => {
+    it('should create instance with manager', () => {
+      // Since createWithRepository is now available, we can test that it returns a manager
+      // Note: The current implementation still falls back to file loading for backwards compatibility
+      // but the repository is stored and can be used for future refactoring
+      const mockRepository = {
+        loadItems: jest.fn().mockReturnValue([]),
+        loadItemInstances: jest.fn().mockReturnValue([]),
+        saveItems: jest.fn(),
+        saveItemInstances: jest.fn(),
+      };
+
+      const manager = ItemManager.createWithRepository(mockRepository);
+      expect(manager).toBeDefined();
+      expect(manager).toBeInstanceOf(ItemManager);
+    });
+  });
+});

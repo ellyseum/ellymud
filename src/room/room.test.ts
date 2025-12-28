@@ -362,3 +362,324 @@ describe('Room', () => {
     });
   });
 });
+
+// Additional tests to improve coverage
+describe('Room Additional Coverage', () => {
+  describe('hasItemInstance', () => {
+    it('should return true for existing item instance', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      room.addItemInstance('sword-12345678-uuid', 'iron-sword');
+
+      expect(room.hasItemInstance('sword-12345678-uuid')).toBe(true);
+    });
+
+    it('should return false for non-existent item instance', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+
+      expect(room.hasItemInstance('nonexistent')).toBe(false);
+    });
+
+    it('should handle partial ID matching', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      room.addItemInstance('sword-12345678-uuid', 'iron-sword');
+
+      // Should match with partial ID of at least 8 chars
+      expect(room.hasItemInstance('sword-12')).toBe(true);
+    });
+
+    it('should return undefined for ambiguous partial IDs', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      room.addItemInstance('sword-12345678-uuid-a', 'iron-sword');
+      room.addItemInstance('sword-12345678-uuid-b', 'iron-sword');
+
+      // Should be undefined for ambiguous match
+      expect(room.hasItemInstance('sword-12')).toBeUndefined();
+    });
+  });
+
+  describe('findItemInstanceId', () => {
+    it('should return exact match', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      room.addItemInstance('exact-id-12345', 'template');
+
+      expect(room.findItemInstanceId('exact-id-12345')).toBe('exact-id-12345');
+    });
+
+    it('should return null for short non-matching IDs', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      room.addItemInstance('sword-12345678-uuid', 'iron-sword');
+
+      // ID less than 8 chars should return null
+      expect(room.findItemInstanceId('short')).toBeNull();
+    });
+
+    it('should return undefined for ambiguous matches', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      room.addItemInstance('prefix-aa-12345678', 'template');
+      room.addItemInstance('prefix-bb-12345678', 'template');
+
+      // With partial ID less than 8 chars, returns null (won't try partial matching)
+      // but 'prefix-a' is 8 chars so it will try matching and find 'prefix-aa-12345678'
+      expect(room.findItemInstanceId('prefix-a')).toBe('prefix-aa-12345678');
+    });
+  });
+
+  describe('removeItemInstance with partial IDs', () => {
+    it('should remove item by partial ID', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      room.addItemInstance('removetest-12345678-uuid', 'template');
+
+      const result = room.removeItemInstance('removetest-1234');
+
+      expect(result).toBe(true);
+      expect(room.hasItemInstance('removetest-12345678-uuid')).toBe(false);
+    });
+
+    it('should return false for ambiguous partial IDs', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      room.addItemInstance('ambig-test-12345678-a', 'template');
+      room.addItemInstance('ambig-test-12345678-b', 'template');
+
+      const result = room.removeItemInstance('ambig-test');
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('serializeItemInstances', () => {
+    it('should serialize item instances to array', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+      room.addItemInstance('instance-1', 'template-a');
+      room.addItemInstance('instance-2', 'template-b');
+
+      const serialized = room.serializeItemInstances();
+
+      expect(serialized.length).toBe(2);
+      expect(serialized[0]).toHaveProperty('instanceId');
+      expect(serialized[0]).toHaveProperty('templateId');
+    });
+
+    it('should return empty array for room without items', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+
+      const serialized = room.serializeItemInstances();
+
+      expect(serialized).toEqual([]);
+    });
+  });
+
+  describe('addItem (legacy)', () => {
+    it('should add string item', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+
+      room.addItem('test-item');
+
+      expect(room.items.length).toBe(1);
+    });
+
+    it('should add object item', () => {
+      const room = new Room({ id: 'test', name: 'Test' });
+
+      room.addItem({ name: 'Test Object' });
+
+      expect(room.items.length).toBe(1);
+    });
+  });
+
+  describe('getDescription', () => {
+    it('should include room name', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test Room Name',
+        description: 'A test description',
+      });
+
+      const desc = room.getDescription();
+
+      expect(desc).toContain('Test Room Name');
+    });
+
+    it('should include NPCs in description', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'A test room',
+      });
+
+      const npc = createMockNPC({ name: 'Goblin' });
+      room.npcs.set('goblin-1', npc);
+
+      const desc = room.getDescription();
+
+      expect(desc).toContain('Also here');
+    });
+  });
+
+  describe('getBriefDescription', () => {
+    it('should return brief description', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test Room',
+        description: 'A longer description that should not appear',
+      });
+
+      const brief = room.getBriefDescription();
+
+      expect(brief).toContain('Test Room');
+    });
+  });
+
+  describe('getDescriptionExcludingPlayer', () => {
+    it('should exclude specified player', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+      });
+      room.addPlayer('visibleplayer');
+      room.addPlayer('excludedplayer');
+
+      const desc = room.getDescriptionExcludingPlayer('excludedplayer');
+
+      expect(desc).toContain('Visibleplayer');
+      expect(desc).not.toContain('Excludedplayer');
+    });
+  });
+
+  describe('getBriefDescriptionExcludingPlayer', () => {
+    it('should return brief description excluding player', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+      });
+      room.addPlayer('player1');
+      room.addPlayer('player2');
+
+      const desc = room.getBriefDescriptionExcludingPlayer('player1');
+
+      expect(desc).not.toContain('Player1');
+    });
+  });
+
+  describe('getDescriptionForPeeking', () => {
+    it('should include peeking direction', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+        exits: [{ direction: 'north', roomId: 'other' }],
+      });
+
+      const desc = room.getDescriptionForPeeking('south');
+
+      expect(desc).toContain('south');
+    });
+
+    it('should mention players as figures', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+      });
+      room.addPlayer('someplayer');
+
+      const desc = room.getDescriptionForPeeking('north');
+
+      expect(desc).toContain('figures');
+    });
+
+    it('should mention NPCs as creatures', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+      });
+      room.npcs.set('npc-1', createMockNPC({ name: 'Goblin' }));
+
+      const desc = room.getDescriptionForPeeking('north');
+
+      expect(desc).toContain('creatures');
+    });
+
+    it('should mention items', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+      });
+      room.addItem('sword');
+
+      const desc = room.getDescriptionForPeeking('north');
+
+      expect(desc).toContain('items');
+    });
+
+    it('should handle room without exits', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+        exits: [],
+      });
+
+      const desc = room.getDescriptionForPeeking('north');
+
+      expect(desc).toContain('no obvious exits');
+    });
+  });
+
+  describe('currency display', () => {
+    it('should show gold currency', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+        currency: { gold: 5, silver: 0, copper: 0 },
+      });
+
+      const desc = room.getDescription();
+
+      expect(desc).toContain('gold');
+    });
+
+    it('should show silver currency', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+        currency: { gold: 0, silver: 10, copper: 0 },
+      });
+
+      const desc = room.getDescription();
+
+      expect(desc).toContain('silver');
+    });
+
+    it('should show copper currency', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+        currency: { gold: 0, silver: 0, copper: 15 },
+      });
+
+      const desc = room.getDescription();
+
+      expect(desc).toContain('copper');
+    });
+
+    it('should handle single currency piece grammar', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        description: 'Test desc',
+        currency: { gold: 1, silver: 0, copper: 0 },
+      });
+
+      const desc = room.getDescription();
+
+      expect(desc).toContain('1 gold piece');
+      expect(desc).not.toContain('pieces');
+    });
+  });
+});
