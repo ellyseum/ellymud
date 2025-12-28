@@ -98,13 +98,22 @@ describeWithRedis('RedisSessionStore (error handling)', () => {
     resetRedisClient();
   });
 
+  /**
+   * Helper to safely disconnect Redis client for testing error scenarios
+   */
+  const disconnectRedis = async (): Promise<void> => {
+    try {
+      const redis = getRedisClient();
+      await redis.quit();
+    } catch (error) {
+      // Ignore errors if already disconnected
+    }
+    resetRedisClient();
+  };
+
   it('should handle Redis connection failures in healthCheck', async () => {
     // Force Redis client to be in a disconnected state
-    const redis = getRedisClient();
-    await redis.quit();
-    
-    // Reset client to trigger reconnection on next operation
-    resetRedisClient();
+    await disconnectRedis();
     
     // Create new store instance with disconnected Redis
     const newStore = new RedisSessionStore();
@@ -119,11 +128,7 @@ describeWithRedis('RedisSessionStore (error handling)', () => {
 
   it('should throw error when saving session with Redis unavailable', async () => {
     // Get Redis client and disconnect
-    const redis = getRedisClient();
-    await redis.quit();
-    
-    // Reset to force new connection attempt
-    resetRedisClient();
+    await disconnectRedis();
     
     const disconnectedStore = new RedisSessionStore();
     const sessionData: SessionData = {
@@ -138,9 +143,7 @@ describeWithRedis('RedisSessionStore (error handling)', () => {
   });
 
   it('should throw error when getting session with Redis unavailable', async () => {
-    const redis = getRedisClient();
-    await redis.quit();
-    resetRedisClient();
+    await disconnectRedis();
     
     const disconnectedStore = new RedisSessionStore();
     
