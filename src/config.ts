@@ -54,6 +54,7 @@ export const FORCE = cliConfig.force; // Add force flag
 export const TEST_MODE = cliConfig.testMode;
 
 // Redis configuration
+// Precedence: CLI flag (cliConfig.useRedis) takes priority over USE_REDIS env var.
 export const USE_REDIS = cliConfig.useRedis || process.env.USE_REDIS === 'true';
 
 // Direct data

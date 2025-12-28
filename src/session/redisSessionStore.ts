@@ -26,7 +26,28 @@ export class RedisSessionStore implements SessionStore {
 
   async refreshSession(sessionId: string): Promise<void> {
     const redis = getRedisClient();
-    await redis.expire(this.getKey(sessionId), SESSION_TTL);
+    const key = this.getKey(sessionId);
+
+    const data = await redis.get(key);
+    if (!data) {
+      // Session not found, preserve original behavior of just updating TTL if possible.
+      await redis.expire(key, SESSION_TTL);
+      return;
+    }
+
+    try {
+      const session = JSON.parse(data) as SessionData & { lastActivity?: number };
+      const updatedSession = { ...session, lastActivity: Date.now() };
+      await redis.set(key, JSON.stringify(updatedSession), 'EX', SESSION_TTL);
+      systemLogger.debug('RedisSessionStore: Session refreshed', { sessionId });
+    } catch (error) {
+      // If parsing fails or any other error occurs, fall back to original TTL refresh behavior.
+      systemLogger.warn('RedisSessionStore: Failed to refresh session data, falling back to TTL-only refresh', {
+        sessionId,
+        error,
+      });
+      await redis.expire(key, SESSION_TTL);
+    }
   }
 
   async deleteSession(sessionId: string): Promise<void> {
@@ -44,8 +65,20 @@ export class RedisSessionStore implements SessionStore {
     }
   }
 
-  async getAllSessionKeys(): Promise<string[]> {
+  private async getAllSessionKeys(): Promise<string[]> {
     const redis = getRedisClient();
-    return redis.keys(`${SESSION_PREFIX}*`);
+    const pattern = `${SESSION_PREFIX}*`;
+    let cursor = '0';
+    const keys: string[] = [];
+
+    do {
+      const [nextCursor, batchKeys] = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 1000);
+      cursor = nextCursor;
+      if (Array.isArray(batchKeys) && batchKeys.length > 0) {
+        keys.push(...batchKeys);
+      }
+    } while (cursor !== '0');
+
+    return keys;
   }
 }

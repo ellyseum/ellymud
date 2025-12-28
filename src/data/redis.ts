@@ -19,6 +19,12 @@ export function getRedisClient(): Redis {
     redisClient.on('error', (err: Error) => systemLogger.error('Redis Error', { error: err.message }));
     redisClient.on('connect', () => systemLogger.info('Redis Connected'));
     redisClient.on('ready', () => systemLogger.info('Redis Ready'));
+
+    // Explicitly initiate the connection when the client is first created.
+    // This keeps the public API synchronous while avoiding fully lazy connection semantics.
+    redisClient.connect().catch((err: Error) => {
+      systemLogger.error('Failed to establish initial Redis connection', { error: err.message });
+    });
   }
   return redisClient;
 }

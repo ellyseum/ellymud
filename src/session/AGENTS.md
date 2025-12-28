@@ -199,8 +199,8 @@ Session IDs should be opaque strings. The stores don't validate format:
 // ✅ Recommended: UUID or secure random
 const sessionId = crypto.randomUUID();
 
-// ✅ Also valid: any unique string
-const sessionId = `${username}-${Date.now()}`;
+// ❌ Do NOT use predictable patterns like username + timestamp
+// const sessionId = `${username}-${Date.now()}`;
 ```
 
 ### Error Handling
