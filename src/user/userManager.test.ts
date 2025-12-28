@@ -145,6 +145,49 @@ jest.mock('../room/roomManager', () => ({
   },
 }));
 
+// Mock the FileUserRepository to return test data
+const mockTestUser = {
+  username: 'testuser',
+  passwordHash: 'hash123',
+  salt: 'salt123',
+  health: 100,
+  maxHealth: 100,
+  mana: 50,
+  maxMana: 50,
+  level: 1,
+  experience: 0,
+  strength: 10,
+  dexterity: 10,
+  constitution: 10,
+  intelligence: 10,
+  wisdom: 10,
+  charisma: 10,
+  agility: 10,
+  inventory: { items: [], currency: { gold: 0, silver: 0, copper: 0 } },
+};
+
+jest.mock('../persistence/fileRepository', () => ({
+  FileUserRepository: jest.fn().mockImplementation(() => ({
+    loadUsers: jest.fn().mockReturnValue([mockTestUser]),
+    saveUsers: jest.fn(),
+    storageExists: jest.fn().mockReturnValue(true),
+  })),
+}));
+
+jest.mock('../persistence/passwordService', () => ({
+  getPasswordService: jest.fn(() => ({
+    hash: jest.fn((password: string) => ({ hash: `hashed_${password}`, salt: 'mocksalt' })),
+    verify: jest.fn(
+      (password: string, hash: string, salt: string) =>
+        hash === `hashed_${password}` && salt === 'mocksalt'
+    ),
+  })),
+}));
+
+jest.mock('../data/db', () => ({
+  getDb: jest.fn(),
+}));
+
 // Reset the singleton before each test
 const resetSingleton = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

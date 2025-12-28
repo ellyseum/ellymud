@@ -10,7 +10,8 @@ import { CombatSystem } from '../combat/combatSystem';
 import { RoomManager } from '../room/roomManager';
 import { systemLogger, getPlayerLogger } from '../utils/logger';
 import { parseAndValidateJson } from '../utils/jsonUtils';
-import config from '../config';
+import config, { STORAGE_BACKEND } from '../config';
+import { getDb } from '../data/db';
 
 const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 const SNAKE_SCORES_FILE = path.join(DATA_DIR, 'snake-scores.json');
@@ -199,8 +200,19 @@ export class UserManager {
       }
     }
 
-    // If no users from command line, load from repository
-    this.loadUsersFromRepository();
+    // Load based on storage backend config
+    if (STORAGE_BACKEND === 'json') {
+      // JSON only mode - use repository directly
+      this.loadUsersFromRepository();
+    } else if (STORAGE_BACKEND === 'sqlite') {
+      // SQLite only mode - use database, fail if not available
+      this.loadUsersFromDatabase().catch((error) => {
+        systemLogger.error('[UserManager] SQLite load failed (no fallback):', error);
+      });
+    } else {
+      // Auto mode (default) - try database first, fallback to repository
+      this.loadUsersFromDatabase().catch(() => this.loadUsersFromRepository());
+    }
   }
 
   private loadUsersFromRepository(): void {
@@ -228,16 +240,148 @@ export class UserManager {
     }
   }
 
+  /**
+   * Load users from SQLite database via Kysely.
+   * Fire-and-forget pattern since loadUsers() is sync.
+   */
+  private async loadUsersFromDatabase(): Promise<void> {
+    try {
+      const db = getDb();
+      const rows = await db.selectFrom('users').selectAll().execute();
+
+      this.users = rows.map((row) => ({
+        username: row.username,
+        passwordHash: row.password_hash,
+        salt: row.salt,
+        health: row.health,
+        maxHealth: row.max_health,
+        mana: row.mana,
+        maxMana: row.max_mana,
+        experience: row.experience,
+        level: row.level,
+        strength: row.strength,
+        dexterity: row.dexterity,
+        agility: row.agility,
+        constitution: row.constitution,
+        wisdom: row.wisdom,
+        intelligence: row.intelligence,
+        charisma: row.charisma,
+        equipment: row.equipment ? JSON.parse(row.equipment) : undefined,
+        joinDate: new Date(row.join_date),
+        lastLogin: new Date(row.last_login),
+        totalPlayTime: row.total_play_time,
+        currentRoomId: row.current_room_id,
+        inventory: {
+          items: row.inventory_items ? JSON.parse(row.inventory_items) : [],
+          currency: {
+            gold: row.inventory_gold,
+            silver: row.inventory_silver,
+            copper: row.inventory_copper,
+          },
+        },
+        bank: { gold: row.bank_gold, silver: row.bank_silver, copper: row.bank_copper },
+        inCombat: row.in_combat === 1,
+        isUnconscious: row.is_unconscious === 1,
+        isResting: row.is_resting === 1,
+        isMeditating: row.is_meditating === 1,
+        flags: row.flags ? JSON.parse(row.flags) : undefined,
+        pendingAdminMessages: row.pending_admin_messages
+          ? JSON.parse(row.pending_admin_messages)
+          : undefined,
+        email: row.email || undefined,
+        description: row.description || undefined,
+      }));
+
+      systemLogger.info(`[UserManager] Loaded ${this.users.length} users from database`);
+    } catch (error) {
+      systemLogger.error(
+        '[UserManager] Error loading from database, falling back to repository:',
+        error
+      );
+      this.loadUsersFromRepository();
+    }
+  }
+
   private saveUsers(): void {
-    // Skip file persistence in test mode to avoid overwriting main game data
     if (this.testMode) {
       systemLogger.debug('[UserManager] Skipping save - test mode active');
       return;
     }
-    try {
-      this.repository.saveUsers(this.users);
-    } catch (error) {
-      systemLogger.error('Error saving users:', error);
+
+    // Save based on storage backend config
+    if (STORAGE_BACKEND === 'json') {
+      // JSON only mode - save to repository only
+      try {
+        this.repository.saveUsers(this.users);
+      } catch (error) {
+        systemLogger.error('Error saving users to file:', error);
+      }
+    } else if (STORAGE_BACKEND === 'sqlite') {
+      // SQLite only mode - save to database only
+      this.saveUsersToDatabase().catch((error) => {
+        systemLogger.error('[UserManager] Database save failed:', error);
+      });
+    } else {
+      // Auto mode (default) - save to both database AND JSON file (backup)
+      this.saveUsersToDatabase().catch((error) => {
+        systemLogger.error('[UserManager] Database save failed:', error);
+      });
+      try {
+        this.repository.saveUsers(this.users);
+      } catch (error) {
+        systemLogger.error('Error saving users to file:', error);
+      }
+    }
+  }
+
+  private async saveUsersToDatabase(): Promise<void> {
+    const db = getDb();
+    for (const user of this.users) {
+      const values = {
+        username: user.username,
+        password_hash: user.passwordHash || '',
+        salt: user.salt || '',
+        health: user.health,
+        max_health: user.maxHealth,
+        mana: user.mana,
+        max_mana: user.maxMana,
+        experience: user.experience,
+        level: user.level,
+        strength: user.strength,
+        dexterity: user.dexterity,
+        agility: user.agility,
+        constitution: user.constitution,
+        wisdom: user.wisdom,
+        intelligence: user.intelligence,
+        charisma: user.charisma,
+        equipment: user.equipment ? JSON.stringify(user.equipment) : null,
+        join_date: user.joinDate instanceof Date ? user.joinDate.toISOString() : user.joinDate,
+        last_login: user.lastLogin instanceof Date ? user.lastLogin.toISOString() : user.lastLogin,
+        total_play_time: user.totalPlayTime ?? 0,
+        current_room_id: user.currentRoomId,
+        inventory_items: user.inventory?.items ? JSON.stringify(user.inventory.items) : null,
+        inventory_gold: user.inventory?.currency?.gold ?? 0,
+        inventory_silver: user.inventory?.currency?.silver ?? 0,
+        inventory_copper: user.inventory?.currency?.copper ?? 0,
+        bank_gold: user.bank?.gold ?? 0,
+        bank_silver: user.bank?.silver ?? 0,
+        bank_copper: user.bank?.copper ?? 0,
+        in_combat: user.inCombat ? 1 : 0,
+        is_unconscious: user.isUnconscious ? 1 : 0,
+        is_resting: user.isResting ? 1 : 0,
+        is_meditating: user.isMeditating ? 1 : 0,
+        flags: user.flags ? JSON.stringify(user.flags) : null,
+        pending_admin_messages: user.pendingAdminMessages
+          ? JSON.stringify(user.pendingAdminMessages)
+          : null,
+        email: user.email || null,
+        description: user.description || null,
+      };
+      await db
+        .insertInto('users')
+        .values(values)
+        .onConflict((oc) => oc.column('username').doUpdateSet(values))
+        .execute();
     }
   }
 

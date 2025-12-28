@@ -1,21 +1,26 @@
 # Data Directory (Source)
 
-Runtime data utilities and external data store clients.
+Database schema and connection utilities for the Kysely/SQLite persistence layer.
 
 ## Contents
 
-| Path       | Description                          |
-| ---------- | ------------------------------------ |
-| `redis.ts` | Redis client singleton for session storage |
+| Path         | Description                                      |
+| ------------ | ------------------------------------------------ |
+| `schema.ts`  | TypeScript interfaces for database tables        |
+| `db.ts`      | Database connection singleton and initialization |
+| `__mocks__/` | Jest mocks for database testing                  |
 
 ## Overview
 
-This directory contains utilities for connecting to external data stores. Currently provides the Redis client used by the session management system.
+This directory contains the database layer that replaces the legacy JSON file storage. The system uses Kysely as a type-safe query builder with SQLite as the backend. The actual database file (`game.db`) is stored in the root `data/` directory.
 
-**Note**: This is separate from the root `data/` directory which contains JSON game data files (users, rooms, items, NPCs).
+## Game Data Location
+
+The SQLite database file is located at `data/game.db`. Legacy JSON files in `data/` are still present for reference but are no longer the primary data source for users and rooms.
 
 ## Related
 
-- [`../../data/`](../../data/) - Game data JSON files
-- [`../session/`](../session/) - Session stores that use the Redis client
-- [`../config.ts`](../config.ts) - `USE_REDIS` and `REDIS_URL` configuration
+- [data/](../../data/) - Runtime data directory (contains game.db)
+- [scripts/](../../scripts/) - Migration script for JSON to SQLite
+- [src/user/](../user/) - UserManager using database methods
+- [src/room/](../room/) - RoomManager using database methods
