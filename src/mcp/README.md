@@ -204,6 +204,7 @@ virtual_session_close(sessionId);
 
 ### Tips
 
+- **Usernames must be alphanumeric only** (a-z, A-Z, 0-9) - no underscores, hyphens, or special characters
 - Use `waitMs` parameter to adjust response timing (default 100ms)
 - Increase wait time for commands that take longer to process
 - Virtual sessions show up in the online users list

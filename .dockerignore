@@ -21,7 +21,8 @@ test/
 # Config files not needed in production
 .eslintrc*
 .prettierrc*
-tsconfig.json
+jest.config.js
+jest.e2e.config.js
 Makefile
 make/
 

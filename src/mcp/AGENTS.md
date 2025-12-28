@@ -113,6 +113,7 @@ headers: { 'X-API-Key': 'your-secret-key' }
 
 ## Gotchas & Warnings
 
+- ⚠️ **Usernames Must Be Alphanumeric**: When using `direct_login`, `create_temp_user`, or similar tools, usernames must contain only letters and numbers (a-z, A-Z, 0-9). No underscores, hyphens, or special characters allowed. Use names like `tester`, `player1`, `testuser` instead of `e2e_tester` or `test-player`.
 - ⚠️ **Test Mode Dependency**: `advance_game_ticks` only works when test mode is active
 - ⚠️ **Synchronous Processing**: `advanceTicks` processes all ticks before returning
 - ⚠️ **No Timer in Test Mode**: Timer does not auto-start when `--test-mode` flag is used

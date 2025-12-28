@@ -5,8 +5,24 @@ import { join } from 'path';
 import { systemLogger, mcpLogger } from './logger';
 
 /**
+ * Checks if running in a non-interactive environment (Docker, CI, etc.)
+ */
+function isNonInteractive(): boolean {
+  // Check if stdin is a TTY (terminal)
+  if (!process.stdin.isTTY) {
+    return true;
+  }
+  // Check for common CI/container environment variables
+  if (process.env.CI || process.env.DOCKER_CONTAINER || process.env.KUBERNETES_SERVICE_HOST) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Checks if MCP API key exists, prompts user to generate if missing
- * @returns Promise<boolean> - true if API key exists or was generated, false if user declined
+ * In non-interactive environments (Docker), requires the key to be provided
+ * @returns Promise<boolean> - true if API key exists or was generated, false if missing
  */
 export async function ensureMCPApiKey(): Promise<boolean> {
   const apiKey = process.env.ELLYMUD_MCP_API_KEY;
@@ -16,7 +32,26 @@ export async function ensureMCPApiKey(): Promise<boolean> {
     return true;
   }
 
-  // Key is missing - prompt user
+  // Key is missing - check if we're in a non-interactive environment
+  if (isNonInteractive()) {
+    // In containers/CI, require the key to be provided (don't auto-generate for security)
+    process.stderr.write('\n❌ MCP API Key is required but not provided.\n\n');
+    process.stderr.write('To provide the API key, use one of these methods:\n\n');
+    process.stderr.write('  1. Environment variable:\n');
+    process.stderr.write('     docker run -e ELLYMUD_MCP_API_KEY=<your-key> ...\n\n');
+    process.stderr.write('  2. Mount your .env file:\n');
+    process.stderr.write('     docker run -v /path/to/.env:/app/.env ...\n\n');
+    process.stderr.write('  3. Use make docker-run (auto-mounts local .env if present)\n\n');
+    process.stderr.write('  4. Generate a key with: openssl rand -hex 32\n\n');
+
+    systemLogger.error('MCP API key required but not provided in non-interactive environment');
+    mcpLogger.error('MCP API key required - container cannot start MCP server without it');
+
+    // Return false - MCP server won't start but game server can still run
+    return false;
+  }
+
+  // Interactive mode - prompt user
   console.log('\n⚠️  EllyMUD MCP Server API key is missing.');
 
   const shouldGenerate = await promptUser('Would you like to generate one? (Y/n): ');

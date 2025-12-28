@@ -35,8 +35,8 @@ RUN addgroup -g 1001 -S ellymud && \
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm ci --omit=dev && npm cache clean --force
+# Install production dependencies only (ignore scripts to skip husky prepare)
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
@@ -68,9 +68,9 @@ EXPOSE 8080
 # MCP API
 EXPOSE 3100
 
-# Health check
+# Health check (use 127.0.0.1 explicitly to avoid IPv6 issues in Alpine)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3100/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3100/health || exit 1
 
 # Start server
 CMD ["node", "--enable-source-maps", "dist/server.js"]

@@ -1,39 +1,55 @@
 {
+  "name": "EllyMUD Dev",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "forwardPorts": [8023, 8080, 3100],
+  "portsAttributes": {
+    "8023": { "label": "Telnet" },
+    "8080": { "label": "WebSocket" },
+    "3100": { "label": "MCP API" }
+  },
   "postCreateCommand": "npm install && npm run build",
   "customizations": {
     "vscode": {
       "extensions": [
+        // Copilot
+        "github.copilot",
+        "github.copilot-chat",
+        // Code quality
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
+        // TypeScript
+        "ms-vscode.vscode-typescript-next",
+        // Docker & containers
         "ms-azuretools.vscode-docker",
-        "ms-vscode-remote.remote-containers"
+        "ms-vscode-remote.remote-containers",
+        // Build tools
+        "ms-vscode.makefile-tools",
+        // Git
+        "eamodio.gitlens",
+        // Testing
+        "orta.vscode-jest"
       ],
       "settings": {
+        // Editor
         "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.codeActionsOnSave": {
           "source.fixAll.eslint": "always",
           "source.organizeImports": "always"
         },
+        // ESLint
         "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+        // Prettier (defer to project config)
         "prettier.requireConfig": true,
-        "prettier.singleQuote": true,
-        "prettier.trailingComma": "all",
-        "prettier.semi": true,
-        "prettier.tabWidth": 2,
-        "prettier.useTabs": false,
-        "prettier.arrowParens": "avoid",
-        "prettier.bracketSpacing": true,
-        "prettier.bracketSameLine": false,
-        "prettier.jsxSingleQuote": false,
-        "prettier.proseWrap": "preserve",
-        "prettier.htmlWhitespaceSensitivity": "css",
-        "prettier.endOfLine": "auto",
+        // Files
         "files.autoSave": "onWindowChange",
         "files.autoSaveDelay": 1000,
         "files.trimTrailingWhitespace": true,
         "files.insertFinalNewline": true,
-        "terminal.integrated.defaultProfile.linux": "zsh",
-        "terminal.integrated.shell.linux": "zsh"
+        // Terminal - zsh with oh-my-zsh
+        "terminal.integrated.defaultProfile.linux": "zsh"
       }
     }
   }
