@@ -65,7 +65,15 @@ export class RedisSessionStore implements SessionStore {
     }
   }
 
-  private async getAllSessionKeys(): Promise<string[]> {
+  // ===== Implementation-specific utility methods (not part of SessionStore interface) =====
+  // These methods are for internal use and testing only.
+
+  /**
+   * Retrieves all session keys from Redis using SCAN.
+   * @internal - For testing and admin purposes only. Use with caution in production.
+   * @returns Array of session keys with the session: prefix
+   */
+  async getAllSessionKeys(): Promise<string[]> {
     const redis = getRedisClient();
     const pattern = `${SESSION_PREFIX}*`;
     let cursor = '0';
