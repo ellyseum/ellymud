@@ -33,7 +33,7 @@ export class MemorySessionStore implements SessionStore {
     // Store the token separately to avoid issues if cleanupInterval is nulled
     if (this.cleanupInterval) {
       this.cleanupToken = this.cleanupInterval;
-      this.finalizationRegistry.register(this, this.cleanupInterval, this.cleanupToken);
+      this.finalizationRegistry.register(this, this.cleanupToken, this.cleanupToken);
     }
   }
 
