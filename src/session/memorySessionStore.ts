@@ -7,7 +7,6 @@ export class MemorySessionStore implements SessionStore {
   private sessions: Map<string, SessionData> = new Map();
   private cleanupInterval: NodeJS.Timeout | null = null;
   private finalizationRegistry: FinalizationRegistry<NodeJS.Timeout>;
-  private cleanupToken: NodeJS.Timeout | null = null;
 
   constructor() {
     // Use FinalizationRegistry to ensure cleanup on garbage collection
@@ -31,10 +30,8 @@ export class MemorySessionStore implements SessionStore {
     
     // Register the interval for automatic cleanup if the instance is garbage collected
     // The held value (interval) is passed to the cleanup callback when 'this' is GC'd
-    // Store a stable token reference for unregistering
     if (this.cleanupInterval) {
-      this.cleanupToken = this.cleanupInterval;
-      this.finalizationRegistry.register(this, this.cleanupInterval, this.cleanupToken);
+      this.finalizationRegistry.register(this, this.cleanupInterval, this.cleanupInterval);
     }
   }
 
@@ -95,10 +92,7 @@ export class MemorySessionStore implements SessionStore {
   stopCleanup(): void {
     if (this.cleanupInterval) {
       // Unregister from finalization registry before manual cleanup
-      if (this.cleanupToken) {
-        this.finalizationRegistry.unregister(this.cleanupToken);
-        this.cleanupToken = null;
-      }
+      this.finalizationRegistry.unregister(this.cleanupInterval);
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
     }
