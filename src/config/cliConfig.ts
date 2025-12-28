@@ -39,6 +39,7 @@ export interface CLIConfig {
   noConsole: boolean;
   debug: boolean; // Debug mode flag
   testMode: boolean; // Start server in test mode
+  useRedis: boolean; // Use Redis for session storage
 }
 
 // Parse command line arguments
@@ -176,6 +177,11 @@ export function parseCommandLineArgs(): CLIConfig {
       description: 'Start server in test mode (timer paused)',
       default: false,
     })
+    .option('redis', {
+      type: 'boolean',
+      description: 'Use Redis for session storage',
+      default: false,
+    })
     .help()
     .alias('help', 'h')
     .parseSync();
@@ -208,6 +214,7 @@ export function parseCommandLineArgs(): CLIConfig {
       argv.noConsole || argv.adminSession || argv.userSession || Boolean(argv.forceSession),
     debug: argv.debug, // Updated to use the debug flag from command line arguments
     testMode: argv.testMode, // Test mode flag
+    useRedis: argv.redis, // Use Redis for session storage
   };
 
   // Ensure data directory exists

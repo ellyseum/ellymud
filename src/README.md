@@ -28,6 +28,7 @@ Main TypeScript source code for EllyMUD server - a modern Multi-User Dungeon bui
 | `room/`       | Room management and player navigation               |
 | `schemas/`    | JSON Schema validation definitions                  |
 | `server/`     | Network servers (HTTP, Telnet, WebSocket)           |
+| `session/`    | Session management abstraction (memory and Redis)   |
 | `setup/`      | First-run setup and configuration                   |
 | `state/`      | State machine controller                            |
 | `states/`     | Client state handlers (Login, Game, Combat, etc.)   |
