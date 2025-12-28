@@ -166,3 +166,172 @@ describe('LookCommand', () => {
     });
   });
 });
+
+// Additional tests to improve coverage
+describe('LookCommand Additional Coverage', () => {
+  let lookCommand: LookCommand;
+  let mockClients: Map<string, ConnectedClient>;
+  let mockRoomManager: {
+    lookRoom: jest.Mock;
+    lookAtEntity: jest.Mock;
+    getRoom: jest.Mock;
+    getStartingRoomId: jest.Mock;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    mockClients = new Map();
+    // Get mock room manager from module
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { RoomManager } = require('../../room/roomManager');
+    mockRoomManager = RoomManager.getInstance(mockClients);
+
+    lookCommand = new LookCommand(mockClients);
+  });
+
+  describe('direction peeking', () => {
+    it('should peek north when exit exists', () => {
+      const client = createMockClient({
+        user: createMockUser({ currentRoomId: 'test-room' }),
+      });
+
+      // Configure mock to have north exit
+      mockRoomManager.getRoom.mockReturnValue({
+        id: 'test-room',
+        name: 'Test Room',
+        players: [],
+        getExit: jest.fn().mockReturnValue('north-room'),
+        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
+      });
+
+      lookCommand.execute(client, 'north');
+
+      expect(mockRoomManager.getRoom).toHaveBeenCalled();
+    });
+
+    it('should handle s shorthand for south direction', () => {
+      const client = createMockClient({
+        user: createMockUser({ currentRoomId: 'test-room' }),
+      });
+
+      mockRoomManager.getRoom.mockReturnValue({
+        id: 'test-room',
+        name: 'Test Room',
+        players: [],
+        getExit: jest.fn().mockReturnValue(null),
+        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
+      });
+
+      lookCommand.execute(client, 's');
+
+      expect(mockRoomManager.getRoom).toHaveBeenCalled();
+    });
+
+    it('should handle e shorthand for east direction', () => {
+      const client = createMockClient({
+        user: createMockUser({ currentRoomId: 'test-room' }),
+      });
+
+      mockRoomManager.getRoom.mockReturnValue({
+        id: 'test-room',
+        name: 'Test Room',
+        players: [],
+        getExit: jest.fn().mockReturnValue(null),
+        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
+      });
+
+      lookCommand.execute(client, 'e');
+
+      expect(mockRoomManager.getRoom).toHaveBeenCalled();
+    });
+
+    it('should handle w shorthand for west direction', () => {
+      const client = createMockClient({
+        user: createMockUser({ currentRoomId: 'test-room' }),
+      });
+
+      mockRoomManager.getRoom.mockReturnValue({
+        id: 'test-room',
+        name: 'Test Room',
+        players: [],
+        getExit: jest.fn().mockReturnValue(null),
+        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
+      });
+
+      lookCommand.execute(client, 'w');
+
+      expect(mockRoomManager.getRoom).toHaveBeenCalled();
+    });
+
+    it('should handle u shorthand for up direction', () => {
+      const client = createMockClient({
+        user: createMockUser({ currentRoomId: 'test-room' }),
+      });
+
+      mockRoomManager.getRoom.mockReturnValue({
+        id: 'test-room',
+        name: 'Test Room',
+        players: [],
+        getExit: jest.fn().mockReturnValue(null),
+        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
+      });
+
+      lookCommand.execute(client, 'u');
+
+      expect(mockRoomManager.getRoom).toHaveBeenCalled();
+    });
+
+    it('should handle d shorthand for down direction', () => {
+      const client = createMockClient({
+        user: createMockUser({ currentRoomId: 'test-room' }),
+      });
+
+      mockRoomManager.getRoom.mockReturnValue({
+        id: 'test-room',
+        name: 'Test Room',
+        players: [],
+        getExit: jest.fn().mockReturnValue(null),
+        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
+      });
+
+      lookCommand.execute(client, 'd');
+
+      expect(mockRoomManager.getRoom).toHaveBeenCalled();
+    });
+  });
+
+  describe('look at self', () => {
+    it('should handle "look self"', () => {
+      const client = createMockClient({
+        user: createMockUser({ currentRoomId: 'test-room' }),
+      });
+
+      mockRoomManager.getRoom.mockReturnValue({
+        id: 'test-room',
+        name: 'Test Room',
+        players: [],
+      });
+
+      lookCommand.execute(client, 'self');
+
+      expect(mockRoomManager.lookAtEntity).toHaveBeenCalled();
+    });
+
+    it('should handle "look me"', () => {
+      const client = createMockClient({
+        user: createMockUser({ currentRoomId: 'test-room' }),
+      });
+
+      mockRoomManager.getRoom.mockReturnValue({
+        id: 'test-room',
+        name: 'Test Room',
+        players: [],
+      });
+
+      lookCommand.execute(client, 'me');
+
+      expect(mockRoomManager.lookAtEntity).toHaveBeenCalled();
+    });
+  });
+});

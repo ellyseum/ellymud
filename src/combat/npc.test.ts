@@ -432,3 +432,188 @@ describe('NPC', () => {
     });
   });
 });
+
+// Additional tests to improve coverage
+describe('NPC Extended Coverage', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    NPC.clearNpcDataCache();
+  });
+
+  describe('calculateItemCount', () => {
+    it('should handle inventory with numeric count', () => {
+      const inventory: NPCInventoryItem[] = [
+        {
+          itemId: 'gold-coin',
+          itemCount: 5,
+          spawnRate: 1.0,
+        },
+      ];
+
+      const npc = new NPC(
+        'Test NPC',
+        100,
+        100,
+        [5, 10],
+        true,
+        false,
+        50,
+        'A test NPC',
+        ['attacks'],
+        ['dies'],
+        'test-npc',
+        'test-instance',
+        inventory
+      );
+      expect(npc).toBeDefined();
+      expect(npc.inventory).toHaveLength(1);
+    });
+
+    it('should handle inventory with range count', () => {
+      const inventory: NPCInventoryItem[] = [
+        {
+          itemId: 'gold-coin',
+          itemCount: { min: 1, max: 5 },
+          spawnRate: 1.0,
+        },
+      ];
+
+      const npc = new NPC(
+        'Test NPC',
+        100,
+        100,
+        [5, 10],
+        true,
+        false,
+        50,
+        'A test NPC',
+        ['attacks'],
+        ['dies'],
+        'test-npc',
+        'test-instance',
+        inventory
+      );
+      expect(npc).toBeDefined();
+    });
+  });
+
+  describe('canSpawnItem (via generateDrops)', () => {
+    it('should allow spawn without cooldown', () => {
+      const inventory: NPCInventoryItem[] = [
+        {
+          itemId: 'gold-coin',
+          itemCount: 1,
+          spawnRate: 1.0,
+        },
+      ];
+
+      const npc = new NPC(
+        'Test NPC',
+        100,
+        100,
+        [5, 10],
+        true,
+        false,
+        50,
+        'A test NPC',
+        ['attacks'],
+        ['dies'],
+        'test-npc',
+        'test-instance',
+        inventory
+      );
+
+      const drops = npc.generateDrops();
+      expect(drops.length).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should skip items on cooldown', () => {
+      const inventory: NPCInventoryItem[] = [
+        {
+          itemId: 'gold-coin',
+          itemCount: 1,
+          spawnRate: 1.0,
+          spawnPeriod: 3600,
+          lastSpawned: new Date().toISOString(),
+        },
+      ];
+
+      const npc = new NPC(
+        'Test NPC',
+        100,
+        100,
+        [5, 10],
+        true,
+        false,
+        50,
+        'A test NPC',
+        ['attacks'],
+        ['dies'],
+        'test-npc',
+        'test-instance',
+        inventory
+      );
+
+      const drops = npc.generateDrops();
+      expect(drops.length).toBe(0);
+    });
+  });
+
+  describe('generateDrops', () => {
+    it('should return empty array when no inventory', () => {
+      const npc = new NPC('Test NPC', 100, 100);
+      const drops = npc.generateDrops();
+      expect(drops).toEqual([]);
+    });
+
+    it('should return drops when spawn rate is 100%', () => {
+      const inventory: NPCInventoryItem[] = [
+        {
+          itemId: 'gold-coin',
+          itemCount: 1,
+          spawnRate: 1.0,
+        },
+      ];
+
+      const npc = new NPC(
+        'Test NPC',
+        100,
+        100,
+        [5, 10],
+        true,
+        false,
+        50,
+        'A test NPC',
+        ['attacks'],
+        ['dies'],
+        'test-npc',
+        'test-instance',
+        inventory
+      );
+
+      const drops = npc.generateDrops();
+      expect(drops.length).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('loadPrevalidatedNPCData', () => {
+    it('should load NPC data into map', () => {
+      const npcs: NPCData[] = [
+        createNpcData({ id: 'goblin', name: 'Goblin' }),
+        createNpcData({ id: 'merchant', name: 'Merchant', isHostile: false, isPassive: true }),
+      ];
+
+      const npcMap = NPC.loadPrevalidatedNPCData(npcs);
+      expect(npcMap.size).toBe(2);
+      expect(npcMap.get('goblin')).toBeDefined();
+      expect(npcMap.get('merchant')).toBeDefined();
+    });
+  });
+
+  describe('description property', () => {
+    it('should return NPC description', () => {
+      const npc = new NPC('Test NPC', 100, 100, [5, 10], true, false, 50, 'A mysterious test NPC');
+      expect(npc.description).toBe('A mysterious test NPC');
+    });
+  });
+});

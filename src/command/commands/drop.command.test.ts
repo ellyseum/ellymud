@@ -386,3 +386,72 @@ describe('DropCommand', () => {
     });
   });
 });
+
+// Additional tests to improve coverage
+describe('DropCommand Extended Coverage', () => {
+  let dropCommand: DropCommand;
+  let mockUserManager: {
+    updateUserInventory: jest.Mock;
+  };
+  let mockClients: Map<string, unknown>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetItemInstance.mockReturnValue(null);
+    mockGetItem.mockReturnValue(null);
+    mockCreateItemInstance.mockReturnValue(null);
+
+    mockUserManager = {
+      updateUserInventory: jest.fn(),
+    };
+
+    mockClients = new Map();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    dropCommand = new DropCommand(mockClients as any, mockUserManager as any);
+  });
+
+  describe('edge cases', () => {
+    it('should handle dropping non-existent item', () => {
+      const client = createMockClient({
+        user: createMockUser({
+          inventory: {
+            items: [],
+            currency: { gold: 0, silver: 0, copper: 0 },
+          },
+        }),
+      });
+
+      dropCommand.execute(client, 'nonexistent');
+
+      expect(mockWriteToClient).toHaveBeenCalled();
+    });
+
+    it('should handle dropping with empty args', () => {
+      const client = createMockClient({
+        user: createMockUser(),
+      });
+
+      dropCommand.execute(client, '');
+
+      expect(mockWriteToClient).toHaveBeenCalled();
+    });
+  });
+
+  describe('drop all', () => {
+    it('should handle drop all with empty inventory', () => {
+      const client = createMockClient({
+        user: createMockUser({
+          inventory: {
+            items: [],
+            currency: { gold: 0, silver: 0, copper: 0 },
+          },
+        }),
+      });
+
+      dropCommand.execute(client, 'all');
+
+      expect(mockWriteToClient).toHaveBeenCalled();
+    });
+  });
+});

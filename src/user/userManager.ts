@@ -11,11 +11,9 @@ import { CombatSystem } from '../combat/combatSystem';
 import { RoomManager } from '../room/roomManager';
 import { systemLogger, getPlayerLogger } from '../utils/logger';
 import { parseAndValidateJson } from '../utils/jsonUtils';
-import { loadAndValidateJsonFile } from '../utils/fileUtils';
 import config from '../config';
 
 const DATA_DIR = path.join(__dirname, '..', '..', 'data');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const SNAKE_SCORES_FILE = path.join(DATA_DIR, 'snake-scores.json');
 
 // Interface for snake score entries
@@ -25,12 +23,18 @@ interface SnakeScore {
   date: Date;
 }
 
+import { IUserRepository, IPasswordService } from '../persistence/interfaces';
+import { FileUserRepository } from '../persistence/fileRepository';
+import { getPasswordService } from '../persistence/passwordService';
+
 export class UserManager {
   private users: User[] = [];
   private activeUserSessions: Map<string, ConnectedClient> = new Map();
   private pendingTransfers: Map<string, ConnectedClient> = new Map();
   private snakeScores: SnakeScore[] = [];
   private testMode: boolean = false;
+  private repository: IUserRepository;
+  private passwordService: IPasswordService;
 
   private static instance: UserManager | null = null;
 
@@ -41,7 +45,30 @@ export class UserManager {
     return UserManager.instance;
   }
 
-  private constructor() {
+  /**
+   * Reset the singleton instance (useful for testing)
+   */
+  public static resetInstance(): void {
+    UserManager.instance = null;
+  }
+
+  /**
+   * Create a UserManager with custom dependencies (for testing)
+   * @param repository Optional user repository
+   * @param passwordService Optional password service
+   */
+  public static createWithDependencies(
+    repository?: IUserRepository,
+    passwordService?: IPasswordService
+  ): UserManager {
+    UserManager.resetInstance();
+    UserManager.instance = new UserManager(repository, passwordService);
+    return UserManager.instance;
+  }
+
+  private constructor(repository?: IUserRepository, passwordService?: IPasswordService) {
+    this.repository = repository ?? new FileUserRepository();
+    this.passwordService = passwordService ?? getPasswordService();
     this.loadUsers();
     this.loadSnakeScores();
     this.migrateSnakeScores();
@@ -166,38 +193,32 @@ export class UserManager {
       }
     }
 
-    // If no users from command line, try loading from file
-    this.loadUsersFromFile();
+    // If no users from command line, load from repository
+    this.loadUsersFromRepository();
   }
 
-  private loadUsersFromFile(): void {
+  private loadUsersFromRepository(): void {
     try {
-      // Create data directory if it doesn't exist
-      if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-      }
-
-      // Create users file if it doesn't exist
-      if (!fs.existsSync(USERS_FILE)) {
-        fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2));
-        return;
-      }
-
-      // Validate file data using our validation system
-      const userData = loadAndValidateJsonFile<any[]>(USERS_FILE, 'users');
-
-      if (userData && Array.isArray(userData)) {
-        this.loadPrevalidatedUsers(userData);
-      } else {
-        // Throw error instead of handling silently
-        throw new Error('User data validation failed - data must conform to the schema');
-      }
-    } catch (error: unknown) {
-      // Only initialize with empty users if file doesn't exist
-      if (!fs.existsSync(USERS_FILE)) {
+      // Check if storage exists
+      if (!this.repository.storageExists()) {
         this.users = [];
         return;
       }
+
+      const userData = this.repository.loadUsers();
+
+      if (userData.length > 0) {
+        this.loadPrevalidatedUsers(userData);
+      } else {
+        // Empty but valid - just start with no users
+        this.users = [];
+      }
+    } catch (error: unknown) {
+      systemLogger.error(
+        'Error loading users from repository:',
+        error instanceof Error ? error.message : String(error)
+      );
+      this.users = [];
     }
   }
 
@@ -208,7 +229,7 @@ export class UserManager {
       return;
     }
     try {
-      fs.writeFileSync(USERS_FILE, JSON.stringify(this.users, null, 2));
+      this.repository.saveUsers(this.users);
     } catch (error) {
       systemLogger.error('Error saving users:', error);
     }

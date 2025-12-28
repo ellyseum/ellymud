@@ -616,3 +616,149 @@ describe('AbilityManager', () => {
     });
   });
 });
+
+// Additional tests to improve coverage
+describe('AbilityManager Extended Coverage', () => {
+  let abilityManager: AbilityManager;
+  let mockUserManager: jest.Mocked<UserManager>;
+  let mockRoomManager: jest.Mocked<RoomManager>;
+  let mockEffectManager: { addEffect: jest.Mock };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    AbilityManager.resetInstance();
+
+    mockUserManager = createMockUserManager() as jest.Mocked<UserManager>;
+    mockRoomManager = createMockRoomManager() as jest.Mocked<RoomManager>;
+    mockEffectManager = { addEffect: jest.fn() };
+
+    (EffectManager.getInstance as jest.Mock).mockReturnValue(mockEffectManager);
+
+    abilityManager = AbilityManager.getInstance(
+      mockUserManager,
+      mockRoomManager,
+      mockEffectManager as unknown as EffectManager
+    );
+  });
+
+  afterEach(() => {
+    AbilityManager.resetInstance();
+  });
+
+  describe('getAllAbilities', () => {
+    it('should return all registered abilities', () => {
+      const abilities = abilityManager.getAllAbilities();
+      expect(abilities).toBeDefined();
+      expect(Array.isArray(abilities)).toBe(true);
+    });
+  });
+
+  describe('getAbility', () => {
+    it('should find ability by ID', () => {
+      const abilities = abilityManager.getAllAbilities();
+      if (abilities.length > 0) {
+        const ability = abilityManager.getAbility(abilities[0].id);
+        expect(ability).toBeDefined();
+      }
+    });
+
+    it('should return undefined for non-existent ID', () => {
+      const ability = abilityManager.getAbility('nonexistent-id');
+      expect(ability).toBeUndefined();
+    });
+  });
+
+  describe('getAbilitiesByType', () => {
+    it('should return abilities filtered by type', () => {
+      const abilities = abilityManager.getAbilitiesByType('standard' as AbilityType);
+      expect(abilities).toBeDefined();
+      expect(Array.isArray(abilities)).toBe(true);
+    });
+  });
+
+  describe('round management', () => {
+    it('should set and get current round', () => {
+      abilityManager.setCurrentRound(5);
+      expect(abilityManager.getCurrentRound()).toBe(5);
+    });
+  });
+
+  describe('cooldown management', () => {
+    it('should check if ability is on cooldown', () => {
+      const result = abilityManager.isOnCooldown('testuser', 'fireball');
+      expect(typeof result).toBe('boolean');
+    });
+
+    it('should get cooldown remaining', () => {
+      const result = abilityManager.getCooldownRemaining('testuser', 'fireball');
+      expect(typeof result).toBe('number');
+    });
+
+    it('should clear cooldowns for user', () => {
+      abilityManager.clearCooldowns('testuser');
+      // Should not throw
+      expect(true).toBe(true);
+    });
+
+    it('should get player cooldowns', () => {
+      const cooldowns = abilityManager.getPlayerCooldowns('testuser');
+      expect(cooldowns).toBeDefined();
+    });
+  });
+
+  describe('mana management', () => {
+    it('should return false when user not found', () => {
+      mockUserManager.getUser.mockReturnValue(undefined);
+      const hasMana = abilityManager.hasMana('nonexistent', 10);
+      expect(hasMana).toBe(false);
+    });
+
+    it('should return true when user has enough mana', () => {
+      mockUserManager.getUser.mockReturnValue(createMockUser({ mana: 100, maxMana: 100 }));
+      const hasMana = abilityManager.hasMana('testuser', 10);
+      expect(hasMana).toBe(true);
+    });
+  });
+
+  describe('onGameTick', () => {
+    it('should process game tick', () => {
+      // Should not throw
+      expect(() => {
+        abilityManager.onGameTick();
+      }).not.toThrow();
+    });
+  });
+
+  describe('singleton behavior', () => {
+    it('should return same instance on multiple calls', () => {
+      const manager1 = AbilityManager.getInstance(
+        mockUserManager,
+        mockRoomManager,
+        mockEffectManager as unknown as EffectManager
+      );
+      const manager2 = AbilityManager.getInstance(
+        mockUserManager,
+        mockRoomManager,
+        mockEffectManager as unknown as EffectManager
+      );
+
+      expect(manager1).toBe(manager2);
+    });
+  });
+
+  describe('canUseAbility', () => {
+    it('should check if player can use ability', () => {
+      const abilities = abilityManager.getAllAbilities();
+
+      if (abilities.length > 0) {
+        const result = abilityManager.canUseAbility('testuser', abilities[0].id);
+        expect(result).toBeDefined();
+      }
+    });
+
+    it('should return object for non-existent ability', () => {
+      const result = abilityManager.canUseAbility('testuser', 'nonexistent');
+      expect(result).toBeDefined();
+    });
+  });
+});

@@ -342,3 +342,81 @@ describe('InventoryCommand', () => {
     });
   });
 });
+
+// Additional tests to improve coverage
+describe('InventoryCommand Extended Coverage', () => {
+  let inventoryCommand: InventoryCommand;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    inventoryCommand = new InventoryCommand();
+  });
+
+  describe('empty inventory handling', () => {
+    it('should display message when inventory is empty', () => {
+      const client = createMockClient({
+        user: createMockUser({
+          inventory: {
+            items: [],
+            currency: { gold: 0, silver: 0, copper: 0 },
+          },
+        }),
+      });
+
+      inventoryCommand.execute(client, '');
+
+      expect(mockWriteToClient).toHaveBeenCalled();
+    });
+  });
+
+  describe('currency only inventory', () => {
+    it('should display only currency when no items', () => {
+      const client = createMockClient({
+        user: createMockUser({
+          inventory: {
+            items: [],
+            currency: { gold: 100, silver: 50, copper: 25 },
+          },
+        }),
+      });
+
+      inventoryCommand.execute(client, '');
+
+      expect(mockWriteToClient).toHaveBeenCalled();
+    });
+  });
+
+  describe('items only inventory', () => {
+    it('should display items when no currency', () => {
+      const client = createMockClient({
+        user: createMockUser({
+          inventory: {
+            items: ['item-1', 'item-2'],
+            currency: { gold: 0, silver: 0, copper: 0 },
+          },
+        }),
+      });
+
+      inventoryCommand.execute(client, '');
+
+      expect(mockWriteToClient).toHaveBeenCalled();
+    });
+  });
+
+  describe('full inventory', () => {
+    it('should display both items and currency', () => {
+      const client = createMockClient({
+        user: createMockUser({
+          inventory: {
+            items: ['item-1', 'item-2', 'item-3'],
+            currency: { gold: 100, silver: 50, copper: 25 },
+          },
+        }),
+      });
+
+      inventoryCommand.execute(client, '');
+
+      expect(mockWriteToClient).toHaveBeenCalled();
+    });
+  });
+});

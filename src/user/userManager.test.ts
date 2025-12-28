@@ -9,6 +9,12 @@ import { createMockClientWithUser } from '../test/helpers/mockFactories';
 
 // Mock dependencies
 jest.mock('../utils/logger', () => ({
+  createContextLogger: jest.fn(() => ({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  })),
   systemLogger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -293,6 +299,133 @@ describe('UserManager', () => {
       const result = userManager.updateUserStats('nonexistent', { health: 50 });
 
       expect(result).toBe(false);
+    });
+  });
+});
+
+// Additional tests to improve coverage
+describe('UserManager Extended Coverage', () => {
+  let userManager: UserManager;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Reset singleton
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (UserManager as any)['instance'] = null;
+    userManager = UserManager.getInstance();
+  });
+
+  describe('getAllUsers', () => {
+    it('should return all users', () => {
+      const users = userManager.getAllUsers();
+      expect(users).toBeDefined();
+      expect(Array.isArray(users)).toBe(true);
+    });
+  });
+
+  describe('updateUserInventory', () => {
+    it('should update user inventory', () => {
+      const newInventory = {
+        items: ['item-1', 'item-2'],
+        currency: { gold: 100, silver: 50, copper: 25 },
+      };
+
+      const result = userManager.updateUserInventory('testuser', newInventory);
+      expect(result).toBe(true);
+    });
+
+    it('should return false for non-existent user', () => {
+      const newInventory = {
+        items: [],
+        currency: { gold: 0, silver: 0, copper: 0 },
+      };
+
+      const result = userManager.updateUserInventory('nonexistent', newInventory);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isUserActive', () => {
+    it('should return false when user is not active', () => {
+      const isActive = userManager.isUserActive('inactiveuser');
+      expect(isActive).toBe(false);
+    });
+
+    it('should return true when user is active', () => {
+      const client = createMockClientWithUser({ username: 'activeuser' });
+      userManager.registerUserSession('activeuser', client);
+
+      const isActive = userManager.isUserActive('activeuser');
+      expect(isActive).toBe(true);
+    });
+  });
+
+  describe('getAllActiveUserSessions', () => {
+    it('should return all active sessions', () => {
+      const client1 = createMockClientWithUser({ username: 'user1' });
+      const client2 = createMockClientWithUser({ username: 'user2' });
+
+      userManager.registerUserSession('user1', client1);
+      userManager.registerUserSession('user2', client2);
+
+      const sessions = userManager.getAllActiveUserSessions();
+      expect(sessions.size).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('unregisterUserSession', () => {
+    it('should unregister user session', () => {
+      const client = createMockClientWithUser({ username: 'tempuser' });
+      userManager.registerUserSession('tempuser', client);
+
+      expect(userManager.isUserActive('tempuser')).toBe(true);
+
+      userManager.unregisterUserSession('tempuser');
+
+      expect(userManager.isUserActive('tempuser')).toBe(false);
+    });
+
+    it('should handle unregistering non-existent session', () => {
+      // Should not throw
+      expect(() => {
+        userManager.unregisterUserSession('nonexistent');
+      }).not.toThrow();
+    });
+  });
+
+  describe('loadPrevalidatedUsers', () => {
+    it('should load users from array', () => {
+      const users = [
+        {
+          username: 'preloaded',
+          passwordHash: 'hash',
+          salt: 'salt',
+          health: 100,
+          maxHealth: 100,
+          mana: 50,
+          maxMana: 50,
+          level: 1,
+          experience: 0,
+          strength: 10,
+          dexterity: 10,
+          constitution: 10,
+          intelligence: 10,
+          wisdom: 10,
+          charisma: 10,
+          agility: 10,
+          currentRoomId: 'start',
+          joinDate: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+          inCombat: false,
+          inventory: { items: [], currency: { gold: 0, silver: 0, copper: 0 } },
+        },
+      ];
+
+      userManager.loadPrevalidatedUsers(users);
+
+      const loaded = userManager.getUser('preloaded');
+      expect(loaded).toBeDefined();
+      expect(loaded?.username).toBe('preloaded');
     });
   });
 });
