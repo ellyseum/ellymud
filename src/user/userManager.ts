@@ -331,7 +331,9 @@ export class UserManager {
       systemLogger.error('[UserManager] Error loading from database:', error);
       // In SQLite-only mode, keep existing in-memory users (preloaded from repository)
       if (STORAGE_BACKEND === 'sqlite') {
-        systemLogger.warn('[UserManager] SQLite-only mode: keeping existing users after database load failure');
+        systemLogger.warn(
+          '[UserManager] SQLite-only mode: keeping existing users after database load failure'
+        );
       } else {
         // In auto mode, users are already loaded from repository (line 215)
         // No need to reload - just keep the preloaded data
