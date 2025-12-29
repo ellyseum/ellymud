@@ -320,9 +320,7 @@ export class RoomManager implements IRoomManager {
           currency_copper: room.currency?.copper ?? 0,
           flags: room.flags ? JSON.stringify(room.flags) : null,
           npc_template_ids: npcTemplateIds.length > 0 ? JSON.stringify(npcTemplateIds) : null,
-          item_instances: serializedItemInstances
-            ? JSON.stringify(serializedItemInstances)
-            : null,
+          item_instances: serializedItemInstances ? JSON.stringify(serializedItemInstances) : null,
         };
 
         await trx
