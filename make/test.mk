@@ -3,7 +3,7 @@
 # Targets for running tests, validation, and checks
 # on the codebase and data files.
 
-.PHONY: test test-unit test-cov test-e2e test-watch test-build test-start validate check ci
+.PHONY: test test-unit test-cov test-e2e test-integration test-all test-full test-watch test-build test-start validate check ci
 
 test: ## Run all tests (typecheck + validate + jest)
 	@printf "$(BLUE)Running all tests...$(NC)\n"
@@ -21,9 +21,17 @@ test-e2e: ## Run end-to-end tests
 	@printf "$(BLUE)Running E2E tests...$(NC)\n"
 	npm run test:e2e
 
+test-integration: ## Run integration tests (requires Docker)
+	@printf "$(BLUE)Running integration tests...$(NC)\n"
+	npm run test:integration
+
 test-all: ## Run all tests (unit + e2e)
 	@printf "$(BLUE)Running all tests (unit + e2e)...$(NC)\n"
 	npm run test:all
+
+test-full: ## Run full test suite (unit + e2e + integration, requires Docker)
+	@printf "$(BLUE)Running full test suite...$(NC)\n"
+	npm run test:full
 
 test-watch: ## Run tests in watch mode
 	@printf "$(BLUE)Starting test watch mode...$(NC)\n"
