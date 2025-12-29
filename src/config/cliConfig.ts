@@ -40,6 +40,7 @@ export interface CLIConfig {
   debug: boolean; // Debug mode flag
   testMode: boolean; // Start server in test mode
   useRedis: boolean; // Use Redis for session storage
+  storageBackend: 'json' | 'sqlite' | 'auto'; // Storage backend for persistence
 }
 
 // Parse command line arguments
@@ -182,6 +183,14 @@ export function parseCommandLineArgs(): CLIConfig {
       description: 'Use Redis for session storage',
       default: false,
     })
+    .option('storageBackend', {
+      type: 'string',
+      description:
+        'Storage backend: json (flat files), sqlite (database), or auto (sqlite with json fallback)',
+      default: 'auto',
+      choices: ['json', 'sqlite', 'auto'],
+      alias: 'storage',
+    })
     .help()
     .alias('help', 'h')
     .parseSync();
@@ -215,6 +224,7 @@ export function parseCommandLineArgs(): CLIConfig {
     debug: argv.debug, // Updated to use the debug flag from command line arguments
     testMode: argv.testMode, // Test mode flag
     useRedis: argv.redis, // Use Redis for session storage
+    storageBackend: argv.storageBackend as 'json' | 'sqlite' | 'auto', // Storage backend
   };
 
   // Ensure data directory exists

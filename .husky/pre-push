@@ -1,7 +1,20 @@
-# Run tests before pushing to remote
+# Run checks before pushing to remote
 # This prevents broken code from reaching main
+
+echo "📝 Checking paired documentation..."
+./scripts/check-paired-docs.sh --all
+
+echo "🔍 Checking formatting..."
+npx prettier --check 'src/**/*.ts'
+
+echo "🔎 Running ESLint..."
+npx eslint 'src/**/*.ts' --max-warnings 0
+
+echo "🔨 Building..."
+npm run build
 
 echo "🧪 Running tests before push..."
 npm run test:all
 
+echo "✅ All pre-push checks passed!"
 # Exit with test result (blocks push if tests fail)

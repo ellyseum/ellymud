@@ -53,6 +53,10 @@ export const FORCE_SESSION_USERNAME = cliConfig.forceSession;
 export const FORCE = cliConfig.force; // Add force flag
 export const TEST_MODE = cliConfig.testMode;
 
+// Storage backend configuration
+// Options: 'json' (flat files only), 'sqlite' (database only), 'auto' (sqlite with json fallback)
+export const STORAGE_BACKEND = cliConfig.storageBackend;
+
 // Redis configuration
 // Precedence: CLI flag (cliConfig.useRedis) takes priority over USE_REDIS env var.
 export const USE_REDIS = cliConfig.useRedis || process.env.USE_REDIS === 'true';

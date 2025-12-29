@@ -11,4 +11,10 @@ module.exports = {
   coverageReporters: ['text', 'lcov'],
   verbose: true,
   forceExit: true,
+  // Mock the database module to avoid native module issues in Jest
+  moduleNameMapper: {
+    '^../data/db$': '<rootDir>/src/data/__mocks__/db.ts',
+    '^../../data/db$': '<rootDir>/src/data/__mocks__/db.ts',
+    '^./db$': '<rootDir>/src/data/__mocks__/db.ts',
+  },
 };

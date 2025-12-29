@@ -171,6 +171,67 @@ Summary:
 - `0`: Success (report generated or no data)
 - `1`: Missing jq dependency
 
+### `migrate-json-to-sqlite.ts`
+
+**Purpose**: One-time migration script to transfer data from legacy JSON files to the new SQLite database.
+
+**What it does**:
+
+1. Connects to (or creates) `data/game.db`
+2. Creates `users` and `rooms` tables using Kysely schema builder
+3. Reads `data/users.json` and migrates all users
+4. Reads `data/rooms.json` and migrates all rooms
+5. Reports migration statistics
+
+**Usage**:
+
+```bash
+npx ts-node scripts/migrate-json-to-sqlite.ts
+```
+
+**Requirements**:
+
+- `ts-node` - TypeScript execution
+- `better-sqlite3` - Native SQLite bindings
+- `kysely` - Query builder
+
+**Data transformations**:
+
+- `passwordHash` → `password_hash` (snake_case)
+- `maxHealth` → `max_health` (snake_case)
+- `equipment` object → JSON string
+- `inventory.items` → `inventory_items` (JSON string)
+- `inventory.currency.gold` → `inventory_gold` (flattened)
+- Boolean fields → 0/1 integers
+- Date objects → ISO 8601 strings
+
+**Output example**:
+
+```
+=== EllyMUD JSON to SQLite Migration ===
+
+Database: /path/to/data/game.db
+
+Creating tables...
+Tables created.
+
+Migrating users...
+Migrated 15 users.
+
+Migrating rooms...
+Migrated 42 rooms.
+
+=== Migration Complete ===
+Users: 15 | Rooms: 42 | Database: /path/to/data/game.db
+```
+
+**Exit codes**:
+
+- `0`: Success
+- `1`: Missing JSON files or migration error
+
+**Idempotency**: Uses `INSERT ... ON CONFLICT DO NOTHING` so safe to run multiple times.
+
 ---
 
 **File patterns checked** (to determine if directory has content):
@@ -258,3 +319,5 @@ make check-docs
 - [make/](../make/) - Makefile shards that may call these scripts
 - [.github/agents/](../.github/agents/) - Agents use check-paired-docs.sh
 - [AGENTS.md](../AGENTS.md) - Documents the paired docs rule these scripts enforce
+- [src/data/](../src/data/) - Database schema and connection used by migration script
+- [data/](../data/) - Contains game.db output and source JSON files
