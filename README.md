@@ -1,10 +1,10 @@
 # EllyMUD
 
 [![CI](https://github.com/ellyseum/ellymud/actions/workflows/ci.yml/badge.svg)](https://github.com/ellyseum/ellymud/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/ellyseum/ellymud/actions/workflows/codeql.yml/badge.svg)](https://github.com/ellyseum/ellymud/actions/workflows/codeql.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Code Scanning](https://github.com/ellyseum/ellymud/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/ellyseum/ellymud/security/code-scanning)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-green)](https://www.typescriptlang.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ellyseum/ellymud)](https://github.com/ellyseum/ellymud/commits/main)
 
