@@ -1,10 +1,14 @@
 # EllyMUD
 
+[![CI](https://github.com/ellyseum/ellymud/actions/workflows/ci.yml/badge.svg)](https://github.com/ellyseum/ellymud/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/ellyseum/ellymud/actions/workflows/codeql.yml/badge.svg)](https://github.com/ellyseum/ellymud/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ellyseum/ellymud)](https://github.com/ellyseum/ellymud/commits/main)
 
-A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript. EllyMUD brings classic text-based RPG gameplay into the modern era with support for multiple connection protocols, real-time multiplayer interaction, and a comprehensive admin system.
+A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript. EllyMUD brings classic text-based RPG gameplay into the modern era with support for multiple connection protocols, real-time multiplayer interaction, and a comprehensive AI-assisted development pipeline.
 
 ## ✨ Features
 
@@ -12,11 +16,14 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
 
 - 🎮 **Classic MUD Experience** - Text-based RPG gameplay with rich descriptions
 - ⚔️ **Real-Time Combat** - Turn-based combat system with NPCs and PvP support
-- 🗺️ **Room-Based Navigation** - Explore interconnected rooms with dynamic events
-- 🎒 **Inventory System** - Collect, equip, and manage items
-- 📊 **Character Progression** - Level up, gain experience, and improve stats
-- 💬 **Multi-User Chat** - Communicate with other players in real-time
-- 🎯 **Status Effects** - Buffs, debuffs, and persistent effects
+- 🪄 **Abilities & Spellcasting** - Magic missile, healing spells, and cooldown-based abilities with mana management
+- 🗺️ **Room-Based Navigation** - Explore interconnected rooms with safe zones, shops, banks, and combat areas
+- 🎒 **Inventory System** - Collect, equip, repair, and manage items
+- 💰 **Economy System** - Buy/sell at merchant shops, banking with deposit/withdraw
+- 📊 **Character Progression** - Level up, train stats, gain experience, and improve abilities
+- 💬 **Multi-User Chat** - Say, yell, and social commands for player interaction
+- 🎯 **Status Effects** - Poison, stuns, roots, buffs, debuffs, and instant heals
+- 💤 **Rest & Regeneration** - Rest and meditate to recover health and mana
 
 ### Technical Features
 
@@ -28,17 +35,25 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
   - Password hashing with salt
   - Role-based access control (RBAC)
   - Input validation and sanitization
+  - Rate limiting and resource protection
   - Comprehensive audit logging
 - 🏗️ **Modern Architecture**
   - TypeScript for type safety
   - State machine pattern for client interactions
   - Singleton managers for core systems
-  - Event-driven combat system
+  - Repository pattern for data persistence
+  - Event-driven combat and effects system
 - 🤖 **AI Integration (MCP Server)**
   - Model Context Protocol server on port 3100
+  - Virtual sessions for AI gameplay testing
+  - Test mode with controllable game ticks
   - RESTful API for game data access
   - GitHub Copilot integration
-  - Secure API key authentication
+- 🧪 **Comprehensive Testing**
+  - Jest unit testing with 120+ test files
+  - E2E testing with virtual sessions
+  - Agent-based testing framework
+  - Code coverage reporting
 - 📝 **Advanced Logging**
   - Per-user activity logs
   - Raw session recordings
@@ -50,12 +65,23 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
   - Live session monitoring
   - User management tools
 
+### AI Development Pipeline
+
+- 🤖 **Multi-Agent Ecosystem** - 10+ specialized AI agents for development
+  - Research, Planning, Implementation, and Validation agents
+  - Unit Test Creator and Orchestrator
+  - Documentation Updater
+  - Post-Mortem analysis
+- 📊 **Pipeline Metrics** - Execution tracking and analysis
+- 🔄 **Safety Features** - Git stash checkpoints and automated rollback
+
 ### Fun Extras
 
 - 🐍 **Snake Game** - Play Snake right in the MUD! (Type `snake`)
 - 🎨 **ANSI Color Support** - Rich text formatting
 - ⚡ **Movement Delays** - Realistic movement based on character stats
 - 🤖 **NPC AI** - Enemies with different aggression levels
+- 😄 **Social Commands** - Laugh, wave, and more!
 
 ## 🚀 Quick Start
 
@@ -73,7 +99,17 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
    cd ellymud
    ```
 
-2. **Install dependencies**
+2. **Bootstrap the project** (recommended)
+
+   ```bash
+   # Using make
+   make bootstrap
+   
+   # Or using npm
+   npm run bootstrap
+   ```
+
+   Or install manually:
 
    ```bash
    npm install
@@ -83,6 +119,8 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
 
    ```bash
    npm start
+   # Or use make:
+   make dev
    ```
 
 4. **Connect to the game**
@@ -111,13 +149,18 @@ Comprehensive documentation is available in the [docs/](docs/) directory:
 npm start
 
 # Auto-login as admin
-npm run start:admin
+npm run start-admin
 
 # Auto-login as specific user
 npm start -- --forceSession=username
 
 # Development mode with hot reload
 npm run dev
+
+# Using make (recommended)
+make dev          # Development with hot reload
+make start        # Production build and run
+make help         # Show all available commands
 ```
 
 ### Basic Commands
@@ -132,17 +175,50 @@ north / south     # Move between rooms
 attack goblin     # Start combat
 inventory         # Check your items
 say Hello!        # Chat with other players
+rest              # Recover health
+meditate          # Recover mana
 ```
 
-Type `help` in-game for a complete list of commands!
+### Ability Commands
+
+```
+abilities         # List your abilities
+mmis goblin       # Cast magic missile
+heal              # Cast healing spell
+cast fireball     # Cast a spell by name
+```
+
+### Economy Commands
+
+```
+wares             # View merchant inventory (in shops)
+buy sword         # Purchase an item
+sell dagger       # Sell an item
+balance           # Check bank balance (in banks)
+deposit 100       # Deposit gold
+withdraw 50       # Withdraw gold
+```
+
+Type `help` in-game for a complete list of 50+ commands!
 
 ### MCP Server (AI Integration)
 
-EllyMUD includes an integrated Model Context Protocol (MCP) server that provides AI tools (like GitHub Copilot) with access to game data:
+EllyMUD includes an integrated Model Context Protocol (MCP) server that provides AI tools (like GitHub Copilot) with access to game data and testing capabilities:
 
 - **Automatic Startup**: MCP server starts automatically on port 3100
 - **API Key Setup**: On first run, you'll be prompted to generate a secure API key
+- **Virtual Sessions**: AI agents can create game sessions and play autonomously
+- **Test Mode**: Control game ticks for deterministic testing
 - **Integration**: Works with GitHub Copilot, Claude, and other MCP-compatible clients
+
+**Available MCP Tools:**
+
+- `get_online_users`, `get_user_data` - Player information
+- `get_room_data`, `get_all_rooms` - World navigation
+- `get_combat_state` - Combat monitoring
+- `virtual_session_*` - AI gameplay sessions
+- `set_test_mode`, `advance_game_ticks` - Testing controls
+- `tail_user_session` - Session output monitoring
 
 **First Run:**
 
@@ -166,17 +242,80 @@ For detailed MCP server usage, see [src/mcp/README.md](src/mcp/README.md).
 
 ```
 ellymud/
-├── src/              # TypeScript source code
-│   ├── command/     # Command system
-│   ├── combat/      # Combat mechanics
-│   ├── connection/  # Network layer
-│   ├── room/        # Room management
-│   ├── state/       # State machine
-│   └── user/        # User management
-├── data/            # JSON data storage
-├── public/          # Web client
-├── docs/            # Documentation
-└── logs/            # Server logs
+├── src/                 # TypeScript source code
+│   ├── abilities/       # Spellcasting and skill system
+│   ├── command/         # Command system (50+ commands)
+│   ├── combat/          # Combat mechanics
+│   ├── connection/      # Network layer (Telnet, WebSocket, Virtual)
+│   ├── effects/         # Status effects system
+│   ├── mcp/             # MCP server for AI integration
+│   ├── persistence/     # Repository pattern data layer
+│   ├── room/            # Room management and types
+│   ├── state/           # State machine
+│   ├── testing/         # Test mode and state snapshots
+│   ├── timer/           # Game timer and regeneration
+│   └── user/            # User management
+├── data/                # JSON data storage
+├── public/              # Web client
+├── docs/                # Documentation
+├── make/                # Makefile shards
+├── scripts/             # Bootstrap and utility scripts
+├── test/                # E2E tests
+├── .github/agents/      # AI agent ecosystem
+└── logs/                # Server logs
+```
+
+### Make Commands
+
+EllyMUD uses an organized Makefile system that delegates to npm scripts:
+
+```bash
+make help           # Show all available targets
+
+# Setup
+make bootstrap      # Full project bootstrap (npm run bootstrap)
+make install        # Install dependencies (npm install)
+
+# Development
+make dev            # Development with hot reload (npm run dev)
+make build          # Build TypeScript (npm run build)
+make lint           # Run ESLint (npm run lint)
+
+# Testing
+make test           # Run all tests (npm test)
+make test-unit      # Unit tests only (npm run test:unit)
+make test-cov       # Tests with coverage (npm run test:coverage)
+make test-e2e       # E2E tests (npm run test:e2e)
+make agent-test     # Agent ecosystem tests (npm run test-agents)
+
+# Server
+make start          # Production build and run (npm start)
+make stop           # Stop background server
+
+# Docker
+make docker-build   # Build Docker image
+```
+
+### Testing
+
+```bash
+# Run all tests (typecheck + validate + jest)
+npm test
+
+# Unit tests only
+npm run test:unit
+
+# With coverage
+npm run test:coverage
+
+# E2E tests
+npm run test:e2e
+
+# Watch mode
+npm run test:watch
+
+# Agent tests
+npm run test-agents
 ```
 
 ### Contributing
@@ -216,6 +355,8 @@ Security is a priority in EllyMUD. We implement:
 - **Password hashing** with bcrypt
 - **Role-based access control** (RBAC)
 - **Input validation** and sanitization
+- **Rate limiting** to prevent abuse
+- **Resource exhaustion protection**
 - **Comprehensive audit logging**
 - **Session management**
 - **MCP Server API Key** - Secure authentication for AI tool access
@@ -259,16 +400,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-EllyMUD was developed as an exploration of modern development workflows, particularly the use of AI-assisted development tools. The project demonstrates how traditional game concepts can be reimagined with contemporary technology stacks.
+EllyMUD was developed as an exploration of modern development workflows, particularly the use of AI-assisted development tools. The project demonstrates how traditional game concepts can be reimagined with contemporary technology stacks and AI-driven development pipelines.
 
 Special thanks to the MUD community for keeping the genre alive and inspiring new generations of developers.
 
 ## 📚 Additional Resources
 
-- [Complete Command List](docs/commands.md)
-- [Architecture Documentation](docs/architecture.md)
-- [Deployment Guide](docs/deployment.md)
-- [API Documentation](docs/architecture.md#key-subsystems)
+- [Complete Command List](docs/commands.md) - All 50+ commands documented
+- [Architecture Documentation](docs/architecture.md) - System design and patterns
+- [Deployment Guide](docs/deployment.md) - Production deployment
+- [MCP Server Documentation](src/mcp/README.md) - AI integration details
+- [Agent Ecosystem](.github/agents/README.md) - AI development pipeline
 
 ---
 

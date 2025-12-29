@@ -9,6 +9,9 @@ import {
 } from '../../utils/socketWriter';
 import { formatUsername } from '../../utils/formatters';
 import { getPlayerLogger } from '../../utils/logger';
+import { CommandHandler } from '../../command/commandHandler';
+import { UserManager } from '../../user/userManager';
+import { RoomManager } from '../roomManager';
 
 export class PlayerMovementService implements IPlayerMovementService {
   private roomManager: {
@@ -194,17 +197,14 @@ export class PlayerMovementService implements IPlayerMovementService {
           // Process only the first command after movement is complete
           // We'll handle multiple movement commands sequentially
           setTimeout(() => {
-            // Import the CommandHandler directly to avoid circular dependency issues
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const { CommandHandler } = require('../../command/commandHandler');
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const userManager = require('../../user/userManager').UserManager.getInstance();
+            // Get UserManager instance
+            const userManager = UserManager.getInstance();
 
-            // Create a new instance of CommandHandler
+            // Create a new instance of CommandHandler with full RoomManager
             const commandHandler = new CommandHandler(
               this.getClients(),
               userManager,
-              this.roomManager
+              RoomManager.getInstance(this.getClients())
             );
 
             // Process only the first command in the queue

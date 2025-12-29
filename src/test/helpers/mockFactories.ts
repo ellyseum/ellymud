@@ -206,6 +206,8 @@ export const createMockRoom = (
       .mockReturnValue(`${name}\r\nA test room called ${name}.\r\n`),
     getBriefDescriptionExcludingPlayer: jest.fn().mockReturnValue(`${name} [Brief]\r\n`),
     getExits: jest.fn().mockReturnValue([]),
+    getExit: jest.fn().mockReturnValue(null),
+    getDescriptionForPeeking: jest.fn().mockReturnValue(''),
     ...overrides,
   } as unknown as Room;
   return room;

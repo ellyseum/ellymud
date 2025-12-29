@@ -12,6 +12,10 @@ import { UserManager } from '../user/userManager';
 import { ItemManager } from '../utils/itemManager';
 import { createMechanicsLogger } from '../utils/logger';
 import { writeFormattedMessageToClient } from '../utils/socketWriter';
+// GameTimerManager is imported here and this module is imported by GameTimerManager
+// This circular dependency works because both modules use getInstance() patterns
+// which are called after all modules are loaded
+import { GameTimerManager } from '../timer/gameTimerManager';
 
 // Create a specialized logger for effects
 const effectLogger = createMechanicsLogger('EffectManager');
@@ -255,14 +259,13 @@ export class EffectManager extends EventEmitter {
    */
   private getGameTimerTickCount(): number {
     try {
-      // Access the GameTimerManager via a dynamic import to avoid circular dependencies
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { GameTimerManager } = require('../timer/gameTimerManager');
-      // Get manager instance from existing singletons to avoid creating new instances
+      // Get manager instance from existing singletons
+      // Circular dependency works here because getInstance() is called at runtime
+      // after all modules are fully loaded
       const gameTimerManager = GameTimerManager.getInstance(this.userManager, this.roomManager);
       return gameTimerManager.getTickCount();
-    } catch (err) {
-      effectLogger.error('Error getting GameTimerManager tick count:', err);
+    } catch {
+      effectLogger.error('Error getting GameTimerManager tick count');
       return 0; // Default to 0 if can't get the real tick count
     }
   }

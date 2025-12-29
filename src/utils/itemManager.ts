@@ -314,7 +314,7 @@ export class ItemManager {
             this.loadPrevalidatedItemInstances(instanceData);
             return; // Successfully loaded from command line
           }
-        } catch (error) {
+        } catch {
           // This might fail if the item data doesn't include instances, which is fine
           itemLogger.debug('No item instances found in command line data');
         }

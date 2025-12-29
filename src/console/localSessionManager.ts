@@ -6,6 +6,7 @@ import { TelnetServer } from '../server/telnetServer';
 import { ConsoleManager } from './consoleManager';
 import { isSilentMode } from '../config';
 import { DebugModeManager } from '../utils/debugUtils';
+import winston from 'winston';
 
 export class LocalSessionManager {
   private consoleManager: ConsoleManager;
@@ -47,10 +48,8 @@ export class LocalSessionManager {
     process.stdin.removeAllListeners('data'); // Ensure all listeners are removed
 
     // Find and remove the console transport
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const winston = require('winston');
     const consoleTransports = systemLogger.transports.filter(
-      (t: any) => t instanceof winston.transports.Console
+      (t) => t instanceof winston.transports.Console
     );
 
     if (consoleTransports.length > 0) {
@@ -86,16 +85,14 @@ export class LocalSessionManager {
     }
 
     // Restore console logging
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unused-vars
-    const winston = require('winston');
     if (this.originalConsoleTransport) {
       if (Array.isArray(this.originalConsoleTransport)) {
         this.originalConsoleTransport.forEach((transport) => {
-          if (!systemLogger.transports.some((t: any) => t === transport)) {
+          if (!systemLogger.transports.some((t) => t === transport)) {
             systemLogger.add(transport);
           }
         });
-      } else if (!systemLogger.transports.some((t: any) => t === this.originalConsoleTransport)) {
+      } else if (!systemLogger.transports.some((t) => t === this.originalConsoleTransport)) {
         systemLogger.add(this.originalConsoleTransport);
       }
       systemLogger.info('Console logging restored.');

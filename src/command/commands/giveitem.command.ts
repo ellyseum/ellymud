@@ -102,7 +102,7 @@ export class GiveItemCommand implements Command {
       if (!instance && itemId.length >= 8) {
         try {
           instance = this.itemManager.findInstanceByPartialId(itemId);
-        } catch (err) {
+        } catch {
           // If error, continue with normal flow
         }
       }

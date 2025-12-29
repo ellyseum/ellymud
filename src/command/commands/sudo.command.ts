@@ -62,6 +62,20 @@ export class SudoCommand implements Command {
   }
 
   /**
+   * Grant temporary admin access to a user (for console monitoring)
+   */
+  public static grantAdminAccess(username: string): void {
+    SudoCommand.activeAdmins.add(username.toLowerCase());
+  }
+
+  /**
+   * Revoke admin access from a user (for console monitoring)
+   */
+  public static revokeAdminAccess(username: string): void {
+    SudoCommand.activeAdmins.delete(username.toLowerCase());
+  }
+
+  /**
    * Check if a user is a super admin
    */
   public isSuperAdmin(username: string): boolean {

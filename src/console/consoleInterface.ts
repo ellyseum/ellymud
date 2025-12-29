@@ -7,6 +7,7 @@ import { createSystemMessageBox } from '../utils/messageFormatter';
 import { ClientManager } from '../client/clientManager';
 import readline from 'readline';
 import config, { isNoConsole } from '../config';
+import winston from 'winston';
 
 export class ConsoleInterface {
   private gameServer: GameServer;
@@ -125,11 +126,9 @@ export class ConsoleInterface {
     process.stdin.removeAllListeners('data');
 
     // Pause console logging temporarily
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const winston = require('winston');
-    let messageConsoleTransport: any = null;
+    let messageConsoleTransport: winston.transport | null = null;
     const consoleTransport = systemLogger.transports.find(
-      (t: any) => t instanceof winston.transports.Console
+      (t) => t instanceof winston.transports.Console
     );
     if (consoleTransport) {
       messageConsoleTransport = consoleTransport;
@@ -215,11 +214,9 @@ export class ConsoleInterface {
     process.stdin.removeAllListeners('data');
 
     // Pause console logging
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const winston = require('winston');
-    let shutdownConsoleTransport: any = null;
+    let shutdownConsoleTransport: winston.transport | null = null;
     const consoleTransport = systemLogger.transports.find(
-      (t: any) => t instanceof winston.transports.Console
+      (t) => t instanceof winston.transports.Console
     );
     if (consoleTransport) {
       shutdownConsoleTransport = consoleTransport;

@@ -223,7 +223,7 @@ export function getParsedRooms<T>(): T | undefined {
   const cliConfig = parseCommandLineArgs();
   try {
     return parseAndValidateJson<T>(cliConfig.rooms, 'rooms');
-  } catch (error) {
+  } catch {
     return undefined;
   }
 }
@@ -232,7 +232,7 @@ export function getParsedUsers<T>(): T | undefined {
   const cliConfig = parseCommandLineArgs();
   try {
     return parseAndValidateJson<T>(cliConfig.users, 'users');
-  } catch (error) {
+  } catch {
     return undefined;
   }
 }
@@ -241,7 +241,7 @@ export function getParsedItems<T>(): T | undefined {
   const cliConfig = parseCommandLineArgs();
   try {
     return parseAndValidateJson<T>(cliConfig.items, 'items');
-  } catch (error) {
+  } catch {
     return undefined;
   }
 }
@@ -250,7 +250,7 @@ export function getParsedNpcs<T>(): T | undefined {
   const cliConfig = parseCommandLineArgs();
   try {
     return parseAndValidateJson<T>(cliConfig.npcs, 'npcs');
-  } catch (error) {
+  } catch {
     return undefined;
   }
 }

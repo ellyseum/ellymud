@@ -21,6 +21,12 @@ jest.mock('../utils/logger', () => ({
     warn: jest.fn(),
     error: jest.fn(),
   })),
+  createMechanicsLogger: jest.fn(() => ({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  })),
 }));
 
 jest.mock('fs', () => ({

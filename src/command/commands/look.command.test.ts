@@ -5,7 +5,7 @@
 
 import { LookCommand } from './look.command';
 import { ConnectedClient } from '../../types';
-import { createMockUser, createMockClient } from '../../test/helpers/mockFactories';
+import { createMockUser, createMockClient, createMockRoom } from '../../test/helpers/mockFactories';
 
 // Mock dependencies
 jest.mock('../../utils/colors', () => ({
@@ -171,21 +171,15 @@ describe('LookCommand', () => {
 describe('LookCommand Additional Coverage', () => {
   let lookCommand: LookCommand;
   let mockClients: Map<string, ConnectedClient>;
-  let mockRoomManager: {
-    lookRoom: jest.Mock;
-    lookAtEntity: jest.Mock;
-    getRoom: jest.Mock;
-    getStartingRoomId: jest.Mock;
-  };
+  let mockRoomManager: jest.Mocked<ReturnType<typeof MockedRoomManager.getInstance>>;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockClients = new Map();
-    // Get mock room manager from module
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { RoomManager } = require('../../room/roomManager');
-    mockRoomManager = RoomManager.getInstance(mockClients);
+    // Get mock room manager from the already-imported mocked module
+    // Use jest.mocked() to get proper mock typing for method calls like mockReturnValue
+    mockRoomManager = jest.mocked(MockedRoomManager.getInstance(mockClients));
 
     lookCommand = new LookCommand(mockClients);
   });
@@ -196,14 +190,10 @@ describe('LookCommand Additional Coverage', () => {
         user: createMockUser({ currentRoomId: 'test-room' }),
       });
 
-      // Configure mock to have north exit
-      mockRoomManager.getRoom.mockReturnValue({
-        id: 'test-room',
-        name: 'Test Room',
-        players: [],
-        getExit: jest.fn().mockReturnValue('north-room'),
-        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
-      });
+      // Configure mock room with north exit
+      const mockRoom = createMockRoom('test-room', 'Test Room');
+      (mockRoom.getExit as jest.Mock).mockReturnValue('north-room');
+      mockRoomManager.getRoom.mockReturnValue(mockRoom);
 
       lookCommand.execute(client, 'north');
 
@@ -215,13 +205,7 @@ describe('LookCommand Additional Coverage', () => {
         user: createMockUser({ currentRoomId: 'test-room' }),
       });
 
-      mockRoomManager.getRoom.mockReturnValue({
-        id: 'test-room',
-        name: 'Test Room',
-        players: [],
-        getExit: jest.fn().mockReturnValue(null),
-        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
-      });
+      mockRoomManager.getRoom.mockReturnValue(createMockRoom('test-room', 'Test Room'));
 
       lookCommand.execute(client, 's');
 
@@ -233,13 +217,7 @@ describe('LookCommand Additional Coverage', () => {
         user: createMockUser({ currentRoomId: 'test-room' }),
       });
 
-      mockRoomManager.getRoom.mockReturnValue({
-        id: 'test-room',
-        name: 'Test Room',
-        players: [],
-        getExit: jest.fn().mockReturnValue(null),
-        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
-      });
+      mockRoomManager.getRoom.mockReturnValue(createMockRoom('test-room', 'Test Room'));
 
       lookCommand.execute(client, 'e');
 
@@ -251,13 +229,7 @@ describe('LookCommand Additional Coverage', () => {
         user: createMockUser({ currentRoomId: 'test-room' }),
       });
 
-      mockRoomManager.getRoom.mockReturnValue({
-        id: 'test-room',
-        name: 'Test Room',
-        players: [],
-        getExit: jest.fn().mockReturnValue(null),
-        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
-      });
+      mockRoomManager.getRoom.mockReturnValue(createMockRoom('test-room', 'Test Room'));
 
       lookCommand.execute(client, 'w');
 
@@ -269,13 +241,7 @@ describe('LookCommand Additional Coverage', () => {
         user: createMockUser({ currentRoomId: 'test-room' }),
       });
 
-      mockRoomManager.getRoom.mockReturnValue({
-        id: 'test-room',
-        name: 'Test Room',
-        players: [],
-        getExit: jest.fn().mockReturnValue(null),
-        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
-      });
+      mockRoomManager.getRoom.mockReturnValue(createMockRoom('test-room', 'Test Room'));
 
       lookCommand.execute(client, 'u');
 
@@ -287,13 +253,7 @@ describe('LookCommand Additional Coverage', () => {
         user: createMockUser({ currentRoomId: 'test-room' }),
       });
 
-      mockRoomManager.getRoom.mockReturnValue({
-        id: 'test-room',
-        name: 'Test Room',
-        players: [],
-        getExit: jest.fn().mockReturnValue(null),
-        getDescriptionForPeeking: jest.fn().mockReturnValue(''),
-      });
+      mockRoomManager.getRoom.mockReturnValue(createMockRoom('test-room', 'Test Room'));
 
       lookCommand.execute(client, 'd');
 
@@ -307,11 +267,7 @@ describe('LookCommand Additional Coverage', () => {
         user: createMockUser({ currentRoomId: 'test-room' }),
       });
 
-      mockRoomManager.getRoom.mockReturnValue({
-        id: 'test-room',
-        name: 'Test Room',
-        players: [],
-      });
+      mockRoomManager.getRoom.mockReturnValue(createMockRoom('test-room', 'Test Room'));
 
       lookCommand.execute(client, 'self');
 
@@ -323,11 +279,7 @@ describe('LookCommand Additional Coverage', () => {
         user: createMockUser({ currentRoomId: 'test-room' }),
       });
 
-      mockRoomManager.getRoom.mockReturnValue({
-        id: 'test-room',
-        name: 'Test Room',
-        players: [],
-      });
+      mockRoomManager.getRoom.mockReturnValue(createMockRoom('test-room', 'Test Room'));
 
       lookCommand.execute(client, 'me');
 

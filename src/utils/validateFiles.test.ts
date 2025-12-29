@@ -115,17 +115,17 @@ describe('validateFiles', () => {
       expect(result.message).toContain('Error validating');
     });
 
-    it('should handle non-Error throws', () => {
+    it('should handle validation errors with custom messages', () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.readFileSync.mockReturnValue('{}');
       mockParseAndValidateJson.mockImplementation(() => {
-        throw 'String error'; // eslint-disable-line @typescript-eslint/no-throw-literal
+        throw new Error('Validation failed: invalid schema');
       });
 
       const result = validateJsonFile('/path/to/error.json', 'rooms');
 
       expect(result.valid).toBe(false);
-      expect(result.message).toContain('String error');
+      expect(result.message).toContain('Validation failed');
     });
 
     it('should validate users data type', () => {

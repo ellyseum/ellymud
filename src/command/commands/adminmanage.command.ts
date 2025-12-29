@@ -1067,62 +1067,8 @@ export class AdminManageCommand implements Command {
       return;
     }
 
-    // If not an item, check if it's an NPC (simpler implementation)
-    try {
-      // Try to get the NPC manager if it exists
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const NpcManager = require('../../npc/npcManager').NpcManager;
-      const npcManager = NpcManager.getInstance();
-
-      const npc = npcManager.getNpc(entityId);
-      if (npc) {
-        // Initialize npcs based on expected format - looks like it needs to be a Map
-        if (!room.npcs) {
-          // Initialize as a Map since that's what TypeScript expects
-          room.npcs = new Map<string, any>();
-        }
-
-        // Check if the NPC is already in the room
-        let npcAlreadyInRoom = false;
-        if (room.npcs instanceof Map) {
-          npcAlreadyInRoom = room.npcs.has(entityId);
-        }
-
-        if (npcAlreadyInRoom) {
-          writeToClient(client, colorize(`NPC ${entityId} is already in this room.\r\n`, 'yellow'));
-          return;
-        }
-
-        // Add NPC to the Map
-        room.npcs.set(entityId, npc);
-        this.roomManager.updateRoom(room);
-
-        // Get NPC name for display
-        const npcName = npc.name || entityId;
-
-        // Notify all users in the room
-        const roomClients = this.getRoomClients(currentRoomId);
-        for (const c of roomClients) {
-          writeToClient(
-            c,
-            colorize(
-              `[ADMIN] ${client.user.username} summons ${npcName} into the room in a shimmer of energy!\r\n`,
-              'magenta'
-            )
-          );
-        }
-
-        // Log the action
-        adminLogger.info(
-          `Admin ${client.user.username} summoned NPC ${entityId} (${npcName}) to room ${currentRoomId}`
-        );
-
-        return;
-      }
-    } catch (error) {
-      // NPC manager might not exist or have a different structure
-      adminLogger.error(`NPC manager not available or error: ${error}`);
-    }
+    // TODO: Add NPC summoning when NpcManager is implemented
+    // Currently, NPCs are spawned via room definitions, not dynamically
 
     // If we get here, the ID wasn't found as an item, NPC, or player
     writeToClient(

@@ -185,7 +185,7 @@ export class WebSocketConnection extends EventEmitter implements IConnection {
         // Don't send history navigation events to the server
         // They're handled client-side
       }
-    } catch (e) {
+    } catch {
       // If not JSON, treat as plain text input
       if (this.rawLoggingEnabled && !this.maskInput) {
         const logger = getSessionLogger(this.id);

@@ -1,0 +1,7 @@
+# Run tests before pushing to remote
+# This prevents broken code from reaching main
+
+echo "🧪 Running tests before push..."
+npm run test:unit
+
+# Exit with test result (blocks push if tests fail)

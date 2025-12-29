@@ -930,14 +930,14 @@ describe('CommandRegistry', () => {
       );
     });
 
-    it('should handle non-Error exceptions', () => {
+    it('should handle unexpected exceptions gracefully', () => {
       const mockClient = createMockClient({
         user: createMockUser(),
       });
 
       const sayCommand = commandRegistry.getCommand('say');
       (sayCommand?.execute as jest.Mock).mockImplementation(() => {
-        throw 'string error'; // eslint-disable-line @typescript-eslint/no-throw-literal
+        throw new Error('unexpected error');
       });
 
       expect(() => commandRegistry.executeCommand(mockClient, 'say hello')).not.toThrow();

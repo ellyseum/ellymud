@@ -3,10 +3,27 @@
 # Targets for running tests, validation, and checks
 # on the codebase and data files.
 
-.PHONY: test test-build test-start validate check ci
+.PHONY: test test-unit test-cov test-e2e test-watch test-build test-start validate check ci
 
-test: test-build ## Run all tests
-	@printf "$(GREEN)All tests passed$(NC)\n"
+test: ## Run all tests (typecheck + validate + jest)
+	@printf "$(BLUE)Running all tests...$(NC)\n"
+	npm test
+
+test-unit: ## Run unit tests only (fast)
+	@printf "$(BLUE)Running unit tests...$(NC)\n"
+	npm run test:unit
+
+test-cov: ## Run tests with coverage report
+	@printf "$(BLUE)Running tests with coverage...$(NC)\n"
+	npm run test:coverage
+
+test-e2e: ## Run end-to-end tests
+	@printf "$(BLUE)Running E2E tests...$(NC)\n"
+	npm run test:e2e
+
+test-watch: ## Run tests in watch mode
+	@printf "$(BLUE)Starting test watch mode...$(NC)\n"
+	npm run test:watch
 
 test-build: ## Test that build completes
 	@printf "$(BLUE)Testing build...$(NC)\n"

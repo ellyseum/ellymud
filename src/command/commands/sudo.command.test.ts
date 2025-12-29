@@ -33,12 +33,31 @@ jest.mock('../../utils/promptFormatter', () => ({
 }));
 
 jest.mock('../../utils/logger', () => ({
-  createContextLogger: jest.fn().mockReturnValue({
+  getPlayerLogger: jest.fn(() => ({
     info: jest.fn(),
     debug: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
-  }),
+  })),
+  createContextLogger: jest.fn(() => ({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  })),
+  createMechanicsLogger: jest.fn(() => ({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  })),
+  systemLogger: {
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    add: jest.fn(),
+  },
 }));
 
 import { SudoCommand } from './sudo.command';

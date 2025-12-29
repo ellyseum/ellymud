@@ -353,7 +353,7 @@ export class GameServer {
       if (!skipMCPServer) {
         try {
           await this.mcpServer.start();
-        } catch (error) {
+        } catch {
           // Error already logged and displayed by mcpServer.start()
           systemLogger.warn('MCP Server failed to start, continuing without it');
         }
@@ -436,7 +436,7 @@ export class GameServer {
       if (!skipMCPServer) {
         try {
           await this.mcpServer.start();
-        } catch (error) {
+        } catch {
           systemLogger.warn('MCP Server failed to start, continuing without it');
         }
       }

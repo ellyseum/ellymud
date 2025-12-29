@@ -7,7 +7,7 @@
 
 bootstrap: ## Full system bootstrap (run on fresh clone)
 	@printf "$(BLUE)Running full bootstrap...$(NC)\n"
-	@./scripts/bootstrap.sh
+	npm run bootstrap
 
 setup: install env-setup ## Quick setup (install deps + env)
 	@printf "$(GREEN)Setup complete!$(NC)\n"

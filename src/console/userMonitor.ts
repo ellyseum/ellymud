@@ -6,6 +6,8 @@ import { systemLogger } from '../utils/logger';
 import { getPromptText } from '../utils/promptFormatter';
 import { createAdminMessageBox } from '../utils/messageFormatter';
 import { CommandHandler } from '../command/commandHandler';
+import { SudoCommand } from '../command/commands/sudo.command';
+import winston from 'winston';
 
 export class UserMonitor {
   private clientManager: ClientManager;
@@ -27,11 +29,9 @@ export class UserMonitor {
     process.stdin.removeAllListeners('data');
 
     // Pause console logging
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const winston = require('winston');
-    let monitorConsoleTransport: any = null;
+    let monitorConsoleTransport: winston.transport | null = null;
     const consoleTransport = systemLogger.transports.find(
-      (t: any) => t instanceof winston.transports.Console
+      (t) => t instanceof winston.transports.Console
     );
     if (consoleTransport) {
       monitorConsoleTransport = consoleTransport;
@@ -322,9 +322,7 @@ export class UserMonitor {
 
       // Remove sudo access if it was granted
       if (userSudoEnabled && targetClient.user) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { SudoCommand } = require('../command/commands/sudo.command');
-        (SudoCommand as any).activeAdmins.delete(targetClient.user.username.toLowerCase());
+        SudoCommand.revokeAdminAccess(targetClient.user.username);
         systemLogger.info(`Removed temporary sudo access from user: ${username}`);
       }
 
@@ -517,9 +515,7 @@ export class UserMonitor {
 
           if (userSudoEnabled) {
             // Grant temporary sudo access using SudoCommand system
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const { SudoCommand } = require('../command/commands/sudo.command');
-            (SudoCommand as any).activeAdmins.add(targetClient.user.username.toLowerCase());
+            SudoCommand.grantAdminAccess(targetClient.user.username);
             console.log(`\nGranted temporary sudo access to ${username}.`);
             targetClient.connection.write(
               '\r\n\x1b[33mAn admin has granted you temporary sudo access.\x1b[0m\r\n'
@@ -529,9 +525,7 @@ export class UserMonitor {
             systemLogger.info(`Admin granted temporary sudo access to user: ${username}`);
           } else {
             // Remove sudo access using SudoCommand system
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const { SudoCommand } = require('../command/commands/sudo.command');
-            (SudoCommand as any).activeAdmins.delete(targetClient.user.username.toLowerCase());
+            SudoCommand.revokeAdminAccess(targetClient.user.username);
             console.log(`\nRemoved sudo access from ${username}.`);
             targetClient.connection.write(
               '\r\n\x1b[33mYour temporary sudo access has been revoked.\x1b[0m\r\n'
@@ -574,8 +568,7 @@ export class UserMonitor {
               }
 
               // Get client manager instance to use its handleClientData method
-              // eslint-disable-next-line @typescript-eslint/no-var-requires
-              const clientManager = require('../client/clientManager').ClientManager.getInstance();
+              const clientManagerInstance = ClientManager.getInstance();
 
               // Save original isInputBlocked state
               const originalBlockedState = targetClient.isInputBlocked;
@@ -584,7 +577,7 @@ export class UserMonitor {
               targetClient.isInputBlocked = false;
 
               // Process input through client manager's input handling system
-              clientManager.handleClientData(targetClient, tk);
+              clientManagerInstance.handleClientData(targetClient, tk);
 
               // Restore original block state
               targetClient.isInputBlocked = originalBlockedState;

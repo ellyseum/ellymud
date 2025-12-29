@@ -63,7 +63,7 @@ export class DestroyCommand implements Command {
         if (instance) {
           fullInstanceId = instance.instanceId;
         }
-      } catch (err) {
+      } catch {
         // Continue with normal flow if partial matching fails
       }
     }

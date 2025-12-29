@@ -197,7 +197,7 @@ export function validateToken(req: Request, res: Response, next: () => void) {
     const decoded = jwt.verify(token, JWT_SECRET);
     (req as Request & { admin?: jwt.JwtPayload | string }).admin = decoded;
     next();
-  } catch (error) {
+  } catch {
     return res.status(401).json({ success: false, message: 'Invalid token' });
   }
 }

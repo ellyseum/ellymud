@@ -5,6 +5,7 @@ import { NPC } from '../../combat/npc';
 import { colorize } from '../../utils/colors';
 import { writeToClient, writeFormattedMessageToClient } from '../../utils/socketWriter';
 import { formatUsername } from '../../utils/formatters';
+import { ItemManager } from '../../utils/itemManager';
 
 export class EntityRegistryService implements IEntityRegistryService {
   private roomManager: {
@@ -100,9 +101,7 @@ export class EntityRegistryService implements IEntityRegistryService {
   public lookAtEntity(client: ConnectedClient, entityName: string): boolean {
     if (!client.user) return false;
 
-    // Import the ItemManager
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { ItemManager } = require('../../utils/itemManager');
+    // Get ItemManager instance
     const itemManager = ItemManager.getInstance();
 
     // Get current room

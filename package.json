@@ -4,6 +4,7 @@
   "description": "Elly Mud / LLM Engineered Multi User Dungeon",
   "main": "dist/server.js",
   "scripts": {
+    "bootstrap": "./scripts/bootstrap.sh",
     "build": "tsc --build --verbose && echo '✓ BUILD SUCCESS' || (echo '✗ BUILD FAILED' && exit 1)",
     "build-watch": "tsc --build --watch",
     "clean": "rm -rf dist",

@@ -11,6 +11,7 @@ import { getPromptText } from '../utils/promptFormatter';
 import { createAdminMessageBox } from '../utils/messageFormatter';
 import { GameServer } from '../app';
 import config from '../config';
+import winston from 'winston';
 
 // Define the structure for menu state
 interface MenuState {
@@ -172,12 +173,9 @@ export class UserAdminMenu {
     };
 
     // Pause console logging - store the console transport to restore later
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const winston = require('winston');
-
     // Collect ALL console transports to ensure complete pausing of output
     const userAdminConsoleTransports = systemLogger.transports.filter(
-      (t: any) => t instanceof winston.transports.Console
+      (t) => t instanceof winston.transports.Console
     );
 
     if (userAdminConsoleTransports.length > 0) {
@@ -245,19 +243,16 @@ export class UserAdminMenu {
     console.log('\n\nUser admin menu canceled.');
 
     // Restore console logging
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unused-vars
-    const winston = require('winston');
-
     // Handle both single transport and array of transports
     if (this._userAdminConsoleTransport) {
       if (Array.isArray(this._userAdminConsoleTransport)) {
         // Restore all transports that were removed
         this._userAdminConsoleTransport.forEach((transport) => {
-          if (!systemLogger.transports.some((t: any) => t === transport)) {
+          if (!systemLogger.transports.some((t) => t === transport)) {
             systemLogger.add(transport);
           }
         });
-      } else if (!systemLogger.transports.some((t: any) => t === this._userAdminConsoleTransport)) {
+      } else if (!systemLogger.transports.some((t) => t === this._userAdminConsoleTransport)) {
         // For backward compatibility
         systemLogger.add(this._userAdminConsoleTransport);
       }
