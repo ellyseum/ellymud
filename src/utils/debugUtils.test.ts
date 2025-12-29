@@ -38,6 +38,7 @@ const createMockConfig = (overrides: Partial<CLIConfig> = {}): CLIConfig => ({
   noConsole: false,
   debug: false,
   testMode: false,
+  useRedis: false,
   ...overrides,
 });
 

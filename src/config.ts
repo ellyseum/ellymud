@@ -53,6 +53,10 @@ export const FORCE_SESSION_USERNAME = cliConfig.forceSession;
 export const FORCE = cliConfig.force; // Add force flag
 export const TEST_MODE = cliConfig.testMode;
 
+// Redis configuration
+// Precedence: CLI flag (cliConfig.useRedis) takes priority over USE_REDIS env var.
+export const USE_REDIS = cliConfig.useRedis || process.env.USE_REDIS === 'true';
+
 // Direct data
 export const DIRECT_ROOMS_DATA = cliConfig.rooms;
 export const DIRECT_USERS_DATA = cliConfig.users;
@@ -195,5 +199,6 @@ export default {
   SILENT_MODE,
   NO_CONSOLE,
   DISABLE_REMOTE_ADMIN,
+  USE_REDIS,
   HOST_NAME: os.hostname(),
 };

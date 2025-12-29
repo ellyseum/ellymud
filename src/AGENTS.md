@@ -59,11 +59,13 @@ getPlayerLogger(username).info('Player action');
 | `config/`     | CLI parsing       | `cliConfig.ts`                                    |
 | `connection/` | Protocol handlers | `telnet.connection.ts`, `websocket.connection.ts` |
 | `console/`    | Server console    | `consoleInterface.ts`                             |
+| `data/`       | Data store clients| `redis.ts`                                        |
 | `effects/`    | Status effects    | `effectManager.ts`                                |
 | `mcp/`        | AI integration    | `mcpServer.ts`                                    |
 | `room/`       | Room management   | `roomManager.ts`                                  |
 | `schemas/`    | JSON validation   | `index.ts`                                        |
 | `server/`     | Network servers   | `telnetServer.ts`, `webSocketServer.ts`           |
+| `session/`    | Session storage   | `sessionFactory.ts`, `memorySessionStore.ts`      |
 | `setup/`      | First-run setup   | `adminSetup.ts`                                   |
 | `state/`      | State machine     | `stateMachine.ts`                                 |
 | `states/`     | Client states     | `authenticated.state.ts`, `login.state.ts`        |

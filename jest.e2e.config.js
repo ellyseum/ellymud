@@ -3,6 +3,8 @@ module.exports = {
   ...require('./jest.config'),
   // Override testMatch to only run E2E tests
   testMatch: ['**/test/e2e/**/*.e2e.test.ts'],
+  // Only ignore integration tests (not e2e tests which this config runs)
+  testPathIgnorePatterns: ['\\.integration\\.test\\.ts$'],
   // E2E tests may take longer
   testTimeout: 30000,
   // Run sequentially to avoid port conflicts
@@ -14,5 +16,5 @@ module.exports = {
   // Setup file to enable silent mode before any tests import modules
   setupFilesAfterEnv: ['<rootDir>/test/e2e/setup.ts'],
   // Force exit after all tests complete to avoid hanging on any unclosed handles,
-  detectOpenHandles: true
+  detectOpenHandles: true,
 };
