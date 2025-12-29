@@ -114,7 +114,7 @@ async function migrate(): Promise<void> {
         inventory_items: user.inventory?.items ? JSON.stringify(user.inventory.items) : null,
         inventory_gold: user.inventory?.currency?.gold ?? 0,
         inventory_silver: user.inventory?.currency?.silver ?? 0,
-        inventory_copper: user.inventory?.copper ?? 0,
+        inventory_copper: user.inventory?.currency?.copper ?? 0,
         bank_gold: user.bank?.gold ?? 0,
         bank_silver: user.bank?.silver ?? 0,
         bank_copper: user.bank?.copper ?? 0,
