@@ -215,13 +215,13 @@ function enableSilentMode(): void {
  */
 function createContextLogger(context: string) {
   return {
-    debug: (message: string, metadata?: any) =>
+    debug: (message: string, metadata?: unknown) =>
       systemLogger.debug(`[${context}] ${message}`, metadata),
-    info: (message: string, metadata?: any) =>
+    info: (message: string, metadata?: unknown) =>
       systemLogger.info(`[${context}] ${message}`, metadata),
-    warn: (message: string, metadata?: any) =>
+    warn: (message: string, metadata?: unknown) =>
       systemLogger.warn(`[${context}] ${message}`, metadata),
-    error: (message: string, metadata?: any) =>
+    error: (message: string, metadata?: unknown) =>
       systemLogger.error(`[${context}] ${message}`, metadata),
   };
 }

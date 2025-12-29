@@ -3,6 +3,7 @@ import { CombatEntity } from '../combatEntity.interface';
 import { UserManager } from '../../user/userManager';
 import { CombatNotifier } from './CombatNotifier';
 import { systemLogger, getPlayerLogger } from '../../utils/logger';
+import { secureRandom } from '../../utils/secureRandom';
 
 /**
  * Base interface for combat commands
@@ -26,7 +27,7 @@ export class AttackCommand implements CombatCommand {
 
   execute(): void {
     // Calculate hit chance (50% base chance)
-    const hit = Math.random() >= 0.5;
+    const hit = secureRandom() >= 0.5;
 
     if (hit) {
       const damage = this.attacker.getAttackDamage();
@@ -103,7 +104,7 @@ export class FleeCommand implements CombatCommand {
     if (!this.player.user) return;
 
     // Calculate flee chance (30% base chance)
-    const fleeSuccess = Math.random() < 0.3;
+    const fleeSuccess = secureRandom() < 0.3;
 
     if (fleeSuccess) {
       // Set player's inCombat to false

@@ -18,6 +18,7 @@ import { AbilityManager } from '../abilities/abilityManager';
 import { clearRestingMeditating } from '../utils/stateInterruption';
 import { handleNpcDrops } from './npcDeathHandler';
 import { NPC } from './npc';
+import { secureRandom, secureRandomInt, secureRandomIndex } from '../utils/secureRandom';
 
 // Create a context-specific logger for Combat
 const combatLogger = createMechanicsLogger('Combat');
@@ -225,7 +226,7 @@ export class Combat {
   }
 
   private processWeaponAttack(player: ConnectedClient, target: CombatEntity, roomId: string): void {
-    const hit = Math.random() >= 0.5;
+    const hit = secureRandom() >= 0.5;
 
     const itemManager = this.itemManager;
     const weaponId = player.user!.equipment?.weapon;
@@ -247,7 +248,7 @@ export class Combat {
     }
 
     if (hit) {
-      const baseDamage = Math.floor(Math.random() * 6) + 5;
+      const baseDamage = secureRandomInt(5, 10);
       const totalDamage = baseDamage + weaponDamage;
       const actualDamage = target.takeDamage(totalDamage);
       target.addAggression(player.user!.username, actualDamage);
@@ -344,7 +345,7 @@ export class Combat {
 
     if (equippedArmorSlots.length === 0) return;
 
-    const randomSlot = equippedArmorSlots[Math.floor(Math.random() * equippedArmorSlots.length)];
+    const randomSlot = equippedArmorSlots[secureRandomIndex(equippedArmorSlots.length)];
     const armorInstanceId = user.equipment[randomSlot];
 
     if (!armorInstanceId) return;
@@ -386,8 +387,8 @@ export class Combat {
     // Try to find a valid target, attempting each player once
     while (!validTarget && attempts < maxAttempts) {
       attempts++;
-      const randomIndex = Math.floor(Math.random() * targetingPlayers.length);
-      const randomPlayerName = targetingPlayers[randomIndex];
+      const randomIdx = secureRandomIndex(targetingPlayers.length);
+      const randomPlayerName = targetingPlayers[randomIdx];
       targetPlayer = this.combatSystem.findClientByUsername(randomPlayerName);
 
       if (targetPlayer && targetPlayer.user && targetPlayer.authenticated) {
@@ -396,7 +397,7 @@ export class Combat {
         // If player no longer exists or not authenticated, remove from targeters
         this.combatSystem.removeEntityTargeter(entityId, randomPlayerName);
         // Remove player from the array too to avoid selecting again
-        targetingPlayers.splice(randomIndex, 1);
+        targetingPlayers.splice(randomIdx, 1);
       }
     }
 
@@ -410,7 +411,7 @@ export class Combat {
     clearRestingMeditating(targetPlayer, 'damage', true);
 
     // 50% chance to hit
-    const hit = Math.random() >= 0.5;
+    const hit = secureRandom() >= 0.5;
 
     // Get the room for broadcasting
     const roomId = this.player.user.currentRoomId;

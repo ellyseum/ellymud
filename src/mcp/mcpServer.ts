@@ -656,7 +656,15 @@ export class MCPServer {
         session.sendCommand(command);
 
         // Wait a bit for the response (default 100ms)
-        const delay = Math.min(Math.max(waitMs !== undefined ? parseInt(waitMs) : 100, 0), 5000); // Cap at 5 seconds to prevent resource exhaustion
+        const defaultWaitMs = 100;
+        let waitMsNumber = defaultWaitMs;
+        if (waitMs !== undefined) {
+          const parsed = parseInt(waitMs, 10);
+          if (Number.isFinite(parsed)) {
+            waitMsNumber = parsed;
+          }
+        }
+        const delay = Math.min(Math.max(waitMsNumber, 0), 5000); // Cap at 5 seconds to prevent resource exhaustion
         await new Promise((resolve) => setTimeout(resolve, delay));
 
         // Get the output
@@ -1671,10 +1679,20 @@ export class MCPServer {
     session.sendCommand(command);
 
     // Wait for response (default 200ms - increased from 100ms for more complete output)
-    const delay = Math.min(
-      Math.max(waitMs !== undefined ? parseInt(waitMs.toString()) : 200, 0),
-      5000
-    ); // Cap at 5 seconds to prevent resource exhaustion
+    const DEFAULT_WAIT_MS = 200;
+    const MIN_WAIT_MS = 0;
+    const MAX_WAIT_MS = 5000; // Cap at 5 seconds to prevent resource exhaustion
+
+    let requestedWait: number;
+    if (waitMs === undefined || waitMs === null) {
+      requestedWait = DEFAULT_WAIT_MS;
+    } else {
+      const parsed = Number.parseInt(waitMs.toString(), 10);
+      requestedWait = Number.isFinite(parsed) ? parsed : DEFAULT_WAIT_MS;
+    }
+
+    const delay = Math.min(Math.max(requestedWait, MIN_WAIT_MS), MAX_WAIT_MS);
+
     await new Promise((resolve) => setTimeout(resolve, delay));
 
     // Get the raw output and clean it for LLM consumption

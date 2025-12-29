@@ -15,6 +15,7 @@ import { RoomManager } from '../room/roomManager';
 import { formatUsername } from '../utils/formatters';
 import { systemLogger, getPlayerLogger } from '../utils/logger';
 import { AbilityManager } from '../abilities/abilityManager';
+import { secureRandom } from '../utils/secureRandom';
 
 // Import our new components
 import { EntityTracker } from './components/EntityTracker';
@@ -204,7 +205,7 @@ export class CombatSystem {
 
     const handleAttack = (_attacker: CombatEntity, _target: CombatEntity): boolean => {
       // Default attack handling logic
-      return Math.random() >= 0.5; // 50% hit chance
+      return secureRandom() >= 0.5; // 50% hit chance
     };
 
     const handleMovement = (entity: ConnectedClient): void => {

@@ -8,6 +8,7 @@ import { loadAndValidateJsonFile } from '../utils/fileUtils';
 import config from '../config';
 import { MerchantStockConfig, NPCInventoryItem, NumberRange } from '../types';
 import { ItemManager } from '../utils/itemManager';
+import { secureRandom, secureRandomInt, secureRandomElement } from '../utils/secureRandom';
 
 // Interface for NPC data loaded from JSON
 export interface NPCData {
@@ -89,7 +90,7 @@ export class NPC implements CombatEntity {
       return count;
     }
     // Random number between min and max (inclusive)
-    return Math.floor(Math.random() * (count.max - count.min + 1)) + count.min;
+    return secureRandomInt(count.min, count.max);
   }
 
   /**
@@ -120,7 +121,7 @@ export class NPC implements CombatEntity {
       }
 
       // Roll for spawn rate
-      const roll = Math.random();
+      const roll = secureRandom();
       if (roll > invItem.spawnRate) {
         systemLogger.debug(
           `Item ${invItem.itemId} spawn roll failed (${roll.toFixed(2)} > ${invItem.spawnRate})`
@@ -279,18 +280,18 @@ export class NPC implements CombatEntity {
 
   getAttackDamage(): number {
     const [min, max] = this.damage;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return secureRandomInt(min, max);
   }
 
   getAttackText(target: string): string {
     // Replace placeholder with target name if applicable
-    const attackText = this.attackTexts[Math.floor(Math.random() * this.attackTexts.length)];
+    const attackText = secureRandomElement(this.attackTexts) || this.attackTexts[0];
     return attackText.replace('$TARGET$', target);
   }
 
   getDeathMessage(): string {
     // Get a random death message from the array
-    return this.deathMessages[Math.floor(Math.random() * this.deathMessages.length)];
+    return secureRandomElement(this.deathMessages) || this.deathMessages[0];
   }
 
   // Aggression tracking implementation

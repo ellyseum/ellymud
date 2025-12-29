@@ -12,6 +12,15 @@ import {
   createMockUserManager,
   createMockCombatEntity,
 } from '../../test/helpers/mockFactories';
+import * as secureRandomModule from '../../utils/secureRandom';
+
+// Mock secureRandom module for predictable test results
+jest.mock('../../utils/secureRandom', () => ({
+  secureRandom: jest.fn(() => 0.5),
+  secureRandomInt: jest.fn((min, _max) => min),
+  secureRandomElement: jest.fn((arr) => arr[0]),
+  secureRandomIndex: jest.fn(() => 0),
+}));
 
 // Mock dependencies
 jest.mock('../../utils/logger', () => ({
@@ -50,8 +59,8 @@ describe('AttackCommand', () => {
 
   describe('execute', () => {
     it('should deal damage when attack hits', () => {
-      // Force hit by mocking Math.random to return 0.5 (exactly at hit threshold)
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      // Force hit by setting secureRandom to return 0.5 (exactly at hit threshold)
+      (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.5);
 
       const attacker = createMockCombatEntity({ name: 'Goblin' });
       (attacker.getAttackDamage as jest.Mock).mockReturnValue(15);
@@ -82,13 +91,11 @@ describe('AttackCommand', () => {
         true,
         15
       );
-
-      jest.spyOn(Math, 'random').mockRestore();
     });
 
     it('should miss when attack fails', () => {
-      // Force miss by mocking Math.random to return 0.4 (below hit threshold)
-      jest.spyOn(Math, 'random').mockReturnValue(0.4);
+      // Force miss by setting secureRandom to return 0.4 (below hit threshold)
+      (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.4);
 
       const attacker = createMockCombatEntity({ name: 'Goblin' });
       const target = createMockCombatEntity({ name: 'Target' });
@@ -115,12 +122,10 @@ describe('AttackCommand', () => {
         'room-1',
         false
       );
-
-      jest.spyOn(Math, 'random').mockRestore();
     });
 
     it('should call takeDamage on NPC target without client', () => {
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.5);
 
       const attacker = createMockCombatEntity({ name: 'Player' });
       (attacker.getAttackDamage as jest.Mock).mockReturnValue(20);
@@ -132,12 +137,10 @@ describe('AttackCommand', () => {
 
       expect(target.takeDamage).toHaveBeenCalledWith(20);
       expect(mockNotifier.broadcastRoomMessage).toHaveBeenCalled();
-
-      jest.spyOn(Math, 'random').mockRestore();
     });
 
     it('should not reduce health below -10', () => {
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.5);
 
       const attacker = createMockCombatEntity();
       (attacker.getAttackDamage as jest.Mock).mockReturnValue(50);
@@ -159,8 +162,6 @@ describe('AttackCommand', () => {
 
       // Health should be clamped to -10
       expect(targetClient.user!.health).toBe(-10);
-
-      jest.spyOn(Math, 'random').mockRestore();
     });
   });
 });
@@ -184,8 +185,8 @@ describe('FleeCommand', () => {
     });
 
     it('should set inCombat to false on successful flee', () => {
-      // Force successful flee
-      jest.spyOn(Math, 'random').mockReturnValue(0.1); // Less than 0.3
+      // Force successful flee (secureRandom returns 0.1, which is < 0.3)
+      (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.1);
 
       const player = createMockClient({
         user: createMockUser({ inCombat: true, currentRoomId: 'room-1' }),
@@ -200,13 +201,11 @@ describe('FleeCommand', () => {
         expect.stringContaining('breaks away'),
         'green'
       );
-
-      jest.spyOn(Math, 'random').mockRestore();
     });
 
     it('should keep inCombat true on failed flee', () => {
-      // Force failed flee
-      jest.spyOn(Math, 'random').mockReturnValue(0.5); // Greater than 0.3
+      // Force failed flee (secureRandom returns 0.5, which is >= 0.3)
+      (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.5);
 
       const player = createMockClient({
         user: createMockUser({ inCombat: true, currentRoomId: 'room-1' }),
@@ -221,8 +220,6 @@ describe('FleeCommand', () => {
         expect.stringContaining('tries to flee'),
         'yellow'
       );
-
-      jest.spyOn(Math, 'random').mockRestore();
     });
   });
 });

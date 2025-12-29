@@ -7,6 +7,15 @@ import {
 import { CombatEntity } from '../combatEntity.interface';
 import { ConnectedClient } from '../../types';
 import { createMockCombatEntity, createMockClient } from '../../test/helpers/mockFactories';
+import * as secureRandomModule from '../../utils/secureRandom';
+
+// Mock secureRandom module for predictable test results
+jest.mock('../../utils/secureRandom', () => ({
+  secureRandom: jest.fn(() => 0.5),
+  secureRandomInt: jest.fn((min, _max) => min),
+  secureRandomElement: jest.fn((arr) => arr[0]),
+  secureRandomIndex: jest.fn(() => 0),
+}));
 
 describe('CombatState', () => {
   // Callback mocks
@@ -154,7 +163,7 @@ describe('CombatState', () => {
       describe('when callback returns false', () => {
         it('should return false regardless of random roll', () => {
           mockAttackCallback.mockReturnValue(false);
-          jest.spyOn(Math, 'random').mockReturnValue(0.99);
+          (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.99);
           const attacker = createMockCombatEntity();
           const target = createMockCombatEntity();
 
@@ -171,7 +180,7 @@ describe('CombatState', () => {
 
         describe('at time 0 (flee chance = 20%)', () => {
           it('should hit when random > 0.2', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.3);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.3);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -181,7 +190,7 @@ describe('CombatState', () => {
           });
 
           it('should miss when random <= 0.2', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.1);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.1);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -191,7 +200,7 @@ describe('CombatState', () => {
           });
 
           it('should miss when random = 0.2 (boundary)', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.2);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.2);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -207,7 +216,7 @@ describe('CombatState', () => {
           });
 
           it('should hit when random > 0.3', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.4);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.4);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -217,7 +226,7 @@ describe('CombatState', () => {
           });
 
           it('should miss when random <= 0.3', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.25);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.25);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -233,7 +242,7 @@ describe('CombatState', () => {
           });
 
           it('should hit when random > 0.4', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.5);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.5);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -243,7 +252,7 @@ describe('CombatState', () => {
           });
 
           it('should miss when random <= 0.4', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.35);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.35);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -259,7 +268,7 @@ describe('CombatState', () => {
           });
 
           it('should hit when random > 0.8', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.9);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.9);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -269,7 +278,7 @@ describe('CombatState', () => {
           });
 
           it('should miss when random <= 0.8', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.75);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.75);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -287,7 +296,7 @@ describe('CombatState', () => {
           it('should still cap at 80% flee chance', () => {
             // At 60 seconds, uncapped formula would give: 0.2 + (60/3) * 0.1 = 2.2
             // But it should be capped at 0.8
-            jest.spyOn(Math, 'random').mockReturnValue(0.85);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.85);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -297,7 +306,7 @@ describe('CombatState', () => {
           });
 
           it('should miss when random <= 0.8', () => {
-            jest.spyOn(Math, 'random').mockReturnValue(0.7);
+            (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.7);
             const attacker = createMockCombatEntity();
             const target = createMockCombatEntity();
 
@@ -308,7 +317,7 @@ describe('CombatState', () => {
         });
 
         it('should call onAttackCallback with correct parameters', () => {
-          jest.spyOn(Math, 'random').mockReturnValue(0.99);
+          (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.99);
           const attacker = createMockCombatEntity({ name: 'FleeingAttacker' });
           const target = createMockCombatEntity({ name: 'FleeingTarget' });
 
@@ -586,7 +595,7 @@ describe('CombatState', () => {
         );
 
         // At time 0, flee chance is 20%. Random = 0.1 means attack misses
-        jest.spyOn(Math, 'random').mockReturnValue(0.1);
+        (secureRandomModule.secureRandom as jest.Mock).mockReturnValue(0.1);
         expect(state.handleAttack(attacker, target)).toBe(false);
 
         jest.useRealTimers();

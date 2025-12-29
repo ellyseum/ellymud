@@ -9,6 +9,7 @@ import { UserManager } from '../../user/userManager';
 import { CombatNotifier } from './CombatNotifier';
 import { formatUsername } from '../../utils/formatters';
 import { clearRestingMeditating } from '../../utils/stateInterruption';
+import { secureRandom, secureRandomIndex } from '../../utils/secureRandom';
 
 /**
  * Responsible for processing attack logic and combat rounds
@@ -114,7 +115,7 @@ export class CombatProcessor {
 
           // If there are aggressors in the room, pick one randomly to attack
           if (aggressors.length > 0) {
-            const targetPlayerName = aggressors[Math.floor(Math.random() * aggressors.length)];
+            const targetPlayerName = aggressors[secureRandomIndex(aggressors.length)];
             const targetPlayer = this.findClientByUsername(targetPlayerName);
 
             if (targetPlayer && targetPlayer.user) {
@@ -137,8 +138,8 @@ export class CombatProcessor {
           // If no specific aggressors but entity is hostile, target any player in the room
           else if (playersInRoom.length > 0) {
             // Select a random player from the room to attack
-            const randomIndex = Math.floor(Math.random() * playersInRoom.length);
-            const targetPlayerName = playersInRoom[randomIndex];
+            const randomIdx = secureRandomIndex(playersInRoom.length);
+            const targetPlayerName = playersInRoom[randomIdx];
             const targetPlayer = this.findClientByUsername(targetPlayerName);
 
             if (targetPlayer && targetPlayer.user) {
@@ -201,7 +202,7 @@ export class CombatProcessor {
     clearRestingMeditating(player, 'damage', true);
 
     // 50% chance to hit
-    const hit = Math.random() >= 0.5;
+    const hit = secureRandom() >= 0.5;
 
     if (hit) {
       const damage = npc.getAttackDamage();

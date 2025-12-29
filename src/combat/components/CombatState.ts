@@ -1,4 +1,5 @@
 import { ConnectedClient } from '../../types';
+import { secureRandom } from '../../utils/secureRandom';
 import { CombatEntity } from '../combatEntity.interface';
 
 /**
@@ -79,7 +80,7 @@ export class FleeingCombatState implements CombatState {
     const fleeSuccessChance = Math.min(0.2 + (fleeingForSeconds / 3) * 0.1, 0.8);
 
     // If random roll is less than flee success chance, the attack misses
-    return regularResult && Math.random() > fleeSuccessChance;
+    return regularResult && secureRandom() > fleeSuccessChance;
   }
 
   handleMovement(entity: ConnectedClient): void {
