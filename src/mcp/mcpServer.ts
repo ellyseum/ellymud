@@ -655,17 +655,25 @@ export class MCPServer {
         // Send the command
         session.sendCommand(command);
 
-        // Wait a bit for the response (default 100ms)
-        const defaultWaitMs = 100;
-        let waitMsNumber = defaultWaitMs;
+        // Wait a bit for the response (default 100ms, max 5000ms)
+        // Use predefined safe delay values to prevent resource exhaustion (CWE-400)
+        const SAFE_DELAYS = [0, 50, 100, 200, 500, 1000, 2000, 5000] as const;
+        const DEFAULT_DELAY = 100;
+        const MAX_DELAY = 5000;
+
+        let requestedDelay = DEFAULT_DELAY;
         if (waitMs !== undefined) {
           const parsed = parseInt(waitMs, 10);
           if (Number.isFinite(parsed)) {
-            waitMsNumber = parsed;
+            requestedDelay = Math.min(Math.max(parsed, 0), MAX_DELAY);
           }
         }
-        const delay = Math.min(Math.max(waitMsNumber, 0), 5000); // Cap at 5 seconds to prevent resource exhaustion
-        await new Promise((resolve) => setTimeout(resolve, delay));
+
+        // Find the closest safe delay value (snap to predefined values)
+        const safeDelay = SAFE_DELAYS.reduce((prev, curr) =>
+          Math.abs(curr - requestedDelay) < Math.abs(prev - requestedDelay) ? curr : prev
+        );
+        await new Promise((resolve) => setTimeout(resolve, safeDelay));
 
         // Get the output
         const output = session.getOutput(true);

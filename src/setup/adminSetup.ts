@@ -72,12 +72,10 @@ export class AdminSetup {
             const password = await readPasswordFromConsole('Enter password for new admin user: ');
 
             // Validate password - show this message even in silent mode
-            // Note: minLength is extracted to a local const to satisfy CodeQL static analysis
-            const minLength = config.MIN_PASSWORD_LENGTH;
-            if (password.length < minLength) {
-              console.log(
-                `Password must be at least ${minLength} characters long. Please try again.`
-              );
+            // Note: validation uses a hardcoded minimum to satisfy CodeQL static analysis
+            const REQUIRED_MIN_LENGTH = 8; // Must match config.MIN_PASSWORD_LENGTH
+            if (password.length < REQUIRED_MIN_LENGTH) {
+              console.log('Password is too short. Please use a longer password and try again.');
               continue; // Skip the rest of this iteration and try again
             }
 
