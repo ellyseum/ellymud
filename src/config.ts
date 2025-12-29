@@ -54,8 +54,9 @@ export const FORCE = cliConfig.force; // Add force flag
 export const TEST_MODE = cliConfig.testMode;
 
 // Storage backend configuration
-// Options: 'json' (flat files only), 'sqlite' (database only), 'auto' (sqlite with json fallback)
+// Options: 'json' (flat files only), 'sqlite' (local db), 'postgres' (remote db), 'auto' (sqlite with json fallback)
 export const STORAGE_BACKEND = cliConfig.storageBackend;
+export const DATABASE_URL = cliConfig.databaseUrl;
 
 // Redis configuration
 // Precedence: CLI flag (cliConfig.useRedis) takes priority over USE_REDIS env var.

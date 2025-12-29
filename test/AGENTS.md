@@ -2,13 +2,14 @@
 
 ## Overview
 
-EllyMUD uses Jest with ts-jest for TypeScript testing. Unit tests are **colocated** with source files in `src/` rather than in a separate test directory. E2E tests live in `test/e2e/` and use the `TesterAgent` API for programmatic game testing.
+EllyMUD uses Jest with ts-jest for TypeScript testing. Unit tests are **colocated** with source files in `src/` rather than in a separate test directory. Integration tests (requiring external services) live in `test/integration/`, and E2E tests live in `test/e2e/` using the `TesterAgent` API for programmatic game testing.
 
 ## Test Types
 
 | Type | Location | Config | Command |
 |------|----------|--------|---------|
 | Unit Tests | `src/**/*.test.ts` | `jest.config.js` | `npm test` or `npm run test:unit` |
+| Integration Tests | `test/integration/**/*.integration.test.ts` | `jest.integration.config.js` | `npm run test:integration` |
 | E2E Tests | `test/e2e/**/*.e2e.test.ts` | `jest.e2e.config.js` | `npm run test:e2e` |
 
 ### ⚠️ Jest Deprecated Flags
@@ -48,6 +49,19 @@ module.exports = {
 };
 ```
 
+### Integration Jest Configuration (`jest.integration.config.js`)
+
+```javascript
+module.exports = {
+  ...require('./jest.config'),
+  testMatch: ['**/test/integration/**/*.integration.test.ts'],
+  testTimeout: 30000,
+  maxWorkers: 1,  // Sequential - shared external resources
+  collectCoverage: false,
+  moduleNameMapper: {},  // Use real DB modules, not mocks
+};
+```
+
 ### E2E Jest Configuration (`jest.e2e.config.js`)
 
 ```javascript
@@ -65,10 +79,35 @@ module.exports = {
 
 Key settings:
 - **roots**: Unit tests from `src/`, E2E from `test/`
-- **testMatch**: `*.test.ts` for unit, `*.e2e.test.ts` for E2E
+- **testMatch**: `*.test.ts` for unit, `*.integration.test.ts` for integration, `*.e2e.test.ts` for E2E
 - **coverage**: Collected for unit tests only
 - **setupFilesAfterEnv**: E2E setup enables silent mode before tests run
 - **forceExit**: Prevents Jest from hanging on any unclosed handles
+
+---
+
+## Integration Testing
+
+Integration tests verify the system works with real external services:
+
+### Running Integration Tests
+
+```bash
+# Basic (Redis only)
+npm run test:integration
+
+# With PostgreSQL
+./scripts/test-integration.sh --with-postgres
+
+# With custom database URL
+TEST_DATABASE_URL="postgres://..." npm run test:integration
+```
+
+### Storage Backends Tested
+
+- **SQLite**: Local file database (`data/game.db`)
+- **PostgreSQL**: Remote database (via `DATABASE_URL`)
+- **JSON Files**: Flat file storage (`data/*.json`)
 
 ---
 

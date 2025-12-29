@@ -1,11 +1,12 @@
 /**
  * Kysely database connection for EllyMUD
+ * Supports SQLite (local) and PostgreSQL (remote) backends
  */
-import Database from 'better-sqlite3';
-import { Kysely, SqliteDialect } from 'kysely';
+import { Kysely, SqliteDialect, PostgresDialect } from 'kysely';
 import path from 'path';
 import { Database as DatabaseSchema } from './schema';
 import { systemLogger } from '../utils/logger';
+import { STORAGE_BACKEND, DATABASE_URL } from '../config';
 
 const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 const DB_PATH = path.join(DATA_DIR, 'game.db');
@@ -13,13 +14,38 @@ const DB_PATH = path.join(DATA_DIR, 'game.db');
 let db: Kysely<DatabaseSchema> | null = null;
 let initializationPromise: Promise<void> | null = null;
 
+/**
+ * Creates the appropriate Kysely dialect based on storage backend configuration
+ */
+function createDialect(): SqliteDialect | PostgresDialect {
+  if (STORAGE_BACKEND === 'postgres') {
+    if (!DATABASE_URL) {
+      throw new Error('DATABASE_URL is required when using postgres storage backend');
+    }
+    // Dynamic import to avoid loading pg when not needed
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Pool } = require('pg');
+    systemLogger.info(`[Database] Using PostgreSQL dialect`);
+    return new PostgresDialect({
+      pool: new Pool({
+        connectionString: DATABASE_URL,
+        max: 10, // Connection pool size
+      }),
+    });
+  }
+
+  // Default to SQLite for 'sqlite' and 'auto' modes
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const Database = require('better-sqlite3');
+  systemLogger.info(`[Database] Using SQLite dialect: ${DB_PATH}`);
+  return new SqliteDialect({ database: new Database(DB_PATH) });
+}
+
 export function getDb(): Kysely<DatabaseSchema> {
   if (!db) {
-    const sqliteDb = new Database(DB_PATH);
     db = new Kysely<DatabaseSchema>({
-      dialect: new SqliteDialect({ database: sqliteDb }),
+      dialect: createDialect(),
     });
-    systemLogger.info(`[Database] Connected to SQLite: ${DB_PATH}`);
     
     // Initialize tables on first connection
     if (!initializationPromise) {

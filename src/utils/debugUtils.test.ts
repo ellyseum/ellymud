@@ -40,6 +40,7 @@ const createMockConfig = (overrides: Partial<CLIConfig> = {}): CLIConfig => ({
   testMode: false,
   useRedis: false,
   storageBackend: 'auto',
+  databaseUrl: null,
   ...overrides,
 });
 

@@ -12,6 +12,8 @@ services:
       - NODE_ENV=development
       - REDIS_URL=redis://redis:6379
       - USE_REDIS=true
+      - STORAGE_BACKEND=${STORAGE_BACKEND:-auto}
+      - DATABASE_URL=${DATABASE_URL:-}
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs

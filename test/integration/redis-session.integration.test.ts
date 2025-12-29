@@ -1,6 +1,6 @@
-import { RedisSessionStore } from './redisSessionStore';
-import { SessionData } from './types';
-import { resetRedisClient } from '../data/redis';
+import { RedisSessionStore } from '../../src/session/redisSessionStore';
+import { SessionData } from '../../src/session/types';
+import { resetRedisClient } from '../../src/data/redis';
 
 // Skip if no Redis available
 const describeWithRedis = process.env.REDIS_URL ? describe : describe.skip;

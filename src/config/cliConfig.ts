@@ -40,7 +40,8 @@ export interface CLIConfig {
   debug: boolean; // Debug mode flag
   testMode: boolean; // Start server in test mode
   useRedis: boolean; // Use Redis for session storage
-  storageBackend: 'json' | 'sqlite' | 'auto'; // Storage backend for persistence
+  storageBackend: 'json' | 'sqlite' | 'postgres' | 'auto'; // Storage backend for persistence
+  databaseUrl: string | null; // Database connection URL (required for postgres)
 }
 
 // Parse command line arguments
@@ -186,10 +187,17 @@ export function parseCommandLineArgs(): CLIConfig {
     .option('storageBackend', {
       type: 'string',
       description:
-        'Storage backend: json (flat files), sqlite (database), or auto (sqlite with json fallback)',
-      default: 'auto',
-      choices: ['json', 'sqlite', 'auto'],
+        'Storage backend: json (flat files), sqlite (local db), postgres (remote db), or auto (sqlite with json fallback)',
+      default: process.env.STORAGE_BACKEND || 'auto',
+      choices: ['json', 'sqlite', 'postgres', 'auto'],
       alias: 'storage',
+    })
+    .option('databaseUrl', {
+      type: 'string',
+      description:
+        'Database connection URL (required for postgres, e.g., postgres://user:pass@host:5432/db)',
+      default: process.env.DATABASE_URL || null,
+      alias: 'db-url',
     })
     .help()
     .alias('help', 'h')
@@ -224,7 +232,8 @@ export function parseCommandLineArgs(): CLIConfig {
     debug: argv.debug, // Updated to use the debug flag from command line arguments
     testMode: argv.testMode, // Test mode flag
     useRedis: argv.redis, // Use Redis for session storage
-    storageBackend: argv.storageBackend as 'json' | 'sqlite' | 'auto', // Storage backend
+    storageBackend: argv.storageBackend as 'json' | 'sqlite' | 'postgres' | 'auto', // Storage backend
+    databaseUrl: argv.databaseUrl || null, // Database connection URL
   };
 
   // Ensure data directory exists

@@ -1,6 +1,6 @@
 /**
  * Jest mock for the database module
- * This prevents Jest from trying to load the native better-sqlite3 module
+ * This prevents Jest from trying to load native better-sqlite3 or pg modules
  */
 
 import { Kysely } from 'kysely';
@@ -8,12 +8,19 @@ import { Database } from '../schema';
 
 // Create a fresh mock Kysely instance for each test to avoid state sharing
 function createMockDb(): Kysely<Database> {
-  return {
-    selectFrom: jest.fn().mockReturnValue({
-      selectAll: jest.fn().mockReturnValue({
+  const mockSelectFrom = jest.fn().mockReturnValue({
+    selectAll: jest.fn().mockReturnValue({
+      where: jest.fn().mockReturnValue({
+        executeTakeFirst: jest.fn().mockResolvedValue(undefined),
         execute: jest.fn().mockResolvedValue([]),
       }),
+      execute: jest.fn().mockResolvedValue([]),
+      executeTakeFirst: jest.fn().mockResolvedValue(undefined),
     }),
+  });
+
+  return {
+    selectFrom: mockSelectFrom,
     insertInto: jest.fn().mockReturnValue({
       values: jest.fn().mockReturnValue({
         onConflict: jest.fn().mockReturnValue({
@@ -49,6 +56,10 @@ export function getDb(): Kysely<Database> {
 }
 
 export async function initializeDatabase(): Promise<void> {
+  // No-op in tests
+}
+
+export async function ensureInitialized(): Promise<void> {
   // No-op in tests
 }
 

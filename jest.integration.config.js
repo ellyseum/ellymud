@@ -1,8 +1,10 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
   ...require('./jest.config'),
-  // Only run integration tests
-  testMatch: ['**/*.integration.test.ts'],
+  // Override roots to include test directory
+  roots: ['<rootDir>/test'],
+  // Only run integration tests from test/integration folder
+  testMatch: ['**/test/integration/**/*.integration.test.ts'],
   // Clear the ignore patterns from base config
   testPathIgnorePatterns: [],
   // Integration tests may need more time for external services
@@ -14,4 +16,6 @@ module.exports = {
   // Force exit after tests complete
   forceExit: true,
   detectOpenHandles: true,
+  // Don't use moduleNameMapper mocks - we want real database connections
+  moduleNameMapper: {},
 };

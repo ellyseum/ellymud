@@ -28,6 +28,12 @@ data/users.json
 data/admin.json
 data/bug-reports.json
 
+# SQLite database files (generated, not committed)
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
 # Session data
 memory.md
 last-session.md

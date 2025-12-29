@@ -1,14 +1,15 @@
 # Tests
 
-Test files for EllyMUD including unit tests, E2E tests, and test utilities.
+Test files for EllyMUD including unit tests, integration tests, and E2E tests.
 
 ## Test Framework
 
 The project uses **Jest** with **ts-jest** for TypeScript testing:
 
 - **Framework**: Jest + ts-jest
-- **Configuration**: `jest.config.js` (unit), `jest.e2e.config.js` (E2E)
+- **Configuration**: `jest.config.js` (unit), `jest.integration.config.js` (integration), `jest.e2e.config.js` (E2E)
 - **Unit Tests**: `*.test.ts` files alongside source in `src/`
+- **Integration Tests**: `test/integration/*.integration.test.ts` (require external services)
 - **E2E Tests**: `test/e2e/*.e2e.test.ts` using TesterAgent
 
 ## Running Tests
@@ -19,6 +20,7 @@ The project uses **Jest** with **ts-jest** for TypeScript testing:
 |---------|-------------|
 | `npm test` | Run typecheck, validation, and all unit tests |
 | `npm run test:unit` | Run Jest unit tests only |
+| `npm run test:integration` | Run integration tests (Redis, PostgreSQL) |
 | `npm run test:e2e` | Run E2E tests with TesterAgent |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage report |
@@ -35,6 +37,15 @@ src/
 │   ├── colors.test.ts      ← Test file next to source
 │   ├── formatters.ts
 │   └── formatters.test.ts  ← Test file next to source
+```
+
+Integration tests (require external services) are in `test/integration/`:
+
+```
+test/
+├── integration/
+│   ├── redis-session.integration.test.ts
+│   └── storage-backends.integration.test.ts
 ```
 
 E2E tests are in `test/e2e/`:
