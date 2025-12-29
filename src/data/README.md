@@ -16,7 +16,7 @@ This directory contains the database layer that replaces the legacy JSON file st
 
 ## Game Data Location
 
-The SQLite database file is located at `data/game.db`. Legacy JSON files in `data/` are still present for reference but are no longer the primary data source for users and rooms.
+The SQLite database file is located at `data/game.db`. In `sqlite` storage-backend mode this database is the primary data source for users and rooms and the legacy JSON files in `data/` are only used for reference. In the default `auto` mode, the JSON files remain the initial synchronous source of truth for users and rooms, with SQLite being loaded and synchronized asynchronously afterward.
 
 ## Related
 

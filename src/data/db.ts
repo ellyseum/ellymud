@@ -11,7 +11,7 @@ const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 const DB_PATH = path.join(DATA_DIR, 'game.db');
 
 let db: Kysely<DatabaseSchema> | null = null;
-let initialized = false;
+let initializationPromise: Promise<void> | null = null;
 
 export function getDb(): Kysely<DatabaseSchema> {
   if (!db) {
@@ -22,14 +22,25 @@ export function getDb(): Kysely<DatabaseSchema> {
     systemLogger.info(`[Database] Connected to SQLite: ${DB_PATH}`);
     
     // Initialize tables on first connection
-    if (!initialized) {
-      initializeDatabase().catch((error) => {
+    if (!initializationPromise) {
+      initializationPromise = initializeDatabase().catch((error) => {
         systemLogger.error('[Database] Failed to initialize tables:', error);
+        throw error; // Re-throw so callers can handle initialization failures
       });
-      initialized = true;
     }
   }
   return db;
+}
+
+/**
+ * Ensures database tables are initialized before use.
+ * Call this before performing any database operations.
+ */
+export async function ensureInitialized(): Promise<void> {
+  getDb(); // Ensure connection is created
+  if (initializationPromise) {
+    await initializationPromise;
+  }
 }
 
 export async function initializeDatabase(): Promise<void> {
