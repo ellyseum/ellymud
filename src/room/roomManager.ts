@@ -281,12 +281,13 @@ export class RoomManager implements IRoomManager {
       saveToFile();
     } else if (STORAGE_BACKEND === 'sqlite') {
       // SQLite only mode - save to database only
-      this.saveRoomsToDatabase().catch((error) => {
+      // Note: fire-and-forget pattern to maintain synchronous interface
+      void this.saveRoomsToDatabase().catch((error) => {
         systemLogger.error('[RoomManager] Database save failed:', error);
       });
     } else {
       // Auto mode (default) - save to both database AND JSON file (backup)
-      this.saveRoomsToDatabase().catch((error) => {
+      void this.saveRoomsToDatabase().catch((error) => {
         systemLogger.error('[RoomManager] Database save failed:', error);
       });
       saveToFile();
@@ -298,33 +299,37 @@ export class RoomManager implements IRoomManager {
    */
   private async saveRoomsToDatabase(): Promise<void> {
     const db = getDb();
-    for (const room of this.rooms.values()) {
-      const npcTemplateIds: string[] = [];
-      room.npcs.forEach((npc) => {
-        npcTemplateIds.push(npc.templateId);
-      });
 
-      const values = {
-        id: room.id,
-        name: room.name,
-        description: room.description,
-        exits: JSON.stringify(room.exits),
-        currency_gold: room.currency?.gold ?? 0,
-        currency_silver: room.currency?.silver ?? 0,
-        currency_copper: room.currency?.copper ?? 0,
-        flags: room.flags ? JSON.stringify(room.flags) : null,
-        npc_template_ids: npcTemplateIds.length > 0 ? JSON.stringify(npcTemplateIds) : null,
-        item_instances: room.serializeItemInstances()
-          ? JSON.stringify(room.serializeItemInstances())
-          : null,
-      };
+    // Wrap all inserts in a transaction for atomicity
+    await db.transaction().execute(async (trx) => {
+      for (const room of this.rooms.values()) {
+        const npcTemplateIds: string[] = [];
+        room.npcs.forEach((npc) => {
+          npcTemplateIds.push(npc.templateId);
+        });
 
-      await db
-        .insertInto('rooms')
-        .values(values)
-        .onConflict((oc) => oc.column('id').doUpdateSet(values))
-        .execute();
-    }
+        const values = {
+          id: room.id,
+          name: room.name,
+          description: room.description,
+          exits: JSON.stringify(room.exits),
+          currency_gold: room.currency?.gold ?? 0,
+          currency_silver: room.currency?.silver ?? 0,
+          currency_copper: room.currency?.copper ?? 0,
+          flags: room.flags ? JSON.stringify(room.flags) : null,
+          npc_template_ids: npcTemplateIds.length > 0 ? JSON.stringify(npcTemplateIds) : null,
+          item_instances: room.serializeItemInstances()
+            ? JSON.stringify(room.serializeItemInstances())
+            : null,
+        };
+
+        await trx
+          .insertInto('rooms')
+          .values(values)
+          .onConflict((oc) => oc.column('id').doUpdateSet(values))
+          .execute();
+      }
+    });
     systemLogger.debug(`[RoomManager] Saved ${this.rooms.size} rooms to database`);
   }
 
@@ -340,19 +345,45 @@ export class RoomManager implements IRoomManager {
         return false; // No rooms in database, fall back to file
       }
 
+      // Helper to safely parse JSON fields with fallback
+      const safeJsonParse = <T>(
+        value: string | null | undefined,
+        fallback: T,
+        fieldName: string,
+        roomId: string | number
+      ): T => {
+        if (value == null) {
+          return fallback;
+        }
+        try {
+          return JSON.parse(value) as T;
+        } catch (err) {
+          systemLogger.warn(
+            `[RoomManager] Failed to parse JSON for field "${fieldName}" on room ${roomId}; using fallback value. Error:`,
+            err
+          );
+          return fallback;
+        }
+      };
+
       const roomDataArray = rows.map((row) => ({
         id: row.id,
         name: row.name,
         description: row.description,
-        exits: JSON.parse(row.exits),
+        exits: safeJsonParse<Exit[]>(row.exits, [], 'exits', row.id),
         currency: {
           gold: row.currency_gold,
           silver: row.currency_silver,
           copper: row.currency_copper,
         },
-        flags: row.flags ? JSON.parse(row.flags) : undefined,
-        npcs: row.npc_template_ids ? JSON.parse(row.npc_template_ids) : [],
-        itemInstances: row.item_instances ? JSON.parse(row.item_instances) : [],
+        flags: safeJsonParse<string[] | undefined>(
+          row.flags ?? undefined,
+          undefined,
+          'flags',
+          row.id
+        ),
+        npcs: safeJsonParse<string[]>(row.npc_template_ids, [], 'npc_template_ids', row.id),
+        itemInstances: safeJsonParse<string[]>(row.item_instances, [], 'item_instances', row.id),
       }));
 
       this.loadPrevalidatedRooms(roomDataArray);

@@ -11,6 +11,7 @@ const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 const DB_PATH = path.join(DATA_DIR, 'game.db');
 
 let db: Kysely<DatabaseSchema> | null = null;
+let initialized = false;
 
 export function getDb(): Kysely<DatabaseSchema> {
   if (!db) {
@@ -19,6 +20,14 @@ export function getDb(): Kysely<DatabaseSchema> {
       dialect: new SqliteDialect({ database: sqliteDb }),
     });
     systemLogger.info(`[Database] Connected to SQLite: ${DB_PATH}`);
+    
+    // Initialize tables on first connection
+    if (!initialized) {
+      initializeDatabase().catch((error) => {
+        systemLogger.error('[Database] Failed to initialize tables:', error);
+      });
+      initialized = true;
+    }
   }
   return db;
 }

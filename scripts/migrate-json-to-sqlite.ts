@@ -86,47 +86,50 @@ async function migrate(): Promise<void> {
   const usersData = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
   let userCount = 0;
 
-  for (const user of usersData) {
-    await db.insertInto('users').values({
-      username: user.username,
-      password_hash: user.passwordHash || '',
-      salt: user.salt || '',
-      health: user.health ?? 100,
-      max_health: user.maxHealth ?? 100,
-      mana: user.mana ?? 100,
-      max_mana: user.maxMana ?? 100,
-      experience: user.experience ?? 0,
-      level: user.level ?? 1,
-      strength: user.strength ?? 10,
-      dexterity: user.dexterity ?? 10,
-      agility: user.agility ?? 10,
-      constitution: user.constitution ?? 10,
-      wisdom: user.wisdom ?? 10,
-      intelligence: user.intelligence ?? 10,
-      charisma: user.charisma ?? 10,
-      equipment: user.equipment ? JSON.stringify(user.equipment) : null,
-      join_date: user.joinDate ? new Date(user.joinDate).toISOString() : new Date().toISOString(),
-      last_login: user.lastLogin ? new Date(user.lastLogin).toISOString() : new Date().toISOString(),
-      total_play_time: user.totalPlayTime ?? 0,
-      current_room_id: user.currentRoomId || 'start',
-      inventory_items: user.inventory?.items ? JSON.stringify(user.inventory.items) : null,
-      inventory_gold: user.inventory?.currency?.gold ?? 0,
-      inventory_silver: user.inventory?.currency?.silver ?? 0,
-      inventory_copper: user.inventory?.currency?.copper ?? 0,
-      bank_gold: user.bank?.gold ?? 0,
-      bank_silver: user.bank?.silver ?? 0,
-      bank_copper: user.bank?.copper ?? 0,
-      in_combat: user.inCombat ? 1 : 0,
-      is_unconscious: user.isUnconscious ? 1 : 0,
-      is_resting: user.isResting ? 1 : 0,
-      is_meditating: user.isMeditating ? 1 : 0,
-      flags: user.flags ? JSON.stringify(user.flags) : null,
-      pending_admin_messages: user.pendingAdminMessages ? JSON.stringify(user.pendingAdminMessages) : null,
-      email: user.email || null,
-      description: user.description || null,
-    }).onConflict((oc) => oc.column('username').doNothing()).execute();
-    userCount++;
-  }
+  // Wrap user migration in a transaction
+  await db.transaction().execute(async (trx) => {
+    for (const user of usersData) {
+      await trx.insertInto('users').values({
+        username: user.username,
+        password_hash: user.passwordHash || '',
+        salt: user.salt || '',
+        health: user.health ?? 100,
+        max_health: user.maxHealth ?? 100,
+        mana: user.mana ?? 100,
+        max_mana: user.maxMana ?? 100,
+        experience: user.experience ?? 0,
+        level: user.level ?? 1,
+        strength: user.strength ?? 10,
+        dexterity: user.dexterity ?? 10,
+        agility: user.agility ?? 10,
+        constitution: user.constitution ?? 10,
+        wisdom: user.wisdom ?? 10,
+        intelligence: user.intelligence ?? 10,
+        charisma: user.charisma ?? 10,
+        equipment: user.equipment ? JSON.stringify(user.equipment) : null,
+        join_date: user.joinDate ? new Date(user.joinDate).toISOString() : new Date().toISOString(),
+        last_login: user.lastLogin ? new Date(user.lastLogin).toISOString() : new Date().toISOString(),
+        total_play_time: user.totalPlayTime ?? 0,
+        current_room_id: user.currentRoomId || 'start',
+        inventory_items: user.inventory?.items ? JSON.stringify(user.inventory.items) : null,
+        inventory_gold: user.inventory?.currency?.gold ?? 0,
+        inventory_silver: user.inventory?.currency?.silver ?? 0,
+        inventory_copper: user.inventory?.copper ?? 0,
+        bank_gold: user.bank?.gold ?? 0,
+        bank_silver: user.bank?.silver ?? 0,
+        bank_copper: user.bank?.copper ?? 0,
+        in_combat: user.inCombat ? 1 : 0,
+        is_unconscious: user.isUnconscious ? 1 : 0,
+        is_resting: user.isResting ? 1 : 0,
+        is_meditating: user.isMeditating ? 1 : 0,
+        flags: user.flags ? JSON.stringify(user.flags) : null,
+        pending_admin_messages: user.pendingAdminMessages ? JSON.stringify(user.pendingAdminMessages) : null,
+        email: user.email || null,
+        description: user.description || null,
+      }).onConflict((oc) => oc.column('username').doNothing()).execute();
+      userCount++;
+    }
+  });
   console.log(`Migrated ${userCount} users.\n`);
 
   // Migrate rooms
@@ -134,21 +137,24 @@ async function migrate(): Promise<void> {
   const roomsData = JSON.parse(fs.readFileSync(ROOMS_FILE, 'utf8'));
   let roomCount = 0;
 
-  for (const room of roomsData) {
-    await db.insertInto('rooms').values({
-      id: room.id,
-      name: room.name || '',
-      description: room.description || '',
-      exits: JSON.stringify(room.exits || []),
-      currency_gold: room.currency?.gold ?? 0,
-      currency_silver: room.currency?.silver ?? 0,
-      currency_copper: room.currency?.copper ?? 0,
-      flags: room.flags ? JSON.stringify(room.flags) : null,
-      npc_template_ids: room.npcs ? JSON.stringify(room.npcs) : null,
-      item_instances: room.itemInstances ? JSON.stringify(room.itemInstances) : null,
-    }).onConflict((oc) => oc.column('id').doNothing()).execute();
-    roomCount++;
-  }
+  // Wrap room migration in a transaction
+  await db.transaction().execute(async (trx) => {
+    for (const room of roomsData) {
+      await trx.insertInto('rooms').values({
+        id: room.id,
+        name: room.name || '',
+        description: room.description || '',
+        exits: JSON.stringify(room.exits || []),
+        currency_gold: room.currency?.gold ?? 0,
+        currency_silver: room.currency?.silver ?? 0,
+        currency_copper: room.currency?.copper ?? 0,
+        flags: room.flags ? JSON.stringify(room.flags) : null,
+        npc_template_ids: room.npcs ? JSON.stringify(room.npcs) : null,
+        item_instances: room.itemInstances ? JSON.stringify(room.itemInstances) : null,
+      }).onConflict((oc) => oc.column('id').doNothing()).execute();
+      roomCount++;
+    }
+  });
   console.log(`Migrated ${roomCount} rooms.\n`);
 
   await db.destroy();

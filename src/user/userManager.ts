@@ -205,13 +205,20 @@ export class UserManager {
       // JSON only mode - use repository directly
       this.loadUsersFromRepository();
     } else if (STORAGE_BACKEND === 'sqlite') {
-      // SQLite only mode - use database, fail if not available
+      // SQLite only mode - synchronously preload from repository, then refresh from database
+      this.loadUsersFromRepository();
       this.loadUsersFromDatabase().catch((error) => {
         systemLogger.error('[UserManager] SQLite load failed (no fallback):', error);
       });
     } else {
-      // Auto mode (default) - try database first, fallback to repository
-      this.loadUsersFromDatabase().catch(() => this.loadUsersFromRepository());
+      // Auto mode (default) - synchronously preload from repository, then try database
+      this.loadUsersFromRepository();
+      this.loadUsersFromDatabase().catch((error) => {
+        systemLogger.error(
+          '[UserManager] Auto mode database load failed, keeping repository data:',
+          error
+        );
+      });
     }
   }
 
@@ -249,6 +256,27 @@ export class UserManager {
       const db = getDb();
       const rows = await db.selectFrom('users').selectAll().execute();
 
+      // Helper to safely parse JSON fields with fallback
+      const safeJsonParse = <T>(
+        value: string | null | undefined,
+        fallback: T,
+        fieldName: string,
+        username: string
+      ): T => {
+        if (value == null) {
+          return fallback;
+        }
+        try {
+          return JSON.parse(value) as T;
+        } catch (err) {
+          systemLogger.warn(
+            `[UserManager] Failed to parse JSON for field "${fieldName}" on user ${username}; using fallback value. Error:`,
+            err
+          );
+          return fallback;
+        }
+      };
+
       this.users = rows.map((row) => ({
         username: row.username,
         passwordHash: row.password_hash,
@@ -266,13 +294,18 @@ export class UserManager {
         wisdom: row.wisdom,
         intelligence: row.intelligence,
         charisma: row.charisma,
-        equipment: row.equipment ? JSON.parse(row.equipment) : undefined,
+        equipment: safeJsonParse<{ [slot: string]: string } | undefined>(
+          row.equipment,
+          undefined,
+          'equipment',
+          row.username
+        ),
         joinDate: new Date(row.join_date),
         lastLogin: new Date(row.last_login),
         totalPlayTime: row.total_play_time,
         currentRoomId: row.current_room_id,
         inventory: {
-          items: row.inventory_items ? JSON.parse(row.inventory_items) : [],
+          items: safeJsonParse<string[]>(row.inventory_items, [], 'inventory_items', row.username),
           currency: {
             gold: row.inventory_gold,
             silver: row.inventory_silver,
@@ -284,21 +317,24 @@ export class UserManager {
         isUnconscious: row.is_unconscious === 1,
         isResting: row.is_resting === 1,
         isMeditating: row.is_meditating === 1,
-        flags: row.flags ? JSON.parse(row.flags) : undefined,
-        pendingAdminMessages: row.pending_admin_messages
-          ? JSON.parse(row.pending_admin_messages)
-          : undefined,
+        flags: safeJsonParse<string[] | undefined>(row.flags, undefined, 'flags', row.username),
+        pendingAdminMessages: safeJsonParse<
+          Array<{ message: string; timestamp: string }> | undefined
+        >(row.pending_admin_messages, undefined, 'pending_admin_messages', row.username),
         email: row.email || undefined,
         description: row.description || undefined,
       }));
 
       systemLogger.info(`[UserManager] Loaded ${this.users.length} users from database`);
     } catch (error) {
-      systemLogger.error(
-        '[UserManager] Error loading from database, falling back to repository:',
-        error
-      );
-      this.loadUsersFromRepository();
+      systemLogger.error('[UserManager] Error loading from database:', error);
+      // In SQLite-only mode, do not fall back to JSON repository
+      if (STORAGE_BACKEND === 'sqlite') {
+        this.users = [];
+      } else {
+        // In auto mode, fall back to repository
+        this.loadUsersFromRepository();
+      }
     }
   }
 
@@ -318,12 +354,14 @@ export class UserManager {
       }
     } else if (STORAGE_BACKEND === 'sqlite') {
       // SQLite only mode - save to database only
-      this.saveUsersToDatabase().catch((error) => {
+      // Note: fire-and-forget pattern to maintain synchronous interface
+      // Consider refactoring callers to be async for proper error handling
+      void this.saveUsersToDatabase().catch((error) => {
         systemLogger.error('[UserManager] Database save failed:', error);
       });
     } else {
       // Auto mode (default) - save to both database AND JSON file (backup)
-      this.saveUsersToDatabase().catch((error) => {
+      void this.saveUsersToDatabase().catch((error) => {
         systemLogger.error('[UserManager] Database save failed:', error);
       });
       try {
@@ -336,53 +374,58 @@ export class UserManager {
 
   private async saveUsersToDatabase(): Promise<void> {
     const db = getDb();
-    for (const user of this.users) {
-      const values = {
-        username: user.username,
-        password_hash: user.passwordHash || '',
-        salt: user.salt || '',
-        health: user.health,
-        max_health: user.maxHealth,
-        mana: user.mana,
-        max_mana: user.maxMana,
-        experience: user.experience,
-        level: user.level,
-        strength: user.strength,
-        dexterity: user.dexterity,
-        agility: user.agility,
-        constitution: user.constitution,
-        wisdom: user.wisdom,
-        intelligence: user.intelligence,
-        charisma: user.charisma,
-        equipment: user.equipment ? JSON.stringify(user.equipment) : null,
-        join_date: user.joinDate instanceof Date ? user.joinDate.toISOString() : user.joinDate,
-        last_login: user.lastLogin instanceof Date ? user.lastLogin.toISOString() : user.lastLogin,
-        total_play_time: user.totalPlayTime ?? 0,
-        current_room_id: user.currentRoomId,
-        inventory_items: user.inventory?.items ? JSON.stringify(user.inventory.items) : null,
-        inventory_gold: user.inventory?.currency?.gold ?? 0,
-        inventory_silver: user.inventory?.currency?.silver ?? 0,
-        inventory_copper: user.inventory?.currency?.copper ?? 0,
-        bank_gold: user.bank?.gold ?? 0,
-        bank_silver: user.bank?.silver ?? 0,
-        bank_copper: user.bank?.copper ?? 0,
-        in_combat: user.inCombat ? 1 : 0,
-        is_unconscious: user.isUnconscious ? 1 : 0,
-        is_resting: user.isResting ? 1 : 0,
-        is_meditating: user.isMeditating ? 1 : 0,
-        flags: user.flags ? JSON.stringify(user.flags) : null,
-        pending_admin_messages: user.pendingAdminMessages
-          ? JSON.stringify(user.pendingAdminMessages)
-          : null,
-        email: user.email || null,
-        description: user.description || null,
-      };
-      await db
-        .insertInto('users')
-        .values(values)
-        .onConflict((oc) => oc.column('username').doUpdateSet(values))
-        .execute();
-    }
+
+    // Wrap all inserts in a transaction for atomicity
+    await db.transaction().execute(async (trx) => {
+      for (const user of this.users) {
+        const values = {
+          username: user.username,
+          password_hash: user.passwordHash || '',
+          salt: user.salt || '',
+          health: user.health,
+          max_health: user.maxHealth,
+          mana: user.mana,
+          max_mana: user.maxMana,
+          experience: user.experience,
+          level: user.level,
+          strength: user.strength,
+          dexterity: user.dexterity,
+          agility: user.agility,
+          constitution: user.constitution,
+          wisdom: user.wisdom,
+          intelligence: user.intelligence,
+          charisma: user.charisma,
+          equipment: user.equipment ? JSON.stringify(user.equipment) : null,
+          join_date: user.joinDate instanceof Date ? user.joinDate.toISOString() : user.joinDate,
+          last_login:
+            user.lastLogin instanceof Date ? user.lastLogin.toISOString() : user.lastLogin,
+          total_play_time: user.totalPlayTime ?? 0,
+          current_room_id: user.currentRoomId,
+          inventory_items: user.inventory?.items ? JSON.stringify(user.inventory.items) : null,
+          inventory_gold: user.inventory?.currency?.gold ?? 0,
+          inventory_silver: user.inventory?.currency?.silver ?? 0,
+          inventory_copper: user.inventory?.currency?.copper ?? 0,
+          bank_gold: user.bank?.gold ?? 0,
+          bank_silver: user.bank?.silver ?? 0,
+          bank_copper: user.bank?.copper ?? 0,
+          in_combat: user.inCombat ? 1 : 0,
+          is_unconscious: user.isUnconscious ? 1 : 0,
+          is_resting: user.isResting ? 1 : 0,
+          is_meditating: user.isMeditating ? 1 : 0,
+          flags: user.flags ? JSON.stringify(user.flags) : null,
+          pending_admin_messages: user.pendingAdminMessages
+            ? JSON.stringify(user.pendingAdminMessages)
+            : null,
+          email: user.email || null,
+          description: user.description || null,
+        };
+        await trx
+          .insertInto('users')
+          .values(values)
+          .onConflict((oc) => oc.column('username').doUpdateSet(values))
+          .execute();
+      }
+    });
   }
 
   /**
