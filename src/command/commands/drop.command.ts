@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Drop command handles various item types with dynamic properties
+// Drop command allows players to drop items and currency
 import { ConnectedClient, Currency } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
 import { RoomManager } from '../../room/roomManager';
+import { Room } from '../../room/room';
 import { UserManager } from '../../user/userManager';
 import { ItemManager } from '../../utils/itemManager';
 import { formatUsername } from '../../utils/formatters';
@@ -135,7 +135,7 @@ export class DropCommand implements Command {
 
   private dropCurrency(
     client: ConnectedClient,
-    room: any,
+    room: Room,
     type: CurrencyType,
     amount: number
   ): void {
@@ -187,7 +187,7 @@ export class DropCommand implements Command {
   /**
    * Try to drop an item by name or instance ID
    */
-  private tryDropItem(client: ConnectedClient, room: any, itemNameOrId: string): void {
+  private tryDropItem(client: ConnectedClient, room: Room, itemNameOrId: string): void {
     if (!client.user) return;
 
     // Normalize the item name/id for easier matching
@@ -286,7 +286,7 @@ export class DropCommand implements Command {
    * Drop an item instance or legacy item
    * Handles partial IDs with support for disambiguating between similar IDs
    */
-  private dropItemInstance(client: ConnectedClient, room: any, itemId: string): void {
+  private dropItemInstance(client: ConnectedClient, room: Room, itemId: string): void {
     if (!client.user) return;
 
     // Check if the item is in the player's inventory by exact match
@@ -333,7 +333,7 @@ export class DropCommand implements Command {
    */
   private processDropItem(
     client: ConnectedClient,
-    room: any,
+    room: Room,
     itemId: string,
     itemIndex: number
   ): void {
@@ -476,7 +476,7 @@ export class DropCommand implements Command {
   /**
    * Notify other players in the room about an action
    */
-  private notifyOthersInRoom(client: ConnectedClient, room: any, message: string): void {
+  private notifyOthersInRoom(client: ConnectedClient, room: Room, message: string): void {
     if (!client.user) return;
 
     // Look for other clients in the room

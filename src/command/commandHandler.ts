@@ -69,13 +69,18 @@ export class CommandHandler {
     // Wire AbilityManager to CombatSystem for combat abilities
     combatSys.setAbilityManager(abilityManager);
 
+    // StateMachine is required for CommandRegistry
+    if (!this.stateMachine) {
+      throw new Error('CommandHandler requires a StateMachine instance');
+    }
+
     // Get the singleton instance of CommandRegistry instead of creating a new one
     this.commands = CommandRegistry.getInstance(
       this.clients,
       roomMgr,
       combatSys,
       this.userManager,
-      this.stateMachine, // Pass the StateMachine instance
+      this.stateMachine,
       abilityManager
     );
   }

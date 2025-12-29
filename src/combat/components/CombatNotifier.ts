@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Combat notifier uses dynamic typing for message formatting
+// Combat notifier handles all combat-related messaging to clients
 import { ConnectedClient } from '../../types';
 import { CombatEntity } from '../combatEntity.interface';
 import { colorize, ColorType } from '../../utils/colors';
 import { writeFormattedMessageToClient, writeToClient } from '../../utils/socketWriter';
 import { RoomManager } from '../../room/roomManager';
+import { Room } from '../../room/room';
 import { formatUsername } from '../../utils/formatters';
 
 /**
@@ -108,7 +108,7 @@ export class CombatNotifier {
   /**
    * Notify a player they've been teleported to the starting room
    */
-  notifyPlayerTeleported(player: ConnectedClient, startingRoom: any): void {
+  notifyPlayerTeleported(player: ConnectedClient, startingRoom: Room): void {
     if (!player.user) return;
 
     // Show the starting room to the player
@@ -168,7 +168,7 @@ export class CombatNotifier {
     const room = this.roomManager.getRoom(roomId);
     if (!room) return;
 
-    const formattedMessage = colorize(message, color as any);
+    const formattedMessage = colorize(message, color);
 
     for (const playerName of room.players) {
       // Skip excluded player if specified

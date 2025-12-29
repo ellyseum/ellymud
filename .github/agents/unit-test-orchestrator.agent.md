@@ -34,7 +34,7 @@ handoffs:
 
 # Unit Test Orchestrator Agent - EllyMUD
 
-> **Version**: 1.0.0 | **Last Updated**: 2025-12-26 | **Status**: New
+> **Version**: 1.1.0 | **Last Updated**: 2025-12-29 | **Status**: Stable
 
 ## Role Definition
 

@@ -1,10 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/*
+ * EllyMUD
+ * Copyright (C) 2025 ellyseum
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Commercial licensing available via https://github.com/ellyseum
+ */
 // Server entry point uses dynamic typing for error handling
 import { GameServer } from './app';
 import * as config from './config';
 import { JsonValidationError } from './utils/jsonUtils';
 import { systemLogger } from './utils/logger';
 import { ensureMCPApiKey } from './utils/mcpKeySetup';
+import { GlobalWithSkipMCP } from './types';
 import dotenv from 'dotenv';
 
 // Load environment variables from .env file
@@ -26,7 +32,7 @@ async function main() {
     const hasMCPKey = await ensureMCPApiKey();
 
     // Store whether to start MCP server
-    (global as any).__SKIP_MCP_SERVER = !hasMCPKey;
+    (global as GlobalWithSkipMCP).__SKIP_MCP_SERVER = !hasMCPKey;
 
     // Create the game server - wrap this in try/catch to handle construction errors
     gameServer = new GameServer();
@@ -83,9 +89,9 @@ async function startForcedUserSession(server: GameServer, username: string): Pro
 /**
  * Handle errors including validation errors with user-friendly messages
  */
-function handleError(error: any): void {
+function handleError(error: unknown): void {
   // Check if this is a validation error
-  if (error instanceof JsonValidationError || error?.name === 'JsonValidationError') {
+  if (isJsonValidationError(error)) {
     // Display a user-friendly error message
     console.error('\x1b[31m✗ DATA VALIDATION ERROR\x1b[0m');
     console.error('\x1b[31mCannot start server: Invalid data format detected.\x1b[0m');
@@ -93,7 +99,7 @@ function handleError(error: any): void {
     // Show the specific validation failures
     if (error.errors && error.errors.length > 0) {
       console.error('\nProblems that need to be fixed:');
-      error.errors.forEach((err: any) => {
+      error.errors.forEach((err: { instancePath?: string; message?: string }) => {
         const path = err.instancePath || 'root';
         console.error(`- ${path}: ${err.message}`);
       });
@@ -125,10 +131,19 @@ function handleError(error: any): void {
 /**
  * Handle unexpected errors at the top level
  */
-function handleUnexpectedError(error: any): void {
+function handleUnexpectedError(error: unknown): void {
   console.error('\x1b[31m✗ Unhandled error in application\x1b[0m');
   systemLogger.error('Unhandled error:', error);
   process.exit(1);
+}
+
+function isJsonValidationError(error: unknown): error is JsonValidationError {
+  return (
+    error instanceof JsonValidationError ||
+    (typeof error === 'object' &&
+      error !== null &&
+      (error as { name?: string }).name === 'JsonValidationError')
+  );
 }
 
 /**

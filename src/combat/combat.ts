@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Combat system uses dynamic typing for flexible entity handling
+// Combat class manages individual combat sessions between a player and NPCs
 import { ConnectedClient } from '../types';
 import { CombatEntity } from './combatEntity.interface';
 import { colorize, ColorType } from '../utils/colors';
@@ -10,6 +9,7 @@ import {
 } from '../utils/socketWriter';
 import { UserManager } from '../user/userManager';
 import { RoomManager } from '../room/roomManager';
+import { Room } from '../room/room';
 import { formatUsername } from '../utils/formatters';
 import { CombatSystem } from './combatSystem';
 import { ItemManager } from '../utils/itemManager';
@@ -512,7 +512,7 @@ export class Combat {
     }
 
     // Get a custom death message from the NPC
-    const deathMessage = `The ${npc.name} ${(npc as any).getDeathMessage?.() || 'collapses to the ground and dies'}.\r\n`;
+    const deathMessage = `The ${npc.name} ${npc instanceof NPC ? npc.getDeathMessage() : 'collapses to the ground and dies'}.\r\n`;
 
     // For main killer (the one whose combat instance is processing this death)
     writeFormattedMessageToClient(this.player, colorize(deathMessage, 'magenta'));
@@ -520,9 +520,11 @@ export class Combat {
     // Broadcast to everyone else in the room
     if (this.player.user) {
       const killerUsername = formatUsername(this.player.user.username);
+      const broadcastDeathMessage =
+        npc instanceof NPC ? npc.getDeathMessage() : 'collapses to the ground and dies';
       this.combatSystem.broadcastRoomCombatMessage(
         roomId,
-        `The ${npc.name} fighting ${killerUsername} ${(npc as any).getDeathMessage?.() || 'collapses to the ground and dies'}.\r\n`,
+        `The ${npc.name} fighting ${killerUsername} ${broadcastDeathMessage}.\r\n`,
         'magenta',
         this.player.user.username
       );
@@ -565,11 +567,9 @@ export class Combat {
 
     // Remove the NPC from the room
     // FIXED: Use instanceId instead of name for removing NPC from room
-    if ((npc as any).instanceId) {
-      combatLogger.info(
-        `Removing NPC with instanceId ${(npc as any).instanceId} from room ${roomId}`
-      );
-      this.roomManager.removeNPCFromRoom(roomId, (npc as any).instanceId);
+    if (npc instanceof NPC && npc.instanceId) {
+      combatLogger.info(`Removing NPC with instanceId ${npc.instanceId} from room ${roomId}`);
+      this.roomManager.removeNPCFromRoom(roomId, npc.instanceId);
     } else {
       combatLogger.warn(`Cannot remove NPC ${npc.name} from room: no instanceId available`);
       // Fallback to using name, though this likely won't work with the new Map implementation
@@ -577,8 +577,8 @@ export class Combat {
     }
 
     // Generate and drop items from NPC inventory using shared handler
-    if (npc instanceof NPC || (npc as any).generateDrops) {
-      const drops = handleNpcDrops(npc as NPC, roomId, this.roomManager, this.itemManager);
+    if (npc instanceof NPC) {
+      const drops = handleNpcDrops(npc, roomId, this.roomManager, this.itemManager);
 
       // Notify players about dropped items
       for (const drop of drops) {
@@ -817,8 +817,8 @@ export class Combat {
   /**
    * Helper method to check if an NPC with a specific template ID exists in a room
    */
-  private isNpcInRoomByTemplateId(room: any, templateId: string): boolean {
-    const npcs = Array.from(room.npcs.values()) as any[];
+  private isNpcInRoomByTemplateId(room: Room, templateId: string): boolean {
+    const npcs = Array.from(room.npcs.values());
     return npcs.some((npc) => npc.templateId === templateId);
   }
 }

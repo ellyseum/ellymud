@@ -1,14 +1,14 @@
 import crypto from 'crypto';
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Virtual connection uses any for raw connection compatibility
+// Virtual connection implementation for MCP/LLM interaction
 import { EventEmitter } from 'events';
 import { IConnection } from './interfaces/connection.interface';
+import { VirtualBuffer } from './interfaces/virtualBuffer.interface';
 
 /**
  * VirtualConnection - A simulated connection for MCP/LLM interaction
  * Acts like a real client connection but stores output in memory instead of sending to a socket
  */
-export class VirtualConnection extends EventEmitter implements IConnection {
+export class VirtualConnection extends EventEmitter implements IConnection<VirtualBuffer> {
   private id: string;
   private outputBuffer: string[] = [];
   private maskInput: boolean = false;
@@ -108,10 +108,13 @@ export class VirtualConnection extends EventEmitter implements IConnection {
   }
 
   /**
-   * Get the raw connection (returns null for virtual)
+   * Get the raw connection (returns the virtual buffer for virtual connections)
    */
-  getRawConnection(): any {
-    return null;
+  getRawConnection(): VirtualBuffer {
+    return {
+      lines: this.outputBuffer,
+      length: this.outputBuffer.reduce((sum, line) => sum + line.length, 0),
+    };
   }
 
   /**

@@ -133,6 +133,17 @@ jest.mock('../command/commandRegistry', () => ({
   },
 }));
 
+// Mock StateMachine
+jest.mock('../state/stateMachine', () => ({
+  StateMachine: jest.fn().mockImplementation(() => ({
+    getState: jest.fn(),
+    setState: jest.fn(),
+    processInput: jest.fn(),
+  })),
+}));
+
+import { StateMachine } from '../state/stateMachine';
+
 // Mock CommandHandler
 jest.mock('../utils/commandHandler', () => ({
   CommandHandler: jest.fn().mockImplementation(() => ({
@@ -146,11 +157,13 @@ import { writeToClient } from '../utils/socketWriter';
 describe('AuthenticatedState', () => {
   let authenticatedState: AuthenticatedState;
   let clients: Map<string, ConnectedClient>;
+  let mockStateMachine: StateMachine;
 
   beforeEach(() => {
     jest.clearAllMocks();
     clients = new Map<string, ConnectedClient>();
-    authenticatedState = new AuthenticatedState(clients);
+    mockStateMachine = new StateMachine(createMockUserManager(), clients);
+    authenticatedState = new AuthenticatedState(clients, mockStateMachine);
   });
 
   describe('name property', () => {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // File utilities use dynamic typing for flexible JSON parsing
 import fs from 'fs';
 import path from 'path';
@@ -38,7 +37,7 @@ export function loadAndValidateJsonFile<T>(
  * @param data Data to save
  * @returns True if successful, false otherwise
  */
-export function saveJsonFile(filePath: string, data: any): boolean {
+export function saveJsonFile(filePath: string, data: unknown): boolean {
   try {
     const dirPath = path.dirname(filePath);
     if (!fs.existsSync(dirPath)) {
@@ -53,6 +52,13 @@ export function saveJsonFile(filePath: string, data: any): boolean {
   }
 }
 
+// Minimal client interface for session reference file
+interface SessionClient {
+  connection?: {
+    getId(): string;
+  };
+}
+
 /**
  * Creates a reference file with log information for debugging
  *
@@ -62,7 +68,7 @@ export function saveJsonFile(filePath: string, data: any): boolean {
  * @returns void
  */
 export function createSessionReferenceFile(
-  client: any,
+  client: SessionClient | null,
   username: string,
   isAdmin: boolean = false
 ): void {

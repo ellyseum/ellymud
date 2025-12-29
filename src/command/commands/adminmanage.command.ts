@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Admin manage command uses dynamic typing for NPC/item management
 import fs from 'fs';
 import path from 'path';
-import { ConnectedClient, ItemInstance } from '../../types';
+import { ConnectedClient, Item, ItemInstance } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
@@ -680,9 +679,9 @@ export class AdminManageCommand implements Command {
 
       // Also check legacy items array for backward compatibility
       if (room.items) {
-        const itemIndex = room.items.findIndex((item: any) => {
+        const itemIndex = room.items.findIndex((item: Item | string) => {
           // Handle both string IDs and object items
-          return (typeof item === 'string' ? item : item.id) === realInstanceId;
+          return (typeof item === 'string' ? item : item.name) === realInstanceId;
         });
 
         if (itemIndex !== -1) {

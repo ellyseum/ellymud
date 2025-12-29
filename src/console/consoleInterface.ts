@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Console interface uses dynamic typing for flexible admin operations
 import { GameServer } from '../app';
 import { ShutdownManager } from '../server/shutdownManager';
@@ -413,7 +412,7 @@ export class ConsoleInterface {
     );
   }
 
-  private cancelShutdownAndRestoreLogging(consoleTransport: any): void {
+  private cancelShutdownAndRestoreLogging(consoleTransport: winston.transport | null): void {
     // Cancel any active shutdown timer via ShutdownManager
     this.shutdownManager.clearShutdownTimer();
 

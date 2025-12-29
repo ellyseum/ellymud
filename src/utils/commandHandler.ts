@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Command handler uses dynamic typing for flexible command routing
+// Command handler routes player commands to their implementations
 import { ConnectedClient } from '../types';
 import { RoomManager } from '../room/roomManager';
+import { Room } from '../room/room';
 import { UserManager } from '../user/userManager';
 import { CombatSystem } from '../combat/combatSystem';
 import { writeToClient, writeFormattedMessageToClient } from './socketWriter';
@@ -133,20 +133,21 @@ export class CommandHandler {
   /**
    * Helper method to check if an NPC with a specific template ID exists in a room
    */
-  private findNpcByTemplateId(room: any, templateId: string): boolean {
+  private findNpcByTemplateId(room: Room, templateId: string): boolean {
     const npcs = Array.from(room.npcs.values());
-    return npcs.some((npc: any) => npc.templateId === templateId);
+    return npcs.some((npc) => npc.templateId === templateId);
   }
 
   /**
    * Helper method to find an NPC's instance ID by its template ID
    */
-  private findNpcInstanceIdByTemplateId(room: any, templateId: string): string | null {
-    const npcsEntries = Array.from(room.npcs.entries());
-    const match = (npcsEntries as [string, any][]).find(
-      ([_, npc]) => npc.templateId === templateId
-    );
-    return match ? match[0] : null;
+  private findNpcInstanceIdByTemplateId(room: Room, templateId: string): string | null {
+    for (const [instanceId, npc] of room.npcs.entries()) {
+      if (npc.templateId === templateId) {
+        return instanceId;
+      }
+    }
+    return null;
   }
 
   // Other command handlers would be implemented here

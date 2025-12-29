@@ -198,8 +198,19 @@ describe('VirtualConnection', () => {
   });
 
   describe('getRawConnection', () => {
-    it('should return null for virtual connections', () => {
-      expect(connection.getRawConnection()).toBeNull();
+    it('should return VirtualBuffer with lines and length', () => {
+      const buffer = connection.getRawConnection();
+      expect(buffer).toHaveProperty('lines');
+      expect(buffer).toHaveProperty('length');
+      expect(Array.isArray(buffer.lines)).toBe(true);
+      expect(typeof buffer.length).toBe('number');
+    });
+
+    it('should reflect output buffer state', () => {
+      connection.write('Test line\r\n');
+      const buffer = connection.getRawConnection();
+      expect(buffer.lines).toContain('Test line\r\n');
+      expect(buffer.length).toBeGreaterThan(0);
     });
   });
 

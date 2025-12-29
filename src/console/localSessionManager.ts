@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Local session management uses dynamic typing for winston transport handling
 import net from 'net';
 import { systemLogger } from '../utils/logger';
@@ -14,7 +13,7 @@ export class LocalSessionManager {
 
   private isLocalClientConnected: boolean = false;
   private localClientSocket: net.Socket | null = null;
-  private originalConsoleTransport: any = null;
+  private originalConsoleTransport: winston.transport | winston.transport[] | null = null;
 
   constructor(consoleManager: ConsoleManager, telnetServer: TelnetServer) {
     this.consoleManager = consoleManager;
@@ -25,7 +24,9 @@ export class LocalSessionManager {
     return this.isLocalClientConnected;
   }
 
-  public setOriginalConsoleTransport(transport: any): void {
+  public setOriginalConsoleTransport(
+    transport: winston.transport | winston.transport[] | null
+  ): void {
     this.originalConsoleTransport = transport;
   }
 

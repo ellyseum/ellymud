@@ -1,6 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Core types use any for flexible state data handling
 import { IConnection } from './connection/interfaces/connection.interface';
+
+// State data type - uses Record<string, unknown> to allow any value while still
+// being more type-safe than `any`. Code accessing stateData must narrow types.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type StateData = Record<string, any>;
+
+// Minimal interface for admin monitor socket - only emit and connected are used
+export interface AdminMonitorSocket {
+  emit(event: string, data: unknown): void;
+  connected?: boolean;
+}
 
 // Define state enum
 export enum ClientStateType {
@@ -158,6 +167,7 @@ export interface ItemInstance {
       effect: string;
       bonuses?: { [stat: string]: number };
     }[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any; // Allow for other custom properties
   };
   history?: {
@@ -234,7 +244,7 @@ export interface ConnectedClient {
   authenticated: boolean;
   buffer: string;
   state: ClientStateType;
-  stateData: Record<string, any>;
+  stateData: StateData;
 
   // For output buffering
   isTyping: boolean;
@@ -244,7 +254,7 @@ export interface ConnectedClient {
   connectedAt: number;
   lastActivity: number;
   isBeingMonitored: boolean;
-  adminMonitorSocket?: any;
+  adminMonitorSocket?: AdminMonitorSocket;
   isInputBlocked?: boolean; // Add flag to track if admin blocked user input
 
   // Add tempUsername property

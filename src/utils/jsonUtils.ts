@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // JSON utilities need flexible typing for parsing arbitrary JSON structures
+import type { ValidateFunction, ErrorObject } from 'ajv';
 import { systemLogger } from './logger';
 import {
   validateRooms,
@@ -9,13 +9,26 @@ import {
   validateNpcs,
 } from '../schemas';
 
+// Internal validation error type from Ajv (full type)
+type AjvError = ErrorObject;
+
+// Simplified validation error interface for external consumers
+export interface ValidationErrorInfo {
+  instancePath?: string;
+  message?: string;
+  keyword?: string;
+  schemaPath?: string;
+  params?: Record<string, unknown>;
+  data?: unknown;
+}
+
 /**
  * Error class for JSON validation errors
  */
 export class JsonValidationError extends Error {
   constructor(
     message: string,
-    public errors?: any[]
+    public errors?: ValidationErrorInfo[]
   ) {
     super(message);
     this.name = 'JsonValidationError';
@@ -43,7 +56,7 @@ export function parseAndValidateJson<T>(
 
     // Select the appropriate validator based on data type
     let isValid = false;
-    let validator: any;
+    let validator: ValidateFunction;
 
     switch (dataType) {
       case 'rooms':
@@ -73,7 +86,7 @@ export function parseAndValidateJson<T>(
     if (!isValid) {
       systemLogger.error(`Invalid ${dataType} data structure`);
       if (validator.errors) {
-        validator.errors.forEach((err: any) => {
+        validator.errors.forEach((err: AjvError) => {
           systemLogger.error(`- ${err.instancePath} ${err.message}`);
         });
       }
@@ -87,7 +100,7 @@ export function parseAndValidateJson<T>(
       if (error instanceof JsonValidationError) {
         systemLogger.error(`Business rule validation error: ${error.message}`);
         if (error.errors) {
-          error.errors.forEach((err: any) => {
+          error.errors.forEach((err: ValidationErrorInfo) => {
             systemLogger.error(`- ${err.instancePath} ${err.message}`);
           });
         }
@@ -104,7 +117,7 @@ export function parseAndValidateJson<T>(
     if (error instanceof JsonValidationError) {
       systemLogger.error(`JSON validation error: ${error.message}`);
       if (error.errors) {
-        error.errors.forEach((err: any) => {
+        error.errors.forEach((err: ValidationErrorInfo) => {
           systemLogger.error(`- ${err.instancePath} ${err.message}`);
         });
       }
@@ -122,7 +135,8 @@ export function parseAndValidateJson<T>(
 /**
  * Additional business rule validations beyond schema validation
  */
-function validateBusinessRules(data: any, dataType: string): void {
+function validateBusinessRules(data: unknown, dataType: string): void {
+  if (!Array.isArray(data)) return;
   switch (dataType) {
     case 'rooms':
       validateRoomBusinessRules(data);
@@ -132,7 +146,7 @@ function validateBusinessRules(data: any, dataType: string): void {
       break;
     case 'items':
       // Detect if these are item instances or regular items
-      if (data.length > 0 && data[0].instanceId) {
+      if (data.length > 0 && isItemInstance(data[0])) {
         validateItemInstanceBusinessRules(data);
       } else {
         validateItemBusinessRules(data);
@@ -144,36 +158,66 @@ function validateBusinessRules(data: any, dataType: string): void {
   }
 }
 
+// Type guards for narrowing
+function isItemInstance(item: unknown): item is { instanceId: string } {
+  return typeof item === 'object' && item !== null && 'instanceId' in item;
+}
+
+interface RoomData {
+  id: string;
+  exits?: Array<{ direction: string; roomId: string }> | Record<string, string>;
+}
+
+interface UserData {
+  username: string;
+}
+
+interface ItemData {
+  id?: string;
+}
+
+interface ItemInstanceData {
+  instanceId?: string;
+}
+
+interface NpcData {
+  id: string;
+}
+
 /**
  * Validate room-specific business rules
  */
-function validateRoomBusinessRules(rooms: any[]): void {
+function validateRoomBusinessRules(rooms: unknown[]): void {
   // Check for duplicate room IDs
   const roomIds = new Set<string>();
   rooms.forEach((room, index) => {
-    if (roomIds.has(room.id)) {
-      throw new JsonValidationError(`Duplicate room ID: ${room.id} at index ${index}`);
+    const r = room as RoomData;
+    if (roomIds.has(r.id)) {
+      throw new JsonValidationError(`Duplicate room ID: ${r.id} at index ${index}`);
     }
-    roomIds.add(room.id);
+    roomIds.add(r.id);
 
     // Check that exit targets exist if exits is an array (current format)
-    if (Array.isArray(room.exits)) {
-      room.exits.forEach((exit: any, exitIndex: number) => {
+    if (Array.isArray(r.exits)) {
+      r.exits.forEach((exit: { direction: string; roomId: string }, exitIndex: number) => {
         // Skip validation if roomId is not a string (could be an object or something else)
-        if (typeof exit.roomId === 'string' && !rooms.some((r) => r.id === exit.roomId)) {
+        if (
+          typeof exit.roomId === 'string' &&
+          !rooms.some((rm) => (rm as RoomData).id === exit.roomId)
+        ) {
           throw new JsonValidationError(
-            `Room ${room.id} has exit to non-existent room ID: ${exit.roomId} at exit index ${exitIndex}`
+            `Room ${r.id} has exit to non-existent room ID: ${exit.roomId} at exit index ${exitIndex}`
           );
         }
       });
     }
     // Also handle exits as an object (alternative format)
-    else if (room.exits && typeof room.exits === 'object') {
-      Object.entries(room.exits).forEach(([direction, targetId]) => {
+    else if (r.exits && typeof r.exits === 'object') {
+      Object.entries(r.exits).forEach(([direction, targetId]) => {
         // Skip validation if targetId is not a string
-        if (typeof targetId === 'string' && !rooms.some((r) => r.id === targetId)) {
+        if (typeof targetId === 'string' && !rooms.some((rm) => (rm as RoomData).id === targetId)) {
           throw new JsonValidationError(
-            `Room ${room.id} has exit to non-existent room ID: ${targetId} in direction ${direction}`
+            `Room ${r.id} has exit to non-existent room ID: ${targetId} in direction ${direction}`
           );
         }
       });
@@ -184,29 +228,31 @@ function validateRoomBusinessRules(rooms: any[]): void {
 /**
  * Validate user-specific business rules
  */
-function validateUserBusinessRules(users: any[]): void {
+function validateUserBusinessRules(users: unknown[]): void {
   // Check for duplicate usernames
   const usernames = new Set<string>();
   users.forEach((user, index) => {
-    if (usernames.has(user.username.toLowerCase())) {
-      throw new JsonValidationError(`Duplicate username: ${user.username} at index ${index}`);
+    const u = user as UserData;
+    if (usernames.has(u.username.toLowerCase())) {
+      throw new JsonValidationError(`Duplicate username: ${u.username} at index ${index}`);
     }
-    usernames.add(user.username.toLowerCase());
+    usernames.add(u.username.toLowerCase());
   });
 }
 
 /**
  * Validate item-specific business rules
  */
-function validateItemBusinessRules(items: any[]): void {
+function validateItemBusinessRules(items: unknown[]): void {
   // Check for duplicate item IDs
   const itemIds = new Set<string>();
   items.forEach((item, index) => {
-    if (item.id && itemIds.has(item.id)) {
-      throw new JsonValidationError(`Duplicate item ID: ${item.id} at index ${index}`);
+    const i = item as ItemData;
+    if (i.id && itemIds.has(i.id)) {
+      throw new JsonValidationError(`Duplicate item ID: ${i.id} at index ${index}`);
     }
-    if (item.id) {
-      itemIds.add(item.id);
+    if (i.id) {
+      itemIds.add(i.id);
     }
   });
 }
@@ -214,17 +260,18 @@ function validateItemBusinessRules(items: any[]): void {
 /**
  * Validate item instance-specific business rules
  */
-function validateItemInstanceBusinessRules(instances: any[]): void {
+function validateItemInstanceBusinessRules(instances: unknown[]): void {
   // Check for duplicate instance IDs
   const instanceIds = new Set<string>();
   instances.forEach((instance, index) => {
-    if (instance.instanceId && instanceIds.has(instance.instanceId)) {
+    const i = instance as ItemInstanceData;
+    if (i.instanceId && instanceIds.has(i.instanceId)) {
       throw new JsonValidationError(
-        `Duplicate item instance ID: ${instance.instanceId} at index ${index}`
+        `Duplicate item instance ID: ${i.instanceId} at index ${index}`
       );
     }
-    if (instance.instanceId) {
-      instanceIds.add(instance.instanceId);
+    if (i.instanceId) {
+      instanceIds.add(i.instanceId);
     }
   });
 }
@@ -232,14 +279,15 @@ function validateItemInstanceBusinessRules(instances: any[]): void {
 /**
  * Validate NPC-specific business rules
  */
-function validateNpcBusinessRules(npcs: any[]): void {
+function validateNpcBusinessRules(npcs: unknown[]): void {
   // Check for duplicate NPC IDs
   const npcIds = new Set<string>();
   npcs.forEach((npc, index) => {
-    if (npcIds.has(npc.id)) {
-      throw new JsonValidationError(`Duplicate NPC ID: ${npc.id} at index ${index}`);
+    const n = npc as NpcData;
+    if (npcIds.has(n.id)) {
+      throw new JsonValidationError(`Duplicate NPC ID: ${n.id} at index ${index}`);
     }
-    npcIds.add(npc.id);
+    npcIds.add(n.id);
   });
 }
 
@@ -270,18 +318,21 @@ export function parseJsonArg<T>(
 /**
  * Format validation errors to provide human-readable output
  */
-export function formatValidationErrors(errors: any[]): string {
+export function formatValidationErrors(errors: ValidationErrorInfo[]): string {
   return errors
     .map((error) => {
       const path = error.instancePath || 'root';
       let message = `- ${path}: ${error.message}`;
 
-      if (error.keyword === 'required') {
-        message = `- ${path}: Missing required property: ${error.params.missingProperty}`;
-      } else if (error.keyword === 'type') {
-        message = `- ${path}: Expected ${error.params.type}, got ${typeof error.data}`;
-      } else if (error.keyword === 'enum') {
-        message = `- ${path}: Must be one of: ${error.params.allowedValues.join(', ')}`;
+      if (error.keyword === 'required' && error.params) {
+        const params = error.params as { missingProperty: string };
+        message = `- ${path}: Missing required property: ${params.missingProperty}`;
+      } else if (error.keyword === 'type' && error.params) {
+        const params = error.params as { type: string };
+        message = `- ${path}: Expected ${params.type}, got ${typeof error.data}`;
+      } else if (error.keyword === 'enum' && error.params) {
+        const params = error.params as { allowedValues: string[] };
+        message = `- ${path}: Must be one of: ${params.allowedValues.join(', ')}`;
       }
 
       return message;

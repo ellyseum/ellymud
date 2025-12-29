@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Room interfaces use any for NPC data handling
+// Room interfaces for service abstractions
 import { Room } from './room';
 import { ConnectedClient } from '../types';
-import { NPC } from '../combat/npc';
+import { NPC, NPCData } from '../combat/npc';
 
 // Core RoomManager interface
 export interface IRoomManager {
@@ -34,7 +33,7 @@ export interface INPCInteractionService {
   instantiateNpcsFromTemplates(
     room: Room,
     npcTemplateIds: string[],
-    npcData: Map<string, any>
+    npcData: Map<string, NPCData>
   ): void;
 }
 

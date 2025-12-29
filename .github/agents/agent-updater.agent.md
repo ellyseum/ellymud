@@ -26,7 +26,7 @@ tools:
 
 # Agent Updater - EllyMUD
 
-> **Version**: 1.0.0 | **Last Updated**: 2025-12-24 | **Status**: Stable
+> **Version**: 1.1.0 | **Last Updated**: 2025-12-29 | **Status**: Stable
 
 ## Role Definition
 

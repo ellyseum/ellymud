@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Debug commands use dynamic typing for inspecting game state
-import { ConnectedClient, ItemInstance } from '../../types';
+// Debug commands inspect game state for admin troubleshooting
+import { ConnectedClient, ItemInstance, GameItem, Item } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
 import { RoomManager } from '../../room/roomManager';
+import { Room } from '../../room/room';
 import { NPC, NPCData } from '../../combat/npc';
 import { UserManager } from '../../user/userManager';
 import { SudoCommand } from './sudo.command';
@@ -12,12 +12,40 @@ import { CombatSystem } from '../../combat/combatSystem';
 import { ItemManager } from '../../utils/itemManager';
 import { getPlayerLogger } from '../../utils/logger';
 import { stripColorCodes } from '../../utils/itemNameColorizer';
+import { Logger } from 'winston';
+
+/** Combat debug info interface for runtime reflection */
+interface CombatDebugInfo {
+  id?: string;
+  roomId?: string;
+  room?: { id: string };
+  round?: number;
+  currentRound?: number;
+  targetMap?: Record<string, string>;
+  targets?: Record<string, string>;
+}
+
+/** Player info extracted from combat for debugging */
+interface CombatPlayerInfo {
+  username: string;
+  health: number;
+  maxHealth: number;
+  id?: string;
+}
+
+/** NPC info extracted from combat for debugging */
+interface CombatNPCInfo {
+  name: string;
+  health: number;
+  maxHealth: number;
+  instanceId?: string;
+}
 
 export class DebugCommand implements Command {
   name = 'debug';
   description = 'Inspect game elements and data (admin only)';
   private itemManager: ItemManager;
-  private playerLogger: any;
+  private playerLogger: Logger;
 
   constructor(
     private roomManager: RoomManager,
@@ -301,7 +329,7 @@ export class DebugCommand implements Command {
     this.displayItemTemplate(client, matchingItems[0]);
   }
 
-  private displayItemTemplate(client: ConnectedClient, item: any): void {
+  private displayItemTemplate(client: ConnectedClient, item: GameItem): void {
     writeToClient(client, colorize(`Item Template: ${item.id}\r\n`, 'green'));
     writeToClient(client, colorize(`-----------------------------------------\r\n`, 'green'));
     writeToClient(client, colorize(`Name: ${item.name}\r\n`, 'cyan'));
@@ -418,9 +446,9 @@ export class DebugCommand implements Command {
   /**
    * Helper method to find instances by partial ID
    */
-  private findInstancesByPartialId(partialId: string): any[] {
+  private findInstancesByPartialId(partialId: string): ItemInstance[] {
     const allItems = this.itemManager.getAllItems();
-    const matchingInstances: any[] = [];
+    const matchingInstances: ItemInstance[] = [];
 
     // Check all templates and find their instances with matching IDs
     for (const item of allItems) {
@@ -441,7 +469,7 @@ export class DebugCommand implements Command {
   private displayItemInstanceDetails(
     client: ConnectedClient,
     instanceId: string,
-    instance: any
+    instance: ItemInstance
   ): void {
     const template = this.itemManager.getItem(instance.templateId);
 
@@ -514,7 +542,7 @@ export class DebugCommand implements Command {
       // Handle enchantments
       if (instance.properties.enchantments && instance.properties.enchantments.length > 0) {
         writeToClient(client, colorize(`\r\n  Enchantments:\r\n`, 'yellow'));
-        instance.properties.enchantments.forEach((enchant: any, index: number) => {
+        instance.properties.enchantments.forEach((enchant, index: number) => {
           writeToClient(
             client,
             colorize(`    ${index + 1}. ${enchant.name}: ${enchant.effect}\r\n`, 'white')
@@ -555,7 +583,7 @@ export class DebugCommand implements Command {
     // Display item history
     if (instance.history && instance.history.length > 0) {
       writeToClient(client, colorize(`\r\nHistory:\r\n`, 'yellow'));
-      instance.history.forEach((entry: any, index: number) => {
+      instance.history.forEach((entry, index: number) => {
         const timestamp = new Date(entry.timestamp).toLocaleString();
         writeToClient(
           client,
@@ -595,7 +623,7 @@ export class DebugCommand implements Command {
     writeToClient(client, colorize(`-----------------------------------------\r\n`, 'green'));
 
     // Group items by type for better organization
-    const itemsByType: Record<string, any[]> = {};
+    const itemsByType: Record<string, GameItem[]> = {};
 
     filteredItems.forEach((item) => {
       if (!itemsByType[item.type]) {
@@ -633,7 +661,7 @@ export class DebugCommand implements Command {
     // We need to get all instances. Since there's no direct public method,
     // we'll collect instances by querying all templates and finding their instances
     const allItems = this.itemManager.getAllItems();
-    const allInstances: any[] = [];
+    const allInstances: ItemInstance[] = [];
 
     // Collect all instances across all item templates
     for (const item of allItems) {
@@ -648,7 +676,7 @@ export class DebugCommand implements Command {
 
     // Filter by owner if username provided
     let filteredInstances = allInstances;
-    let ownedInstances: Record<string, any[]> = {};
+    let ownedInstances: Record<string, ItemInstance[]> = {};
 
     if (usernameFilter) {
       // Get the specific user's inventory
@@ -697,15 +725,14 @@ export class DebugCommand implements Command {
       instances.forEach((instance, index) => {
         const template = this.itemManager.getItem(instance.templateId);
         const templateName = template ? template.name : instance.templateId;
-        const customName = instance.properties?.customName
-          ? ` (${instance.properties.customName})`
-          : '';
+        const customNameValue = instance.properties?.customName;
+        const customName = customNameValue ? ` (${customNameValue})` : '';
 
         // Get display name using the itemManager method if available
         let displayName = templateName + customName;
         if (typeof this.itemManager.getItemDisplayName === 'function') {
           displayName = this.itemManager.getItemDisplayName(instance.instanceId);
-          if (customName && !displayName.includes(instance.properties.customName)) {
+          if (customNameValue && !displayName.includes(customNameValue)) {
             displayName += customName;
           }
         }
@@ -726,7 +753,7 @@ export class DebugCommand implements Command {
         writeToClient(
           client,
           colorize(
-            `  ${index + 1}. ${displayName} [${instance.id || instance.instanceId || instance.name}]${durabilityStr}${qualityStr}\r\n`,
+            `  ${index + 1}. ${displayName} [${instance.instanceId}]${durabilityStr}${qualityStr}\r\n`,
             'white'
           )
         );
@@ -798,9 +825,9 @@ export class DebugCommand implements Command {
     return itemOwners;
   }
 
-  private groupInstancesByOwner(instances: any[]): Record<string, any[]> {
+  private groupInstancesByOwner(instances: ItemInstance[]): Record<string, ItemInstance[]> {
     const itemOwners = this.buildItemOwnershipMap();
-    const instancesByOwner: Record<string, any[]> = {};
+    const instancesByOwner: Record<string, ItemInstance[]> = {};
 
     for (const instance of instances) {
       const owner = itemOwners[instance.instanceId] || 'Unowned';
@@ -1065,7 +1092,7 @@ export class DebugCommand implements Command {
     writeToClient(client, colorize(`\r\nItems:\r\n`, 'yellow'));
 
     // Try multiple ways to access room items to match what look command is using
-    let roomItems: any[] = [];
+    let roomItems: Array<string | Item | ItemInstance> = [];
 
     // First check direct items array - this is the most reliable method
     if (room.items && Array.isArray(room.items) && room.items.length > 0) {
@@ -1080,7 +1107,7 @@ export class DebugCommand implements Command {
         // Check if item history shows it was dropped in this room
         if (item.history) {
           const dropEvents = item.history.filter(
-            (entry: any) =>
+            (entry) =>
               entry.event === 'drop' &&
               entry.details &&
               (entry.details.includes(`in room ${room.id}`) ||
@@ -1093,7 +1120,7 @@ export class DebugCommand implements Command {
 
           // Check if it hasn't been picked up since the last drop
           return !item.history.some(
-            (entry: any) => entry.timestamp > lastDropEvent.timestamp && entry.event === 'pickup'
+            (entry) => entry.timestamp > lastDropEvent.timestamp && entry.event === 'pickup'
           );
         }
         return false;
@@ -1150,7 +1177,7 @@ export class DebugCommand implements Command {
   }
 
   // Helper method to get the real list of players in a room
-  private getRealPlayersInRoom(room: any): string[] {
+  private getRealPlayersInRoom(room: Room): string[] {
     // If room.players is already populated and accurate, use it
     if (room.players && room.players.length > 0) {
       return room.players;
@@ -1170,8 +1197,8 @@ export class DebugCommand implements Command {
   }
 
   // Helper method to get all items in a room, handling different item formats
-  private getRealItemsInRoom(room: any): any[] {
-    const items: any[] = [];
+  private getRealItemsInRoom(room: Room): Array<string | Item> {
+    const items: Array<string | Item> = [];
 
     // First check the itemInstances Map (the preferred method going forward)
     if (room.getItemInstances && typeof room.getItemInstances === 'function') {
@@ -1187,7 +1214,9 @@ export class DebugCommand implements Command {
       const itemArray = Array.isArray(room.items) ? room.items : [room.items];
 
       // Filter out undefined/null items and add them
-      const legacyItems = itemArray.filter((item: any) => item !== undefined && item !== null);
+      const legacyItems = itemArray.filter(
+        (item): item is Item | string => item !== undefined && item !== null
+      );
       items.push(...legacyItems);
     }
 
@@ -1195,20 +1224,21 @@ export class DebugCommand implements Command {
   }
 
   // Helper method to extract item ID from an item (which could be a string ID or an object)
-  private getItemId(item: any): string {
+  private getItemId(item: string | Item | ItemInstance): string {
     // If item is already a string (likely an instanceId), return it
     if (typeof item === 'string') {
       return item;
     }
 
-    // Try to extract ID from object properties
+    // Try to extract ID from object properties using type guards
     if (item) {
-      // Check common ID properties
-      if (item.instanceId) return item.instanceId;
-      if (item.id) return item.id;
+      // Check if it's an ItemInstance (has instanceId)
+      if ('instanceId' in item && item.instanceId) {
+        return item.instanceId;
+      }
 
-      // If there's a name property, use that
-      if (typeof item.name === 'string') {
+      // Check if it's an Item (has name)
+      if ('name' in item && typeof item.name === 'string') {
         return item.name;
       }
     }
@@ -1252,9 +1282,9 @@ export class DebugCommand implements Command {
   }
 
   // Helper method to get all item instances in the game
-  private getAllItemInstances(): any[] {
+  private getAllItemInstances(): ItemInstance[] {
     const allItems = this.itemManager.getAllItems();
-    const allInstances: any[] = [];
+    const allInstances: ItemInstance[] = [];
 
     for (const item of allItems) {
       const instances = this.itemManager.findInstancesByTemplate(item.id);
@@ -1395,7 +1425,7 @@ export class DebugCommand implements Command {
 
     writeToClient(client, colorize(`Active Combats: ${activeCombats.length}\r\n\r\n`, 'cyan'));
 
-    activeCombats.forEach((combat: any, index: number) => {
+    activeCombats.forEach((combat, index: number) => {
       writeToClient(
         client,
         colorize(`Combat #${index + 1}${combat.id ? ` (ID: ${combat.id})` : ''}:\r\n`, 'yellow')
@@ -1405,7 +1435,7 @@ export class DebugCommand implements Command {
       const entities = this.safeGetCombatEntities(combat);
 
       writeToClient(client, colorize(`  Players: ${entities.players.length}\r\n`, 'white'));
-      entities.players.forEach((player: any) => {
+      entities.players.forEach((player) => {
         writeToClient(
           client,
           colorize(
@@ -1416,7 +1446,7 @@ export class DebugCommand implements Command {
       });
 
       writeToClient(client, colorize(`  NPCs: ${entities.npcs.length}\r\n`, 'white'));
-      entities.npcs.forEach((npc: any) => {
+      entities.npcs.forEach((npc) => {
         writeToClient(
           client,
           colorize(
@@ -1507,17 +1537,19 @@ export class DebugCommand implements Command {
   }
 
   // Safe accessor methods to handle potential missing methods on CombatSystem
-  private safeGetActiveCombats(roomId: string): any[] {
+  // These use runtime reflection to access internal combat state for debugging
+  private safeGetActiveCombats(roomId: string): CombatDebugInfo[] {
     try {
-      const cs = this.combatSystem as any; // Cast to any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Runtime reflection for debug introspection
+      const cs = this.combatSystem as any;
       // Check if the method exists on the combat system
       if (typeof cs['getActiveCombatsInRoom'] === 'function') {
         return cs['getActiveCombatsInRoom'](roomId);
       }
       // Fallback - assume there's a property or alternative method
       if (cs['activeCombats'] && typeof cs['activeCombats'] === 'object') {
-        return Object.values(cs['activeCombats']).filter(
-          (combat: any) => combat.roomId === roomId || combat.room?.id === roomId
+        return (Object.values(cs['activeCombats']) as CombatDebugInfo[]).filter(
+          (combat: CombatDebugInfo) => combat.roomId === roomId || combat.room?.id === roomId
         );
       }
       console.error(
@@ -1530,16 +1562,27 @@ export class DebugCommand implements Command {
     }
   }
 
-  private safeGetCombatEntities(combat: any): { players: any[]; npcs: any[] } {
+  private safeGetCombatEntities(combat: CombatDebugInfo): {
+    players: CombatPlayerInfo[];
+    npcs: CombatNPCInfo[];
+  } {
     try {
-      const cs = this.combatSystem as any; // Cast to any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Runtime reflection for debug introspection
+      const cs = this.combatSystem as any;
       if (typeof cs['getCombatEntities'] === 'function') {
         return cs['getCombatEntities'](combat);
       }
       // Fallback - try to extract entities from combat object
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Combat entities may have dynamic structure
+      const combatAny = combat as any;
       const players =
-        combat.players || combat.entities?.filter((e: any) => e.type === 'player') || [];
-      const npcs = combat.npcs || combat.entities?.filter((e: any) => e.type === 'npc') || [];
+        combatAny.players ||
+        combatAny.entities?.filter((e: { type: string }) => e.type === 'player') ||
+        [];
+      const npcs =
+        combatAny.npcs ||
+        combatAny.entities?.filter((e: { type: string }) => e.type === 'npc') ||
+        [];
       return { players, npcs };
     } catch (error) {
       console.error('Error accessing combat entities:', error);
@@ -1547,9 +1590,10 @@ export class DebugCommand implements Command {
     }
   }
 
-  private safeGetCombatRound(combat: any): number {
+  private safeGetCombatRound(combat: CombatDebugInfo): number {
     try {
-      const cs = this.combatSystem as any; // Cast to any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Runtime reflection for debug introspection
+      const cs = this.combatSystem as any;
       if (typeof cs['getCombatRound'] === 'function') {
         return cs['getCombatRound'](combat);
       }
@@ -1561,9 +1605,10 @@ export class DebugCommand implements Command {
     }
   }
 
-  private safeGetTargetMap(combat: any): Record<string, string> {
+  private safeGetTargetMap(combat: CombatDebugInfo): Record<string, string> {
     try {
-      const cs = this.combatSystem as any; // Cast to any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Runtime reflection for debug introspection
+      const cs = this.combatSystem as unknown as Record<string, unknown>;
       if (typeof cs['getTargetMap'] === 'function') {
         return cs['getTargetMap'](combat);
       }

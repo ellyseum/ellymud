@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Root command uses dynamic typing for admin operations
+// Root command applies movement restriction effects to players
 import { ConnectedClient } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
@@ -7,7 +6,7 @@ import { Command } from '../command.interface';
 import { UserManager } from '../../user/userManager';
 import { RoomManager } from '../../room/roomManager';
 import { EffectManager } from '../../effects/effectManager';
-import { EffectType } from '../../types/effects';
+import { EffectType, ActiveEffect } from '../../types/effects';
 
 export class RootCommand implements Command {
   name = 'root';
@@ -109,7 +108,11 @@ export class RootCommand implements Command {
     });
   }
 
-  private handleEffectAdded(data: { targetId: string; isPlayer: boolean; effect: any }): void {
+  private handleEffectAdded(data: {
+    targetId: string;
+    isPlayer: boolean;
+    effect: ActiveEffect;
+  }): void {
     const { targetId, isPlayer, effect } = data;
 
     // Only process for our root command effects
@@ -127,7 +130,11 @@ export class RootCommand implements Command {
     }
   }
 
-  private handleEffectRemoved(data: { targetId: string; isPlayer: boolean; effect: any }): void {
+  private handleEffectRemoved(data: {
+    targetId: string;
+    isPlayer: boolean;
+    effect: ActiveEffect;
+  }): void {
     const { targetId, isPlayer, effect } = data;
 
     // Only process for our root command effects

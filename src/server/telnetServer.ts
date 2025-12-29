@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Telnet server uses any for socket handling
 import net from 'net';
 import { systemLogger } from '../utils/logger';
 import { TelnetConnection } from '../connection/telnet.connection';
+import { IConnection } from '../connection/interfaces/connection.interface';
 import { ConnectedClient, ServerStats } from '../types';
 import { UserManager } from '../user/userManager';
 import { StateMachine } from '../state/stateMachine';
@@ -27,7 +27,7 @@ export class TelnetServer {
     stateMachine: StateMachine,
     commandHandler: CommandHandler,
     serverStats: ServerStats,
-    setupClientFn: (connection: any) => void,
+    setupClientFn: (connection: IConnection) => void,
     processInputFn: (client: ConnectedClient, input: string) => void,
     port?: number
   ) {

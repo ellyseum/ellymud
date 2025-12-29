@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Command registry uses dynamic typing for flexible command handling
+// Command registry manages all available game commands
 import { ConnectedClient } from '../types';
 import { Command } from './command.interface';
 import { colorize } from '../utils/colors';
@@ -8,6 +7,7 @@ import { UserManager } from '../user/userManager';
 import { RoomManager } from '../room/roomManager';
 import { CombatSystem } from '../combat/combatSystem';
 import { createContextLogger } from '../utils/logger';
+import { StateMachine } from '../state/stateMachine';
 
 // Create a context-specific logger for CommandRegistry
 const commandLogger = createContextLogger('CommandRegistry');
@@ -114,7 +114,7 @@ export class CommandRegistry {
     private roomManager: RoomManager,
     private combatSystem: CombatSystem,
     private userManager: UserManager,
-    private stateMachine: any, // Add StateMachine instance
+    private stateMachine: StateMachine, // Add StateMachine instance
     abilityManager: AbilityManager
   ) {
     this.commands = new Map<string, Command>();
@@ -129,7 +129,7 @@ export class CommandRegistry {
     roomManager: RoomManager,
     combatSystem: CombatSystem,
     userManager: UserManager,
-    stateMachine: any, // Add StateMachine instance
+    stateMachine: StateMachine, // Add StateMachine instance
     abilityManager: AbilityManager
   ): CommandRegistry {
     if (!CommandRegistry.instance) {

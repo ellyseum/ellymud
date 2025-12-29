@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Effect types use any for flexible effect parameters
 /**
  * Enum defining the different types of effects that can be applied to entities
  */
@@ -47,6 +45,7 @@ export interface EffectPayload {
   blockCombat?: boolean; // Whether combat is blocked
   metadata?: {
     // Custom metadata for specialized effects
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any; // Custom data associated with the effect
   };
   // Add more payload options as needed

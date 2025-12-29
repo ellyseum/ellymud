@@ -1,3 +1,9 @@
+/*
+ * EllyMUD
+ * Copyright (C) 2025 ellyseum
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Commercial licensing available via https://github.com/ellyseum
+ */
 import fs from 'fs';
 import path from 'path';
 import { ClientManager } from './client/clientManager';

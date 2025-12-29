@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Destroy command uses dynamic typing for item handling
+// Destroy command permanently removes an item from the game
 import { Command } from '../command.interface';
 import { ConnectedClient } from '../../types';
 import { colorize } from '../../utils/colors';
@@ -227,12 +226,10 @@ export class DestroyCommand implements Command {
    * Delete an item instance from the itemInstances map
    */
   private deleteItemInstance(instanceId: string): void {
-    // Get the Map of itemInstances from the ItemManager
-    const itemInstances = (this.itemManager as any).itemInstances;
-
-    // Check if it exists and delete it
-    if (itemInstances && itemInstances.has(instanceId)) {
-      itemInstances.delete(instanceId);
+    // Check if instance exists and delete it using public method
+    const instance = this.itemManager.getItemInstance(instanceId);
+    if (instance) {
+      this.itemManager.deleteItemInstance(instanceId);
 
       // Save the changes to disk
       this.itemManager.saveItemInstances();

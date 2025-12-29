@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Room manager uses dynamic typing for flexible room data handling
+// Room manager handles room data and NPC instantiation
 import fs from 'fs';
 import path from 'path';
 import { Room } from './room';
-import { ConnectedClient, Currency, Exit } from '../types';
+import { ConnectedClient, Currency, Exit, Item } from '../types';
 import { systemLogger } from '../utils/logger';
 import { NPC } from '../combat/npc';
 import { IRoomManager } from './interfaces';
@@ -30,9 +29,9 @@ interface RoomData {
   name?: string;
   description?: string;
   exits: Exit[];
-  items?: string[];
+  items?: (string | Item)[];
   players?: string[];
-  npcs?: string[];
+  npcs?: string[] | Map<string, NPC>;
   currency: Currency;
   flags?: string[];
 }
@@ -183,7 +182,7 @@ export class RoomManager implements IRoomManager {
     // First try to load rooms from command line argument if provided
     if (config.DIRECT_ROOMS_DATA) {
       try {
-        const roomDataArray = parseAndValidateJson<any[]>(config.DIRECT_ROOMS_DATA, 'rooms');
+        const roomDataArray = parseAndValidateJson<RoomData[]>(config.DIRECT_ROOMS_DATA, 'rooms');
 
         if (roomDataArray && Array.isArray(roomDataArray)) {
           this.loadPrevalidatedRooms(roomDataArray);
@@ -205,7 +204,7 @@ export class RoomManager implements IRoomManager {
     if (roomsMap.size > 0) {
       // Convert map values to array for loadPrevalidatedRooms
       const roomDataArray = Array.from(roomsMap.values());
-      this.loadPrevalidatedRooms(roomDataArray as any[]);
+      this.loadPrevalidatedRooms(roomDataArray as RoomData[]);
     } else {
       // No rooms found, save initial empty state
       this.saveRooms();

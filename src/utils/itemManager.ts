@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Item manager uses dynamic typing for flexible item property handling
 import { v4 as uuidv4 } from 'uuid';
 import config from '../config';
-import { EquipmentSlot, GameItem, ItemInstance, User } from '../types';
+import { EquipmentSlot, GameItem, Item, ItemInstance, User } from '../types';
 import { parseAndValidateJson } from './jsonUtils';
 import { createContextLogger } from './logger';
+import { Room } from '../room/room';
 
 // Create a context-specific logger for ItemManager
 const itemLogger = createContextLogger('ItemManager');
@@ -1024,14 +1024,14 @@ export class ItemManager {
    * Find an item instance in a room by name (partial match)
    * This helps commands work with names instead of just instance IDs
    */
-  public findItemInRoom(room: any, itemName: string): string | null {
+  public findItemInRoom(room: Room, itemName: string): string | null {
     if (!room.items || room.items.length === 0) {
       return null;
     }
 
     // Handle both string IDs and possible legacy object items in room
-    const roomItems = room.items.map((item: any) =>
-      typeof item === 'string' ? item : item.id || item
+    const roomItems = room.items.map((item: Item | string) =>
+      typeof item === 'string' ? item : item.name
     );
 
     // First try for exact instance ID match

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // MCP server uses dynamic typing for flexible API responses
 import express, { Request, Response } from 'express';
 import cors from 'cors';
@@ -12,6 +11,14 @@ import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { systemLogger, mcpLogger } from '../utils/logger';
 import { VirtualSessionManager } from './virtualSessionManager';
+
+// MCP protocol types
+interface MCPToolCallParams {
+  name: string;
+  arguments: Record<string, unknown>;
+}
+
+type MCPRequestId = string | number | null;
 
 /**
  * Strip ANSI escape codes from a string
@@ -1158,11 +1165,9 @@ export class MCPServer {
     }
 
     // Get the connection ID (which is used for the session log filename)
-    const sessionId = (userClient.connection as any).getId
-      ? (userClient.connection as any).getId()
-      : 'unknown';
+    const sessionId = userClient.connection.getId();
 
-    if (sessionId === 'unknown') {
+    if (!sessionId || sessionId === 'unknown') {
       throw new Error(`Unable to retrieve session ID for user '${username}'`);
     }
 
@@ -1545,8 +1550,10 @@ export class MCPServer {
   /**
    * Handle MCP tool call
    */
-  private async handleToolCall(params: any, id: any, res: Response) {
+  private async handleToolCall(params: MCPToolCallParams, id: MCPRequestId, res: Response) {
     const { name, arguments: args } = params;
+    // Cast args to Record for accessing properties by key
+    const toolArgs = args as Record<string, string | number | boolean | undefined>;
 
     try {
       let result;
@@ -1556,10 +1563,10 @@ export class MCPServer {
           result = await this.getOnlineUsers();
           break;
         case 'get_user_data':
-          result = await this.getUserData(args.username);
+          result = await this.getUserData(toolArgs.username as string);
           break;
         case 'get_room_data':
-          result = await this.getRoomData(args.roomId);
+          result = await this.getRoomData(toolArgs.roomId as string);
           break;
         case 'get_all_rooms':
           result = await this.getAllRooms();
@@ -1577,34 +1584,47 @@ export class MCPServer {
           result = await this.getGameConfig();
           break;
         case 'tail_user_session':
-          result = await this.tailUserSession(args.username, args.lines);
+          result = await this.tailUserSession(
+            toolArgs.username as string | undefined,
+            toolArgs.lines as number | undefined
+          );
           break;
         case 'virtual_session_create':
           result = this.createVirtualSession();
           break;
         case 'virtual_session_command':
-          result = await this.sendVirtualCommand(args.sessionId, args.command, args.waitMs);
+          result = await this.sendVirtualCommand(
+            toolArgs.sessionId as string,
+            toolArgs.command as string,
+            toolArgs.waitMs as number | undefined
+          );
           break;
         case 'virtual_session_info':
-          result = this.getVirtualSessionInfo(args.sessionId);
+          result = this.getVirtualSessionInfo(toolArgs.sessionId as string);
           break;
         case 'virtual_session_close':
-          result = this.closeVirtualSession(args.sessionId);
+          result = this.closeVirtualSession(toolArgs.sessionId as string);
           break;
         case 'virtual_sessions_list':
           result = this.listVirtualSessions();
           break;
         case 'create_temp_user':
-          result = this.createTempUser(args.username);
+          result = this.createTempUser(toolArgs.username as string | undefined);
           break;
         case 'direct_login':
-          result = this.directLogin(args.username, args.isAdmin);
+          result = this.directLogin(
+            toolArgs.username as string,
+            toolArgs.isAdmin as boolean | undefined
+          );
           break;
         case 'load_test_snapshot':
-          result = await this.loadTestSnapshot(args.name);
+          result = await this.loadTestSnapshot(toolArgs.name as string);
           break;
         case 'save_test_snapshot':
-          result = await this.saveTestSnapshot(args.name, args.overwrite);
+          result = await this.saveTestSnapshot(
+            toolArgs.name as string,
+            toolArgs.overwrite as boolean | undefined
+          );
           break;
         case 'reset_game_state':
           result = await this.resetGameState();
@@ -1613,16 +1633,25 @@ export class MCPServer {
           result = this.listTestSnapshots();
           break;
         case 'set_player_stats':
-          result = this.setPlayerStats(args);
+          result = this.setPlayerStats({
+            username: toolArgs.username as string,
+            health: toolArgs.health as number | undefined,
+            maxHealth: toolArgs.maxHealth as number | undefined,
+            mana: toolArgs.mana as number | undefined,
+            maxMana: toolArgs.maxMana as number | undefined,
+            gold: toolArgs.gold as number | undefined,
+            experience: toolArgs.experience as number | undefined,
+            level: toolArgs.level as number | undefined,
+          });
           break;
         case 'advance_game_ticks':
-          result = this.advanceGameTicks(args.ticks);
+          result = this.advanceGameTicks(toolArgs.ticks as number);
           break;
         case 'get_game_tick':
           result = this.getGameTick();
           break;
         case 'set_test_mode':
-          result = this.setTestMode(args.enabled);
+          result = this.setTestMode(toolArgs.enabled as boolean);
           break;
         default:
           res.status(400).json({

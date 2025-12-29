@@ -20,7 +20,7 @@ const TERMINAL_TYPE = 24;
 const NAWS = 31; // Negotiate About Window Size
 const LINEMODE = 34;
 
-export class TelnetConnection extends EventEmitter implements IConnection {
+export class TelnetConnection extends EventEmitter implements IConnection<Socket> {
   private socket: Socket;
   private id: string;
   private maskInput: boolean = false;

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // User monitoring uses dynamic typing for flexible admin inspection
 import { ConnectedClient } from '../types';
 import { ClientManager } from '../client/clientManager';
@@ -259,7 +258,7 @@ export class UserMonitor {
   private startMonitoringSessionInternal(
     targetClient: ConnectedClient,
     username: string,
-    monitorConsoleTransport: any
+    monitorConsoleTransport: winston.transport | null
   ): void {
     let userSudoEnabled = false; // Track if sudo access is enabled
 
@@ -269,13 +268,17 @@ export class UserMonitor {
     targetClient.isBeingMonitored = true;
 
     // Create a hook to intercept and display client output for the admin
+    // Runtime patching - dynamically adding originalWrite property to connection
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!(targetClient.connection as any).originalWrite) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (targetClient.connection as any).originalWrite = targetClient.connection.write;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const originalWrite = (targetClient.connection as any).originalWrite;
 
     targetClient.connection.write = (
-      data: any,
+      data: string | Buffer,
       encoding?: BufferEncoding | undefined,
       cb?: ((err?: Error | undefined) => void) | undefined
     ): boolean => {
@@ -296,9 +299,12 @@ export class UserMonitor {
       // Remove all listeners FIRST
       process.stdin.removeAllListeners('data');
 
-      // Restore the original write function
+      // Restore the original write function - runtime patching cleanup
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((targetClient.connection as any).originalWrite) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         targetClient.connection.write = (targetClient.connection as any).originalWrite;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (targetClient.connection as any).originalWrite;
       }
 

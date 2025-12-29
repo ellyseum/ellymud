@@ -1,11 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Room class uses dynamic typing for flexible room data handling
+// Room class handles individual room state and rendering
 import { formatUsername } from '../utils/formatters';
 import { colorize } from '../utils/colors';
 import { Currency, Exit, Item } from '../types';
 import { ItemManager } from '../utils/itemManager';
 import { NPC } from '../combat/npc';
 import { colorizeItemName } from '../utils/itemNameColorizer';
+
+/** Data structure for constructing a Room */
+interface RoomConstructorData {
+  id: string;
+  name?: string;
+  shortDescription?: string;
+  description?: string;
+  longDescription?: string;
+  exits?: Exit[];
+  players?: string[];
+  flags?: string[];
+  itemInstances?: Map<string, string> | Array<{ instanceId: string; templateId: string }>;
+  items?: (string | Item)[];
+  objects?: (string | Item)[];
+  currency?: Currency;
+  npcs?: Map<string, NPC> | string[];
+}
 
 export class Room {
   id: string;
@@ -19,17 +35,17 @@ export class Room {
   private itemInstances: Map<string, string> = new Map(); // instanceId -> templateId
 
   // Keep the old items array for backward compatibility during migration
-  items: Item[] = [];
+  items: (string | Item)[] = [];
 
   currency: Currency = { gold: 0, silver: 0, copper: 0 };
   npcs: Map<string, NPC> = new Map();
   private itemManager: ItemManager;
   public hasChanged: boolean = false;
 
-  constructor(room: any) {
+  constructor(room: RoomConstructorData) {
     this.id = room.id;
-    this.name = room.name || room.shortDescription;
-    this.description = room.description || room.longDescription;
+    this.name = room.name || room.shortDescription || 'Unknown Room';
+    this.description = room.description || room.longDescription || '';
     this.exits = room.exits || [];
     this.players = room.players || [];
     this.flags = room.flags || [];
@@ -249,7 +265,7 @@ export class Room {
    * @param item The item object or string ID
    * @returns The name to display for the item
    */
-  private getItemName(item: any): string {
+  private getItemName(item: Item | string): string {
     if (typeof item === 'object' && item !== null && 'name' in item) {
       return item.name;
     } else if (typeof item === 'string') {

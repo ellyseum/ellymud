@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Connection interface uses any for raw connection access
+// Generic connection interface parameterized by raw connection type
 import { EventEmitter } from 'events';
 
-export interface IConnection extends EventEmitter {
+export interface IConnection<TRaw = unknown> extends EventEmitter {
   // Core methods
   write(data: string): void;
   end(): void;
@@ -14,8 +13,8 @@ export interface IConnection extends EventEmitter {
   // Specific options for different connection types
   setMaskInput(mask: boolean): void;
 
-  // Raw socket/connection access if needed by implementation
-  getRawConnection(): any;
+  // Raw socket/connection access - returns the underlying connection type
+  getRawConnection(): TRaw;
   remoteAddress?: string;
 
   // Raw session logging

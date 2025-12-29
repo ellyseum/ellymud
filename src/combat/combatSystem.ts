@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Combat system uses dynamic typing for entity handling
+// Combat system orchestrates combat interactions between players and NPCs
 import { ConnectedClient } from '../types';
 import { Combat } from './combat';
 import { CombatEntity } from './combatEntity.interface';
@@ -126,7 +125,7 @@ export class CombatSystem {
 
     const roomId = player.user.currentRoomId;
     // Ensure we're using the instance ID for NPCs
-    const entityName = (target as any).instanceId || target.name;
+    const entityName = target instanceof NPC ? target.instanceId : target.name;
     const entityId = this.getEntityId(roomId, entityName);
     const playerLogger = getPlayerLogger(player.user.username);
 

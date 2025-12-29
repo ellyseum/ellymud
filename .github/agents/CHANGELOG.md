@@ -2,6 +2,155 @@
 
 All notable changes to the EllyMUD agent ecosystem are documented here.
 
+## [1.1.0] - 2025-12-29
+
+Major update to the agent ecosystem with new testing agents, comprehensive improvements based on 24 grade reports, and significant infrastructure enhancements.
+
+### New Agents
+
+- **Unit Test Creator Agent** (`unit-test-creator.agent.md`)
+  - Creates individual test files with comprehensive coverage
+  - Follows project conventions and ESLint compliance
+  - Produces high-quality, idiomatic unit tests
+
+- **Unit Test Orchestrator Agent** (`unit-test-orchestrator.agent.md`)
+  - Coordinates test generation across the codebase
+  - Analyzes coverage and delegates to Unit Test Creator
+  - Tracks progress and manages test generation campaigns
+
+- **E2E Tester Agent** (`e2e-tester.agent.md`)
+  - Programmatic end-to-end testing using MCP tools
+  - Verifies features work correctly from a player's perspective
+  - Integrated with TesterAgent class for Jest E2E tests
+  - Full time/state control with snapshot-based state management
+
+### Agent Improvements (Update Plan UP-20251225-001)
+
+Based on analysis of 24 grade reports across 5 pipelines:
+
+#### Research Agent (6 changes)
+- Add citation verification step (P0)
+- Add scope boundaries to Core Principles
+- Standardize assumption format
+- Require test scenarios as tables
+- Add code snippet guidelines
+- Add document integrity checks
+
+#### Planning Agent (6 changes)
+- Add verify all references to Core Principles (P0)
+- Add line number precision requirement
+- Add edge case identification checklist
+- Add multi-part plan coordination guidance
+- Add stateful class requirements
+- Add TypeScript best practices
+
+#### Implementation Agent (6 changes)
+- Add deferral policy to Core Principles
+- Add documenting unplanned changes requirement (P1)
+- Add metric verification using tools
+- Add report conciseness guidelines
+- Add deviation documentation format
+- Add handoff section requirements
+- Add EllyMUD coding pitfalls section
+
+#### Validation Agent (7 changes)
+- Add mandatory regression checks section (P0)
+- Add safe server cleanup compliance
+- Add verbatim test output requirement
+- Add file metric verification
+- Add build evidence requirements
+- Add appendix guidelines
+- Add stats file requirement
+
+#### Post-Mortem Agent (6 changes)
+- Add mandatory agent diffs requirement (P0)
+- Add action item ownership requirements
+- Add token estimation methodology
+- Add appendix completeness requirement
+- Add review agent analysis section
+- Add action item specificity requirements
+
+#### Documentation Updater Agent (4 changes)
+- Add when to update each file type guidance (P1)
+- Add ASCII diagram clarification for README.md
+- Add verification evidence requirements
+- Add document length management for AGENTS.md
+
+### Pipeline Enhancements
+
+- **Mandatory Output Review Steps**: All main agent outputs now require Output Review Agent approval before proceeding (Phases 11.4 and 12.5)
+- **Mandatory Delegation**: Added explicit runSubagent delegation instructions to Problem Solver phases 2, 4, 6, 8, 11.4, 12.5
+- **Pipeline Metrics Finalization**: Added mandatory 'FINALIZE PIPELINE METRICS' step (todo item #18) with explicit metrics checklist
+- **17-Step Pipeline**: Updated todo list template to show all 17 pipeline steps including reviews
+
+### New Infrastructure
+
+- **Agent Updater System** (`agent-updater.agent.md`)
+  - Analyzes grade reports across all agents
+  - Aggregates improvement suggestions
+  - Creates update plans for the agent ecosystem
+  - Tracks processed grades in update-matrix.md
+
+- **Pipeline Metrics Dashboard**
+  - Professional Node.js dashboard for viewing pipeline executions
+  - Auto-generates pipeline report on startup
+  - Interactive charts with Chart.js (stage performance, token usage, complexity, tool usage, duration)
+  - API endpoints: `/api/stats`, `/api/executions`, `/api/summary`, `/api/report`
+  - Stage report browsing: `/research`, `/planning`, `/implementation`, `/validation`
+  - Usage: `node .github/agents/metrics/server.js [port]` (default: 3200)
+
+- **Updates Directory** (`.github/agents/updates/`)
+  - AGENTS.md: LLM context for the updates system
+  - README.md: Human-readable documentation
+  - update-matrix.md: Grade tracking matrix for processed grades
+
+- **Documentation Directory** (`.github/agents/documentation/`)
+  - Added README.md and AGENTS.md for documentation agent outputs
+
+### Testing Infrastructure
+
+- **TesterAgent Class**: Programmatic E2E testing with full time/state control
+- **StateLoader**: Snapshot-based state management for tests
+- **Test Mode Options**: Random high ports to avoid conflicts
+- **MCP Tools**: `advance_game_ticks`, `get_game_tick`, `set_test_mode` for time control
+- **Fresh Snapshot**: Added `data/test-snapshots/fresh/` for baseline state
+
+### Pipeline Metrics Schema Enhancements
+
+- Add `statsFiles` object to reference individual agent stats files
+- Add `outputs` object with original/reviewed/gradeReport/summary/changeSuggestions
+- Add `aggregatedFromStats` for totals from stats files (toolCalls, tokens, quality)
+- Add `score`, `verdict`, `skipped`, `tokensUsed`, `statsFile` to stageMetrics
+- Add `stageOutputFiles` definition for consistent output tracking
+- Add `endDate` and `filesReverted` fields
+
+### Documentation Updates
+
+- Add `.github/` README prohibition rule (NEVER create `.github/README.md`)
+- Add TypeScript types convention (#8): no `any`/`Function` types
+- Add Jest deprecated flags warning (`--testPathPattern` → `--testPathPatterns`)
+- Add critical line ending bug warning for command output
+
+### Agents Updated
+
+All 13 agents updated to version 1.1.0:
+
+- `agent-post-mortem.agent.md`
+- `agent-updater.agent.md`
+- `documentation-updater.agent.md`
+- `e2e-tester.agent.md`
+- `implementation-agent.agent.md`
+- `output-review.agent.md`
+- `planning-agent.agent.md`
+- `problem-solver-orchestrator-manager.agent.md`
+- `research-agent.agent.md`
+- `rollback.agent.md`
+- `unit-test-creator.agent.md`
+- `unit-test-orchestrator.agent.md`
+- `validation-agent.agent.md`
+
+---
+
 ## [1.0.0] - 2025-12-22
 
 Initial release of the multi-agent development pipeline.

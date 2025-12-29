@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Addflag command uses dynamic typing for flexible flag handling
+// Addflag command adds a flag to a user's profile
 import { ConnectedClient } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
@@ -48,7 +47,7 @@ export class AddFlagCommand implements Command {
 
     // Join the value tokens back together
     const valueRaw = valueTokens.join(' ');
-    let value: any;
+    let value: string | number | boolean;
 
     // Try to parse value as numeric or boolean if possible
     if (valueRaw === 'true') {

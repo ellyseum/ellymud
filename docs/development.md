@@ -2,6 +2,8 @@
 
 This guide provides detailed information for developers who want to contribute to EllyMUD or extend it for their own purposes.
 
+License: AGPL-3.0-or-later; commercial/proprietary licensing available via https://github.com/ellyseum.
+
 ## Table of Contents
 
 - [Development Environment Setup](#development-environment-setup)

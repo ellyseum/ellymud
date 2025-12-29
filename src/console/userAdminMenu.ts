@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // User admin menu uses dynamic typing for flexible admin operations
 import { UserManager } from '../user/userManager';
 import { ClientManager } from '../client/clientManager';
@@ -46,7 +45,7 @@ export class UserAdminMenu {
   };
 
   // Store console transport to restore later
-  private _userAdminConsoleTransport: any = null;
+  private _userAdminConsoleTransport: winston.transport | winston.transport[] | null = null;
 
   constructor(
     userManager: UserManager,
@@ -207,7 +206,13 @@ export class UserAdminMenu {
 
       // Restore console logging before returning
       if (this._userAdminConsoleTransport) {
-        systemLogger.add(this._userAdminConsoleTransport);
+        if (Array.isArray(this._userAdminConsoleTransport)) {
+          this._userAdminConsoleTransport.forEach((transport) => {
+            systemLogger.add(transport);
+          });
+        } else {
+          systemLogger.add(this._userAdminConsoleTransport);
+        }
         systemLogger.info('Console logging restored after user admin menu.');
       }
 

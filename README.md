@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ellyseum/ellymud/actions/workflows/ci.yml/badge.svg)](https://github.com/ellyseum/ellymud/actions/workflows/ci.yml)
 [![GitHub Code Scanning](https://github.com/ellyseum/ellymud/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/ellyseum/ellymud/security/code-scanning)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-green.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-green)](https://www.typescriptlang.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -389,7 +389,7 @@ EllyMUD draws inspiration from classic MUDs like [MajorMUD](https://en.wikipedia
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the AGPL-3.0-or-later License - see the [LICENSE](LICENSE) file for details. Commercial/proprietary licensing is available on request; contact via GitHub at https://github.com/ellyseum.
 
 ## 🤝 Community
 

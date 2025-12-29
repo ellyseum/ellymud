@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Effect command uses dynamic typing for effect handling
+// Effect command manages temporary effects on players and NPCs
 import { Command } from '../command.interface';
 import { ConnectedClient } from '../../types';
 import { writeFormattedMessageToClient } from '../../utils/socketWriter';
 import { UserManager } from '../../user/userManager';
 import { RoomManager } from '../../room/roomManager';
 import { EffectManager } from '../../effects/effectManager';
-import { EffectType } from '../../types/effects';
+import { EffectType, EffectPayload } from '../../types/effects';
 import { getPlayerLogger } from '../../utils/logger'; // Import our loggers
 
 export class EffectCommand implements Command {
@@ -162,8 +161,9 @@ export class EffectCommand implements Command {
     const durationTicks = duration;
 
     // Create effect payload
-    const effectPayload: any = {
-      amount: amount,
+    const effectPayload: EffectPayload = {
+      damagePerTick: amount > 0 ? amount : undefined,
+      healPerTick: amount < 0 ? -amount : undefined,
     };
 
     // Add specific effect type properties

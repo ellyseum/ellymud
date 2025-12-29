@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Core types use any for flexible state data handling
+import type { StateData, AdminMonitorSocket } from '../types';
+
 export enum ClientStateType {
   CONNECTING = 'connecting',
   LOGIN = 'login',
@@ -18,12 +18,12 @@ export interface ConnectedClient {
   connection: SocketConnection;
   buffer: string;
   state: ClientState;
-  stateData: any;
+  stateData: StateData;
   isTyping: boolean;
   outputBuffer: string[];
   authenticated: boolean;
   user?: UserData;
-  adminMonitorSocket?: any;
+  adminMonitorSocket?: AdminMonitorSocket;
   isBeingMonitored?: boolean;
   commandHistory?: string[]; // Add command history for up/down arrow navigation
 }

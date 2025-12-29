@@ -2,6 +2,8 @@
 
 User and developer documentation for EllyMUD.
 
+License: AGPL-3.0-or-later; commercial/proprietary licensing available via https://github.com/ellyseum.
+
 ## Contents
 
 | Path                 | Description                                      |

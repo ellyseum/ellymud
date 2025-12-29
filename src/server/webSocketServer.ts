@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // WebSocket server uses any for socket handling
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { systemLogger } from '../utils/logger';
 import { SocketIOConnection } from '../connection/socketio.connection';
+import { IConnection } from '../connection/interfaces/connection.interface';
 import { ConnectedClient, ServerStats } from '../types';
 import { RoomManager } from '../room/roomManager';
 import { colorize } from '../utils/colors';
@@ -24,7 +24,7 @@ export class WebSocketServer {
     httpServer: http.Server,
     clients: Map<string, ConnectedClient>,
     serverStats: ServerStats,
-    setupClientFn: (connection: any) => void,
+    setupClientFn: (connection: IConnection) => void,
     handleClientDataFn: (client: ConnectedClient, data: string) => void,
     processInputFn: (client: ConnectedClient, input: string) => void
   ) {

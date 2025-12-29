@@ -1,8 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // File validation uses any for flexible JSON structure validation
 import fs from 'fs';
 import path from 'path';
 import { parseAndValidateJson, formatValidationErrors, JsonValidationError } from './jsonUtils';
+
+// Type for validated data - represents any valid JSON structure
+type ValidatedData = Record<string, unknown> | unknown[] | unknown;
 
 /**
  * Validates a JSON file against the appropriate schema
@@ -17,7 +19,7 @@ function validateJsonFile(
 ): {
   valid: boolean;
   message: string;
-  data?: any;
+  data?: ValidatedData;
 } {
   try {
     if (!fs.existsSync(filePath)) {

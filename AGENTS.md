@@ -629,3 +629,11 @@ Specialized agents are available in `.github/agents/`:
 | Documentation Updater | Maintain README/AGENTS files |
 
 See [.github/agents/AGENTS.md](.github/agents/AGENTS.md) for full agent documentation.
+
+---
+
+## License & Commercial Contact
+
+- Open source: AGPL-3.0-or-later (see [LICENSE](LICENSE)).
+- Commercial/proprietary licensing: available on request via GitHub at https://github.com/ellyseum.
+

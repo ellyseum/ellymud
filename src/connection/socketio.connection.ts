@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import { IConnection } from './interfaces/connection.interface';
 import { getSessionLogger, closeSessionLogger } from '../utils/rawSessionLogger';
 
-export class SocketIOConnection extends EventEmitter implements IConnection {
+export class SocketIOConnection extends EventEmitter implements IConnection<Socket> {
   private socket: Socket;
   private id: string;
   private maskInput: boolean = false;

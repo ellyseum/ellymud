@@ -1,3 +1,9 @@
+/*
+ * EllyMUD
+ * Copyright (C) 2025 ellyseum
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Commercial licensing available via https://github.com/ellyseum
+ */
 import { ConnectedClient } from '../types';
 import { drawCommandPrompt } from './promptFormatter';
 

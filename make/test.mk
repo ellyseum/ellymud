@@ -21,6 +21,10 @@ test-e2e: ## Run end-to-end tests
 	@printf "$(BLUE)Running E2E tests...$(NC)\n"
 	npm run test:e2e
 
+test-all: ## Run all tests (unit + e2e)
+	@printf "$(BLUE)Running all tests (unit + e2e)...$(NC)\n"
+	npm run test:all
+
 test-watch: ## Run tests in watch mode
 	@printf "$(BLUE)Starting test watch mode...$(NC)\n"
 	npm run test:watch

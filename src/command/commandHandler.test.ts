@@ -86,17 +86,28 @@ jest.mock('./commandRegistry', () => ({
   },
 }));
 
+// Mock the StateMachine
+jest.mock('../state/stateMachine', () => ({
+  StateMachine: jest.fn().mockImplementation(() => ({
+    getState: jest.fn(),
+    setState: jest.fn(),
+    processInput: jest.fn(),
+  })),
+}));
+
 // Mock the commands index
 jest.mock('./commands', () => ({}));
 
 import { writeToClient, drawCommandPrompt } from '../utils/socketWriter';
 import { CommandRegistry } from './commandRegistry';
+import { StateMachine } from '../state/stateMachine';
 
 describe('CommandHandler', () => {
   let commandHandler: CommandHandler;
   let mockClients: Map<string, ConnectedClient>;
   let mockUserManager: ReturnType<typeof createMockUserManager>;
   let mockRoomManager: ReturnType<typeof createMockRoomManager>;
+  let mockStateMachine: StateMachine;
   let mockRegistry: jest.Mocked<{
     getCommand: jest.Mock;
     isDirectionCommand: jest.Mock;
@@ -110,6 +121,7 @@ describe('CommandHandler', () => {
     mockUserManager = createMockUserManager();
     mockRoomManager = createMockRoomManager();
     (mockRoomManager as unknown as { briefLookRoom: jest.Mock }).briefLookRoom = jest.fn();
+    mockStateMachine = new StateMachine(mockUserManager, mockClients);
 
     // Get reference to the mock registry
     mockRegistry = (CommandRegistry.getInstance as jest.Mock).mock.results[0]?.value || {
@@ -124,7 +136,7 @@ describe('CommandHandler', () => {
       mockUserManager,
       mockRoomManager as never,
       undefined,
-      undefined
+      mockStateMachine
     );
   });
 

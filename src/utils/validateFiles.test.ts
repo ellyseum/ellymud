@@ -78,7 +78,7 @@ describe('validateFiles', () => {
       mockFs.readFileSync.mockReturnValue('{"invalid": "data"}');
       mockParseAndValidateJson.mockImplementation(() => {
         const error = new JsonValidationError('Validation failed', [
-          { path: '/id', message: 'is required' },
+          { instancePath: '/id', message: 'is required' },
         ]);
         throw error;
       });

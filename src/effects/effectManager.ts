@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Effect manager uses dynamic typing for effect handling
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
@@ -652,25 +651,21 @@ export class EffectManager extends EventEmitter {
   /**
    * Handle NPC death (similar to CombatSystem logic)
    */
-  private handleNpcDeath(npc: any, npcId: string, roomId: string): void {
-    effectLogger.info(`handleNpcDeath called for ${npc?.name}, npcId=${npcId}, roomId=${roomId}`);
+  private handleNpcDeath(npc: NPC, npcId: string, roomId: string): void {
+    effectLogger.info(`handleNpcDeath called for ${npc.name}, npcId=${npcId}, roomId=${roomId}`);
     effectLogger.info(
-      `NPC instanceof NPC: ${npc instanceof NPC}, has generateDrops: ${typeof npc?.generateDrops}, inventory: ${JSON.stringify(npc?.inventory || [])}`
+      `NPC instanceof NPC: ${npc instanceof NPC}, has generateDrops: ${typeof npc.generateDrops}, inventory: ${JSON.stringify(npc.inventory || [])}`
     );
 
     // Generate and drop items from NPC inventory using shared handler
-    if (npc instanceof NPC || npc.generateDrops) {
-      const itemManager = ItemManager.getInstance();
-      const drops = handleNpcDrops(npc as NPC, roomId, this.roomManager, itemManager);
+    const itemManager = ItemManager.getInstance();
+    const drops = handleNpcDrops(npc, roomId, this.roomManager, itemManager);
 
-      effectLogger.info(`handleNpcDrops returned ${drops.length} drops`);
+    effectLogger.info(`handleNpcDrops returned ${drops.length} drops`);
 
-      // Notify room about dropped items
-      for (const drop of drops) {
-        this.notifyRoom(npcId, `The ${npc.name} dropped ${drop.itemName}!`);
-      }
-    } else {
-      effectLogger.warn(`NPC ${npc?.name} is not an NPC instance and has no generateDrops`);
+    // Notify room about dropped items
+    for (const drop of drops) {
+      this.notifyRoom(npcId, `The ${npc.name} dropped ${drop.itemName}!`);
     }
 
     // Remove NPC from room
@@ -848,7 +843,7 @@ export class EffectManager extends EventEmitter {
   /**
    * Find an NPC by its instance ID
    */
-  private findNpcById(npcInstanceId: string): any {
+  private findNpcById(npcInstanceId: string): NPC | null {
     // Search through rooms to find the NPC by instance ID
     const roomId = this.findRoomForNpc(npcInstanceId);
     if (!roomId) {

@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Pickup command handles various item types with dynamic properties
-import { ConnectedClient, Currency } from '../../types';
+// Pickup command allows players to pick up items and currency from rooms
+import { ConnectedClient, Currency, Item } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
 import { RoomManager } from '../../room/roomManager';
+import { Room } from '../../room/room';
 import { UserManager } from '../../user/userManager';
 import { ItemManager } from '../../utils/itemManager';
 import { formatUsername } from '../../utils/formatters';
@@ -188,11 +188,15 @@ export class PickupCommand implements Command {
   /**
    * Try to migrate a legacy item to an instance or pick it up as a legacy item
    */
-  private tryMigrateOrPickupLegacyItem(client: ConnectedClient, room: any, itemName: string): void {
+  private tryMigrateOrPickupLegacyItem(
+    client: ConnectedClient,
+    room: Room,
+    itemName: string
+  ): void {
     if (!client.user || !room.items) return;
 
     // Find the item in the room
-    let itemIndex = room.items.findIndex((item: any) => {
+    let itemIndex = room.items.findIndex((item: Item | string) => {
       const name = typeof item === 'string' ? item : item.name;
 
       // Try to match by item ID directly
@@ -213,7 +217,7 @@ export class PickupCommand implements Command {
 
     if (itemIndex === -1) {
       // Second pass: try partial matching for convenience
-      const itemIndexPartial = room.items.findIndex((item: any) => {
+      const itemIndexPartial = room.items.findIndex((item: Item | string) => {
         const name = typeof item === 'string' ? item : item.name;
 
         // Try partial match on item ID
@@ -324,7 +328,7 @@ export class PickupCommand implements Command {
     return null;
   }
 
-  private pickupCurrency(client: ConnectedClient, room: any, type: CurrencyType): void {
+  private pickupCurrency(client: ConnectedClient, room: Room, type: CurrencyType): void {
     if (!client.user) return;
 
     const amount = room.currency[type];
@@ -379,7 +383,7 @@ export class PickupCommand implements Command {
 
   private pickupSpecificCurrency(
     client: ConnectedClient,
-    room: any,
+    room: Room,
     type: CurrencyType,
     amount: number
   ): void {
@@ -463,7 +467,7 @@ export class PickupCommand implements Command {
    */
   private tryPickupItemInstance(
     client: ConnectedClient,
-    room: any,
+    room: Room,
     itemIdentifier: string
   ): boolean {
     if (!client.user) return false;
@@ -550,11 +554,11 @@ export class PickupCommand implements Command {
    * Pick up a specific item instance from the room by instance ID
    * Now supports partial IDs with proper handling of ambiguous cases
    */
-  private pickupItemInstance(client: ConnectedClient, room: any, instanceId: string): void {
+  private pickupItemInstance(client: ConnectedClient, room: Room, instanceId: string): void {
     if (!client.user) return;
 
     // If this is an exact match, use it directly
-    if (room.itemInstances.has(instanceId)) {
+    if (room.hasItemInstance(instanceId) === true) {
       this.processPickupItem(client, room, instanceId);
       return;
     }
@@ -591,13 +595,12 @@ export class PickupCommand implements Command {
    * Process the actual pickup of an item
    * Separated from the lookup logic for cleaner code
    */
-  private processPickupItem(client: ConnectedClient, room: any, instanceId: string): void {
+  private processPickupItem(client: ConnectedClient, room: Room, instanceId: string): void {
     if (!client.user) return;
 
     // Get the instance and template data for display purposes
     const templateId = room.getItemInstances().get(instanceId);
     const instance = this.itemManager.getItemInstance(instanceId);
-    const template = this.itemManager.getItem(templateId);
 
     // Validate the item instance exists in ItemManager
     if (!instance) {
@@ -617,6 +620,9 @@ export class PickupCommand implements Command {
       );
       return;
     }
+
+    // Get the template (templateId could be undefined if not in room's map)
+    const template = templateId ? this.itemManager.getItem(templateId) : undefined;
 
     if (!template) {
       writeToClient(
@@ -681,11 +687,11 @@ export class PickupCommand implements Command {
    * Legacy method for picking up items from the old system
    * @deprecated Use tryMigrateOrPickupLegacyItem instead which attempts to migrate to the new instance system
    */
-  private pickupLegacyItem(client: ConnectedClient, room: any, itemName: string): void {
+  private pickupLegacyItem(client: ConnectedClient, room: Room, itemName: string): void {
     if (!client.user || !room.items) return;
 
     // Find the item in the room
-    let itemIndex = room.items.findIndex((item: any) => {
+    let itemIndex = room.items.findIndex((item: Item | string) => {
       const name = typeof item === 'string' ? item : item.name;
 
       // Try to match by item ID directly
@@ -706,7 +712,7 @@ export class PickupCommand implements Command {
 
     if (itemIndex === -1) {
       // Second pass: try partial matching for convenience
-      const itemIndexPartial = room.items.findIndex((item: any) => {
+      const itemIndexPartial = room.items.findIndex((item: Item | string) => {
         const name = typeof item === 'string' ? item : item.name;
 
         // Try partial match on item ID
@@ -773,7 +779,7 @@ export class PickupCommand implements Command {
   /**
    * Notify other players in the room about an action
    */
-  private notifyOthersInRoom(client: ConnectedClient, room: any, message: string): void {
+  private notifyOthersInRoom(client: ConnectedClient, room: Room, message: string): void {
     if (!client.user) return;
 
     // Look for other clients in the room
@@ -794,7 +800,7 @@ export class PickupCommand implements Command {
   /**
    * Checks if there are any item instances in the room that match the given name
    */
-  private hasItemInstanceMatchingName(room: any, name: string): boolean {
+  private hasItemInstanceMatchingName(room: Room, name: string): boolean {
     const itemInstances = room.getItemInstances();
     if (itemInstances.size === 0) {
       return false;
@@ -841,12 +847,12 @@ export class PickupCommand implements Command {
    * Checks both raw item names and display names from ItemManager
    * @deprecated Use hasItemInstanceMatchingName instead whenever possible
    */
-  private hasLegacyItemMatchingName(room: any, name: string): boolean {
+  private hasLegacyItemMatchingName(room: Room, name: string): boolean {
     if (!room.items || room.items.length === 0) {
       return false;
     }
 
-    return room.items.some((item: any) => {
+    return room.items.some((item: Item | string) => {
       const itemName = typeof item === 'string' ? item : item.name;
 
       // Try exact match on item ID

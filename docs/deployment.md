@@ -2,6 +2,8 @@
 
 This guide covers deploying EllyMUD to production environments.
 
+License: AGPL-3.0-or-later; commercial/proprietary licensing available via https://github.com/ellyseum.
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)

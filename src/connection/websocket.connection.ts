@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// WebSocket connection uses any for raw connection access
+// WebSocket connection implementation
 import { EventEmitter } from 'events';
 import WebSocket from 'ws';
 import { IConnection } from './interfaces/connection.interface';
 import { getSessionLogger, closeSessionLogger } from '../utils/rawSessionLogger';
 
-export class WebSocketConnection extends EventEmitter implements IConnection {
+export class WebSocketConnection extends EventEmitter implements IConnection<WebSocket> {
   private id: string;
   private maskInput: boolean = false;
   private buffer: string = '';
@@ -120,7 +119,9 @@ export class WebSocketConnection extends EventEmitter implements IConnection {
   // Add remote address getter
   get remoteAddress(): string {
     // Extract client IP address from WebSocket
-    const ip = (this.ws as any)._socket?.remoteAddress || 'unknown';
+    // WebSocket from ws library has internal _socket property
+    const wsWithSocket = this.ws as WebSocket & { _socket?: { remoteAddress?: string } };
+    const ip = wsWithSocket._socket?.remoteAddress || 'unknown';
     return ip;
   }
 

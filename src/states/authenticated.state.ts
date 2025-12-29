@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Authenticated state uses any for NPC room checking
 import { ClientState, ClientStateType, ConnectedClient, User } from '../types';
 import { colorize } from '../utils/colors';
@@ -9,6 +8,7 @@ import {
 } from '../utils/socketWriter';
 import { formatUsername } from '../utils/formatters';
 import { RoomManager } from '../room/roomManager';
+import { Room } from '../room/room';
 import { UserManager } from '../user/userManager';
 import { CombatSystem } from '../combat/combatSystem';
 import { CommandHandler } from '../utils/commandHandler';
@@ -52,13 +52,18 @@ export class AuthenticatedState implements ClientState {
     // Wire AbilityManager to CombatSystem for combat abilities
     this.combatSystem.setAbilityManager(this.abilityManager);
 
+    // StateMachine is required for CommandRegistry
+    if (!this.stateMachine) {
+      throw new Error('AuthenticatedState requires a StateMachine instance');
+    }
+
     // Use the singleton instance of CommandRegistry
     this.commandRegistry = CommandRegistry.getInstance(
       clients,
       this.roomManager,
       this.combatSystem,
       this.userManager,
-      this.stateMachine || null, // Pass stateMachine instance or null if not provided
+      this.stateMachine,
       this.abilityManager
     );
 
@@ -375,7 +380,7 @@ export class AuthenticatedState implements ClientState {
    * Check for hostile NPCs in the room and add them to combat entities list
    * so they can attack players automatically
    */
-  private checkForHostileNPCs(client: ConnectedClient, room: any): void {
+  private checkForHostileNPCs(client: ConnectedClient, room: Room): void {
     if (!client.user || !room || !room.npcs || !room.npcs.size) return;
 
     authStateLogger.debug(

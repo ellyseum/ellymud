@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// NPC interaction service uses any for NPC template data
+// NPC interaction service instantiates NPCs from templates
 import { INPCInteractionService } from '../interfaces';
 import { Room } from '../room';
 import { NPC, NPCData } from '../../combat/npc';
@@ -69,7 +68,7 @@ export class NPCInteractionService implements INPCInteractionService {
   public instantiateNpcsFromTemplates(
     room: Room,
     npcTemplateIds: string[],
-    npcData: Map<string, any>
+    npcData: Map<string, NPCData>
   ): void {
     if (!npcTemplateIds.length) return;
 
@@ -77,9 +76,9 @@ export class NPCInteractionService implements INPCInteractionService {
 
     for (const templateId of npcTemplateIds) {
       // Check if the template exists in our NPC data
-      if (npcData.has(templateId)) {
+      const npcTemplate = npcData.get(templateId);
+      if (npcTemplate) {
         // Create a new NPC instance from the template
-        const npcTemplate = npcData.get(templateId);
         const npc = this.createNpcInstance(npcTemplate);
 
         // Add the NPC to the room

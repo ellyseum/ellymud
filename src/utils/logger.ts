@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Logger utilities use dynamic typing for flexible log metadata
 import winston from 'winston';
 import 'winston-daily-rotate-file';

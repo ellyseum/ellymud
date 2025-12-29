@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // User manager uses dynamic typing for flexible user data handling
 import fs from 'fs';
 import path from 'path';
@@ -21,6 +20,13 @@ interface SnakeScore {
   username: string;
   score: number;
   date: Date;
+}
+
+// Interface for raw JSON snake score (before date conversion)
+interface RawSnakeScore {
+  username: string;
+  score: number;
+  date: string;
 }
 
 import { IUserRepository, IPasswordService } from '../persistence/interfaces';
@@ -117,7 +123,7 @@ export class UserManager {
    * Load prevalidated user data
    * @param userData An array of validated user data objects
    */
-  public loadPrevalidatedUsers(userData: any[]): void {
+  public loadPrevalidatedUsers(userData: Partial<User>[]): void {
     systemLogger.info(`Loading ${userData.length} pre-validated users...`);
 
     // Clear existing users to prevent duplicates
@@ -165,8 +171,8 @@ export class UserManager {
         user.mana = Math.max(0, Math.min(user.mana, user.maxMana));
       }
 
-      // Add user to collection
-      this.users.push(user);
+      // Add user to collection - at this point all required fields have been validated
+      this.users.push(user as User);
     });
 
     // Migrate any users with plain text passwords
@@ -182,7 +188,7 @@ export class UserManager {
     // First try to load users from command line argument if provided
     if (config.DIRECT_USERS_DATA) {
       try {
-        const userData = parseAndValidateJson<any[]>(config.DIRECT_USERS_DATA, 'users');
+        const userData = parseAndValidateJson<Partial<User>[]>(config.DIRECT_USERS_DATA, 'users');
 
         if (userData && Array.isArray(userData)) {
           this.loadPrevalidatedUsers(userData);
@@ -333,7 +339,7 @@ export class UserManager {
       }
 
       // Convert date strings back to Date objects
-      this.snakeScores = parsed.scores.map((score: any) => ({
+      this.snakeScores = parsed.scores.map((score: RawSnakeScore) => ({
         username: score.username,
         score: score.score,
         date: new Date(score.date),
