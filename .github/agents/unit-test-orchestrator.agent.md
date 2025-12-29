@@ -444,6 +444,21 @@ If Unit Test Creator fails or times out:
 **Coverage Tool**: Built-in Jest coverage (Istanbul)
 **Test Command**: `npm run test:unit`
 
+### ⚠️ Jest Deprecated Flags
+
+**`--testPathPattern` is DEPRECATED.** Use `--testPathPatterns` (plural) instead:
+
+```bash
+# ❌ WRONG - deprecated
+npm test -- --testPathPattern="myfile.test.ts"
+
+# ✅ CORRECT - use plural form
+npm test -- --testPathPatterns="myfile.test.ts"
+
+# ✅ ALSO CORRECT - just pass filename directly
+npm test -- myfile.test.ts
+```
+
 ### Existing Test Patterns
 
 Reference existing tests for patterns:

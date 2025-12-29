@@ -540,6 +540,21 @@ npm start -- -a    # Admin auto-login
 npx tsc --noEmit
 ```
 
+### ⚠️ Jest Deprecated Flags
+
+**`--testPathPattern` is DEPRECATED.** Use `--testPathPatterns` (plural) instead:
+
+```bash
+# ❌ WRONG - deprecated
+npm test -- --testPathPattern="myfile.test.ts"
+
+# ✅ CORRECT - use plural form
+npm test -- --testPathPatterns="myfile.test.ts"
+
+# ✅ ALSO CORRECT - just pass filename directly
+npm test -- myfile.test.ts
+```
+
 ### Key Paths
 
 ```

@@ -9,6 +9,19 @@ jest.mock('../user/userManager');
 jest.mock('../room/roomManager');
 jest.mock('../combat/combatSystem');
 jest.mock('../effects/effectManager');
+jest.mock('fs', () => ({
+  existsSync: jest.fn().mockReturnValue(true),
+  readFileSync: jest.fn().mockReturnValue(
+    JSON.stringify({
+      tickInterval: 6000,
+      healthRegenTicks: 12,
+      manaRegenTicks: 10,
+      autosaveIntervalTicks: 100,
+    })
+  ),
+  writeFileSync: jest.fn(),
+  mkdirSync: jest.fn(),
+}));
 jest.mock('../utils/logger', () => ({
   systemLogger: {
     info: jest.fn(),
