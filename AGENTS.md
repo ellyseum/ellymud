@@ -179,6 +179,72 @@ This rule exists because:
 
 ---
 
+## ⚠️ CRITICAL: Prefer Built-in Tools Over Terminal Commands
+
+**STOP! Before using `run_in_terminal`, check if a built-in tool exists for your task.**
+
+### Built-in Tools to Use FIRST
+
+| Task                   | Use This Tool    | NOT Terminal Command      |
+| ---------------------- | ---------------- | ------------------------- |
+| Run tests              | `runTests`       | `npm test`                |
+| Check git status       | `get_changed_files` | `git status`           |
+| Search code            | `grep_search` or `semantic_search` | `grep -r` |
+| Read files             | `read_file`      | `cat`, `head`, `tail`     |
+| Create/edit files      | `create_file`, `replace_string_in_file` | `echo >`, `sed` |
+| List directories       | `list_dir`       | `ls`                      |
+| Search files by name   | `file_search`    | `find`                    |
+
+**Why this matters:**
+- Built-in tools are **synchronous** - they wait for completion automatically
+- Terminal commands can return before finishing, causing race conditions
+- Built-in tools provide structured output that's easier to parse
+
+---
+
+## ⚠️ CRITICAL: WAIT For Terminal Commands to Complete
+
+**STOP! Running a new terminal command INTERRUPTS the previous command!**
+
+When `run_in_terminal` returns just `❯` with no output, the command is **still executing**.
+
+### Correct Workflow
+
+```
+1. run_in_terminal → execute command
+2. terminal_last_command → check status
+3. IF "currently executing" → STOP AND WAIT
+4. Do NOT run another command until you see an exit code
+5. Only proceed when command has finished
+```
+
+### What Happens When You Go Too Fast
+
+```
+❌ WRONG:
+   run_in_terminal("npm test")      → returns "❯" (still running)
+   run_in_terminal("cat file.txt")  → INTERRUPTS npm test!
+   terminal_last_command            → shows "cat" output, tests killed
+
+✅ CORRECT:
+   run_in_terminal("npm test")      → returns "❯" (still running)
+   terminal_last_command            → "currently executing..."
+   terminal_last_command            → "currently executing..." (wait more)
+   terminal_last_command            → exit code: 0, output: test results
+   THEN proceed to next task
+```
+
+### Signs You're Going Too Fast
+
+- `terminal_last_command` shows a different command than you just ran
+- Output seems truncated or incomplete
+- You get confusing or mixed results
+- Tests show as "passed" but with wrong output
+
+**When in doubt, call `terminal_last_command` multiple times until you see an exit code.**
+
+---
+
 ## Project Overview
 
 EllyMUD is a Node.js/TypeScript Multi-User Dungeon (MUD) supporting Telnet (port 8023) and WebSocket (port 8080) connections. An MCP server runs on port 3100 for AI integration.
@@ -453,6 +519,21 @@ Before committing:
 - [ ] Server starts: `npm start`
 - [ ] Basic commands work: look, move, stats
 - [ ] No errors in error logs
+
+### ⚠️ Jest Deprecated Flags
+
+**`--testPathPattern` is DEPRECATED.** Use `--testPathPatterns` (plural) instead:
+
+```bash
+# ❌ WRONG - deprecated, will show warning and may not work
+npm test -- --testPathPattern="myfile.test.ts"
+
+# ✅ CORRECT - use plural form
+npm test -- --testPathPatterns="myfile.test.ts"
+
+# ✅ ALSO CORRECT - just pass filename directly
+npm test -- myfile.test.ts
+```
 
 ---
 

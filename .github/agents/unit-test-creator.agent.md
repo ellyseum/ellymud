@@ -138,10 +138,25 @@ src/
 npm run test:unit
 
 # Run specific test file
-npx jest --no-coverage "colors.test"
+npm test -- myfile.test.ts
 
 # Run with coverage for specific file
 npm run test:unit -- --coverage --collectCoverageFrom="src/utils/colors.ts"
+```
+
+### ⚠️ Jest Deprecated Flags
+
+**`--testPathPattern` is DEPRECATED.** Use `--testPathPatterns` (plural) instead:
+
+```bash
+# ❌ WRONG - deprecated
+npm test -- --testPathPattern="myfile.test.ts"
+
+# ✅ CORRECT - use plural form  
+npm test -- --testPathPatterns="myfile.test.ts"
+
+# ✅ ALSO CORRECT - just pass filename directly
+npm test -- myfile.test.ts
 ```
 
 ---

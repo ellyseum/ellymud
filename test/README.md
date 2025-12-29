@@ -13,6 +13,8 @@ The project uses **Jest** with **ts-jest** for TypeScript testing:
 
 ## Running Tests
 
+> ⚠️ **Note**: `--testPathPattern` is deprecated. Use `--testPathPatterns` (plural) or pass the filename directly.
+
 | Command | Description |
 |---------|-------------|
 | `npm test` | Run typecheck, validation, and all unit tests |

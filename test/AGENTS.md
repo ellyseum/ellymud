@@ -11,6 +11,21 @@ EllyMUD uses Jest with ts-jest for TypeScript testing. Unit tests are **colocate
 | Unit Tests | `src/**/*.test.ts` | `jest.config.js` | `npm test` or `npm run test:unit` |
 | E2E Tests | `test/e2e/**/*.e2e.test.ts` | `jest.e2e.config.js` | `npm run test:e2e` |
 
+### ⚠️ Jest Deprecated Flags
+
+**`--testPathPattern` is DEPRECATED.** Use `--testPathPatterns` (plural) instead:
+
+```bash
+# ❌ WRONG - deprecated
+npm test -- --testPathPattern="myfile.test.ts"
+
+# ✅ CORRECT - use plural form
+npm test -- --testPathPatterns="myfile.test.ts"
+
+# ✅ ALSO CORRECT - just pass filename directly
+npm test -- myfile.test.ts
+```
+
 ## Configuration
 
 ### Jest Configuration (`jest.config.js`)

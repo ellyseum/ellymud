@@ -434,6 +434,21 @@ npm run dev
 npm run validate
 ```
 
+### ⚠️ Jest Deprecated Flags
+
+**`--testPathPattern` is DEPRECATED.** Use `--testPathPatterns` (plural) instead:
+
+```bash
+# ❌ WRONG - deprecated, will show warning and may not work
+npm test -- --testPathPattern="myfile.test.ts"
+
+# ✅ CORRECT - use plural form
+npm test -- --testPathPatterns="myfile.test.ts"
+
+# ✅ ALSO CORRECT - just pass filename directly
+npm test -- myfile.test.ts
+```
+
 ### Project Paths
 
 ```
