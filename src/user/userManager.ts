@@ -11,7 +11,7 @@ import { RoomManager } from '../room/roomManager';
 import { systemLogger, getPlayerLogger } from '../utils/logger';
 import { parseAndValidateJson } from '../utils/jsonUtils';
 import config, { STORAGE_BACKEND } from '../config';
-import { getDb } from '../data/db';
+import { getDb, ensureInitialized } from '../data/db';
 
 const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 const SNAKE_SCORES_FILE = path.join(DATA_DIR, 'snake-scores.json');
@@ -253,6 +253,7 @@ export class UserManager {
    */
   private async loadUsersFromDatabase(): Promise<void> {
     try {
+      await ensureInitialized();
       const db = getDb();
       const rows = await db.selectFrom('users').selectAll().execute();
 
@@ -328,12 +329,15 @@ export class UserManager {
       systemLogger.info(`[UserManager] Loaded ${this.users.length} users from database`);
     } catch (error) {
       systemLogger.error('[UserManager] Error loading from database:', error);
-      // In SQLite-only mode, do not fall back to JSON repository
+      // In SQLite-only mode, keep existing in-memory users (preloaded from repository)
       if (STORAGE_BACKEND === 'sqlite') {
-        this.users = [];
+        systemLogger.warn('[UserManager] SQLite-only mode: keeping existing users after database load failure');
       } else {
-        // In auto mode, fall back to repository
-        this.loadUsersFromRepository();
+        // In auto mode, users are already loaded from repository (line 215)
+        // No need to reload - just keep the preloaded data
+        systemLogger.warn(
+          '[UserManager] Database load failed in auto mode; continuing with repository-loaded users.'
+        );
       }
     }
   }
@@ -373,6 +377,7 @@ export class UserManager {
   }
 
   private async saveUsersToDatabase(): Promise<void> {
+    await ensureInitialized();
     const db = getDb();
 
     // Wrap all inserts in a transaction for atomicity

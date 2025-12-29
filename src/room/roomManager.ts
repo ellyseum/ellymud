@@ -10,7 +10,7 @@ import { parseAndValidateJson } from '../utils/jsonUtils';
 import { IRoomRepository } from '../persistence/interfaces';
 import { FileRoomRepository } from '../persistence/fileRepository';
 import config, { STORAGE_BACKEND } from '../config';
-import { getDb } from '../data/db';
+import { getDb, ensureInitialized } from '../data/db';
 
 // Import our service classes
 import { DirectionHelper } from './services/directionHelper';
@@ -298,6 +298,7 @@ export class RoomManager implements IRoomManager {
    * Save rooms to SQLite database via Kysely
    */
   private async saveRoomsToDatabase(): Promise<void> {
+    await ensureInitialized();
     const db = getDb();
 
     // Wrap all inserts in a transaction for atomicity
@@ -308,6 +309,7 @@ export class RoomManager implements IRoomManager {
           npcTemplateIds.push(npc.templateId);
         });
 
+        const serializedItemInstances = room.serializeItemInstances();
         const values = {
           id: room.id,
           name: room.name,
@@ -318,8 +320,8 @@ export class RoomManager implements IRoomManager {
           currency_copper: room.currency?.copper ?? 0,
           flags: room.flags ? JSON.stringify(room.flags) : null,
           npc_template_ids: npcTemplateIds.length > 0 ? JSON.stringify(npcTemplateIds) : null,
-          item_instances: room.serializeItemInstances()
-            ? JSON.stringify(room.serializeItemInstances())
+          item_instances: serializedItemInstances
+            ? JSON.stringify(serializedItemInstances)
             : null,
         };
 
@@ -338,6 +340,7 @@ export class RoomManager implements IRoomManager {
    */
   private async loadRoomsFromDatabase(): Promise<boolean> {
     try {
+      await ensureInitialized();
       const db = getDb();
       const rows = await db.selectFrom('rooms').selectAll().execute();
 
