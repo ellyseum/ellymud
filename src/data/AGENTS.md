@@ -235,4 +235,5 @@ npx ts-node scripts/migrate-json-to-sqlite.ts
 - [`../../data/`](../../data/) - Contains `game.db` file
 - [`../user/`](../user/) - UserManager with Kysely query methods
 - [`../room/`](../room/) - RoomManager with Kysely query methods
+- [`../utils/itemManager.ts`](../utils/itemManager.ts) - ItemManager with Kysely query methods for items
 - [`../../scripts/migrate-json-to-sqlite.ts`](../../scripts/migrate-json-to-sqlite.ts) - Migration script

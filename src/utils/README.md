@@ -16,7 +16,7 @@ Shared utility functions used throughout EllyMUD. Contains critical infrastructu
 | `fileUtils.ts`         | File I/O helpers                               |
 | `jsonUtils.ts`         | JSON parsing and validation                    |
 | `debugUtils.ts`        | Debug helpers                                  |
-| `itemManager.ts`       | Item instance management                       |
+| `itemManager.ts`       | Item template and instance management (multi-backend) |
 | `itemNameColorizer.ts` | Item name coloring by rarity                   |
 | `rawSessionLogger.ts`  | Raw session I/O logging                        |
 | `mcpKeySetup.ts`       | MCP API key generation                         |
