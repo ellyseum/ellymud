@@ -211,6 +211,55 @@ This section documents each tool available to this agent and when to use it.
 **Example**: `git stash push -m "checkpoint-name"`, `git stash pop`  
 **Tips**: Never run parallel git commands; always wait for completion; capture output for verification
 
+---
+
+## ⚠️ CRITICAL: Terminal Command Execution - WAIT FOR COMPLETION
+
+**⛔ NEVER run a new terminal command while another is executing.**
+
+Running a new command **INTERRUPTS** the previous one!
+
+```
+❌ WRONG:
+   run_in_terminal("git stash push")  → returns "❯" (still running)
+   run_in_terminal("git status")      → INTERRUPTS STASH!
+   
+✅ CORRECT:
+   run_in_terminal("git stash push")  → returns "❯" (still running)
+   terminal_last_command              → "currently executing..."
+   terminal_last_command              → "currently executing..." (keep waiting)
+   terminal_last_command              → exit code: 0, output: "Saved working directory"
+   THEN run next command
+```
+
+### Polling Workflow - MANDATORY
+
+After running **ANY** terminal command:
+1. Call `terminal_last_command` to check status
+2. If status shows "currently executing" → **WAIT** (do NOT run another command)
+3. Keep calling `terminal_last_command` until you see an **exit code**
+4. Only THEN proceed to the next action
+
+**Git commands take time!** Stash operations on large repos can take several seconds. Poll patiently.
+
+### Detecting and Handling Stalled Git Operations
+
+**Git is STALLED if:**
+- `terminal_last_command` shows "currently executing" for more than 30 seconds
+- No output change after multiple polls
+
+**When git is stalled:**
+
+1. **DO NOT keep polling forever** - git commands rarely take more than 30 seconds
+2. **Check for lock files**:
+   ```bash
+   rm -f .git/index.lock    # Remove stale lock
+   ```
+3. **Re-run the git command** after clearing locks
+4. **Report to user** if git operations fail repeatedly
+
+---
+
 ### `execute/getTerminalOutput` (get_terminal_output)
 
 **Purpose**: Get output from a background terminal process  

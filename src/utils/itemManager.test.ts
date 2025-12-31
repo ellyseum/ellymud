@@ -100,6 +100,7 @@ jest.mock('../config', () => ({
   ITEMS_FILE: '/test/data/items.json',
   DIRECT_ITEMS_DATA: null,
   DATA_DIR: '/test/data',
+  STORAGE_BACKEND: 'json',
 }));
 
 // Reset the singleton before each test

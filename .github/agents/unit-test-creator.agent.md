@@ -89,6 +89,45 @@ Tests must produce the same result every time:
 - Use fixed seeds for random operations
 - Avoid race conditions
 
+### 6. Terminal Command Execution - WAIT FOR COMPLETION
+
+**⛔ NEVER run a new terminal command while another is executing.**
+
+Running a new command **INTERRUPTS** the previous one!
+
+```
+❌ WRONG:
+   run_in_terminal("npm test")       → returns "❯" (still running)
+   run_in_terminal("npm run build")  → INTERRUPTS TESTS!
+   
+✅ CORRECT:
+   run_in_terminal("npm test")       → returns "❯" (still running)
+   terminal_last_command             → "currently executing..."
+   terminal_last_command             → "currently executing..." (keep waiting)
+   terminal_last_command             → exit code: 0, output: "Tests passed"
+   THEN run next command
+```
+
+**Polling Workflow - MANDATORY**: After ANY terminal command, call `terminal_last_command` and wait for an exit code before running the next command. Tests can take 10-60+ seconds!
+
+### Detecting and Handling Stalled/Hung Tests
+
+**Tests are STALLED if:**
+- Output shows "RUNS" for multiple files but never progresses
+- `terminal_last_command` shows "currently executing" for more than 90 seconds
+- Jest shows "Force exiting" warnings repeatedly
+
+**When tests are stalled:**
+
+1. **DO NOT keep polling forever** - 5-6 polls (~30 sec) with no progress = hung
+2. **Kill Jest specifically**:
+   ```bash
+   pkill -f "jest"
+   ```
+3. **NEVER use `pkill -f node`** - this kills VS Code!
+4. **Re-run the tests** after killing
+5. **If tests hang repeatedly**: There may be an async leak - report to user
+
 ---
 
 ## EllyMUD Testing Stack

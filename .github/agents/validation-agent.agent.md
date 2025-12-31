@@ -63,6 +63,22 @@ Your output closes the development loop with either **APPROVED** (ready to merge
 
 ---
 
+## ⛔ CRITICAL: SLOW DOWN - Wait for Terminal Commands
+
+**STOP! Before running ANY terminal command, check if the previous one finished.**
+
+```
+❌ SPAMMING COMMANDS = BROKEN VALIDATION
+   run_in_terminal("npm build") → run_in_terminal("npm test") → CHAOS
+
+✅ ONE AT A TIME, WAIT FOR EACH
+   run_in_terminal("npm build") → terminal_last_command (poll) → exit code → THEN next
+```
+
+**See "Terminal Command Execution - WAIT FOR COMPLETION" section below for full details.**
+
+---
+
 ## Core Principles
 
 ### 1. Thoroughness Over Speed
@@ -470,6 +486,99 @@ This section documents each tool available to this agent and when to use it.
 **When to Use**: For build, test, and verification commands  
 **Example**: Running `npm run build`, `npm test`, `npm run validate`  
 **Tips**: Capture and document all command output as evidence
+
+---
+
+## ⚠️ CRITICAL: Terminal Command Execution - WAIT FOR COMPLETION
+
+**⛔ NEVER run a new terminal command while another is executing.**
+
+Running a new command **INTERRUPTS** the previous one! This causes truncated output, failed builds, and unreliable test results.
+
+### The Problem
+
+When `run_in_terminal` returns just `❯` with minimal output, the command is **STILL EXECUTING**. You must poll for completion.
+
+```
+❌ WRONG (commands interrupted):
+   run_in_terminal("npm run build")  → returns "❯" (still running)
+   run_in_terminal("npm test")       → INTERRUPTS BUILD! Tests fail on old code.
+   
+✅ CORRECT (wait for each command):
+   run_in_terminal("npm run build")  → returns "❯" (still running)
+   terminal_last_command             → "currently executing..."
+   terminal_last_command             → "currently executing..." (keep waiting)
+   terminal_last_command             → exit code: 0, output: "BUILD SUCCESS"
+   THEN run next command
+```
+
+### Polling Workflow - MANDATORY
+
+After running **ANY** terminal command:
+
+1. Call `terminal_last_command` to check status
+2. If status shows "currently executing" → **WAIT** (do NOT run another command)
+3. Keep calling `terminal_last_command` until you see an **exit code**
+4. Only THEN proceed to the next action
+
+```typescript
+// Required polling workflow
+run_in_terminal("npm run build")
+// Immediately check status
+terminal_last_command()  // → "currently executing"
+// WAIT - do NOT run another command
+terminal_last_command()  // → "currently executing"  
+// Still waiting...
+terminal_last_command()  // → exit code: 0, output: "BUILD SUCCESS"
+// NOW safe to proceed to next command
+```
+
+### Signs You're Going Too Fast
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `terminal_last_command` shows different command | You interrupted the previous command | Wait for completion |
+| Build output seems truncated | Command was killed mid-execution | Re-run after waiting |
+| Tests show wrong results | Previous command didn't finish | Poll until exit code |
+| Confusing/mixed terminal output | Multiple commands overlapped | One command at a time |
+
+### Terminal Command Rules - Summary
+
+1. **Poll with `terminal_last_command`** after EVERY command
+2. **Wait for exit code** before running next command
+3. **Never assume** a command finished just because `run_in_terminal` returned
+4. **Builds/tests take time** - expect 5-30 seconds, poll patiently
+5. **If interrupted**: Re-run the command and wait properly this time
+
+### Detecting and Handling Stalled/Hung Processes
+
+**A process is STALLED if:**
+- `terminal_last_command` shows "currently executing" for more than 60 seconds with no output change
+- Test output stops mid-run (e.g., shows "RUNS" but never completes)
+- Build hangs without progress
+
+**When a process is stalled:**
+
+1. **DO NOT keep polling forever** - if no progress after 5-6 polls (~30 seconds), it's likely hung
+2. **Kill the specific process** - use port-based kill:
+   ```bash
+   # For stuck server
+   lsof -i :8023 -t | xargs kill
+   # For stuck test - use Ctrl+C or:
+   pkill -f "jest"
+   ```
+3. **NEVER use `pkill -f node`** - this kills VS Code!
+4. **Report to user** if you can't recover
+
+**Timeout expectations:**
+| Command | Normal Duration | Stalled After |
+|---------|-----------------|---------------|
+| `npm run build` | 5-15 seconds | 60 seconds |
+| `npm test` (single file) | 5-30 seconds | 90 seconds |
+| `npm test` (full suite) | 30-120 seconds | 180 seconds |
+| Server start | 3-10 seconds | 30 seconds |
+
+---
 
 ### `execute/getTerminalOutput` (get_terminal_output)
 

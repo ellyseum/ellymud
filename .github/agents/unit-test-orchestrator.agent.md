@@ -79,6 +79,44 @@ If test creation fails for one file, document the failure, move to the next file
 
 Verify each generated test actually runs and passes before marking as complete.
 
+### 6. Terminal Command Execution - WAIT FOR COMPLETION
+
+**⛔ NEVER run a new terminal command while another is executing.**
+
+Running a new command **INTERRUPTS** the previous one!
+
+```
+❌ WRONG:
+   run_in_terminal("npm run test:unit")  → returns "❯" (still running)
+   run_in_terminal("npm run coverage")   → INTERRUPTS TESTS!
+   
+✅ CORRECT:
+   run_in_terminal("npm run test:unit")  → returns "❯" (still running)
+   terminal_last_command                 → "currently executing..."
+   terminal_last_command                 → "currently executing..." (keep waiting)
+   terminal_last_command                 → exit code: 0, output: coverage results
+   THEN run next command
+```
+
+**Polling Workflow - MANDATORY**: After ANY terminal command, call `terminal_last_command` and wait for an exit code before running the next command. Coverage runs can take 30-120+ seconds!
+
+### Detecting and Handling Stalled/Hung Processes
+
+**A process is STALLED if:**
+- Coverage run shows no progress for 2+ minutes
+- `terminal_last_command` shows "currently executing" with same output repeatedly
+- Jest shows tests "RUNS" but never completes
+
+**When a process is stalled:**
+
+1. **DO NOT keep polling forever** - after ~60 seconds with no change, it's hung
+2. **Kill Jest specifically**:
+   ```bash
+   pkill -f "jest"
+   ```
+3. **NEVER use `pkill -f node`** - this kills VS Code!
+4. **Re-run with smaller scope** - test individual files instead of full suite
+
 ---
 
 ## Execution Pipeline

@@ -344,6 +344,44 @@ Summary:
 - Use the output to create your todo list
 - Re-run after completing work to verify all pairs are complete
 
+---
+
+## ⚠️ CRITICAL: Terminal Command Execution - WAIT FOR COMPLETION
+
+**⛔ NEVER run a new terminal command while another is executing.**
+
+Running a new command **INTERRUPTS** the previous one!
+
+```
+❌ WRONG:
+   run_in_terminal("./scripts/check-paired-docs.sh")  → returns "❯" (still running)
+   run_in_terminal("ls")                              → INTERRUPTS SCRIPT!
+   
+✅ CORRECT:
+   run_in_terminal("./scripts/check-paired-docs.sh")  → returns "❯" (still running)
+   terminal_last_command                              → "currently executing..."
+   terminal_last_command                              → "currently executing..." (keep waiting)
+   terminal_last_command                              → exit code: 0, output: results
+   THEN run next command
+```
+
+### Polling Workflow - MANDATORY
+
+After running **ANY** terminal command:
+1. Call `terminal_last_command` to check status
+2. If status shows "currently executing" → **WAIT** (do NOT run another command)
+3. Keep calling `terminal_last_command` until you see an **exit code**
+4. Only THEN proceed to the next action
+
+### Detecting Stalled Processes
+
+**If a command shows "currently executing" for more than 30 seconds with no output change:**
+1. The process is likely stalled
+2. Report to user - documentation scripts should complete quickly
+3. Do NOT keep polling forever
+
+---
+
 ### `execute/getTerminalOutput` (get_terminal_output)
 
 **Purpose**: Get output from a background terminal process  

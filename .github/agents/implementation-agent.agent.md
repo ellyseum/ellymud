@@ -104,6 +104,111 @@ When a planned task is NOT strictly required for core feature functionality:
 
 ---
 
+## ⚠️ CRITICAL: Terminal Command Best Practices
+
+### Build Strategy - BUILD ONLY AT THE END
+
+**⛔ DO NOT run `npm run build` after every file change.**
+
+```
+❌ WRONG (slow, wasteful):
+   edit file 1 → build → edit file 2 → build → edit file 3 → build
+   
+✅ CORRECT (efficient):
+   edit file 1 → edit file 2 → edit file 3 → BUILD ONCE → fix errors
+```
+
+**When to build:**
+- ✅ After ALL file edits for a task are complete
+- ✅ Before creating implementation report
+- ✅ When explicitly verifying a specific change
+- ❌ NOT after every single file change
+- ❌ NOT in the middle of a multi-file task
+
+### Terminal Command Execution - WAIT FOR COMPLETION
+
+**⛔ NEVER run a new terminal command while another is executing.**
+
+Running a new command INTERRUPTS the previous one!
+
+```
+❌ WRONG:
+   run_in_terminal("npm run build")  → returns "❯" (still running)
+   run_in_terminal("npm test")       → INTERRUPTS BUILD! Tests fail.
+   
+✅ CORRECT:
+   run_in_terminal("npm run build")  → returns "❯" (still running)
+   terminal_last_command             → "currently executing..."
+   terminal_last_command             → "currently executing..." (keep waiting)
+   terminal_last_command             → exit code: 0, output: success
+   THEN run next command
+```
+
+### Polling for Command Completion
+
+After running ANY terminal command:
+
+1. Call `terminal_last_command` to check status
+2. If status is "currently executing" → **WAIT** (do NOT run another command)
+3. Keep calling `terminal_last_command` until you see an **exit code**
+4. Only then proceed to the next action
+
+```typescript
+// Polling workflow
+run_in_terminal("npm run build")
+// Check status
+terminal_last_command()  // → "currently executing"
+// WAIT - do NOT run another command
+terminal_last_command()  // → "currently executing"  
+// Still waiting...
+terminal_last_command()  // → exit code: 0, output: "BUILD SUCCESS"
+// NOW safe to proceed
+```
+
+### Signs You're Going Too Fast
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `terminal_last_command` shows different command | You interrupted the previous command | Wait for completion |
+| Build output seems truncated | Command was killed mid-execution | Re-run after waiting |
+| Tests show wrong results | Previous command didn't finish | Poll until exit code |
+| Confusing/mixed terminal output | Multiple commands overlapped | One command at a time |
+
+### Terminal Commands - Summary Rules
+
+1. **Build once at the end**, not after every file
+2. **Poll with `terminal_last_command`** after every command
+3. **Wait for exit code** before running next command
+4. **Never assume** a command finished just because `run_in_terminal` returned
+5. **Builds take time** - expect 5-15 seconds, poll patiently
+
+### Detecting and Handling Stalled/Hung Processes
+
+**A process is STALLED if:**
+- `terminal_last_command` shows "currently executing" for more than 60 seconds with no output change
+- Build/test output stops mid-run
+- No progress after 5-6 consecutive polls
+
+**When a process is stalled:**
+
+1. **DO NOT keep polling forever** - if no progress after 5-6 polls (~30 seconds), it's likely hung
+2. **Kill the specific process**:
+   ```bash
+   pkill -f "jest"      # For stuck tests
+   pkill -f "tsc"       # For stuck TypeScript compiler
+   ```
+3. **NEVER use `pkill -f node`** - this kills VS Code!
+4. **Re-run the command** after killing the hung process
+5. **Report to user** if the command fails repeatedly
+
+**Timeout expectations:**
+| Command | Normal Duration | Stalled After |
+|---------|-----------------|---------------|
+| `npm run build` | 5-15 seconds | 60 seconds |
+| `npm test` (single file) | 5-30 seconds | 90 seconds |
+
+---
+
 ## Definition of Done
 
 **You are DONE when ALL of these are true:**
@@ -380,8 +485,12 @@ This section documents each tool available to this agent and when to use it.
 
 **Purpose**: Execute shell commands in terminal  
 **When to Use**: For verification commands (build, test) and git operations  
-**Example**: Running `npm run build` after code changes  
-**Tips**: ALWAYS run build after changes; don't run parallel terminal commands
+**Example**: Running `npm run build` after ALL code changes (not after each file)  
+**Tips**: 
+- ⚠️ Build ONLY at the end, not after every file change
+- ⚠️ ALWAYS poll with `terminal_last_command` until you see an exit code
+- ⚠️ NEVER run a new command while another is executing
+- ⚠️ Running a new command INTERRUPTS the previous one
 
 ### `execute/getTerminalOutput` (get_terminal_output)
 
@@ -389,6 +498,16 @@ This section documents each tool available to this agent and when to use it.
 **When to Use**: When checking results of long-running commands  
 **Example**: Getting output from a watch process  
 **Tips**: Use the terminal ID returned by `runInTerminal` with `isBackground: true`
+
+### `execute/terminalLastCommand` (terminal_last_command)
+
+**Purpose**: Get status and output of the most recent terminal command  
+**When to Use**: AFTER EVERY `run_in_terminal` call to check completion  
+**Example**: Polling until build completes before running tests  
+**Tips**: 
+- If "currently executing" → WAIT, do not run another command
+- Keep polling until you see an exit code (0 = success, non-zero = error)
+- This is your primary tool for knowing when commands finish
 
 ### `vscode/problems` (get_errors)
 

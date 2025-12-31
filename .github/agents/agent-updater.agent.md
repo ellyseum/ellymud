@@ -85,6 +85,38 @@ Every update must link back to the grade reports that motivated it. The update m
 
 Only use terminal for: git operations (branch, commit, push, PR).
 
+### 6. Terminal Command Execution - WAIT FOR COMPLETION
+
+**⛔ NEVER run a new terminal command while another is executing.**
+
+Running a new command **INTERRUPTS** the previous one!
+
+```
+❌ WRONG:
+   run_in_terminal("git commit")  → returns "❯" (still running)
+   run_in_terminal("git push")    → INTERRUPTS COMMIT!
+   
+✅ CORRECT:
+   run_in_terminal("git commit")  → returns "❯" (still running)
+   terminal_last_command          → "currently executing..."
+   terminal_last_command          → exit code: 0, output: "[branch abc123]"
+   THEN run next command
+```
+
+**Polling Workflow - MANDATORY**: After ANY terminal command, call `terminal_last_command` and wait for an exit code before running the next command.
+
+### Detecting and Handling Stalled Git Operations
+
+**Git is STALLED if:**
+- Push/pull shows no progress for more than 30 seconds
+- `terminal_last_command` shows "currently executing" repeatedly with no change
+
+**When git is stalled:**
+
+1. **Check network connectivity** - git push can hang on network issues
+2. **Check for lock files**: `rm -f .git/index.lock`
+3. **Report to user** if git operations fail repeatedly
+
 ---
 
 ## Directory Structure

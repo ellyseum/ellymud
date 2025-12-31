@@ -74,6 +74,55 @@ lsof -i :8080  # WebSocket/HTTP port
 
 ---
 
+## ⚠️ CRITICAL: Terminal Command Execution - WAIT FOR COMPLETION
+
+**⛔ NEVER run a new terminal command while another is executing.**
+
+Running a new command **INTERRUPTS** the previous one!
+
+```
+❌ WRONG:
+   run_in_terminal("npm start -- --silent &")  → returns "❯" (still running)
+   run_in_terminal("lsof -i :8023")            → INTERRUPTS SERVER START!
+   
+✅ CORRECT:
+   run_in_terminal("npm start -- --silent &")  → returns "❯" (still running)
+   terminal_last_command                       → "currently executing..."
+   terminal_last_command                       → "currently executing..." (keep waiting)
+   terminal_last_command                       → exit code: 0
+   THEN run next command
+```
+
+### Polling Workflow - MANDATORY
+
+After running **ANY** terminal command:
+1. Call `terminal_last_command` to check status
+2. If status shows "currently executing" → **WAIT** (do NOT run another command)
+3. Keep calling `terminal_last_command` until you see an **exit code**
+4. Only THEN proceed to the next action
+
+**Commands take time!** Server startup can take 3-10 seconds. Build commands take 5-30 seconds. Poll patiently.
+
+### Detecting and Handling Stalled/Hung Processes
+
+**A process is STALLED if:**
+- `terminal_last_command` shows "currently executing" for more than 30 seconds (server) or 60 seconds (tests)
+- No output change after multiple polls
+
+**When a process is stalled:**
+
+1. **DO NOT keep polling forever** - 5-6 polls with no change means it's hung
+2. **Kill the specific process by port**:
+   ```bash
+   lsof -i :8023 -t | xargs kill    # Telnet server
+   lsof -i :8080 -t | xargs kill    # WebSocket server
+   lsof -i :3100 -t | xargs kill    # MCP server
+   ```
+3. **NEVER use `pkill -f node`** - this kills VS Code!
+4. **Restart the server** after killing
+
+---
+
 ## MCP Tools Reference
 
 All tools are prefixed with `mcp_ellymud-mcp-s_` when calling them.
