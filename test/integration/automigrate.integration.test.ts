@@ -24,9 +24,11 @@ import type { Database as DatabaseSchema } from '../../src/data/schema';
 // Test timeout for database operations
 jest.setTimeout(30000);
 
-// PostgreSQL connection string from environment
+// PostgreSQL connection string from environment (check both TEST_DATABASE_URL and DATABASE_URL)
 const POSTGRES_URL =
-  process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/ellymud_test';
+  process.env.TEST_DATABASE_URL ||
+  process.env.DATABASE_URL ||
+  'postgresql://postgres:postgres@localhost:5432/ellymud_test';
 
 /**
  * Helper: Check if PostgreSQL is available
