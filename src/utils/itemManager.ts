@@ -1,6 +1,6 @@
 // Item manager uses dynamic typing for flexible item property handling
 import { v4 as uuidv4 } from 'uuid';
-import config, { STORAGE_BACKEND } from '../config';
+import config, { STORAGE_BACKEND, isDatabaseOnly } from '../config';
 import { EquipmentSlot, GameItem, Item, ItemInstance, User } from '../types';
 import { parseAndValidateJson } from './jsonUtils';
 import { createContextLogger } from './logger';
@@ -113,7 +113,7 @@ export class ItemManager {
     if (STORAGE_BACKEND === 'json') {
       // JSON only mode - use repository directly
       this.loadItemsFromRepository();
-    } else if (STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres') {
+    } else if (isDatabaseOnly()) {
       // Database-only mode - load from DB, repository as initial sync
       this.loadItemsFromRepository();
       this.loadItemsFromDatabase().catch((error) => {
@@ -341,7 +341,7 @@ export class ItemManager {
       if (STORAGE_BACKEND === 'json') {
         // JSON only mode - use repository directly
         this.loadItemInstancesFromRepository();
-      } else if (STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres') {
+      } else if (isDatabaseOnly()) {
         // Database-only mode - load from DB, repository as initial sync
         this.loadItemInstancesFromRepository();
         this.loadItemInstancesFromDatabase().catch((error) => {
@@ -409,8 +409,12 @@ export class ItemManager {
         requirements: safeJsonParse(row.requirements, undefined),
       }));
 
-      this.loadPrevalidatedItems(items);
-      itemLogger.info(`[ItemManager] Loaded ${items.length} item templates from database`);
+      if (items.length > 0) {
+        this.loadPrevalidatedItems(items);
+        itemLogger.info(`[ItemManager] Loaded ${items.length} item templates from database`);
+      } else {
+        itemLogger.info('[ItemManager] No item templates in database; preserving repository data');
+      }
     } catch (error) {
       itemLogger.error('[ItemManager] Error loading item templates from database:', error);
     }
@@ -453,8 +457,12 @@ export class ItemManager {
         };
       });
 
-      this.loadPrevalidatedItemInstances(instances);
-      itemLogger.info(`[ItemManager] Loaded ${instances.length} item instances from database`);
+      if (instances.length > 0) {
+        this.loadPrevalidatedItemInstances(instances);
+        itemLogger.info(`[ItemManager] Loaded ${instances.length} item instances from database`);
+      } else {
+        itemLogger.info('[ItemManager] No item instances in database; preserving repository data');
+      }
     } catch (error) {
       itemLogger.error('[ItemManager] Error loading item instances from database:', error);
     }
@@ -552,7 +560,7 @@ export class ItemManager {
       } catch (error) {
         itemLogger.error('Error saving item instances to file:', error);
       }
-    } else if (STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres') {
+    } else if (isDatabaseOnly()) {
       // Database-only mode - save to database only
       void this.saveItemInstancesToDatabase().catch((error) => {
         itemLogger.error('[ItemManager] Database instance save failed:', error);
@@ -583,7 +591,7 @@ export class ItemManager {
       } catch (error) {
         itemLogger.error('Error saving items to file:', error);
       }
-    } else if (STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres') {
+    } else if (isDatabaseOnly()) {
       // Database-only mode - save to database only
       void this.saveItemsToDatabase().catch((error) => {
         itemLogger.error('[ItemManager] Database save failed:', error);
@@ -599,6 +607,25 @@ export class ItemManager {
         itemLogger.error('Error saving items to file:', error);
       }
     }
+  }
+
+  /**
+   * Enable or disable test mode.
+   * When enabled, file persistence is skipped to avoid overwriting main game data.
+   * @param enabled True to enable test mode, false to disable
+   */
+  public setTestMode(enabled: boolean): void {
+    this.testMode = enabled;
+    itemLogger.info(
+      `[ItemManager] Test mode ${enabled ? 'enabled' : 'disabled'} - file persistence ${enabled ? 'disabled' : 'enabled'}`
+    );
+  }
+
+  /**
+   * Check if test mode is enabled
+   */
+  public isTestMode(): boolean {
+    return this.testMode;
   }
 
   public getItem(itemId: string): GameItem | undefined {
