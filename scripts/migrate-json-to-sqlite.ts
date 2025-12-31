@@ -199,7 +199,7 @@ async function migrate(): Promise<void> {
         experience_value: npc.experienceValue ?? 50,
         attack_texts: JSON.stringify(npc.attackTexts || []),
         death_messages: JSON.stringify(npc.deathMessages || []),
-        merchant: npc.merchant ? 1 : null,
+        merchant: npc.merchant === undefined ? null : npc.merchant ? 1 : 0,
         inventory: npc.inventory ? JSON.stringify(npc.inventory) : null,
         stock_config: npc.stockConfig ? JSON.stringify(npc.stockConfig) : null,
       }).onConflict((oc) => oc.column('id').doNothing()).execute();

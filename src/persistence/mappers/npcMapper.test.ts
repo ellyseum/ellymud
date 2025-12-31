@@ -118,6 +118,60 @@ describe('npcMapper', () => {
       expect(dbRowToNPCData(passiveRow).isHostile).toBe(false);
       expect(dbRowToNPCData(passiveRow).isPassive).toBe(true);
     });
+
+    it('should handle merchant field conversion correctly', () => {
+      const baseRow: NpcTemplatesTable = {
+        id: 'test',
+        name: 'Test',
+        description: 'Test',
+        health: 10,
+        max_health: 10,
+        damage_min: 1,
+        damage_max: 2,
+        is_hostile: 0,
+        is_passive: 0,
+        experience_value: 10,
+        attack_texts: '[]',
+        death_messages: '[]',
+        merchant: null,
+        inventory: null,
+        stock_config: null,
+      };
+
+      // merchant=null -> undefined
+      expect(dbRowToNPCData({ ...baseRow, merchant: null }).merchant).toBeUndefined();
+      // merchant=1 -> true
+      expect(dbRowToNPCData({ ...baseRow, merchant: 1 }).merchant).toBe(true);
+      // merchant=0 -> false (explicitly not a merchant)
+      expect(dbRowToNPCData({ ...baseRow, merchant: 0 }).merchant).toBe(false);
+    });
+
+    it('should handle invalid JSON gracefully', () => {
+      const rowWithInvalidJson: NpcTemplatesTable = {
+        id: 'test',
+        name: 'Test',
+        description: 'Test',
+        health: 10,
+        max_health: 10,
+        damage_min: 1,
+        damage_max: 2,
+        is_hostile: 0,
+        is_passive: 0,
+        experience_value: 10,
+        attack_texts: 'not valid json',
+        death_messages: '{broken}',
+        merchant: null,
+        inventory: 'also broken',
+        stock_config: null,
+      };
+
+      const result = dbRowToNPCData(rowWithInvalidJson);
+
+      // Should fallback to defaults instead of throwing
+      expect(result.attackTexts).toEqual([]);
+      expect(result.deathMessages).toEqual([]);
+      expect(result.inventory).toBeUndefined();
+    });
   });
 
   describe('npcDataToDbRow', () => {
@@ -257,6 +311,7 @@ describe('npcMapper', () => {
       expect(converted.experienceValue).toBe(original.experienceValue);
       expect(converted.attackTexts).toEqual(original.attackTexts);
       expect(converted.deathMessages).toEqual(original.deathMessages);
+      expect(converted.merchant).toBe(original.merchant);
       expect(converted.inventory).toEqual(original.inventory);
     });
   });
