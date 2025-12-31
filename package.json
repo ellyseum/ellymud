@@ -109,11 +109,11 @@
   },
   "lint-staged": {
     "src/**/*.ts": [
-      "eslint --max-warnings 0",
-      "prettier --check"
+      "eslint --fix --max-warnings 0",
+      "prettier --write"
     ],
     "data/*.json": [
-      "prettier --check"
+      "prettier --write"
     ]
   }
 }

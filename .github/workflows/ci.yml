@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feature/**', 'fix/**', 'hotfix/**']
   pull_request:
     branches: [main]
 
@@ -41,8 +41,8 @@ jobs:
       - name: Check formatting
         run: npx prettier --check "src/**/*.ts"
 
-      - name: Run tests
-        run: npm test -- --coverage --maxWorkers=2
+      - name: Run unit tests
+        run: npm run test:unit -- --coverage --maxWorkers=2
 
       - name: Upload coverage to Codecov
         if: matrix.node-version == '20.x'
@@ -52,6 +52,52 @@ jobs:
           files: ./coverage/lcov.info
           fail_ci_if_error: false
           verbose: true
+
+  # Full test suite - runs on PRs to main and direct pushes to main
+  integration:
+    name: Integration & E2E Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    needs: build
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ellymud_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ellymud_test
 
   lint:
     name: Lint Check

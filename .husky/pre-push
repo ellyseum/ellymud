@@ -1,20 +1,46 @@
-# Run checks before pushing to remote
-# This prevents broken code from reaching main
+# Pre-push hook with branch-aware testing
+# - Feature branches: Lint + prettier only (rely on GitHub Actions for tests)
+# - Main branch: Full test suite (no CI safety net for direct pushes)
 
+# Get the current branch name
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+echo "📌 Pushing branch: $BRANCH"
+
+# Check paired documentation
 echo "📝 Checking paired documentation..."
 ./scripts/check-paired-docs.sh --all
 
+# Always run formatting/lint checks
 echo "🔍 Checking formatting..."
 npx prettier --check 'src/**/*.ts'
 
 echo "🔎 Running ESLint..."
 npx eslint 'src/**/*.ts' --max-warnings 0
 
-echo "🔨 Building..."
-npm run build
+# Branch-specific testing
+if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+  echo ""
+  echo "⚠️  Pushing directly to $BRANCH - running full test suite..."
+  echo ""
+  
+  echo "🔨 Building..."
+  npm run build
+  
+  echo "🧪 Running unit tests..."
+  npm run test:unit
+  
+  echo "🧪 Running E2E tests..."
+  npm run test:e2e
+  
+  echo "🧪 Running integration tests..."
+  npm run test:integration
+  
+  echo ""
+  echo "✅ All pre-push checks passed for $BRANCH!"
+else
+  echo ""
+  echo "🚀 Feature branch detected - skipping tests (GitHub Actions will run them)"
+  echo "✅ Pre-push checks passed for $BRANCH!"
+fi
 
-echo "🧪 Running tests before push..."
-npm run test:all
-
-echo "✅ All pre-push checks passed!"
-# Exit with test result (blocks push if tests fail)
