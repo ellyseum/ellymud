@@ -121,6 +121,9 @@ jest.mock('../config', () => ({
   USERS_FILE: '/test/data/users.json',
   DIRECT_USERS_DATA: null,
   DATA_DIR: '/test/data',
+  STORAGE_BACKEND: 'json',
+  isDatabaseOnly: () => false,
+  isUsingDatabase: () => false,
 }));
 
 jest.mock('../combat/combatSystem', () => ({

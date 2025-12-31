@@ -36,6 +36,7 @@ import { systemLogger, enableSilentMode } from './utils/logger';
 import { getPromptText } from './utils/promptFormatter'; // Import the getPromptText function
 import { TestModeOptions, getDefaultTestModeOptions } from './testing/testMode';
 import { StateLoader } from './testing/stateLoader';
+import { checkAndAutoMigrate } from './data/autoMigrate';
 
 /**
  * Port configuration for GameServer
@@ -326,6 +327,18 @@ export class GameServer {
 
   public async start(): Promise<void> {
     try {
+      // Check for storage backend changes and auto-migrate data if needed
+      // This must happen before any manager tries to load data
+      try {
+        const migrated = await checkAndAutoMigrate();
+        if (migrated) {
+          systemLogger.info('Data auto-migration completed successfully');
+        }
+      } catch (migrationError) {
+        systemLogger.error('Auto-migration failed:', migrationError);
+        systemLogger.warn('Continuing with existing data - manual migration may be required');
+      }
+
       // First check and create admin user if needed
       const adminSetupSuccess = await this.checkAndCreateAdminUser();
       if (!adminSetupSuccess) {
