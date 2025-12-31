@@ -264,6 +264,74 @@ GameServer (src/app.ts)
 └── CombatSystem (event-driven)
 ```
 
+## Storage Architecture (Multi-Backend)
+
+EllyMUD supports three storage backends configured via `STORAGE_BACKEND` environment variable:
+
+| Backend | Use Case | Config |
+|---------|----------|--------|
+| `json` | Development, fast iteration | Default (no setup) |
+| `sqlite` | Single-server production | `STORAGE_BACKEND=sqlite` |
+| `postgres` | Cluster/HA deployments | `STORAGE_BACKEND=postgres` + `DATABASE_URL` |
+
+### Current State (Transitional)
+
+Managers currently check `STORAGE_BACKEND` directly with separate code paths:
+
+```typescript
+// LEGACY PATTERN - do not copy this for new code
+if (STORAGE_BACKEND === 'json') {
+  this.loadFromRepository();      // FileRepository
+} else if (isDatabaseOnly()) {
+  this.loadFromDatabase();        // Inline Kysely queries
+}
+```
+
+### Target State (Repository Factory)
+
+We are migrating to a Repository Factory pattern where:
+- Managers receive repositories via constructor injection
+- `RepositoryFactory` is the single place that checks `STORAGE_BACKEND`
+- Managers never check storage backend directly
+
+```typescript
+// TARGET PATTERN - use this for new code
+class UserManager {
+  constructor(private repo: IUserRepository = getUserRepository()) {}
+  
+  async loadUsers() {
+    this.users = await this.repo.findAll();
+  }
+}
+```
+
+### Rules for New Code
+
+```
+❌ Do NOT add new `if STORAGE_BACKEND` checks to managers
+❌ Do NOT add inline Kysely queries to managers
+✅ Create a Kysely repository class (e.g., KyselyNpcRepository)
+✅ Add it to the RepositoryFactory
+✅ Inject the repository into the manager
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/persistence/interfaces.ts` | Repository interfaces |
+| `src/persistence/RepositoryFactory.ts` | Backend selection (TODO) |
+| `src/persistence/fileRepository.ts` | JSON file implementations |
+| `src/persistence/Kysely*Repository.ts` | Database implementations (TODO) |
+| `src/data/db.ts` | Kysely connection (SQLite/PostgreSQL) |
+| `src/config.ts` | `STORAGE_BACKEND`, `DATABASE_URL` |
+
+### Migration Status
+
+See `todos/kysely-migration-remaining-managers.md` for current progress.
+
+---
+
 ## Quick Start
 
 ### Fresh System Bootstrap
