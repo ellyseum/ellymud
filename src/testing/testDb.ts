@@ -126,6 +126,26 @@ export async function initializeTestDb(db: Kysely<DatabaseSchema>): Promise<void
     .addColumn('properties', 'text')
     .addColumn('history', 'text')
     .execute();
+
+  await db.schema
+    .createTable('npc_templates')
+    .ifNotExists()
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('description', 'text', (col) => col.notNull())
+    .addColumn('health', 'integer', (col) => col.notNull())
+    .addColumn('max_health', 'integer', (col) => col.notNull())
+    .addColumn('damage_min', 'integer', (col) => col.notNull())
+    .addColumn('damage_max', 'integer', (col) => col.notNull())
+    .addColumn('is_hostile', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('is_passive', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('experience_value', 'integer', (col) => col.notNull().defaultTo(50))
+    .addColumn('attack_texts', 'text', (col) => col.notNull())
+    .addColumn('death_messages', 'text', (col) => col.notNull())
+    .addColumn('merchant', 'integer')
+    .addColumn('inventory', 'text')
+    .addColumn('stock_config', 'text')
+    .execute();
 }
 
 /**
