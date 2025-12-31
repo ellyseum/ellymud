@@ -6,6 +6,7 @@ Tests that require external services (Redis, PostgreSQL, etc.) to run.
 
 | File | Description |
 |------|-------------|
+| `automigrate.integration.test.ts` | Auto-migration between storage backends (JSON↔SQLite↔PostgreSQL) |
 | `redis-session.integration.test.ts` | Redis session store tests |
 | `storage-backends.integration.test.ts` | SQLite, PostgreSQL, and JSON storage backend tests |
 

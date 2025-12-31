@@ -2,7 +2,55 @@
 
 ## Overview
 
-JSON files containing all persistent game data. Modified at runtime and saved periodically. When developing features that change data structures, update both the schema and the data files.
+Game data storage with multi-backend support: JSON files, SQLite, or PostgreSQL.
+
+### Storage Backends
+
+Configured via `STORAGE_BACKEND` environment variable:
+- `json` - Flat JSON files (default, development)
+- `sqlite` - SQLite database at `data/game.db`
+- `postgres` - PostgreSQL (requires `DATABASE_URL`)
+
+### Auto-Migration
+
+Data automatically migrates between backends on startup when `STORAGE_BACKEND` changes.
+Backend state is tracked in `data/.backend-state`.
+
+**Key files:**
+- `src/data/autoMigrate.ts` - Auto-migration logic
+- `src/data/db.ts` - Kysely database initialization
+- `src/data/schema.ts` - Database schema definitions
+- `scripts/data-migrate.ts` - CLI migration tool
+
+**Commands:**
+```bash
+npm run data:status           # Check current backend
+npm run data:export           # Database → JSON
+npm run data:import           # JSON → Database
+npm run data:switch postgres  # Switch to PostgreSQL
+```
+
+### Database Tables (Migrated)
+
+| Table | JSON File | Status |
+|-------|-----------|--------|
+| `users` | `users.json` | ✅ Migrated |
+| `rooms` | `rooms.json` | ✅ Migrated |
+| `item_templates` | `items.json` | ✅ Migrated |
+| `item_instances` | `itemInstances.json` | ✅ Migrated |
+
+### Pending Migration (JSON-only)
+
+| JSON File | Target Phase |
+|-----------|--------------|
+| `npcs.json` | Phase 3 |
+| `merchant-state.json` | Phase 4 |
+| `abilities.json` | Phase 6 |
+| `admin.json` | Optional |
+| `gametimer-config.json` | Optional |
+| `mud-config.json` | Optional |
+
+---
 
 ## File Reference
 

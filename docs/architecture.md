@@ -381,7 +381,55 @@ socket.on('message', (data) => {
 
 ## Database and Persistence
 
-### File-Based Storage
+### Multi-Backend Storage System
+
+EllyMUD supports three storage backends, configured via `STORAGE_BACKEND` environment variable:
+
+| Backend | Config Value | Use Case |
+|---------|-------------|----------|
+| JSON Files | `json` | Development, simple deployments |
+| SQLite | `sqlite` | Single-server production |
+| PostgreSQL | `postgres` | Multi-server, high availability |
+
+```bash
+# Environment configuration
+STORAGE_BACKEND=json       # Default: JSON flat files
+STORAGE_BACKEND=sqlite     # SQLite database (data/game.db)
+STORAGE_BACKEND=postgres   # PostgreSQL (requires DATABASE_URL)
+DATABASE_URL=postgresql://user:pass@host:5432/dbname
+```
+
+### Auto-Migration System
+
+When switching backends, data automatically migrates on server startup:
+
+```
+JSON ←→ SQLite ←→ PostgreSQL
+```
+
+The system tracks the last-used backend in `data/.backend-state` and performs migration when a change is detected.
+
+**Available Commands:**
+```bash
+npm run data:status   # Check current backend state
+npm run data:export   # Export database to JSON files
+npm run data:import   # Import JSON files to database
+npm run data:backup   # Create timestamped backup
+npm run data:switch <backend>  # Switch with migration
+```
+
+### Database Schema
+
+Tables currently in the database:
+
+| Table | Manager | Description |
+|-------|---------|-------------|
+| `users` | UserManager | Player accounts and stats |
+| `rooms` | RoomManager | Room definitions and state |
+| `item_templates` | ItemManager | Item type definitions |
+| `item_instances` | ItemManager | Individual item instances |
+
+### File-Based Storage (JSON Mode)
 
 Data is stored as JSON files in the `data/` directory:
 
