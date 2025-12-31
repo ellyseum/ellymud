@@ -79,9 +79,28 @@ export interface ItemInstancesTable {
   history: string | null;
 }
 
+export interface NpcTemplatesTable {
+  id: string;
+  name: string;
+  description: string;
+  health: number;
+  max_health: number;
+  damage_min: number;
+  damage_max: number;
+  is_hostile: number; // SQLite boolean (0/1)
+  is_passive: number; // SQLite boolean (0/1)
+  experience_value: number;
+  attack_texts: string; // JSON array of strings
+  death_messages: string; // JSON array of strings
+  merchant: number | null; // SQLite boolean (0/1)
+  inventory: string | null; // JSON array of NPCInventoryItem
+  stock_config: string | null; // JSON array of MerchantStockConfig
+}
+
 export interface Database {
   users: UsersTable;
   rooms: RoomsTable;
   item_templates: ItemTemplatesTable;
   item_instances: ItemInstancesTable;
+  npc_templates: NpcTemplatesTable;
 }
