@@ -251,6 +251,148 @@ async function importJsonToDatabase(): Promise<void> {
 }
 
 /**
+ * Export data from database to JSON files
+ */
+async function exportDatabaseToJson(sourceBackend: 'sqlite' | 'postgres'): Promise<void> {
+  const { Kysely, SqliteDialect, PostgresDialect } = await import('kysely');
+  const { DATABASE_URL } = await import('../config');
+
+  // Create database connection
+  let db: Kysely<DatabaseSchema>;
+
+  if (sourceBackend === 'postgres') {
+    if (!DATABASE_URL) {
+      throw new Error('DATABASE_URL required for postgres backend');
+    }
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Pool } = require('pg');
+    db = new Kysely<DatabaseSchema>({
+      dialect: new PostgresDialect({
+        pool: new Pool({ connectionString: DATABASE_URL, max: 5 }),
+      }),
+    });
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Database = require('better-sqlite3');
+    const dbPath = path.join(DATA_DIR, 'game.db');
+    db = new Kysely<DatabaseSchema>({
+      dialect: new SqliteDialect({ database: new Database(dbPath) }),
+    });
+  }
+
+  try {
+    // Export users
+    const userRows = await db.selectFrom('users' as never).selectAll().execute();
+    if (userRows.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const users = userRows.map((row: any) => ({
+        username: row.username,
+        passwordHash: row.password_hash,
+        salt: row.salt,
+        health: row.health,
+        maxHealth: row.max_health,
+        mana: row.mana,
+        maxMana: row.max_mana,
+        experience: row.experience,
+        level: row.level,
+        strength: row.strength,
+        dexterity: row.dexterity,
+        agility: row.agility,
+        constitution: row.constitution,
+        wisdom: row.wisdom,
+        intelligence: row.intelligence,
+        charisma: row.charisma,
+        equipment: JSON.parse(row.equipment || '{}'),
+        joinDate: row.join_date,
+        lastLogin: row.last_login,
+        totalPlayTime: row.total_play_time,
+        currentRoomId: row.current_room_id,
+        inventory: {
+          items: JSON.parse(row.inventory_items || '[]'),
+          gold: row.inventory_gold,
+          silver: row.inventory_silver,
+          copper: row.inventory_copper,
+        },
+        bank: {
+          gold: row.bank_gold,
+          silver: row.bank_silver,
+          copper: row.bank_copper,
+        },
+        inCombat: row.in_combat === 1,
+        isUnconscious: row.is_unconscious === 1,
+        isResting: row.is_resting === 1,
+        isMeditating: row.is_meditating === 1,
+        flags: JSON.parse(row.flags || '{}'),
+        pendingAdminMessages: JSON.parse(row.pending_admin_messages || '[]'),
+        email: row.email,
+        description: row.description,
+      }));
+      fs.writeFileSync(path.join(DATA_DIR, 'users.json'), JSON.stringify(users, null, 2));
+      systemLogger.info(`[AutoMigrate] Exported ${users.length} users to JSON`);
+    }
+
+    // Export rooms
+    const roomRows = await db.selectFrom('rooms' as never).selectAll().execute();
+    if (roomRows.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rooms = roomRows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        exits: JSON.parse(row.exits || '{}'),
+        currency: {
+          gold: row.currency_gold,
+          silver: row.currency_silver,
+          copper: row.currency_copper,
+        },
+        flags: JSON.parse(row.flags || '{}'),
+        npcs: JSON.parse(row.npc_template_ids || '[]'),
+        itemInstances: JSON.parse(row.item_instances || '[]'),
+      }));
+      fs.writeFileSync(path.join(DATA_DIR, 'rooms.json'), JSON.stringify(rooms, null, 2));
+      systemLogger.info(`[AutoMigrate] Exported ${rooms.length} rooms to JSON`);
+    }
+
+    // Export item templates
+    const itemRows = await db.selectFrom('item_templates' as never).selectAll().execute();
+    if (itemRows.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const items = itemRows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        type: row.type,
+        weight: row.weight,
+        value: row.value,
+        slot: row.slot,
+        stats: JSON.parse(row.stats || '{}'),
+        requirements: JSON.parse(row.requirements || '{}'),
+      }));
+      fs.writeFileSync(path.join(DATA_DIR, 'items.json'), JSON.stringify(items, null, 2));
+      systemLogger.info(`[AutoMigrate] Exported ${items.length} item templates to JSON`);
+    }
+
+    // Export item instances
+    const instanceRows = await db.selectFrom('item_instances' as never).selectAll().execute();
+    if (instanceRows.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const instances = instanceRows.map((row: any) => ({
+        instanceId: row.instance_id,
+        templateId: row.template_id,
+        created: row.created,
+        createdBy: row.created_by,
+        properties: JSON.parse(row.properties || '{}'),
+        history: JSON.parse(row.history || '[]'),
+      }));
+      fs.writeFileSync(path.join(DATA_DIR, 'itemInstances.json'), JSON.stringify(instances, null, 2));
+      systemLogger.info(`[AutoMigrate] Exported ${instances.length} item instances to JSON`);
+    }
+  } finally {
+    await db.destroy();
+  }
+}
+
+/**
  * Check if auto-migration is needed and perform it if so.
  * Call this at server startup, before managers initialize.
  *
@@ -296,25 +438,42 @@ export async function checkAndAutoMigrate(): Promise<boolean> {
 
   // Database → JSON: Export DB to JSON (less common, but supported)
   if ((lastBackend === 'sqlite' || lastBackend === 'postgres') && currentBackend === 'json') {
-    systemLogger.info('[AutoMigrate] Database → JSON migration requested');
-    systemLogger.warn(
-      '[AutoMigrate] Run "npm run data:export" manually to export database to JSON'
-    );
-    writeBackendState(currentBackend);
-    return false;
+    systemLogger.info('[AutoMigrate] Exporting database to JSON files...');
+    try {
+      await exportDatabaseToJson(lastBackend);
+      writeBackendState(currentBackend);
+      systemLogger.info('[AutoMigrate] ✓ Migration complete: Database → JSON');
+      return true;
+    } catch (error) {
+      systemLogger.error('[AutoMigrate] Migration failed:', error);
+      throw error;
+    }
   }
 
-  // Database → Database (sqlite <-> postgres): No auto-migration
+  // Database → Database (sqlite <-> postgres): Migrate via JSON as intermediate
   if (
     (lastBackend === 'sqlite' && currentBackend === 'postgres') ||
     (lastBackend === 'postgres' && currentBackend === 'sqlite')
   ) {
-    systemLogger.warn(
-      `[AutoMigrate] Cross-database migration (${lastBackend} → ${currentBackend}) not supported automatically`
+    systemLogger.info(
+      `[AutoMigrate] Cross-database migration: ${lastBackend} → ${currentBackend}`
     );
-    systemLogger.warn('[AutoMigrate] Use "npm run data:switch <target>" to migrate data');
-    writeBackendState(currentBackend);
-    return false;
+    try {
+      // Step 1: Export from source database to JSON
+      systemLogger.info(`[AutoMigrate] Step 1/2: Exporting ${lastBackend} to JSON...`);
+      await exportDatabaseToJson(lastBackend);
+
+      // Step 2: Import JSON to target database
+      systemLogger.info(`[AutoMigrate] Step 2/2: Importing JSON to ${currentBackend}...`);
+      await importJsonToDatabase();
+
+      writeBackendState(currentBackend);
+      systemLogger.info(`[AutoMigrate] ✓ Migration complete: ${lastBackend} → ${currentBackend}`);
+      return true;
+    } catch (error) {
+      systemLogger.error('[AutoMigrate] Cross-database migration failed:', error);
+      throw error;
+    }
   }
 
   // Unknown transition - just update state
