@@ -249,8 +249,99 @@ combatLog.debug('Processing combat tick');
 - ⚠️ **Logging Passwords**: NEVER log sensitive data
 - ⚠️ **File Paths**: Use `path.join()` for cross-platform
 
+### `itemManager.ts`
+
+**Purpose**: Singleton manager for item templates and item instances with multi-backend persistence (JSON, SQLite, Postgres).
+
+**Key Exports**:
+```typescript
+export class ItemManager {
+  static getInstance(): ItemManager;
+  static resetInstance(): void;
+  static createWithRepository(repository: IItemRepository): ItemManager;
+
+  // Item templates
+  getItem(itemId: string): GameItem | undefined;
+  getAllItems(): GameItem[];
+  addItem(item: GameItem): void;
+  updateItem(item: GameItem): boolean;
+  
+  // Item instances
+  getItemInstance(instanceId: string): ItemInstance | undefined;
+  createItemInstance(templateId: string, createdBy: string): ItemInstance | undefined;
+  
+  // Persistence
+  saveItems(): void;
+  saveItemInstances(): void;
+  loadPrevalidatedItems(itemData: GameItem[]): void;
+  loadPrevalidatedItemInstances(instanceData: ItemInstance[]): void;
+}
+```
+
+**Storage Backend Branching**:
+The manager uses `STORAGE_BACKEND` config to determine persistence strategy:
+
+```typescript
+import { STORAGE_BACKEND } from '../config';
+
+// In loadItems() / saveItems() / loadItemInstances() / saveItemInstances():
+if (STORAGE_BACKEND === 'json') {
+  // JSON only - use FileItemRepository
+} else if (STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres') {
+  // Database-only mode - use Kysely methods
+} else {
+  // 'auto' mode - load from repository first, then sync with database
+}
+```
+
+**Database Methods** (private, called internally based on backend):
+
+```typescript
+// Load item templates from database
+private async loadItemsFromDatabase(): Promise<void>
+
+// Save item templates to database (with upsert)
+private async saveItemsToDatabase(): Promise<void>
+
+// Load item instances from database
+private async loadItemInstancesFromDatabase(): Promise<void>
+
+// Save item instances to database (with upsert)
+private async saveItemInstancesToDatabase(): Promise<void>
+```
+
+**Database Tables Used**:
+- `item_templates` - Item template definitions (id, name, description, type, slot, value, weight, stats, requirements)
+- `item_instances` - Runtime item instances (instance_id, template_id, created, created_by, properties, history)
+
+**Test Mode**:
+```typescript
+// Set testMode to skip persistence during tests
+itemManager['testMode'] = true;
+```
+
+**Usage Example**:
+```typescript
+const itemManager = ItemManager.getInstance();
+
+// Get an item template
+const sword = itemManager.getItem('sword-001');
+
+// Create an instance of an item
+const instance = itemManager.createItemInstance('sword-001', 'player1');
+
+// Save changes (auto-routes to correct backend)
+itemManager.saveItems();
+itemManager.saveItemInstances();
+```
+
+**Dependencies**: `../config`, `../data/db`, `../persistence/interfaces`, `../persistence/fileRepository`
+**Used By**: Commands, combat system, merchant system, user inventory
+
 ## Related Context
 
 - [`../command/`](../command/) - Commands use socketWriter
 - [`../states/`](../states/) - States use socketWriter
 - [`../combat/`](../combat/) - Combat uses colors
+- [`../data/`](../data/) - Database connection and schema (getDb, ensureInitialized)
+- [`../persistence/`](../persistence/) - Repository interfaces and file repository

@@ -1,10 +1,11 @@
 // Item manager uses dynamic typing for flexible item property handling
 import { v4 as uuidv4 } from 'uuid';
-import config from '../config';
+import config, { STORAGE_BACKEND } from '../config';
 import { EquipmentSlot, GameItem, Item, ItemInstance, User } from '../types';
 import { parseAndValidateJson } from './jsonUtils';
 import { createContextLogger } from './logger';
 import { Room } from '../room/room';
+import { getDb, ensureInitialized } from '../data/db';
 
 // Create a context-specific logger for ItemManager
 const itemLogger = createContextLogger('ItemManager');
@@ -17,6 +18,7 @@ export class ItemManager {
   private items: Map<string, GameItem> = new Map();
   private itemInstances: Map<string, ItemInstance> = new Map();
   private repository: IItemRepository;
+  private testMode: boolean = false;
 
   public static getInstance(): ItemManager {
     if (!ItemManager.instance) {
@@ -107,8 +109,23 @@ export class ItemManager {
       }
     }
 
-    // If no items from command line, load from repository
-    this.loadItemsFromRepository();
+    // Load based on storage backend config
+    if (STORAGE_BACKEND === 'json') {
+      // JSON only mode - use repository directly
+      this.loadItemsFromRepository();
+    } else if (STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres') {
+      // Database-only mode - load from DB, repository as initial sync
+      this.loadItemsFromRepository();
+      this.loadItemsFromDatabase().catch((error) => {
+        itemLogger.error('[ItemManager] Database load failed:', error);
+      });
+    } else {
+      // Auto mode - load repository first, then try database
+      this.loadItemsFromRepository();
+      this.loadItemsFromDatabase().catch((error) => {
+        itemLogger.error('[ItemManager] Auto mode load failed:', error);
+      });
+    }
   }
 
   private loadItemsFromRepository(): void {
@@ -320,8 +337,23 @@ export class ItemManager {
         }
       }
 
-      // If no item instances from command line, load from repository
-      this.loadItemInstancesFromRepository();
+      // Load based on storage backend config
+      if (STORAGE_BACKEND === 'json') {
+        // JSON only mode - use repository directly
+        this.loadItemInstancesFromRepository();
+      } else if (STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres') {
+        // Database-only mode - load from DB, repository as initial sync
+        this.loadItemInstancesFromRepository();
+        this.loadItemInstancesFromDatabase().catch((error) => {
+          itemLogger.error('[ItemManager] Database instances load failed:', error);
+        });
+      } else {
+        // Auto mode - load repository first, then try database
+        this.loadItemInstancesFromRepository();
+        this.loadItemInstancesFromDatabase().catch((error) => {
+          itemLogger.error('[ItemManager] Auto mode instances load failed:', error);
+        });
+      }
     } catch (error) {
       itemLogger.error('Error loading item instances:', error);
       this.itemInstances = new Map();
@@ -346,22 +378,226 @@ export class ItemManager {
     }
   }
 
-  public saveItemInstances(): void {
+  /**
+   * Load item templates from database via Kysely.
+   */
+  private async loadItemsFromDatabase(): Promise<void> {
     try {
-      const instances = Array.from(this.itemInstances.values());
-      this.repository.saveItemInstances(instances);
-      itemLogger.info(`Saved ${instances.length} item instances.`);
+      await ensureInitialized();
+      const db = getDb();
+      const rows = await db.selectFrom('item_templates').selectAll().execute();
+
+      const safeJsonParse = <T>(value: string | null | undefined, fallback: T): T => {
+        if (value == null) return fallback;
+        try {
+          return JSON.parse(value) as T;
+        } catch {
+          return fallback;
+        }
+      };
+
+      const items: GameItem[] = rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        type: row.type as GameItem['type'],
+        slot: row.slot as EquipmentSlot | undefined,
+        value: row.value,
+        weight: row.weight ?? undefined,
+        globalLimit: row.global_limit ?? undefined,
+        stats: safeJsonParse(row.stats, undefined),
+        requirements: safeJsonParse(row.requirements, undefined),
+      }));
+
+      this.loadPrevalidatedItems(items);
+      itemLogger.info(`[ItemManager] Loaded ${items.length} item templates from database`);
     } catch (error) {
-      itemLogger.error('Error saving item instances:', error);
+      itemLogger.error('[ItemManager] Error loading item templates from database:', error);
+    }
+  }
+
+  /**
+   * Load item instances from database via Kysely.
+   */
+  private async loadItemInstancesFromDatabase(): Promise<void> {
+    try {
+      await ensureInitialized();
+      const db = getDb();
+      const rows = await db.selectFrom('item_instances').selectAll().execute();
+
+      const safeJsonParse = <T>(value: string | null | undefined, fallback: T): T => {
+        if (value == null) return fallback;
+        try {
+          return JSON.parse(value) as T;
+        } catch {
+          return fallback;
+        }
+      };
+
+      const instances: ItemInstance[] = rows.map((row) => {
+        const rawHistory = safeJsonParse<
+          Array<{ timestamp: string; event: string; details?: string }>
+        >(row.history, []);
+        const history = rawHistory.map((entry) => ({
+          ...entry,
+          timestamp: new Date(entry.timestamp),
+        }));
+
+        return {
+          instanceId: row.instance_id,
+          templateId: row.template_id,
+          created: new Date(row.created),
+          createdBy: row.created_by,
+          properties: safeJsonParse(row.properties, undefined),
+          history: history.length > 0 ? history : undefined,
+        };
+      });
+
+      this.loadPrevalidatedItemInstances(instances);
+      itemLogger.info(`[ItemManager] Loaded ${instances.length} item instances from database`);
+    } catch (error) {
+      itemLogger.error('[ItemManager] Error loading item instances from database:', error);
+    }
+  }
+
+  /**
+   * Save item templates to database via Kysely.
+   */
+  private async saveItemsToDatabase(): Promise<void> {
+    await ensureInitialized();
+    const db = getDb();
+
+    await db.transaction().execute(async (trx) => {
+      for (const item of this.items.values()) {
+        const values = {
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          type: item.type,
+          slot: item.slot || null,
+          value: item.value ?? 0,
+          weight: item.weight ?? null,
+          global_limit: item.globalLimit ?? null,
+          stats: item.stats ? JSON.stringify(item.stats) : null,
+          requirements: item.requirements ? JSON.stringify(item.requirements) : null,
+        };
+
+        await trx
+          .insertInto('item_templates')
+          .values(values)
+          .onConflict((oc) => oc.column('id').doUpdateSet(values))
+          .execute();
+      }
+    });
+
+    itemLogger.info(`[ItemManager] Saved ${this.items.size} item templates to database`);
+  }
+
+  /**
+   * Save item instances to database via Kysely.
+   */
+  private async saveItemInstancesToDatabase(): Promise<void> {
+    await ensureInitialized();
+    const db = getDb();
+
+    await db.transaction().execute(async (trx) => {
+      for (const instance of this.itemInstances.values()) {
+        let historyJson: string | null = null;
+        if (instance.history && instance.history.length > 0) {
+          const serializedHistory = instance.history.map((entry) => ({
+            ...entry,
+            timestamp:
+              entry.timestamp instanceof Date
+                ? entry.timestamp.toISOString()
+                : new Date(entry.timestamp).toISOString(),
+          }));
+          historyJson = JSON.stringify(serializedHistory);
+        }
+
+        const values = {
+          instance_id: instance.instanceId,
+          template_id: instance.templateId,
+          created:
+            instance.created instanceof Date
+              ? instance.created.toISOString()
+              : new Date(instance.created).toISOString(),
+          created_by: instance.createdBy || 'system',
+          properties: instance.properties ? JSON.stringify(instance.properties) : null,
+          history: historyJson,
+        };
+
+        await trx
+          .insertInto('item_instances')
+          .values(values)
+          .onConflict((oc) => oc.column('instance_id').doUpdateSet(values))
+          .execute();
+      }
+    });
+
+    itemLogger.info(`[ItemManager] Saved ${this.itemInstances.size} item instances to database`);
+  }
+
+  public saveItemInstances(): void {
+    if (this.testMode) {
+      itemLogger.debug('[ItemManager] Skipping instance save - test mode active');
+      return;
+    }
+
+    const instances = Array.from(this.itemInstances.values());
+
+    if (STORAGE_BACKEND === 'json') {
+      try {
+        this.repository.saveItemInstances(instances);
+        itemLogger.info(`Saved ${instances.length} item instances to file.`);
+      } catch (error) {
+        itemLogger.error('Error saving item instances to file:', error);
+      }
+    } else if (STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres') {
+      // Database-only mode - save to database only
+      void this.saveItemInstancesToDatabase().catch((error) => {
+        itemLogger.error('[ItemManager] Database instance save failed:', error);
+      });
+    } else {
+      // Auto mode - save to both database AND JSON file (backup)
+      void this.saveItemInstancesToDatabase().catch((error) => {
+        itemLogger.error('[ItemManager] Database instance save failed:', error);
+      });
+      try {
+        this.repository.saveItemInstances(instances);
+        itemLogger.info(`Saved ${instances.length} item instances to file.`);
+      } catch (error) {
+        itemLogger.error('Error saving item instances to file:', error);
+      }
     }
   }
 
   public saveItems(): void {
-    try {
-      const itemArray = Array.from(this.items.values());
-      this.repository.saveItems(itemArray);
-    } catch (error) {
-      itemLogger.error('Error saving items:', error);
+    if (this.testMode) {
+      itemLogger.debug('[ItemManager] Skipping save - test mode active');
+      return;
+    }
+
+    if (STORAGE_BACKEND === 'json') {
+      try {
+        this.repository.saveItems(Array.from(this.items.values()));
+      } catch (error) {
+        itemLogger.error('Error saving items to file:', error);
+      }
+    } else if (STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres') {
+      // Database-only mode - save to database only
+      void this.saveItemsToDatabase().catch((error) => {
+        itemLogger.error('[ItemManager] Database save failed:', error);
+      });
+    } else {
+      // Auto mode - save to both database AND JSON file (backup)
+      void this.saveItemsToDatabase().catch((error) => {
+        itemLogger.error('[ItemManager] Database save failed:', error);
+      });
+      try {
+        this.repository.saveItems(Array.from(this.items.values()));
+      } catch (error) {
+        itemLogger.error('Error saving items to file:', error);
+      }
     }
   }
 

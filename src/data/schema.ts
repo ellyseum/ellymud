@@ -57,7 +57,31 @@ export interface RoomsTable {
   item_instances: string | null;
 }
 
+export interface ItemTemplatesTable {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  slot: string | null;
+  value: number;
+  weight: number | null;
+  global_limit: number | null;
+  stats: string | null;
+  requirements: string | null;
+}
+
+export interface ItemInstancesTable {
+  instance_id: string;
+  template_id: string;
+  created: string;
+  created_by: string;
+  properties: string | null;
+  history: string | null;
+}
+
 export interface Database {
   users: UsersTable;
   rooms: RoomsTable;
+  item_templates: ItemTemplatesTable;
+  item_instances: ItemInstancesTable;
 }

@@ -124,6 +124,28 @@ export async function initializeDatabase(): Promise<void> {
     .addColumn('item_instances', 'text')
     .execute();
 
+  await database.schema.createTable('item_templates').ifNotExists()
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('description', 'text', (col) => col.notNull())
+    .addColumn('type', 'text', (col) => col.notNull())
+    .addColumn('slot', 'text')
+    .addColumn('value', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('weight', 'integer')
+    .addColumn('global_limit', 'integer')
+    .addColumn('stats', 'text')
+    .addColumn('requirements', 'text')
+    .execute();
+
+  await database.schema.createTable('item_instances').ifNotExists()
+    .addColumn('instance_id', 'text', (col) => col.primaryKey())
+    .addColumn('template_id', 'text', (col) => col.notNull())
+    .addColumn('created', 'text', (col) => col.notNull())
+    .addColumn('created_by', 'text', (col) => col.notNull())
+    .addColumn('properties', 'text')
+    .addColumn('history', 'text')
+    .execute();
+
   systemLogger.info('[Database] Tables initialized');
 }
 
