@@ -53,7 +53,8 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
-  # Full test suite - runs on PRs to main and direct pushes to main
+  # Integration & E2E tests - runs on PRs to main and direct pushes to main
+  # Unit tests run in the 'build' job above
   integration:
     name: Integration & E2E Tests
     runs-on: ubuntu-latest
