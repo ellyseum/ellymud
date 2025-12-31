@@ -11,3 +11,4 @@ export {
   dbRowToItemInstance,
   itemInstanceToDbRow,
 } from './itemMapper';
+export { dbRowToNPCData, npcDataToDbRow } from './npcMapper';
