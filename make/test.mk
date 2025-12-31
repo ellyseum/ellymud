@@ -21,9 +21,13 @@ test-e2e: ## Run end-to-end tests
 	@printf "$(BLUE)Running E2E tests...$(NC)\n"
 	npm run test:e2e
 
-test-integration: ## Run integration tests (requires Docker)
+test-integration: ## Run integration tests (requires Docker). Use TEST=<pattern> to filter, e.g., make test-integration TEST=automigrate
 	@printf "$(BLUE)Running integration tests...$(NC)\n"
+ifdef TEST
+	npm run test:integration -- $(TEST)
+else
 	npm run test:integration
+endif
 
 test-all: ## Run all tests (unit + e2e)
 	@printf "$(BLUE)Running all tests (unit + e2e)...$(NC)\n"
