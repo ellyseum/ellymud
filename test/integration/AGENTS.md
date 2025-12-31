@@ -6,6 +6,25 @@ Integration tests that verify the system works correctly with real external serv
 
 ## File Reference
 
+### `automigrate.integration.test.ts`
+
+**Purpose**: Tests automatic data migration when storage backend changes.
+
+**Tests**:
+- JSON → SQLite migration (4 tests)
+- SQLite → JSON export (3 tests)
+- PostgreSQL → JSON export (3 tests, conditional)
+- JSON → PostgreSQL migration (3 tests, conditional)
+- SQLite → PostgreSQL migration via JSON intermediate (1 test, conditional)
+
+**Key behaviors verified**:
+- Data integrity across migrations (users, rooms, items, item instances)
+- Backend state tracking via `.backend-state` file
+- Bidirectional migration support
+- Cross-database migration (SQLite ↔ PostgreSQL)
+
+**Requires**: `TEST_DATABASE_URL` for PostgreSQL tests
+
 ### `redis-session.integration.test.ts`
 
 **Purpose**: Tests RedisSessionStore against a real Redis instance.

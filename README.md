@@ -43,6 +43,11 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
   - Singleton managers for core systems
   - Repository pattern for data persistence
   - Event-driven combat and effects system
+- 💾 **Multi-Backend Storage**
+  - JSON files (default, zero-config)
+  - SQLite (single-file database)
+  - PostgreSQL (production-scale)
+  - Automatic data migration on backend switch
 - 🤖 **AI Integration (MCP Server)**
   - Model Context Protocol server on port 3100
   - Virtual sessions for AI gameplay testing
@@ -255,7 +260,7 @@ ellymud/
 │   ├── testing/         # Test mode and state snapshots
 │   ├── timer/           # Game timer and regeneration
 │   └── user/            # User management
-├── data/                # JSON data storage
+├── data/                # Game data (JSON, SQLite, or PostgreSQL)
 ├── public/              # Web client
 ├── docs/                # Documentation
 ├── make/                # Makefile shards
@@ -264,6 +269,28 @@ ellymud/
 ├── .github/agents/      # AI agent ecosystem
 └── logs/                # Server logs
 ```
+
+### Storage Backends
+
+EllyMUD supports multiple storage backends with automatic data migration when switching:
+
+| Backend | Use Case | Configuration |
+|---------|----------|---------------|
+| JSON (default) | Development, zero-config | No setup required |
+| SQLite | Single-server production | `STORAGE_BACKEND=sqlite` |
+| PostgreSQL | Multi-server, high-scale | `STORAGE_BACKEND=postgres` + `DATABASE_URL` |
+
+**Switching backends:**
+
+```bash
+# Use SQLite
+STORAGE_BACKEND=sqlite npm start
+
+# Use PostgreSQL
+STORAGE_BACKEND=postgres DATABASE_URL="postgres://user:pass@localhost:5432/ellymud" npm start
+```
+
+Data is automatically migrated when you switch backends. See [data/README.md](data/README.md) for details.
 
 ### Make Commands
 
