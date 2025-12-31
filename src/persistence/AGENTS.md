@@ -16,7 +16,8 @@ RepositoryFactory.ts             # Backend selection based on STORAGE_BACKEND
 mappers/                         # Field conversion (snake_case ↔ camelCase)
     ├── userMapper.ts
     ├── roomMapper.ts
-    └── itemMapper.ts
+    ├── itemMapper.ts
+    └── npcMapper.ts
 ```
 
 ## Repository Factory (Recommended)
@@ -24,16 +25,19 @@ mappers/                         # Field conversion (snake_case ↔ camelCase)
 **The factory is the single source of truth for storage backend selection.**
 
 ```typescript
-import { getUserRepository, getRoomRepository, getItemRepository } from '../persistence';
+import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository } from '../persistence';
 
 // Returns appropriate implementation based on STORAGE_BACKEND env var
 const userRepo = getUserRepository();
 const roomRepo = getRoomRepository();
 const itemRepo = getItemRepository();
+const npcRepo = getNpcRepository();
 
 // All repositories implement async interfaces
 const users = await userRepo.findAll();
 const user = await userRepo.findByUsername('admin');
+const npcs = await npcRepo.findAll();
+const hostileNpcs = await npcRepo.findHostile();
 ```
 
 ## Key Files
@@ -87,6 +91,17 @@ export interface IAsyncItemRepository {
   saveInstances(instances: ItemInstance[]): Promise<void>;
   deleteInstance(instanceId: string): Promise<void>;
 }
+
+export interface IAsyncNpcRepository {
+  findAll(): Promise<NPCData[]>;
+  findById(id: string): Promise<NPCData | undefined>;
+  findByName(name: string): Promise<NPCData | undefined>;
+  findHostile(): Promise<NPCData[]>;
+  findMerchants(): Promise<NPCData[]>;
+  save(npc: NPCData): Promise<void>;
+  saveAll(npcs: NPCData[]): Promise<void>;
+  delete(id: string): Promise<void>;
+}
 ```
 
 ### `Kysely*Repository.ts` files
@@ -96,14 +111,18 @@ export interface IAsyncItemRepository {
 - `KyselyUserRepository` - SQLite/PostgreSQL user storage
 - `KyselyRoomRepository` - SQLite/PostgreSQL room storage
 - `KyselyItemRepository` - SQLite/PostgreSQL item storage
+- `KyselyNpcRepository` - SQLite/PostgreSQL NPC template storage
 
 **Usage**:
 ```typescript
 import { KyselyUserRepository } from '../persistence/KyselyUserRepository';
+import { KyselyNpcRepository } from '../persistence/KyselyNpcRepository';
 import { getDb } from '../data/db';
 
-const repo = new KyselyUserRepository(getDb());
-const users = await repo.findAll();
+const userRepo = new KyselyUserRepository(getDb());
+const npcRepo = new KyselyNpcRepository(getDb());
+const users = await userRepo.findAll();
+const hostileNpcs = await npcRepo.findHostile();
 ```
 
 ### `AsyncFile*Repository.ts` files
@@ -113,6 +132,7 @@ const users = await repo.findAll();
 - `AsyncFileUserRepository` - JSON file user storage
 - `AsyncFileRoomRepository` - JSON file room storage
 - `AsyncFileItemRepository` - JSON file item storage
+- `AsyncFileNpcRepository` - JSON file NPC template storage
 
 ### `mappers/`
 
@@ -120,12 +140,17 @@ const users = await repo.findAll();
 
 ```typescript
 import { dbRowToUser, userToDbRow } from '../persistence/mappers';
+import { dbRowToNPCData, npcDataToDbRow } from '../persistence/mappers';
 
 // Convert database row to User object
 const user = dbRowToUser(dbRow);
 
 // Convert User object to database row
 const row = userToDbRow(user);
+
+// Convert NPC database row (splits damage into damage_min/damage_max)
+const npc = dbRowToNPCData(npcRow);  // damage field reconstructed as [min, max] tuple
+const npcRow = npcDataToDbRow(npc);  // damage tuple split into damage_min/damage_max
 ```
 
 ## Testing
