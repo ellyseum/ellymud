@@ -7,6 +7,7 @@
 import { GameItem, ItemInstance, User } from '../types';
 import { Room } from '../room/room';
 import { RoomData } from '../room/roomData';
+import { NPCData } from '../combat/npc';
 
 /**
  * Async repository interface for Item data persistence
@@ -60,6 +61,27 @@ export interface IAsyncRoomRepository {
   // Write operations
   save(room: RoomData): Promise<void>;
   saveAll(rooms: RoomData[]): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+/**
+ * Async repository interface for NPC template data persistence
+ * Used by RepositoryFactory pattern - all methods are async
+ *
+ * Note: This handles NPC templates (static definitions), not NPC instances.
+ * NPC instances are created from templates at runtime and managed in memory.
+ */
+export interface IAsyncNpcRepository {
+  // Read operations
+  findAll(): Promise<NPCData[]>;
+  findById(id: string): Promise<NPCData | undefined>;
+  findByName(name: string): Promise<NPCData | undefined>;
+  findHostile(): Promise<NPCData[]>;
+  findMerchants(): Promise<NPCData[]>;
+
+  // Write operations
+  save(npc: NPCData): Promise<void>;
+  saveAll(npcs: NPCData[]): Promise<void>;
   delete(id: string): Promise<void>;
 }
 
