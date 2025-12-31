@@ -86,6 +86,9 @@ jest.mock('../config', () => ({
   },
   ROOMS_FILE: '/test/data/rooms.json',
   DIRECT_ROOMS_DATA: null,
+  STORAGE_BACKEND: 'json',
+  isDatabaseOnly: () => false,
+  isUsingDatabase: () => false,
 }));
 
 jest.mock('../utils/socketWriter', () => ({

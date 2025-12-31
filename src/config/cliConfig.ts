@@ -187,7 +187,7 @@ export function parseCommandLineArgs(): CLIConfig {
     .option('storageBackend', {
       type: 'string',
       description:
-        'Storage backend: json (flat files), sqlite (local db), postgres (remote db), or auto (sqlite with json fallback)',
+        'Storage backend: json (flat files), sqlite (local db), postgres (remote db), or auto (db with json fallback)',
       default: process.env.STORAGE_BACKEND || 'auto',
       choices: ['json', 'sqlite', 'postgres', 'auto'],
       alias: 'storage',

@@ -10,7 +10,7 @@ import { CombatSystem } from '../combat/combatSystem';
 import { RoomManager } from '../room/roomManager';
 import { systemLogger, getPlayerLogger } from '../utils/logger';
 import { parseAndValidateJson } from '../utils/jsonUtils';
-import config, { STORAGE_BACKEND } from '../config';
+import config, { STORAGE_BACKEND, isDatabaseOnly } from '../config';
 import { getDb, ensureInitialized } from '../data/db';
 
 const DATA_DIR = path.join(__dirname, '..', '..', 'data');
@@ -204,11 +204,11 @@ export class UserManager {
     if (STORAGE_BACKEND === 'json') {
       // JSON only mode - use repository directly
       this.loadUsersFromRepository();
-    } else if (STORAGE_BACKEND === 'sqlite') {
-      // SQLite only mode - synchronously preload from repository, then refresh from database
+    } else if (isDatabaseOnly()) {
+      // Database only mode - synchronously preload from repository, then refresh from database
       this.loadUsersFromRepository();
       this.loadUsersFromDatabase().catch((error) => {
-        systemLogger.error('[UserManager] SQLite load failed (no fallback):', error);
+        systemLogger.error('[UserManager] Database load failed (no fallback):', error);
       });
     } else {
       // Auto mode (default) - synchronously preload from repository, then try database
@@ -248,7 +248,7 @@ export class UserManager {
   }
 
   /**
-   * Load users from SQLite database via Kysely.
+   * Load users from database via Kysely.
    * Fire-and-forget pattern since loadUsers() is sync.
    */
   private async loadUsersFromDatabase(): Promise<void> {
@@ -329,10 +329,10 @@ export class UserManager {
       systemLogger.info(`[UserManager] Loaded ${this.users.length} users from database`);
     } catch (error) {
       systemLogger.error('[UserManager] Error loading from database:', error);
-      // In SQLite-only mode, keep existing in-memory users (preloaded from repository)
-      if (STORAGE_BACKEND === 'sqlite') {
+      // In database-only mode, keep existing in-memory users (preloaded from repository)
+      if (isDatabaseOnly()) {
         systemLogger.warn(
-          '[UserManager] SQLite-only mode: keeping existing users after database load failure'
+          '[UserManager] Database-only mode: keeping existing users after database load failure'
         );
       } else {
         // In auto mode, users are already loaded from repository (line 215)
@@ -358,8 +358,8 @@ export class UserManager {
       } catch (error) {
         systemLogger.error('Error saving users to file:', error);
       }
-    } else if (STORAGE_BACKEND === 'sqlite') {
-      // SQLite only mode - save to database only
+    } else if (isDatabaseOnly()) {
+      // Database only mode - save to database only
       // Note: fire-and-forget pattern to maintain synchronous interface
       // Consider refactoring callers to be async for proper error handling
       void this.saveUsersToDatabase().catch((error) => {

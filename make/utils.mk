@@ -78,6 +78,34 @@ reset-data: ## Reset data to defaults (DESTRUCTIVE)
 	@printf "$(GREEN)Data reset complete$(NC)\n"
 
 #-----------------------------------------------------------------------------
+# Data migration (JSON <-> Database)
+#-----------------------------------------------------------------------------
+
+.PHONY: data-status data-export data-import data-backup
+.PHONY: data-switch-json data-switch-sqlite data-switch-postgres
+
+data-status: ## Show current storage backend and data counts
+	@npx ts-node scripts/data-migrate.ts status
+
+data-export: ## Export database to JSON files
+	@npx ts-node scripts/data-migrate.ts export
+
+data-import: ## Import JSON files into database
+	@npx ts-node scripts/data-migrate.ts import
+
+data-backup: ## Create timestamped backup of all data
+	@npx ts-node scripts/data-migrate.ts backup
+
+data-switch-json: ## Switch to JSON storage backend
+	@npx ts-node scripts/data-migrate.ts switch json
+
+data-switch-sqlite: ## Switch to SQLite storage backend
+	@npx ts-node scripts/data-migrate.ts switch sqlite
+
+data-switch-postgres: ## Switch to PostgreSQL storage backend
+	@npx ts-node scripts/data-migrate.ts switch postgres
+
+#-----------------------------------------------------------------------------
 # Pipeline Metrics
 #-----------------------------------------------------------------------------
 

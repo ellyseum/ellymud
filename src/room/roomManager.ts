@@ -9,7 +9,7 @@ import { IRoomManager } from './interfaces';
 import { parseAndValidateJson } from '../utils/jsonUtils';
 import { IRoomRepository } from '../persistence/interfaces';
 import { FileRoomRepository } from '../persistence/fileRepository';
-import config, { STORAGE_BACKEND } from '../config';
+import config, { STORAGE_BACKEND, isDatabaseOnly } from '../config';
 import { getDb, ensureInitialized } from '../data/db';
 
 // Import our service classes
@@ -198,11 +198,11 @@ export class RoomManager implements IRoomManager {
     if (STORAGE_BACKEND === 'json') {
       // JSON only mode - use repository directly
       this.loadRoomsFromRepository();
-    } else if (STORAGE_BACKEND === 'sqlite') {
-      // SQLite only mode - try database, load repository as initial sync data
+    } else if (isDatabaseOnly()) {
+      // Database only mode - try database, load repository as initial sync data
       this.loadRoomsFromRepository(); // Load sync first
       this.loadRoomsFromDatabase().catch((error) => {
-        systemLogger.error('[RoomManager] SQLite load failed (no fallback):', error);
+        systemLogger.error('[RoomManager] Database load failed (no fallback):', error);
       });
     } else {
       // Auto mode (default) - load repository sync, then try database async
@@ -279,8 +279,8 @@ export class RoomManager implements IRoomManager {
     if (STORAGE_BACKEND === 'json') {
       // JSON only mode - save to file only
       saveToFile();
-    } else if (STORAGE_BACKEND === 'sqlite') {
-      // SQLite only mode - save to database only
+    } else if (isDatabaseOnly()) {
+      // Database only mode - save to database only
       // Note: fire-and-forget pattern to maintain synchronous interface
       void this.saveRoomsToDatabase().catch((error) => {
         systemLogger.error('[RoomManager] Database save failed:', error);
@@ -295,7 +295,7 @@ export class RoomManager implements IRoomManager {
   }
 
   /**
-   * Save rooms to SQLite database via Kysely
+   * Save rooms to database via Kysely
    */
   private async saveRoomsToDatabase(): Promise<void> {
     await ensureInitialized();
@@ -334,7 +334,7 @@ export class RoomManager implements IRoomManager {
   }
 
   /**
-   * Load rooms from SQLite database via Kysely
+   * Load rooms from database via Kysely
    */
   private async loadRoomsFromDatabase(): Promise<boolean> {
     try {

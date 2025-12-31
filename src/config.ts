@@ -77,9 +77,26 @@ export const FORCE = cliConfig.force; // Add force flag
 export const TEST_MODE = cliConfig.testMode;
 
 // Storage backend configuration
-// Options: 'json' (flat files only), 'sqlite' (local db), 'postgres' (remote db), 'auto' (sqlite with json fallback)
+// Options: 'json' (flat files only), 'sqlite' (local db), 'postgres' (remote db), 'auto' (db with json fallback)
 export const STORAGE_BACKEND = cliConfig.storageBackend;
 export const DATABASE_URL = cliConfig.databaseUrl;
+
+/**
+ * Check if the current storage backend uses a database (SQLite or PostgreSQL)
+ * Use this instead of checking for specific backends to be database-agnostic
+ */
+export function isUsingDatabase(): boolean {
+  return (
+    STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres' || STORAGE_BACKEND === 'auto'
+  );
+}
+
+/**
+ * Check if database is the only storage (no JSON fallback)
+ */
+export function isDatabaseOnly(): boolean {
+  return STORAGE_BACKEND === 'sqlite' || STORAGE_BACKEND === 'postgres';
+}
 
 // Redis configuration
 // Precedence: CLI flag (cliConfig.useRedis) takes priority over USE_REDIS env var.

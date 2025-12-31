@@ -34,6 +34,9 @@ data/*.db-journal
 data/*.db-wal
 data/*.db-shm
 
+# Auto-migration state file
+data/.backend-state
+
 # Session data
 memory.md
 last-session.md
