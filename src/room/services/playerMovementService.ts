@@ -17,6 +17,7 @@ export class PlayerMovementService implements IPlayerMovementService {
   private roomManager: {
     getRoom: (roomId: string) => Room | undefined;
     getStartingRoomId: () => string;
+    isTestMode?: () => boolean;
   };
   private directionHelper: {
     getOppositeDirection: (direction: string) => string;
@@ -29,6 +30,7 @@ export class PlayerMovementService implements IPlayerMovementService {
     roomManager: {
       getRoom: (roomId: string) => Room | undefined;
       getStartingRoomId: () => string;
+      isTestMode?: () => boolean;
     },
     directionHelper: {
       getOppositeDirection: (direction: string) => string;
@@ -46,9 +48,14 @@ export class PlayerMovementService implements IPlayerMovementService {
   /**
    * Calculate movement delay based on character agility
    * @param agility The player's agility stat
-   * @returns Delay in milliseconds
+   * @returns Delay in milliseconds (0 in test mode for instant movement)
    */
   private calculateMovementDelay(agility: number): number {
+    // In test mode, movement is instant
+    if (this.roomManager.isTestMode?.()) {
+      return 0;
+    }
+
     // Base delay is 3000ms (3 seconds)
     const baseDelay = 3000;
 
@@ -145,97 +152,135 @@ export class PlayerMovementService implements IPlayerMovementService {
     // Suppress the prompt until movement is complete
     client.stateData.suppressPrompt = true;
 
-    // Set a timeout to perform the actual room transition after the delay
-    setTimeout(() => {
-      // Make sure client.user is still available when the timeout executes
-      if (client.user) {
-        // NOW remove the player from the old room
-        currentRoom.removePlayer(client.user.username);
-
-        // NOW add the player to the new room
-        nextRoom.addPlayer(client.user.username);
-
-        // NOW notify players in the old room that this player has left
-        this.notifyPlayersInRoom(
-          currentRoomId,
-          `${formatUsername(client.user.username)} leaves ${fullDirectionName}.\r\n`,
-          client.user.username
-        );
-
-        // NOW notify players in the destination room that this player has arrived
-        this.notifyPlayersInRoom(
-          nextRoomId,
-          `${formatUsername(client.user.username)} enters from the ${fullOppositeDirectionName}.\r\n`,
-          client.user.username
-        );
-
-        // NOW update user's current room
-        client.user.currentRoomId = nextRoomId;
-
-        // Log the player's movement
-        const playerLogger = getPlayerLogger(client.user.username);
-        playerLogger.info(`Moved to room ${nextRoomId}: ${nextRoom.name}`);
-
-        // Show the new room description with formatted message to redraw prompt after
-        writeFormattedMessageToClient(
+    // Execute movement - synchronously in test mode, with delay otherwise
+    if (delay === 0) {
+      // Test mode: execute synchronously
+      this.executeMovement(
+        client,
+        currentRoom,
+        nextRoom,
+        currentRoomId,
+        nextRoomId,
+        fullDirectionName,
+        fullOppositeDirectionName
+      );
+    } else {
+      // Normal mode: use setTimeout for delay
+      setTimeout(() => {
+        this.executeMovement(
           client,
-          nextRoom.getDescriptionExcludingPlayer(client.user.username),
-          true // Explicitly set drawPrompt to true
+          currentRoom,
+          nextRoom,
+          currentRoomId,
+          nextRoomId,
+          fullDirectionName,
+          fullOppositeDirectionName
         );
-
-        // Process any commands that were buffered during movement
-        if (
-          client.stateData.movementCommandQueue &&
-          client.stateData.movementCommandQueue.length > 0
-        ) {
-          // Extract the queued commands
-          const commandQueue = [...client.stateData.movementCommandQueue];
-
-          // Clear the queue
-          client.stateData.movementCommandQueue = [];
-
-          // Process only the first command after movement is complete
-          // We'll handle multiple movement commands sequentially
-          setTimeout(() => {
-            // Get UserManager instance
-            const userManager = UserManager.getInstance();
-
-            // Create a new instance of CommandHandler with full RoomManager
-            const commandHandler = new CommandHandler(
-              this.getClients(),
-              userManager,
-              RoomManager.getInstance(this.getClients())
-            );
-
-            // Process only the first command in the queue
-            if (commandQueue.length > 0) {
-              const cmd = commandQueue.shift(); // Take the first command
-              commandHandler.handleCommand(client, cmd);
-
-              // If there are more commands in the queue, save them back to the client
-              // They'll be processed after any resulting movement completes
-              if (commandQueue.length > 0) {
-                if (!client.stateData) {
-                  client.stateData = {};
-                }
-                client.stateData.movementCommandQueue = commandQueue;
-              }
-            }
-          }, 100);
-        }
-
-        // Clear the moving flags
-        if (client.stateData) {
-          client.stateData.isMoving = false;
-          client.stateData.suppressPrompt = false;
-        }
-
-        // Force redraw of the prompt to ensure it appears
-        drawCommandPrompt(client);
-      }
-    }, delay);
+      }, delay);
+    }
 
     return true;
+  }
+
+  /**
+   * Execute the actual room transition
+   * Extracted to allow synchronous execution in test mode
+   */
+  private executeMovement(
+    client: ConnectedClient,
+    currentRoom: Room,
+    nextRoom: Room,
+    currentRoomId: string,
+    nextRoomId: string,
+    fullDirectionName: string,
+    fullOppositeDirectionName: string
+  ): void {
+    // Make sure client.user is still available when the timeout executes
+    if (client.user) {
+      // NOW remove the player from the old room
+      currentRoom.removePlayer(client.user.username);
+
+      // NOW add the player to the new room
+      nextRoom.addPlayer(client.user.username);
+
+      // NOW notify players in the old room that this player has left
+      this.notifyPlayersInRoom(
+        currentRoomId,
+        `${formatUsername(client.user.username)} leaves ${fullDirectionName}.\r\n`,
+        client.user.username
+      );
+
+      // NOW notify players in the destination room that this player has arrived
+      this.notifyPlayersInRoom(
+        nextRoomId,
+        `${formatUsername(client.user.username)} enters from the ${fullOppositeDirectionName}.\r\n`,
+        client.user.username
+      );
+
+      // NOW update user's current room
+      client.user.currentRoomId = nextRoomId;
+
+      // Log the player's movement
+      const playerLogger = getPlayerLogger(client.user.username);
+      playerLogger.info(`Moved to room ${nextRoomId}: ${nextRoom.name}`);
+
+      // Show the new room description with formatted message to redraw prompt after
+      writeFormattedMessageToClient(
+        client,
+        nextRoom.getDescriptionExcludingPlayer(client.user.username),
+        true // Explicitly set drawPrompt to true
+      );
+
+      // Process any commands that were buffered during movement
+      if (
+        client.stateData.movementCommandQueue &&
+        client.stateData.movementCommandQueue.length > 0
+      ) {
+        // Extract the queued commands
+        const commandQueue = [...client.stateData.movementCommandQueue];
+
+        // Clear the queue
+        client.stateData.movementCommandQueue = [];
+
+        // Process only the first command after movement is complete
+        // We'll handle multiple movement commands sequentially
+        setTimeout(() => {
+          // Get UserManager instance
+          const userManager = UserManager.getInstance();
+
+          // Create a new instance of CommandHandler with full RoomManager
+          const commandHandler = new CommandHandler(
+            this.getClients(),
+            userManager,
+            RoomManager.getInstance(this.getClients())
+          );
+
+          // Process only the first command in the queue
+          if (commandQueue.length > 0) {
+            const cmd = commandQueue.shift(); // Take the first command
+            commandHandler.handleCommand(client, cmd);
+
+            // If there are more commands in the queue, save them back to the client
+            // They'll be processed after any resulting movement completes
+            if (commandQueue.length > 0) {
+              if (!client.stateData) {
+                client.stateData = {};
+              }
+              client.stateData.movementCommandQueue = commandQueue;
+            }
+          }
+        }, 100);
+      }
+
+      // Clear the moving flags
+      if (client.stateData) {
+        client.stateData.isMoving = false;
+        client.stateData.suppressPrompt = false;
+      }
+
+      // Force redraw of the prompt to ensure it appears
+      drawCommandPrompt(client);
+    }
   }
 
   // Original movePlayer method kept for backward compatibility

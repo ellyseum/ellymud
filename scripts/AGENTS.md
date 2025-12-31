@@ -171,9 +171,56 @@ Summary:
 - `0`: Success (report generated or no data)
 - `1`: Missing jq dependency
 
+### `data-migrate.ts`
+
+**Purpose**: Bidirectional migration tool for data between JSON files and database (SQLite/PostgreSQL).
+
+**Commands**:
+- `status` - Show current backend configuration and data counts
+- `export` - Export database → JSON files
+- `import` - Import JSON files → database
+- `backup` - Create timestamped backup of all data
+- `switch <target>` - Switch to target backend (json|sqlite|postgres)
+
+**Entities migrated**:
+- Users (`users.json` ↔ `users` table)
+- Rooms (`rooms.json` ↔ `rooms` table)
+- Items (`items.json` ↔ `item_templates` table)
+- Item Instances (`itemInstances.json` ↔ `item_instances` table)
+- NPCs (`npcs.json` ↔ `npc_templates` table)
+
+**NPC Template Table Schema**:
+```sql
+CREATE TABLE npc_templates (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  health INTEGER NOT NULL,
+  max_health INTEGER NOT NULL,
+  damage_min INTEGER NOT NULL,
+  damage_max INTEGER NOT NULL,
+  is_hostile INTEGER NOT NULL DEFAULT 0,
+  is_passive INTEGER NOT NULL DEFAULT 0,
+  experience_value INTEGER NOT NULL DEFAULT 50,
+  attack_texts TEXT NOT NULL,  -- JSON array
+  death_messages TEXT NOT NULL, -- JSON array
+  merchant INTEGER,            -- nullable boolean
+  inventory TEXT,              -- nullable JSON array
+  stock_config TEXT            -- nullable JSON array
+);
+```
+
+**Usage**:
+```bash
+npx ts-node scripts/data-migrate.ts status
+npx ts-node scripts/data-migrate.ts import --force
+npx ts-node scripts/data-migrate.ts export
+npx ts-node scripts/data-migrate.ts switch sqlite
+```
+
 ### `migrate-json-to-sqlite.ts`
 
-**Purpose**: One-time migration script to transfer data from legacy JSON files to the new SQLite database.
+**Purpose**: Legacy one-time migration script (superseded by `data-migrate.ts`).
 
 **What it does**:
 

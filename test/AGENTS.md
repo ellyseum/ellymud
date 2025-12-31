@@ -298,6 +298,84 @@ it('should allow player interaction', async () => {
 });
 ```
 
+#### Pattern: Test NPC Combat
+
+```typescript
+it('should engage combat with NPC', async () => {
+  // Teleport to room with NPCs
+  agent.teleportTo(sessionId, 'west-alley');
+  
+  // Get NPCs in room
+  const npcs = agent.getRoomNpcs('west-alley');
+  expect(npcs.length).toBeGreaterThan(0);
+  
+  // Attack first NPC
+  const target = npcs[0];
+  agent.sendCommand(sessionId, `attack ${target.name.toLowerCase()}`);
+  
+  // Should be in combat
+  expect(agent.isInCombat(sessionId)).toBe(true);
+  
+  // Advance ticks to process combat
+  agent.advanceTicks(5);
+});
+```
+
+#### Pattern: Test Combat NPC Room Validation (PR #43 Fix)
+
+```typescript
+it('should validate NPCs by instanceId not name', async () => {
+  // Combat should end when player leaves room
+  agent.teleportTo(sessionId, 'west-alley');
+  const npcs = agent.getRoomNpcs('west-alley');
+  
+  if (npcs.length > 0) {
+    agent.sendCommand(sessionId, `attack ${npcs[0].name.toLowerCase()}`);
+    expect(agent.isInCombat(sessionId)).toBe(true);
+    
+    // Move to different room
+    agent.sendCommand(sessionId, 'east');
+    agent.advanceTicks(1);
+    
+    // Combat should end - NPC instance not in new room
+    expect(agent.isInCombat(sessionId)).toBe(false);
+  }
+});
+```
+
+---
+
+## E2E Test Files
+
+| Test File | Purpose |
+|-----------|---------|
+| `features.e2e.test.ts` | TesterAgent feature showcase and basic functionality |
+| `npc-data.e2e.test.ts` | NPC template loading, categories, and instance creation |
+| `npc-combat-lifecycle.e2e.test.ts` | Full NPC combat lifecycle: engagement, damage, death, loot |
+
+### NPC Combat Lifecycle Tests
+
+The `npc-combat-lifecycle.e2e.test.ts` file provides comprehensive coverage of:
+
+1. **NPC Template and Instance Creation**
+   - Template loading from JSON/database
+   - Instance creation with unique IDs
+   - Stat preservation
+
+2. **Damage Range Validation**
+   - Damage within defined [min, max] range
+   - Damage tuple preservation through storage
+
+3. **Combat Room Context**
+   - Cross-room combat validation (PR #43 fix)
+   - Combat ends when player leaves room
+   - InstanceId-based NPC validation
+
+4. **NPC Death and Loot**
+   - Health tracking and death detection
+   - Experience rewards
+   - Item/currency drops
+
 ---
 
 ## Unit Test File Convention
@@ -440,3 +518,5 @@ open coverage/lcov-report/index.html
 - [`../src/testing/stateLoader.ts`](../src/testing/stateLoader.ts) - State snapshot management
 - [`./e2e/setup.ts`](./e2e/setup.ts) - E2E test setup (silent mode)
 - [`./e2e/features.e2e.test.ts`](./e2e/features.e2e.test.ts) - TesterAgent feature showcase
+- [`./e2e/npc-data.e2e.test.ts`](./e2e/npc-data.e2e.test.ts) - NPC data loading and validation tests
+- [`./e2e/npc-combat-lifecycle.e2e.test.ts`](./e2e/npc-combat-lifecycle.e2e.test.ts) - NPC combat lifecycle tests

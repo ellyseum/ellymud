@@ -146,6 +146,17 @@ await agent.shutdown();
 | `resetToClean()` | Reset to 'fresh' snapshot |
 | `getPlayerStats(sessionId)` | Get player HP/MP/gold/XP/level |
 | `setPlayerStats(sessionId, stats)` | Set player stats for testing |
+| `teleportTo(sessionId, roomId)` | Teleport player instantly to a room |
+| `getAllNpcTemplates()` | Get all NPC templates from cache |
+| `getNpcTemplateById(id)` | Get NPC template by ID |
+| `getHostileNpcTemplates()` | Get all hostile NPC templates |
+| `getMerchantNpcTemplates()` | Get all merchant NPC templates |
+| `getRoomNpcs(roomId)` | Get live NPC instances in a room |
+| `isInCombat(sessionId)` | Check if player is in combat |
+| `getCurrentRoomId(sessionId)` | Get player's current room ID |
+| `setNpcHealth(roomId, instanceId, health)` | Set NPC health for testing |
+| `getRoomItems(roomId)` | Get item instances in a room |
+| `getRoomCurrency(roomId)` | Get floor currency in a room |
 
 **PlayerStats Interface**:
 

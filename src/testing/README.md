@@ -78,7 +78,13 @@ const agent = await TesterAgent.create();
 const sessionId = await agent.directLogin('testuser');
 agent.sendCommand(sessionId, 'look');
 agent.advanceTicks(12);  // Advance 12 game ticks
+
+// NPC and combat helpers
+const npcs = agent.getRoomNpcs('west-alley');
+agent.teleportTo(sessionId, 'west-alley');
+const inCombat = agent.isInCombat(sessionId);
+
 await agent.shutdown();
 ```
 
-See `test/e2e/` for example tests.
+See `test/e2e/` for example tests and [AGENTS.md](AGENTS.md) for full API reference.

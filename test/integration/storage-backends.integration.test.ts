@@ -15,7 +15,7 @@ import { Pool } from 'pg';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { Database as DatabaseSchema, UsersTable, RoomsTable } from '../../src/data/schema';
+import { Database as DatabaseSchema, UsersTable, RoomsTable, NpcTemplatesTable } from '../../src/data/schema';
 
 // Test data
 const testUser: Omit<UsersTable, 'username'> & { username: string } = {
@@ -68,6 +68,24 @@ const testRoom: RoomsTable = {
   flags: null,
   npc_template_ids: null,
   item_instances: null,
+};
+
+const testNpc: NpcTemplatesTable = {
+  id: 'integration_test_npc',
+  name: 'Test Goblin',
+  description: 'A goblin for integration testing',
+  health: 50,
+  max_health: 50,
+  damage_min: 3,
+  damage_max: 8,
+  is_hostile: 1,
+  is_passive: 0,
+  experience_value: 100,
+  attack_texts: JSON.stringify(['attacks', 'slashes at']),
+  death_messages: JSON.stringify(['falls down dead']),
+  merchant: null,
+  inventory: null,
+  stock_config: null,
 };
 
 /**
@@ -129,6 +147,26 @@ async function createTables(db: Kysely<DatabaseSchema>): Promise<void> {
     .addColumn('npc_template_ids', 'text')
     .addColumn('item_instances', 'text')
     .execute();
+
+  await db.schema
+    .createTable('npc_templates')
+    .ifNotExists()
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('description', 'text', (col) => col.notNull())
+    .addColumn('health', 'integer', (col) => col.notNull())
+    .addColumn('max_health', 'integer', (col) => col.notNull())
+    .addColumn('damage_min', 'integer', (col) => col.notNull())
+    .addColumn('damage_max', 'integer', (col) => col.notNull())
+    .addColumn('is_hostile', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('is_passive', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('experience_value', 'integer', (col) => col.notNull().defaultTo(50))
+    .addColumn('attack_texts', 'text', (col) => col.notNull())
+    .addColumn('death_messages', 'text', (col) => col.notNull())
+    .addColumn('merchant', 'integer')
+    .addColumn('inventory', 'text')
+    .addColumn('stock_config', 'text')
+    .execute();
 }
 
 /**
@@ -138,10 +176,12 @@ async function runCrudTests(db: Kysely<DatabaseSchema>, backendName: string): Pr
   // Clean up any existing test data
   await db.deleteFrom('users').where('username', '=', testUser.username).execute();
   await db.deleteFrom('rooms').where('id', '=', testRoom.id).execute();
+  await db.deleteFrom('npc_templates').where('id', '=', testNpc.id).execute();
 
   // Test INSERT
   await db.insertInto('users').values(testUser).execute();
   await db.insertInto('rooms').values(testRoom).execute();
+  await db.insertInto('npc_templates').values(testNpc).execute();
 
   // Test SELECT
   const user = await db
@@ -165,6 +205,19 @@ async function runCrudTests(db: Kysely<DatabaseSchema>, backendName: string): Pr
   expect(room?.id).toBe(testRoom.id);
   expect(room?.name).toBe(testRoom.name);
 
+  const npc = await db
+    .selectFrom('npc_templates')
+    .selectAll()
+    .where('id', '=', testNpc.id)
+    .executeTakeFirst();
+
+  expect(npc).toBeDefined();
+  expect(npc?.id).toBe(testNpc.id);
+  expect(npc?.name).toBe(testNpc.name);
+  expect(npc?.damage_min).toBe(testNpc.damage_min);
+  expect(npc?.damage_max).toBe(testNpc.damage_max);
+  expect(npc?.is_hostile).toBe(1);
+
   // Test UPDATE
   await db
     .updateTable('users')
@@ -180,6 +233,22 @@ async function runCrudTests(db: Kysely<DatabaseSchema>, backendName: string): Pr
 
   expect(updatedUser?.level).toBe(5);
   expect(updatedUser?.experience).toBe(1000);
+
+  // Test NPC UPDATE
+  await db
+    .updateTable('npc_templates')
+    .set({ health: 75, max_health: 75, experience_value: 150 })
+    .where('id', '=', testNpc.id)
+    .execute();
+
+  const updatedNpc = await db
+    .selectFrom('npc_templates')
+    .selectAll()
+    .where('id', '=', testNpc.id)
+    .executeTakeFirst();
+
+  expect(updatedNpc?.health).toBe(75);
+  expect(updatedNpc?.experience_value).toBe(150);
 
   // Test UPSERT (insert on conflict)
   const upsertUser = { ...testUser, level: 10 };
@@ -200,6 +269,7 @@ async function runCrudTests(db: Kysely<DatabaseSchema>, backendName: string): Pr
   // Test DELETE
   await db.deleteFrom('users').where('username', '=', testUser.username).execute();
   await db.deleteFrom('rooms').where('id', '=', testRoom.id).execute();
+  await db.deleteFrom('npc_templates').where('id', '=', testNpc.id).execute();
 
   const deletedUser = await db
     .selectFrom('users')
@@ -208,6 +278,14 @@ async function runCrudTests(db: Kysely<DatabaseSchema>, backendName: string): Pr
     .executeTakeFirst();
 
   expect(deletedUser).toBeUndefined();
+
+  const deletedNpc = await db
+    .selectFrom('npc_templates')
+    .selectAll()
+    .where('id', '=', testNpc.id)
+    .executeTakeFirst();
+
+  expect(deletedNpc).toBeUndefined();
 
   console.log(`✅ ${backendName}: All CRUD operations passed`);
 }
@@ -336,6 +414,7 @@ describePostgres('PostgreSQL Storage Backend', () => {
     // Drop tables first for clean state (test database only!)
     await db.schema.dropTable('users').ifExists().execute();
     await db.schema.dropTable('rooms').ifExists().execute();
+    await db.schema.dropTable('npc_templates').ifExists().execute();
 
     await createTables(db);
   });
@@ -344,6 +423,7 @@ describePostgres('PostgreSQL Storage Backend', () => {
     // Clean up test tables
     await db.schema.dropTable('users').ifExists().execute();
     await db.schema.dropTable('rooms').ifExists().execute();
+    await db.schema.dropTable('npc_templates').ifExists().execute();
     // db.destroy() also closes the pool, so no need to call pool.end()
     await db.destroy();
   });
@@ -396,12 +476,14 @@ describe('JSON File Storage Backend', () => {
   let tempDir: string;
   let usersFile: string;
   let roomsFile: string;
+  let npcsFile: string;
 
   beforeAll(() => {
     tempDir = path.join(os.tmpdir(), `ellymud-json-test-${Date.now()}`);
     fs.mkdirSync(tempDir, { recursive: true });
     usersFile = path.join(tempDir, 'users.json');
     roomsFile = path.join(tempDir, 'rooms.json');
+    npcsFile = path.join(tempDir, 'npcs.json');
   });
 
   afterAll(() => {
@@ -485,5 +567,52 @@ describe('JSON File Storage Backend', () => {
     expect(loaded[0].username).toBe('atomic_test');
 
     console.log('✅ JSON: Atomic file update test passed');
+  });
+
+  it('should write and read NPCs JSON file with damage tuples', () => {
+    const npcs = [
+      {
+        id: 'goblin',
+        name: 'Goblin',
+        description: 'A nasty goblin',
+        health: 50,
+        maxHealth: 50,
+        damage: [3, 8],
+        isHostile: true,
+        isPassive: false,
+        experienceValue: 100,
+        attackTexts: ['attacks', 'slashes at'],
+        deathMessages: ['falls down dead'],
+      },
+      {
+        id: 'merchant',
+        name: 'Friendly Merchant',
+        description: 'A shopkeeper',
+        health: 100,
+        maxHealth: 100,
+        damage: [1, 2],
+        isHostile: false,
+        isPassive: true,
+        experienceValue: 0,
+        attackTexts: ['swats at'],
+        deathMessages: ['collapses'],
+        merchant: true,
+        inventory: [{ itemId: 'potion', itemCount: 5, spawnRate: 1.0 }],
+        stockConfig: [{ templateId: 'sword', maxStock: 3, restockAmount: 1, restockPeriod: 1, restockUnit: 'days' }],
+      },
+    ];
+
+    fs.writeFileSync(npcsFile, JSON.stringify(npcs, null, 2));
+    const loaded = JSON.parse(fs.readFileSync(npcsFile, 'utf8'));
+
+    expect(loaded).toHaveLength(2);
+    expect(loaded[0].id).toBe('goblin');
+    expect(loaded[0].damage).toEqual([3, 8]);
+    expect(loaded[0].isHostile).toBe(true);
+    expect(loaded[1].merchant).toBe(true);
+    expect(loaded[1].inventory).toHaveLength(1);
+    expect(loaded[1].stockConfig).toHaveLength(1);
+
+    console.log('✅ JSON: NPCs file read/write test passed');
   });
 });

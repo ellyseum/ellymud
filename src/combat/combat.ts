@@ -91,9 +91,34 @@ export class Combat {
     }
 
     for (const combatant of this.activeCombatants) {
-      // Check if the NPC is still in the room by name
-      if (!room.npcs.has(combatant.name) && !this.isNpcInRoomByTemplateId(room, combatant.name)) {
-        combatLogger.debug(`NPC ${combatant.name} is no longer in room ${playerRoomId}`);
+      // Check if the NPC is still in the room
+      // For NPCs, check by instanceId first (room.npcs is keyed by instanceId)
+      let isInRoom = false;
+
+      // Debug: Log what we're checking
+      const combatantInstanceId = combatant instanceof NPC ? combatant.instanceId : null;
+      combatLogger.debug(
+        `Checking combatant: name=${combatant.name}, instanceof NPC=${combatant instanceof NPC}, instanceId=${combatantInstanceId}`
+      );
+      combatLogger.debug(`Room NPCs: ${Array.from(room.npcs.keys()).join(', ')}`);
+
+      if (combatant instanceof NPC && combatant.instanceId) {
+        // Check directly by instance ID - this is the correct lookup for room.npcs Map
+        isInRoom = room.npcs.has(combatant.instanceId);
+        combatLogger.debug(
+          `NPC ${combatant.name} instanceId=${combatant.instanceId}, room.npcs.has=${isInRoom}`
+        );
+      } else {
+        // Fallback for non-NPC entities - this should rarely happen
+        combatLogger.warn(
+          `Combatant ${combatant.name} is not an NPC or has no instanceId, cannot verify room presence`
+        );
+        // Since we can't verify, assume it's valid to avoid breaking combat
+        isInRoom = true;
+      }
+
+      if (!isInRoom) {
+        combatLogger.debug(`Combatant ${combatant.name} is no longer in room ${playerRoomId}`);
         invalidCombatants.push(combatant);
       }
     }
