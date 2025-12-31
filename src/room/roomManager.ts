@@ -133,6 +133,7 @@ export class RoomManager implements IRoomManager {
       {
         getRoom: this.getRoom.bind(this),
         getStartingRoomId: this.getStartingRoomId.bind(this),
+        isTestMode: this.isTestMode.bind(this),
       },
       this.directionHelper,
       this.roomUINotificationService.notifyPlayersInRoom.bind(this.roomUINotificationService),

@@ -245,6 +245,39 @@ async function importJsonToDatabase(): Promise<void> {
         systemLogger.info(`[AutoMigrate] Imported ${instances.length} item instances to database`);
       }
     }
+
+    // Import NPC templates
+    const npcsFile = path.join(DATA_DIR, 'npcs.json');
+    if (fs.existsSync(npcsFile)) {
+      const npcs = JSON.parse(fs.readFileSync(npcsFile, 'utf-8'));
+      if (Array.isArray(npcs) && npcs.length > 0) {
+        await db.deleteFrom('npc_templates' as never).execute();
+        for (const npc of npcs) {
+          const [damageMin, damageMax] = npc.damage || [1, 2];
+          await db
+            .insertInto('npc_templates' as never)
+            .values({
+              id: npc.id,
+              name: npc.name,
+              description: npc.description,
+              health: npc.health ?? 100,
+              max_health: npc.maxHealth ?? npc.health ?? 100,
+              damage_min: damageMin,
+              damage_max: damageMax,
+              is_hostile: npc.isHostile ? 1 : 0,
+              is_passive: npc.isPassive ? 1 : 0,
+              experience_value: npc.experienceValue ?? 0,
+              attack_texts: JSON.stringify(npc.attackTexts ?? []),
+              death_messages: JSON.stringify(npc.deathMessages ?? []),
+              merchant: npc.merchant ? 1 : null,
+              inventory: JSON.stringify(npc.inventory ?? []),
+              stock_config: npc.stockConfig ? JSON.stringify(npc.stockConfig) : null,
+            } as never)
+            .execute();
+        }
+        systemLogger.info(`[AutoMigrate] Imported ${npcs.length} NPC templates to database`);
+      }
+    }
   } finally {
     await db.destroy();
   }
@@ -386,6 +419,30 @@ async function exportDatabaseToJson(sourceBackend: 'sqlite' | 'postgres'): Promi
       }));
       fs.writeFileSync(path.join(DATA_DIR, 'itemInstances.json'), JSON.stringify(instances, null, 2));
       systemLogger.info(`[AutoMigrate] Exported ${instances.length} item instances to JSON`);
+    }
+
+    // Export NPC templates
+    const npcRows = await db.selectFrom('npc_templates' as never).selectAll().execute();
+    if (npcRows.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const npcs = npcRows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        health: row.health,
+        maxHealth: row.max_health,
+        damage: [row.damage_min, row.damage_max],
+        isHostile: row.is_hostile === 1,
+        isPassive: row.is_passive === 1,
+        experienceValue: row.experience_value,
+        attackTexts: JSON.parse(row.attack_texts || '[]'),
+        deathMessages: JSON.parse(row.death_messages || '[]'),
+        ...(row.merchant === 1 && { merchant: true }),
+        ...(row.inventory && { inventory: JSON.parse(row.inventory) }),
+        ...(row.stock_config && { stockConfig: JSON.parse(row.stock_config) }),
+      }));
+      fs.writeFileSync(path.join(DATA_DIR, 'npcs.json'), JSON.stringify(npcs, null, 2));
+      systemLogger.info(`[AutoMigrate] Exported ${npcs.length} NPC templates to JSON`);
     }
   } finally {
     await db.destroy();

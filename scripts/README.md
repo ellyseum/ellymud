@@ -6,12 +6,13 @@ For technical details, command syntax, and examples, see [AGENTS.md](AGENTS.md).
 
 ## Contents
 
-| File                          | Description                                                           |
-| ----------------------------- | --------------------------------------------------------------------- |
-| `bootstrap.sh`                | Fresh system setup - installs dependencies and configures environment |
-| `check-paired-docs.sh`        | Validates README.md and AGENTS.md pairs across all directories        |
-| `generate-pipeline-report.sh` | Generates markdown report from agent pipeline metrics                 |
-| `migrate-json-to-sqlite.ts`   | Migrates user and room data from JSON files to SQLite database        |
+| File                          | Description                                                               |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `bootstrap.sh`                | Fresh system setup - installs dependencies and configures environment     |
+| `check-paired-docs.sh`        | Validates README.md and AGENTS.md pairs across all directories            |
+| `data-migrate.ts`             | Bidirectional migration between JSON and database (SQLite/PostgreSQL)     |
+| `generate-pipeline-report.sh` | Generates markdown report from agent pipeline metrics                     |
+| `migrate-json-to-sqlite.ts`   | Legacy migration script (superseded by `data-migrate.ts`)                 |
 
 ## Purpose
 
@@ -21,7 +22,7 @@ Sets up a fresh development environment. Run once after cloning the repository. 
 
 ### Database Migration
 
-Converts existing JSON data files (users.json, rooms.json) to the SQLite database format. Creates data/game.db with all records. Safe to run multiple times as it uses upsert logic.
+The `data-migrate.ts` script provides bidirectional migration between JSON files and database (SQLite or PostgreSQL). It supports migrating users, rooms, items, item instances, and NPCs. Safe to run multiple times using upsert logic.
 
 ### Documentation Validation
 

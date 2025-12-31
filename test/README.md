@@ -53,8 +53,10 @@ E2E tests are in `test/e2e/`:
 ```
 test/
 └── e2e/
-    ├── setup.ts              ← Silent mode setup
-    ├── features.e2e.test.ts  ← TesterAgent showcase
+    ├── setup.ts                       ← Silent mode setup
+    ├── features.e2e.test.ts           ← TesterAgent showcase
+    ├── npc-data.e2e.test.ts           ← NPC data loading and validation
+    ├── npc-combat-lifecycle.e2e.test.ts  ← Full NPC combat lifecycle
     ├── regeneration.e2e.test.ts
     └── combat.e2e.test.ts
 ```

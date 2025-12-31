@@ -12,7 +12,9 @@ import { UserManager } from '../user/userManager';
 import { NPC } from './npc';
 import { RoomManager } from '../room/roomManager';
 import { formatUsername } from '../utils/formatters';
-import { systemLogger, getPlayerLogger } from '../utils/logger';
+import { systemLogger, getPlayerLogger, createMechanicsLogger } from '../utils/logger';
+
+const combatLogger = createMechanicsLogger('CombatSystem');
 import { AbilityManager } from '../abilities/abilityManager';
 import { secureRandom } from '../utils/secureRandom';
 
@@ -628,11 +630,22 @@ export class CombatSystem {
    */
   findAllClientsByUsername(username: string): ConnectedClient[] {
     const results: ConnectedClient[] = [];
-    for (const client of this.roomManager['clients'].values()) {
+    const clientsMap = this.roomManager['clients'] as Map<string, ConnectedClient>;
+    combatLogger.debug(
+      `[findAllClientsByUsername] Searching for ${username} in ${clientsMap.size} clients`
+    );
+    for (const client of clientsMap.values()) {
+      const clientUsername = client.user?.username || 'no-user';
+      combatLogger.debug(
+        `[findAllClientsByUsername] Client ${client.id}: user=${clientUsername}, authenticated=${client.authenticated}`
+      );
       if (client.user && client.user.username.toLowerCase() === username.toLowerCase()) {
         results.push(client);
       }
     }
+    combatLogger.debug(
+      `[findAllClientsByUsername] Found ${results.length} clients for ${username}`
+    );
     return results;
   }
 

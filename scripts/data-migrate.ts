@@ -46,6 +46,7 @@ const JSON_FILES = {
   rooms: path.join(DATA_DIR, 'rooms.json'),
   items: path.join(DATA_DIR, 'items.json'),
   itemInstances: path.join(DATA_DIR, 'itemInstances.json'),
+  npcs: path.join(DATA_DIR, 'npcs.json'),
 };
 
 interface Options {
@@ -158,6 +159,25 @@ async function initializeTables(db: Kysely<DatabaseSchema>): Promise<void> {
     .addColumn('properties', 'text')
     .addColumn('history', 'text')
     .execute();
+
+  // NPC templates table
+  await db.schema.createTable('npc_templates').ifNotExists()
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('description', 'text', (col) => col.notNull())
+    .addColumn('health', 'integer', (col) => col.notNull())
+    .addColumn('max_health', 'integer', (col) => col.notNull())
+    .addColumn('damage_min', 'integer', (col) => col.notNull())
+    .addColumn('damage_max', 'integer', (col) => col.notNull())
+    .addColumn('is_hostile', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('is_passive', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('experience_value', 'integer', (col) => col.notNull().defaultTo(50))
+    .addColumn('attack_texts', 'text', (col) => col.notNull())
+    .addColumn('death_messages', 'text', (col) => col.notNull())
+    .addColumn('merchant', 'integer')
+    .addColumn('inventory', 'text')
+    .addColumn('stock_config', 'text')
+    .execute();
 }
 
 // ============================================================================
@@ -229,6 +249,23 @@ interface JsonItemInstance {
   createdBy?: string;
   properties?: Record<string, unknown>;
   history?: Array<{ timestamp: string | Date; event: string; details?: string }>;
+}
+
+interface JsonNpc {
+  id: string;
+  name: string;
+  description: string;
+  health: number;
+  maxHealth: number;
+  damage: [number, number];
+  isHostile: boolean;
+  isPassive: boolean;
+  experienceValue: number;
+  attackTexts: string[];
+  deathMessages: string[];
+  merchant?: boolean;
+  inventory?: Array<{ itemId: string; itemCount: number | { min: number; max: number }; spawnRate: number; spawnPeriod?: number; lastSpawned?: string }>;
+  stockConfig?: Array<{ templateId: string; maxStock: number; restockAmount: number; restockPeriod: number; restockUnit: string; lastRestock?: string }>;
 }
 
 // ============================================================================
@@ -393,6 +430,51 @@ async function importJsonToDb(db: Kysely<DatabaseSchema>, options: Options): Pro
     }
   }
 
+  // Import NPC templates
+  if (fs.existsSync(JSON_FILES.npcs)) {
+    const npcs: JsonNpc[] = JSON.parse(fs.readFileSync(JSON_FILES.npcs, 'utf8'));
+    console.log(`  NPCs: ${npcs.length} records`);
+    
+    if (!options.dryRun) {
+      await db.transaction().execute(async (trx) => {
+        for (const npc of npcs) {
+          await trx.insertInto('npc_templates').values({
+            id: npc.id,
+            name: npc.name,
+            description: npc.description,
+            health: npc.health,
+            max_health: npc.maxHealth,
+            damage_min: npc.damage[0],
+            damage_max: npc.damage[1],
+            is_hostile: npc.isHostile ? 1 : 0,
+            is_passive: npc.isPassive ? 1 : 0,
+            experience_value: npc.experienceValue,
+            attack_texts: JSON.stringify(npc.attackTexts),
+            death_messages: JSON.stringify(npc.deathMessages),
+            merchant: npc.merchant === undefined ? null : npc.merchant ? 1 : 0,
+            inventory: npc.inventory ? JSON.stringify(npc.inventory) : null,
+            stock_config: npc.stockConfig ? JSON.stringify(npc.stockConfig) : null,
+          }).onConflict((oc) => oc.column('id').doUpdateSet({
+            name: npc.name,
+            description: npc.description,
+            health: npc.health,
+            max_health: npc.maxHealth,
+            damage_min: npc.damage[0],
+            damage_max: npc.damage[1],
+            is_hostile: npc.isHostile ? 1 : 0,
+            is_passive: npc.isPassive ? 1 : 0,
+            experience_value: npc.experienceValue,
+            attack_texts: JSON.stringify(npc.attackTexts),
+            death_messages: JSON.stringify(npc.deathMessages),
+            merchant: npc.merchant === undefined ? null : npc.merchant ? 1 : 0,
+            inventory: npc.inventory ? JSON.stringify(npc.inventory) : null,
+            stock_config: npc.stockConfig ? JSON.stringify(npc.stockConfig) : null,
+          })).execute();
+        }
+      });
+    }
+  }
+
   console.log(options.dryRun ? '\n[DRY RUN] No changes made.' : '\n✅ Import complete.');
 }
 
@@ -503,6 +585,33 @@ async function exportDbToJson(db: Kysely<DatabaseSchema>, options: Options): Pro
     fs.writeFileSync(JSON_FILES.itemInstances, JSON.stringify(jsonInstances, null, 2));
   }
 
+  // Export NPC templates
+  try {
+    const dbNpcs = await db.selectFrom('npc_templates').selectAll().execute();
+    const jsonNpcs: JsonNpc[] = dbNpcs.map((n) => ({
+      id: n.id,
+      name: n.name,
+      description: n.description,
+      health: n.health,
+      maxHealth: n.max_health,
+      damage: [n.damage_min, n.damage_max] as [number, number],
+      isHostile: n.is_hostile === 1,
+      isPassive: n.is_passive === 1,
+      experienceValue: n.experience_value,
+      attackTexts: safeJsonParse(n.attack_texts, []),
+      deathMessages: safeJsonParse(n.death_messages, []),
+      merchant: n.merchant === 1 ? true : n.merchant === 0 ? false : undefined,
+      inventory: safeJsonParse(n.inventory, undefined),
+      stockConfig: safeJsonParse(n.stock_config, undefined),
+    }));
+    console.log(`  NPCs: ${jsonNpcs.length} records`);
+    if (!options.dryRun) {
+      fs.writeFileSync(JSON_FILES.npcs, JSON.stringify(jsonNpcs, null, 2));
+    }
+  } catch {
+    console.log(`  NPCs: (table not found, skipping)`);
+  }
+
   console.log(options.dryRun ? '\n[DRY RUN] No changes made.' : '\n✅ Export complete.');
 }
 
@@ -544,6 +653,12 @@ async function showStatus(options: Options): Promise<void> {
       console.log(`  rooms: ${rooms?.count ?? 0} records`);
       console.log(`  items: ${items?.count ?? 0} records`);
       console.log(`  itemInstances: ${instances?.count ?? 0} records`);
+      try {
+        const npcs = await db.selectFrom('npc_templates').select(db.fn.count('id').as('count')).executeTakeFirst();
+        console.log(`  npcs: ${npcs?.count ?? 0} records`);
+      } catch {
+        console.log(`  npcs: (table not found)`);
+      }
       await db.destroy();
     } catch (err) {
       console.log(`  (error reading database: ${err instanceof Error ? err.message : String(err)})`);
@@ -565,6 +680,12 @@ async function showStatus(options: Options): Promise<void> {
       console.log(`  rooms: ${rooms?.count ?? 0} records`);
       console.log(`  items: ${items?.count ?? 0} records`);
       console.log(`  itemInstances: ${instances?.count ?? 0} records`);
+      try {
+        const npcs = await db.selectFrom('npc_templates').select(db.fn.count('id').as('count')).executeTakeFirst();
+        console.log(`  npcs: ${npcs?.count ?? 0} records`);
+      } catch {
+        console.log(`  npcs: (table not found)`);
+      }
       await db.destroy();
     } catch (err) {
       console.log(`  (error reading database: ${err instanceof Error ? err.message : String(err)})`);

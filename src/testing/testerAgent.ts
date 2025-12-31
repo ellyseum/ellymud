@@ -5,6 +5,8 @@ import { GameTimerManager } from '../timer/gameTimerManager';
 import { enableSilentMode } from '../utils/logger';
 import { StateLoader } from './stateLoader';
 import { TestModeOptions, getDefaultTestModeOptions } from './testMode';
+import { NPC, NPCData } from '../combat/npc';
+import { RoomManager } from '../room/roomManager';
 
 /**
  * Player stats interface for test manipulation
@@ -252,9 +254,166 @@ export class TesterAgent {
   }
 
   /**
+   * Teleport player instantly to a room (bypasses movement delay)
+   * @param sessionId Session ID
+   * @param roomId Target room ID
+   */
+  teleportTo(sessionId: string, roomId: string): void {
+    const session = this.sessions.get(sessionId);
+    if (!session) throw new Error(`Session ${sessionId} not found`);
+    const client = session.getClient();
+    const user = client.user;
+    if (!user) throw new Error('Session not authenticated');
+
+    const roomManager = RoomManager.getInstance(new Map());
+    const targetRoom = roomManager.getRoom(roomId);
+    if (!targetRoom) throw new Error(`Room ${roomId} not found`);
+
+    // Remove from current room
+    if (user.currentRoomId) {
+      const currentRoom = roomManager.getRoom(user.currentRoomId);
+      if (currentRoom) {
+        currentRoom.removePlayer(user.username);
+      }
+    }
+
+    // Add to target room
+    targetRoom.addPlayer(user.username);
+    user.currentRoomId = roomId;
+  }
+
+  /**
    * Get the underlying GameServer instance (for advanced testing)
    */
   getServer(): GameServer {
     return this.server;
+  }
+
+  // === NPC Helpers ===
+
+  /**
+   * Get all NPC templates from the cache
+   */
+  getAllNpcTemplates(): NPCData[] {
+    const npcMap = NPC.loadNPCData();
+    return Array.from(npcMap.values());
+  }
+
+  /**
+   * Get an NPC template by ID
+   * @param id Template ID
+   */
+  getNpcTemplateById(id: string): NPCData | undefined {
+    const npcMap = NPC.loadNPCData();
+    return npcMap.get(id);
+  }
+
+  /**
+   * Get all hostile NPC templates
+   */
+  getHostileNpcTemplates(): NPCData[] {
+    return this.getAllNpcTemplates().filter((npc) => npc.isHostile);
+  }
+
+  /**
+   * Get all merchant NPC templates
+   */
+  getMerchantNpcTemplates(): NPCData[] {
+    return this.getAllNpcTemplates().filter((npc) => npc.merchant === true);
+  }
+
+  // === Room & Combat Helpers ===
+
+  /**
+   * Get NPCs currently in a room (live instances, not templates)
+   * @param roomId Room ID to check
+   */
+  getRoomNpcs(roomId: string): Array<{
+    instanceId: string;
+    templateId: string;
+    name: string;
+    health: number;
+    maxHealth: number;
+    isHostile: boolean;
+  }> {
+    const roomManager = RoomManager.getInstance(new Map());
+    const room = roomManager.getRoom(roomId);
+    if (!room) return [];
+
+    return Array.from(room.npcs.entries()).map(([id, npc]) => ({
+      instanceId: id,
+      templateId: npc.templateId,
+      name: npc.name,
+      health: npc.health,
+      maxHealth: npc.maxHealth,
+      isHostile: npc.isHostile,
+    }));
+  }
+
+  /**
+   * Check if a player is currently in combat
+   * @param sessionId Session ID
+   */
+  isInCombat(sessionId: string): boolean {
+    const session = this.sessions.get(sessionId);
+    if (!session) return false;
+
+    const client = session.getClient();
+    return client?.user?.inCombat === true;
+  }
+
+  /**
+   * Get the current room ID for a session
+   * @param sessionId Session ID
+   */
+  getCurrentRoomId(sessionId: string): string | undefined {
+    const session = this.sessions.get(sessionId);
+    if (!session) return undefined;
+
+    const client = session.getClient();
+    return client?.user?.currentRoomId;
+  }
+
+  /**
+   * Set the health of an NPC instance in a room (for faster test execution)
+   * @param roomId Room ID where the NPC is located
+   * @param instanceId The NPC's instance ID
+   * @param health The health value to set
+   */
+  setNpcHealth(roomId: string, instanceId: string, health: number): void {
+    const roomManager = RoomManager.getInstance(new Map());
+    const room = roomManager.getRoom(roomId);
+    if (!room) return;
+
+    const npc = room.npcs.get(instanceId);
+    if (npc) {
+      npc.health = health;
+    }
+  }
+
+  /**
+   * Get item instances in a room (dropped items)
+   * @param roomId Room ID to check
+   */
+  getRoomItems(roomId: string): Array<{ instanceId: string; templateId: string }> {
+    const roomManager = RoomManager.getInstance(new Map());
+    const room = roomManager.getRoom(roomId);
+    if (!room) return [];
+
+    return Array.from(room.getItemInstances().entries()).map(([instanceId, templateId]) => ({
+      instanceId,
+      templateId,
+    }));
+  }
+
+  /**
+   * Get floor currency in a room (returns total gold value)
+   * @param roomId Room ID to check
+   */
+  getRoomCurrency(roomId: string): { gold: number; silver: number; copper: number } {
+    const roomManager = RoomManager.getInstance(new Map());
+    const room = roomManager.getRoom(roomId);
+    if (!room) return { gold: 0, silver: 0, copper: 0 };
+    return room.currency;
   }
 }
