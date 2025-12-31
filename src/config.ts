@@ -1,5 +1,6 @@
 import path from 'path';
 import os from 'os';
+import crypto from 'crypto';
 import { parseCommandLineArgs } from './config/cliConfig';
 
 // Parse command line arguments
@@ -16,7 +17,29 @@ export const HTTP_PORT = cliConfig.httpPort || cliConfig.wsPort;
 export const WS_PORT = cliConfig.wsPort;
 
 // Authentication
-export const JWT_SECRET = process.env.JWT_SECRET || 'mud-admin-secret-key';
+// In production, JWT_SECRET must be explicitly set for security.
+// In development, auto-generate a random secret for convenience (sessions won't persist across restarts).
+function getJwtSecret(): string {
+  if (process.env.JWT_SECRET) {
+    return process.env.JWT_SECRET;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'JWT_SECRET environment variable is required in production. ' +
+        'Set it to a secure random string (e.g., openssl rand -base64 32)'
+    );
+  }
+  // Auto-generate for development - warn user that sessions won't persist
+  const generated = crypto.randomBytes(32).toString('base64');
+  // Only warn if not in test mode (avoid noise in test output)
+  if (!cliConfig.testMode && process.env.NODE_ENV !== 'test') {
+    console.warn(
+      '\x1b[33m⚠ JWT_SECRET not set - using auto-generated secret. Admin sessions will not persist across restarts.\x1b[0m'
+    );
+  }
+  return generated;
+}
+export const JWT_SECRET = getJwtSecret();
 export const MIN_PASSWORD_LENGTH = 6;
 export const maxPasswordAttempts = 3; // Max failed password attempts before disconnection
 export const adminUsername = 'admin'; // Default admin username

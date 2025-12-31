@@ -11,6 +11,8 @@ module.exports = {
   coverageReporters: ['text', 'lcov'],
   verbose: true,
   forceExit: true,
+  // Set required environment variables for tests
+  setupFiles: ['<rootDir>/jest.setup.js'],
   // Mock the database module to avoid native module issues in Jest
   moduleNameMapper: {
     '^../data/db$': '<rootDir>/src/data/__mocks__/db.ts',
