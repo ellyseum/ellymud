@@ -6,10 +6,66 @@
 
 import { GameItem, ItemInstance, User } from '../types';
 import { Room } from '../room/room';
+import { RoomData } from '../room/roomData';
 
 /**
- * Repository interface for Item data persistence
- * Implementations can be file-based, in-memory (for tests), or database-backed
+ * Async repository interface for Item data persistence
+ * Used by RepositoryFactory pattern - all methods are async
+ */
+export interface IAsyncItemRepository {
+  // Read operations
+  findAllTemplates(): Promise<GameItem[]>;
+  findTemplateById(id: string): Promise<GameItem | undefined>;
+  findAllInstances(): Promise<ItemInstance[]>;
+  findInstanceById(instanceId: string): Promise<ItemInstance | undefined>;
+  findInstancesByTemplateId(templateId: string): Promise<ItemInstance[]>;
+
+  // Write operations
+  saveTemplate(item: GameItem): Promise<void>;
+  saveTemplates(items: GameItem[]): Promise<void>;
+  deleteTemplate(id: string): Promise<void>;
+  saveInstance(instance: ItemInstance): Promise<void>;
+  saveInstances(instances: ItemInstance[]): Promise<void>;
+  deleteInstance(instanceId: string): Promise<void>;
+}
+
+/**
+ * Async repository interface for User data persistence
+ * Used by RepositoryFactory pattern - all methods are async
+ */
+export interface IAsyncUserRepository {
+  // Read operations
+  findAll(): Promise<User[]>;
+  findByUsername(username: string): Promise<User | undefined>;
+  exists(username: string): Promise<boolean>;
+
+  // Write operations
+  save(user: User): Promise<void>;
+  saveAll(users: User[]): Promise<void>;
+  delete(username: string): Promise<void>;
+
+  // Storage check
+  storageExists(): Promise<boolean>;
+}
+
+/**
+ * Async repository interface for Room data persistence
+ * Used by RepositoryFactory pattern - all methods are async
+ */
+export interface IAsyncRoomRepository {
+  // Read operations
+  findAll(): Promise<RoomData[]>;
+  findById(id: string): Promise<RoomData | undefined>;
+
+  // Write operations
+  save(room: RoomData): Promise<void>;
+  saveAll(rooms: RoomData[]): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+/**
+ * Legacy repository interface for Item data persistence
+ * @deprecated Use IAsyncItemRepository with RepositoryFactory instead
  */
 export interface IItemRepository {
   /**
@@ -34,7 +90,8 @@ export interface IItemRepository {
 }
 
 /**
- * Repository interface for User data persistence
+ * Legacy repository interface for User data persistence
+ * @deprecated Use IAsyncUserRepository with RepositoryFactory instead
  */
 export interface IUserRepository {
   /**
@@ -54,7 +111,8 @@ export interface IUserRepository {
 }
 
 /**
- * Repository interface for Room data persistence
+ * Legacy repository interface for Room data persistence
+ * @deprecated Use IAsyncRoomRepository with RepositoryFactory instead
  */
 export interface IRoomRepository {
   /**

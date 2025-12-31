@@ -2,7 +2,8 @@
 import fs from 'fs';
 import path from 'path';
 import { Room } from './room';
-import { ConnectedClient, Currency, Exit, Item } from '../types';
+import { RoomData } from './roomData';
+import { ConnectedClient, Exit } from '../types';
 import { systemLogger } from '../utils/logger';
 import { NPC } from '../combat/npc';
 import { IRoomManager } from './interfaces';
@@ -22,20 +23,6 @@ import { TeleportationService } from './services/teleportationService';
 
 const ROOMS_FILE = path.join(__dirname, '..', '..', 'data', 'rooms.json');
 const DEFAULT_ROOM_ID = 'start'; // ID for the starting room
-
-interface RoomData {
-  id: string;
-  shortDescription?: string;
-  longDescription?: string;
-  name?: string;
-  description?: string;
-  exits: Exit[];
-  items?: (string | Item)[];
-  players?: string[];
-  npcs?: string[] | Map<string, NPC>;
-  currency: Currency;
-  flags?: string[];
-}
 
 export class RoomManager implements IRoomManager {
   private rooms: Map<string, Room> = new Map();
