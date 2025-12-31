@@ -67,7 +67,10 @@ export class KyselyNpcRepository implements IAsyncNpcRepository {
   async saveAll(npcs: NPCData[]): Promise<void> {
     if (npcs.length === 0) return;
 
-    // Use transaction for batch save
+    // Note: While batch inserts (single statement with multiple rows) are faster,
+    // Kysely's onConflict().doUpdateSet() doesn't support referencing `excluded.*`
+    // columns easily for upserts. The loop approach ensures each row's values are
+    // used for the update. For large datasets, consider chunking or raw SQL.
     await this.db.transaction().execute(async (trx) => {
       for (const npc of npcs) {
         const row = npcDataToDbRow(npc);
