@@ -12,14 +12,17 @@ import {
   IAsyncUserRepository,
   IAsyncRoomRepository,
   IAsyncItemRepository,
+  IAsyncNpcRepository,
   RepositoryConfig,
 } from './interfaces';
 import { KyselyUserRepository } from './KyselyUserRepository';
 import { KyselyRoomRepository } from './KyselyRoomRepository';
 import { KyselyItemRepository } from './KyselyItemRepository';
+import { KyselyNpcRepository } from './KyselyNpcRepository';
 import { AsyncFileUserRepository } from './AsyncFileUserRepository';
 import { AsyncFileRoomRepository } from './AsyncFileRoomRepository';
 import { AsyncFileItemRepository } from './AsyncFileItemRepository';
+import { AsyncFileNpcRepository } from './AsyncFileNpcRepository';
 
 /**
  * Check if we should use database (Kysely) storage
@@ -56,4 +59,14 @@ export function getItemRepository(config?: RepositoryConfig): IAsyncItemReposito
     return new KyselyItemRepository();
   }
   return new AsyncFileItemRepository(config);
+}
+
+/**
+ * Get the appropriate NpcRepository based on STORAGE_BACKEND
+ */
+export function getNpcRepository(config?: RepositoryConfig): IAsyncNpcRepository {
+  if (isDatabaseBackend()) {
+    return new KyselyNpcRepository();
+  }
+  return new AsyncFileNpcRepository(config);
 }

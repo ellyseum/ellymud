@@ -5,7 +5,12 @@
  */
 
 // Interfaces - Async (preferred for new code)
-export { IAsyncUserRepository, IAsyncRoomRepository, IAsyncItemRepository } from './interfaces';
+export {
+  IAsyncUserRepository,
+  IAsyncRoomRepository,
+  IAsyncItemRepository,
+  IAsyncNpcRepository,
+} from './interfaces';
 
 // Interfaces - Legacy sync (deprecated, for backwards compatibility)
 export {
@@ -21,6 +26,7 @@ export {
   getUserRepository,
   getRoomRepository,
   getItemRepository,
+  getNpcRepository,
   isDatabaseBackend,
 } from './RepositoryFactory';
 
@@ -28,11 +34,13 @@ export {
 export { KyselyUserRepository } from './KyselyUserRepository';
 export { KyselyRoomRepository } from './KyselyRoomRepository';
 export { KyselyItemRepository } from './KyselyItemRepository';
+export { KyselyNpcRepository } from './KyselyNpcRepository';
 
 // Async file implementations (JSON files)
 export { AsyncFileUserRepository } from './AsyncFileUserRepository';
 export { AsyncFileRoomRepository } from './AsyncFileRoomRepository';
 export { AsyncFileItemRepository } from './AsyncFileItemRepository';
+export { AsyncFileNpcRepository } from './AsyncFileNpcRepository';
 
 // Legacy sync file implementations (for backwards compatibility)
 export { FileItemRepository, FileUserRepository, FileRoomRepository } from './fileRepository';
