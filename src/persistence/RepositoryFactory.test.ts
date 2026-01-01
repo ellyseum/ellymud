@@ -46,6 +46,12 @@ describe('RepositoryFactory', () => {
       expect(repo.constructor.name).toBe('AsyncFileItemRepository');
     });
 
+    it('should return AsyncFileNpcRepository for npcs', async () => {
+      const { getNpcRepository } = await import('./RepositoryFactory');
+      const repo = getNpcRepository();
+      expect(repo.constructor.name).toBe('AsyncFileNpcRepository');
+    });
+
     it('isDatabaseBackend should return false', async () => {
       const { isDatabaseBackend } = await import('./RepositoryFactory');
       expect(isDatabaseBackend()).toBe(false);
@@ -78,6 +84,12 @@ describe('RepositoryFactory', () => {
       expect(repo.constructor.name).toBe('KyselyItemRepository');
     });
 
+    it('should return KyselyNpcRepository for npcs', async () => {
+      const { getNpcRepository } = await import('./RepositoryFactory');
+      const repo = getNpcRepository();
+      expect(repo.constructor.name).toBe('KyselyNpcRepository');
+    });
+
     it('isDatabaseBackend should return true', async () => {
       const { isDatabaseBackend } = await import('./RepositoryFactory');
       expect(isDatabaseBackend()).toBe(true);
@@ -96,6 +108,12 @@ describe('RepositoryFactory', () => {
       const { getUserRepository } = await import('./RepositoryFactory');
       const repo = getUserRepository();
       expect(repo.constructor.name).toBe('KyselyUserRepository');
+    });
+
+    it('should return KyselyNpcRepository for npcs', async () => {
+      const { getNpcRepository } = await import('./RepositoryFactory');
+      const repo = getNpcRepository();
+      expect(repo.constructor.name).toBe('KyselyNpcRepository');
     });
 
     it('isDatabaseBackend should return true', async () => {

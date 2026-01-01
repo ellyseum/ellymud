@@ -1,14 +1,13 @@
-import fs from 'fs';
-import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { CombatEntity } from './combatEntity.interface';
 import { systemLogger } from '../utils/logger';
 import { parseAndValidateJson } from '../utils/jsonUtils';
-import { loadAndValidateJsonFile } from '../utils/fileUtils';
 import config from '../config';
 import { MerchantStockConfig, NPCInventoryItem, NumberRange } from '../types';
 import { ItemManager } from '../utils/itemManager';
 import { secureRandom, secureRandomInt, secureRandomElement } from '../utils/secureRandom';
+import { getNpcRepository } from '../persistence/RepositoryFactory';
+import { IAsyncNpcRepository } from '../persistence/interfaces';
 
 // Interface for NPC data loaded from JSON
 export interface NPCData {
@@ -35,6 +34,10 @@ export class NPC implements CombatEntity {
   private static cacheTimestamp: number = 0;
   // Cache expiration time in milliseconds (default: 5 minutes)
   private static readonly CACHE_EXPIRY_MS: number = 5 * 60 * 1000;
+  // Repository instance for NPC data access
+  private static repository: IAsyncNpcRepository | null = null;
+  // Promise for async loading
+  private static loadPromise: Promise<Map<string, NPCData>> | null = null;
 
   public description: string;
   public attackTexts: string[];
@@ -183,7 +186,20 @@ export class NPC implements CombatEntity {
     return npcMap;
   }
 
-  // Static method to load NPC data from JSON with caching
+  /**
+   * Get the NPC repository (lazy initialization)
+   */
+  private static getRepository(): IAsyncNpcRepository {
+    if (!NPC.repository) {
+      NPC.repository = getNpcRepository();
+    }
+    return NPC.repository;
+  }
+
+  /**
+   * Load NPC data with caching (sync wrapper for backward compatibility)
+   * Returns cached data if available, otherwise starts async load
+   */
   static loadNPCData(): Map<string, NPCData> {
     const currentTime = Date.now();
 
@@ -201,34 +217,70 @@ export class NPC implements CombatEntity {
         }
       } catch (error) {
         systemLogger.error('Failed to load NPCs from command line:', error);
-        // Don't fall back to file loading, propagate the error
         throw error;
       }
     }
 
-    // Otherwise load from file with validation
-    return NPC.loadNPCDataFromFile();
+    // If we have a pending load, wait for it (but return empty map for now)
+    if (NPC.loadPromise) {
+      // Fire-and-forget the promise to update cache
+      NPC.loadPromise.catch((error) => {
+        systemLogger.error('Failed to load NPCs:', error);
+      });
+      // Return empty map if no cache exists yet
+      return NPC.npcDataCache || new Map<string, NPCData>();
+    }
+
+    // Start async load from repository
+    NPC.loadPromise = NPC.loadNPCDataAsync();
+    NPC.loadPromise.catch((error) => {
+      systemLogger.error('Failed to load NPCs:', error);
+    });
+
+    // Return cached or empty map while loading
+    return NPC.npcDataCache || new Map<string, NPCData>();
   }
 
   /**
-   * Load NPC data from file with validation
+   * Async method to load NPC data from repository
    */
-  static loadNPCDataFromFile(): Map<string, NPCData> {
-    const npcFilePath = path.join(__dirname, '..', '..', 'data', 'npcs.json');
+  static async loadNPCDataAsync(): Promise<Map<string, NPCData>> {
+    const currentTime = Date.now();
 
-    // Check if file exists
-    if (!fs.existsSync(npcFilePath)) {
-      systemLogger.warn(`NPCs file not found: ${npcFilePath}`);
-      return new Map<string, NPCData>(); // Return empty map only if file doesn't exist
+    // Return cached data if available and not expired
+    if (NPC.npcDataCache && currentTime - NPC.cacheTimestamp < NPC.CACHE_EXPIRY_MS) {
+      return NPC.npcDataCache;
     }
 
-    // Validate the file
-    const npcArray = loadAndValidateJsonFile<NPCData[]>(npcFilePath, 'npcs');
+    // Try to load NPCs from command line argument if provided
+    if (config.DIRECT_NPCS_DATA) {
+      try {
+        const npcArray = parseAndValidateJson<NPCData[]>(config.DIRECT_NPCS_DATA, 'npcs');
+        if (npcArray && Array.isArray(npcArray)) {
+          return NPC.loadPrevalidatedNPCData(npcArray);
+        }
+      } catch (error) {
+        systemLogger.error('Failed to load NPCs from command line:', error);
+        throw error;
+      }
+    }
 
-    if (npcArray && Array.isArray(npcArray)) {
-      return NPC.loadPrevalidatedNPCData(npcArray);
-    } else {
-      process.exit(1); // Exit if the file is not valid
+    // Load from repository (handles backend selection via RepositoryFactory)
+    try {
+      const repository = NPC.getRepository();
+      const npcArray = await repository.findAll();
+
+      if (npcArray && npcArray.length > 0) {
+        return NPC.loadPrevalidatedNPCData(npcArray);
+      } else {
+        systemLogger.warn('No NPCs found in repository');
+        return new Map<string, NPCData>();
+      }
+    } catch (error) {
+      systemLogger.error('Error loading NPCs from repository:', error);
+      throw error;
+    } finally {
+      NPC.loadPromise = null;
     }
   }
 
@@ -236,6 +288,7 @@ export class NPC implements CombatEntity {
   static clearNpcDataCache(): void {
     NPC.npcDataCache = null;
     NPC.cacheTimestamp = 0;
+    NPC.loadPromise = null;
   }
 
   // Add a method to set cache expiry time if needed

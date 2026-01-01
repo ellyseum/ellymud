@@ -218,9 +218,10 @@ await repo.findAll();
 
 ## Related Context
 
-- [`../user/userManager.ts`](../user/userManager.ts) - Uses IUserRepository (legacy)
-- [`../room/roomManager.ts`](../room/roomManager.ts) - Uses IRoomRepository (legacy)
-- [`../utils/itemManager.ts`](../utils/itemManager.ts) - Uses IItemRepository (legacy)
+- [`../user/userManager.ts`](../user/userManager.ts) - Uses IAsyncUserRepository via getUserRepository()
+- [`../room/roomManager.ts`](../room/roomManager.ts) - Uses IAsyncRoomRepository via getRoomRepository()
+- [`../utils/itemManager.ts`](../utils/itemManager.ts) - Uses IAsyncItemRepository via getItemRepository()
+- [`../combat/npc.ts`](../combat/npc.ts) - Uses IAsyncNpcRepository via getNpcRepository()
 - [`../data/db.ts`](../data/db.ts) - Kysely database connection
 - [`../data/schema.ts`](../data/schema.ts) - Database table definitions
 - [`../testing/testDb.ts`](../testing/testDb.ts) - In-memory SQLite for tests

@@ -1,24 +1,25 @@
 // Item manager uses dynamic typing for flexible item property handling
 import { v4 as uuidv4 } from 'uuid';
-import config, { STORAGE_BACKEND, isDatabaseOnly } from '../config';
+import config from '../config';
 import { EquipmentSlot, GameItem, Item, ItemInstance, User } from '../types';
 import { parseAndValidateJson } from './jsonUtils';
 import { createContextLogger } from './logger';
 import { Room } from '../room/room';
-import { getDb, ensureInitialized } from '../data/db';
 
 // Create a context-specific logger for ItemManager
 const itemLogger = createContextLogger('ItemManager');
 
-import { IItemRepository } from '../persistence/interfaces';
-import { FileItemRepository } from '../persistence/fileRepository';
+import { IAsyncItemRepository } from '../persistence/interfaces';
+import { getItemRepository } from '../persistence/RepositoryFactory';
 
 export class ItemManager {
   private static instance: ItemManager | null = null;
   private items: Map<string, GameItem> = new Map();
   private itemInstances: Map<string, ItemInstance> = new Map();
-  private repository: IItemRepository;
+  private repository: IAsyncItemRepository;
   private testMode: boolean = false;
+  private initialized: boolean = false;
+  private initPromise: Promise<void> | null = null;
 
   public static getInstance(): ItemManager {
     if (!ItemManager.instance) {
@@ -38,16 +39,35 @@ export class ItemManager {
    * Create an ItemManager with a custom repository (for testing)
    * @param repository Optional repository implementation
    */
-  public static createWithRepository(repository: IItemRepository): ItemManager {
+  public static createWithRepository(repository: IAsyncItemRepository): ItemManager {
     ItemManager.resetInstance();
     ItemManager.instance = new ItemManager(repository);
     return ItemManager.instance;
   }
 
-  private constructor(repository?: IItemRepository) {
-    this.repository = repository ?? new FileItemRepository();
-    this.loadItems();
-    this.loadItemInstances();
+  private constructor(repository?: IAsyncItemRepository) {
+    this.repository = repository ?? getItemRepository();
+    // Start async initialization
+    this.initPromise = this.initialize();
+  }
+
+  /**
+   * Async initialization - loads items from repository
+   */
+  private async initialize(): Promise<void> {
+    if (this.initialized) return;
+    await this.loadItems();
+    await this.loadItemInstances();
+    this.initialized = true;
+  }
+
+  /**
+   * Ensure the manager is initialized before performing operations
+   */
+  public async ensureInitialized(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+    }
   }
 
   /**
@@ -94,7 +114,7 @@ export class ItemManager {
     itemLogger.info('Pre-validated item instances loaded successfully');
   }
 
-  private loadItems(): void {
+  private async loadItems(): Promise<void> {
     // First try to load items from command line argument if provided
     if (config.DIRECT_ITEMS_DATA) {
       try {
@@ -109,36 +129,26 @@ export class ItemManager {
       }
     }
 
-    // Load based on storage backend config
-    if (STORAGE_BACKEND === 'json') {
-      // JSON only mode - use repository directly
-      this.loadItemsFromRepository();
-    } else if (isDatabaseOnly()) {
-      // Database-only mode - load from DB, repository as initial sync
-      this.loadItemsFromRepository();
-      this.loadItemsFromDatabase().catch((error) => {
-        itemLogger.error('[ItemManager] Database load failed:', error);
-      });
-    } else {
-      // Auto mode - load repository first, then try database
-      this.loadItemsFromRepository();
-      this.loadItemsFromDatabase().catch((error) => {
-        itemLogger.error('[ItemManager] Auto mode load failed:', error);
-      });
+    // Load from repository (handles backend selection via RepositoryFactory)
+    await this.loadItemsFromRepository();
+  }
+
+  private async loadItemsFromRepository(): Promise<void> {
+    try {
+      const itemData = await this.repository.findAllTemplates();
+
+      if (itemData.length > 0) {
+        this.loadPrevalidatedItems(itemData);
+      } else {
+        // No items found, create defaults
+        await this.createDefaultItems();
+      }
+    } catch (error) {
+      itemLogger.error('[ItemManager] Error loading items from repository:', error);
     }
   }
 
-  private loadItemsFromRepository(): void {
-    const itemData = this.repository.loadItems();
-
-    if (itemData.length > 0) {
-      this.loadPrevalidatedItems(itemData);
-    } else {
-      // No items found, create defaults
-      this.createDefaultItems();
-    }
-  }
-  private createDefaultItems(): void {
+  private async createDefaultItems(): Promise<void> {
     // Initialize with some default items
     const defaultItems: GameItem[] = [
       // Weapons
@@ -302,7 +312,7 @@ export class ItemManager {
       },
     ];
 
-    this.repository.saveItems(defaultItems);
+    await this.repository.saveTemplates(defaultItems);
 
     // Load the default items into memory
     defaultItems.forEach((item) => {
@@ -313,9 +323,9 @@ export class ItemManager {
   }
 
   /**
-   * Load saved item instances from disk
+   * Load saved item instances from storage
    */
-  private loadItemInstances(): void {
+  private async loadItemInstances(): Promise<void> {
     try {
       // First try to load item instances from command line argument if provided
       if (config.DIRECT_ITEMS_DATA) {
@@ -337,32 +347,17 @@ export class ItemManager {
         }
       }
 
-      // Load based on storage backend config
-      if (STORAGE_BACKEND === 'json') {
-        // JSON only mode - use repository directly
-        this.loadItemInstancesFromRepository();
-      } else if (isDatabaseOnly()) {
-        // Database-only mode - load from DB, repository as initial sync
-        this.loadItemInstancesFromRepository();
-        this.loadItemInstancesFromDatabase().catch((error) => {
-          itemLogger.error('[ItemManager] Database instances load failed:', error);
-        });
-      } else {
-        // Auto mode - load repository first, then try database
-        this.loadItemInstancesFromRepository();
-        this.loadItemInstancesFromDatabase().catch((error) => {
-          itemLogger.error('[ItemManager] Auto mode instances load failed:', error);
-        });
-      }
+      // Load from repository (handles backend selection via RepositoryFactory)
+      await this.loadItemInstancesFromRepository();
     } catch (error) {
       itemLogger.error('Error loading item instances:', error);
       this.itemInstances = new Map();
     }
   }
 
-  private loadItemInstancesFromRepository(): void {
+  private async loadItemInstancesFromRepository(): Promise<void> {
     try {
-      const instanceData = this.repository.loadItemInstances();
+      const instanceData = await this.repository.findAllInstances();
 
       if (instanceData.length > 0) {
         this.loadPrevalidatedItemInstances(instanceData);
@@ -378,204 +373,26 @@ export class ItemManager {
     }
   }
 
-  /**
-   * Load item templates from database via Kysely.
-   */
-  private async loadItemsFromDatabase(): Promise<void> {
-    try {
-      await ensureInitialized();
-      const db = getDb();
-      const rows = await db.selectFrom('item_templates').selectAll().execute();
-
-      const safeJsonParse = <T>(value: string | null | undefined, fallback: T): T => {
-        if (value == null) return fallback;
-        try {
-          return JSON.parse(value) as T;
-        } catch {
-          return fallback;
-        }
-      };
-
-      const items: GameItem[] = rows.map((row) => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        type: row.type as GameItem['type'],
-        slot: row.slot as EquipmentSlot | undefined,
-        value: row.value,
-        weight: row.weight ?? undefined,
-        globalLimit: row.global_limit ?? undefined,
-        stats: safeJsonParse(row.stats, undefined),
-        requirements: safeJsonParse(row.requirements, undefined),
-      }));
-
-      if (items.length > 0) {
-        this.loadPrevalidatedItems(items);
-        itemLogger.info(`[ItemManager] Loaded ${items.length} item templates from database`);
-      } else {
-        itemLogger.info('[ItemManager] No item templates in database; preserving repository data');
-      }
-    } catch (error) {
-      itemLogger.error('[ItemManager] Error loading item templates from database:', error);
-    }
-  }
-
-  /**
-   * Load item instances from database via Kysely.
-   */
-  private async loadItemInstancesFromDatabase(): Promise<void> {
-    try {
-      await ensureInitialized();
-      const db = getDb();
-      const rows = await db.selectFrom('item_instances').selectAll().execute();
-
-      const safeJsonParse = <T>(value: string | null | undefined, fallback: T): T => {
-        if (value == null) return fallback;
-        try {
-          return JSON.parse(value) as T;
-        } catch {
-          return fallback;
-        }
-      };
-
-      const instances: ItemInstance[] = rows.map((row) => {
-        const rawHistory = safeJsonParse<
-          Array<{ timestamp: string; event: string; details?: string }>
-        >(row.history, []);
-        const history = rawHistory.map((entry) => ({
-          ...entry,
-          timestamp: new Date(entry.timestamp),
-        }));
-
-        return {
-          instanceId: row.instance_id,
-          templateId: row.template_id,
-          created: new Date(row.created),
-          createdBy: row.created_by,
-          properties: safeJsonParse(row.properties, undefined),
-          history: history.length > 0 ? history : undefined,
-        };
-      });
-
-      if (instances.length > 0) {
-        this.loadPrevalidatedItemInstances(instances);
-        itemLogger.info(`[ItemManager] Loaded ${instances.length} item instances from database`);
-      } else {
-        itemLogger.info('[ItemManager] No item instances in database; preserving repository data');
-      }
-    } catch (error) {
-      itemLogger.error('[ItemManager] Error loading item instances from database:', error);
-    }
-  }
-
-  /**
-   * Save item templates to database via Kysely.
-   */
-  private async saveItemsToDatabase(): Promise<void> {
-    await ensureInitialized();
-    const db = getDb();
-
-    await db.transaction().execute(async (trx) => {
-      for (const item of this.items.values()) {
-        const values = {
-          id: item.id,
-          name: item.name,
-          description: item.description,
-          type: item.type,
-          slot: item.slot || null,
-          value: item.value ?? 0,
-          weight: item.weight ?? null,
-          global_limit: item.globalLimit ?? null,
-          stats: item.stats ? JSON.stringify(item.stats) : null,
-          requirements: item.requirements ? JSON.stringify(item.requirements) : null,
-        };
-
-        await trx
-          .insertInto('item_templates')
-          .values(values)
-          .onConflict((oc) => oc.column('id').doUpdateSet(values))
-          .execute();
-      }
-    });
-
-    itemLogger.info(`[ItemManager] Saved ${this.items.size} item templates to database`);
-  }
-
-  /**
-   * Save item instances to database via Kysely.
-   */
-  private async saveItemInstancesToDatabase(): Promise<void> {
-    await ensureInitialized();
-    const db = getDb();
-
-    await db.transaction().execute(async (trx) => {
-      for (const instance of this.itemInstances.values()) {
-        let historyJson: string | null = null;
-        if (instance.history && instance.history.length > 0) {
-          const serializedHistory = instance.history.map((entry) => ({
-            ...entry,
-            timestamp:
-              entry.timestamp instanceof Date
-                ? entry.timestamp.toISOString()
-                : new Date(entry.timestamp).toISOString(),
-          }));
-          historyJson = JSON.stringify(serializedHistory);
-        }
-
-        const values = {
-          instance_id: instance.instanceId,
-          template_id: instance.templateId,
-          created:
-            instance.created instanceof Date
-              ? instance.created.toISOString()
-              : new Date(instance.created).toISOString(),
-          created_by: instance.createdBy || 'system',
-          properties: instance.properties ? JSON.stringify(instance.properties) : null,
-          history: historyJson,
-        };
-
-        await trx
-          .insertInto('item_instances')
-          .values(values)
-          .onConflict((oc) => oc.column('instance_id').doUpdateSet(values))
-          .execute();
-      }
-    });
-
-    itemLogger.info(`[ItemManager] Saved ${this.itemInstances.size} item instances to database`);
-  }
-
   public saveItemInstances(): void {
     if (this.testMode) {
       itemLogger.debug('[ItemManager] Skipping instance save - test mode active');
       return;
     }
 
-    const instances = Array.from(this.itemInstances.values());
+    // Use async repository to save - fire-and-forget pattern to maintain sync interface
+    void this.saveItemInstancesAsync().catch((error) => {
+      itemLogger.error('[ItemManager] Save instances failed:', error);
+    });
+  }
 
-    if (STORAGE_BACKEND === 'json') {
-      try {
-        this.repository.saveItemInstances(instances);
-        itemLogger.info(`Saved ${instances.length} item instances to file.`);
-      } catch (error) {
-        itemLogger.error('Error saving item instances to file:', error);
-      }
-    } else if (isDatabaseOnly()) {
-      // Database-only mode - save to database only
-      void this.saveItemInstancesToDatabase().catch((error) => {
-        itemLogger.error('[ItemManager] Database instance save failed:', error);
-      });
-    } else {
-      // Auto mode - save to both database AND JSON file (backup)
-      void this.saveItemInstancesToDatabase().catch((error) => {
-        itemLogger.error('[ItemManager] Database instance save failed:', error);
-      });
-      try {
-        this.repository.saveItemInstances(instances);
-        itemLogger.info(`Saved ${instances.length} item instances to file.`);
-      } catch (error) {
-        itemLogger.error('Error saving item instances to file:', error);
-      }
+  private async saveItemInstancesAsync(): Promise<void> {
+    const instances = Array.from(this.itemInstances.values());
+    try {
+      await this.repository.saveInstances(instances);
+      itemLogger.debug(`[ItemManager] Saved ${instances.length} item instances`);
+    } catch (error) {
+      itemLogger.error('[ItemManager] Error saving item instances:', error);
+      throw error;
     }
   }
 
@@ -585,27 +402,20 @@ export class ItemManager {
       return;
     }
 
-    if (STORAGE_BACKEND === 'json') {
-      try {
-        this.repository.saveItems(Array.from(this.items.values()));
-      } catch (error) {
-        itemLogger.error('Error saving items to file:', error);
-      }
-    } else if (isDatabaseOnly()) {
-      // Database-only mode - save to database only
-      void this.saveItemsToDatabase().catch((error) => {
-        itemLogger.error('[ItemManager] Database save failed:', error);
-      });
-    } else {
-      // Auto mode - save to both database AND JSON file (backup)
-      void this.saveItemsToDatabase().catch((error) => {
-        itemLogger.error('[ItemManager] Database save failed:', error);
-      });
-      try {
-        this.repository.saveItems(Array.from(this.items.values()));
-      } catch (error) {
-        itemLogger.error('Error saving items to file:', error);
-      }
+    // Use async repository to save - fire-and-forget pattern to maintain sync interface
+    void this.saveItemsAsync().catch((error) => {
+      itemLogger.error('[ItemManager] Save items failed:', error);
+    });
+  }
+
+  private async saveItemsAsync(): Promise<void> {
+    const items = Array.from(this.items.values());
+    try {
+      await this.repository.saveTemplates(items);
+      itemLogger.debug(`[ItemManager] Saved ${items.length} item templates`);
+    } catch (error) {
+      itemLogger.error('[ItemManager] Error saving items:', error);
+      throw error;
     }
   }
 

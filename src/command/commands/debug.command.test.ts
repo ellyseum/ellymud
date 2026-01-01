@@ -188,6 +188,9 @@ describe('DebugCommand', () => {
         id: 'test-room',
         name: 'Test Room',
         npcs: new Map(),
+        getNPC: jest.fn().mockReturnValue(undefined),
+        findNPCByName: jest.fn().mockReturnValue(undefined),
+        findNPCsByTemplateId: jest.fn().mockReturnValue([]),
       });
 
       debugCommand.execute(client, 'npc goblin');

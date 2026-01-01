@@ -274,33 +274,47 @@ EllyMUD supports three storage backends configured via `STORAGE_BACKEND` environ
 | `sqlite` | Single-server production | `STORAGE_BACKEND=sqlite` |
 | `postgres` | Cluster/HA deployments | `STORAGE_BACKEND=postgres` + `DATABASE_URL` |
 
-### Current State (Transitional)
+### Repository Factory Pattern (Completed)
 
-Managers currently check `STORAGE_BACKEND` directly with separate code paths:
+All managers now use the Repository Factory pattern. The `RepositoryFactory` is the single place that checks `STORAGE_BACKEND` and returns the appropriate repository implementation:
 
 ```typescript
-// LEGACY PATTERN - do not copy this for new code
-if (STORAGE_BACKEND === 'json') {
-  this.loadFromRepository();      // FileRepository
-} else if (isDatabaseOnly()) {
-  this.loadFromDatabase();        // Inline Kysely queries
+// CURRENT PATTERN - all managers use this
+class UserManager {
+  private repository: IAsyncUserRepository = getUserRepository();
+  
+  async loadUsers() {
+    this.users = await this.repository.findAll();
+  }
 }
 ```
 
-### Target State (Repository Factory)
+Managers that have been migrated:
+- **UserManager** - Uses `getUserRepository()` from RepositoryFactory
+- **RoomManager** - Uses `getRoomRepository()` from RepositoryFactory
+- **ItemManager** - Uses `getItemRepository()` from RepositoryFactory
+- **NPC** (static methods) - Uses `getNpcRepository()` from RepositoryFactory
 
-We are migrating to a Repository Factory pattern where:
-- Managers receive repositories via constructor injection
-- `RepositoryFactory` is the single place that checks `STORAGE_BACKEND`
-- Managers never check storage backend directly
+### Async Initialization Pattern
+
+Managers use an async initialization pattern with `initPromise` and `ensureInitialized()`:
 
 ```typescript
-// TARGET PATTERN - use this for new code
-class UserManager {
-  constructor(private repo: IUserRepository = getUserRepository()) {}
+class Manager {
+  private initPromise: Promise<void> | null = null;
   
-  async loadUsers() {
-    this.users = await this.repo.findAll();
+  constructor() {
+    this.initPromise = this.initialize();
+  }
+  
+  async ensureInitialized(): Promise<void> {
+    if (this.initPromise) await this.initPromise;
+  }
+  
+  private async initialize(): Promise<void> {
+    const data = await this.repository.findAll();
+    // ... populate in-memory structures
+    this.initPromise = null;
   }
 }
 ```
@@ -308,27 +322,23 @@ class UserManager {
 ### Rules for New Code
 
 ```
-❌ Do NOT add new `if STORAGE_BACKEND` checks to managers
+❌ Do NOT add `if STORAGE_BACKEND` checks to managers
 ❌ Do NOT add inline Kysely queries to managers
-✅ Create a Kysely repository class (e.g., KyselyNpcRepository)
-✅ Add it to the RepositoryFactory
-✅ Inject the repository into the manager
+✅ Use existing repository factory functions (getUserRepository, getRoomRepository, etc.)
+✅ For new entity types, create async repository interface and implementations
+✅ Add new factory function to RepositoryFactory.ts
 ```
 
 ### Key Files
 
 | File | Purpose |
 |------|---------|
-| `src/persistence/interfaces.ts` | Repository interfaces |
-| `src/persistence/RepositoryFactory.ts` | Backend selection (TODO) |
-| `src/persistence/fileRepository.ts` | JSON file implementations |
-| `src/persistence/Kysely*Repository.ts` | Database implementations (TODO) |
+| `src/persistence/interfaces.ts` | Async repository interfaces (`IAsync*Repository`) |
+| `src/persistence/RepositoryFactory.ts` | Backend selection - single source of truth |
+| `src/persistence/AsyncFile*Repository.ts` | JSON file implementations |
+| `src/persistence/Kysely*Repository.ts` | Database implementations |
 | `src/data/db.ts` | Kysely connection (SQLite/PostgreSQL) |
 | `src/config.ts` | `STORAGE_BACKEND`, `DATABASE_URL` |
-
-### Migration Status
-
-See `todos/kysely-migration-remaining-managers.md` for current progress.
 
 ---
 

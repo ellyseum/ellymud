@@ -3,15 +3,14 @@ import fs from 'fs';
 import path from 'path';
 import { Room } from './room';
 import { RoomData } from './roomData';
-import { ConnectedClient, Exit } from '../types';
+import { ConnectedClient } from '../types';
 import { systemLogger } from '../utils/logger';
 import { NPC } from '../combat/npc';
 import { IRoomManager } from './interfaces';
 import { parseAndValidateJson } from '../utils/jsonUtils';
-import { IRoomRepository } from '../persistence/interfaces';
-import { FileRoomRepository } from '../persistence/fileRepository';
-import config, { STORAGE_BACKEND, isDatabaseOnly } from '../config';
-import { getDb, ensureInitialized } from '../data/db';
+import { IAsyncRoomRepository } from '../persistence/interfaces';
+import { getRoomRepository } from '../persistence/RepositoryFactory';
+import config from '../config';
 
 // Import our service classes
 import { DirectionHelper } from './services/directionHelper';
@@ -21,7 +20,6 @@ import { PlayerMovementService } from './services/playerMovementService';
 import { RoomUINotificationService } from './services/roomUINotificationService';
 import { TeleportationService } from './services/teleportationService';
 
-const ROOMS_FILE = path.join(__dirname, '..', '..', 'data', 'rooms.json');
 const DEFAULT_ROOM_ID = 'start'; // ID for the starting room
 
 export class RoomManager implements IRoomManager {
@@ -36,22 +34,42 @@ export class RoomManager implements IRoomManager {
   private playerMovementService!: PlayerMovementService;
   private roomUINotificationService!: RoomUINotificationService;
   private teleportationService!: TeleportationService;
-  private repository: IRoomRepository;
+  private repository: IAsyncRoomRepository;
+  private initialized: boolean = false;
+  private initPromise: Promise<void> | null = null;
 
   // Add static instance for singleton pattern
   private static instance: RoomManager | null = null;
 
   // Make constructor private for singleton pattern
-  private constructor(clients: Map<string, ConnectedClient>, repository?: IRoomRepository) {
+  private constructor(clients: Map<string, ConnectedClient>, repository?: IAsyncRoomRepository) {
     systemLogger.info('Creating RoomManager instance');
     this.clients = clients;
-    this.repository = repository ?? new FileRoomRepository();
+    this.repository = repository ?? getRoomRepository();
 
     // Initialize services
     this.initializeServices();
 
-    // Load rooms
-    this.loadRooms();
+    // Start async initialization
+    this.initPromise = this.initialize();
+  }
+
+  /**
+   * Async initialization - loads rooms from repository
+   */
+  private async initialize(): Promise<void> {
+    if (this.initialized) return;
+    await this.loadRooms();
+    this.initialized = true;
+  }
+
+  /**
+   * Ensure the manager is initialized before performing operations
+   */
+  public async ensureInitialized(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+    }
   }
 
   // Static method to get the singleton instance
@@ -79,7 +97,7 @@ export class RoomManager implements IRoomManager {
    */
   public static createWithRepository(
     clients: Map<string, ConnectedClient>,
-    repository: IRoomRepository
+    repository: IAsyncRoomRepository
   ): RoomManager {
     RoomManager.resetInstance();
     RoomManager.instance = new RoomManager(clients, repository);
@@ -167,7 +185,7 @@ export class RoomManager implements IRoomManager {
     systemLogger.info('Pre-validated rooms loaded successfully');
   }
 
-  private loadRooms(): void {
+  private async loadRooms(): Promise<void> {
     // First try to load rooms from command line argument if provided
     if (config.DIRECT_ROOMS_DATA) {
       try {
@@ -182,42 +200,22 @@ export class RoomManager implements IRoomManager {
       }
     }
 
-    // Load based on storage backend config
-    if (STORAGE_BACKEND === 'json') {
-      // JSON only mode - use repository directly
-      this.loadRoomsFromRepository();
-    } else if (isDatabaseOnly()) {
-      // Database only mode - try database, load repository as initial sync data
-      this.loadRoomsFromRepository(); // Load sync first
-      this.loadRoomsFromDatabase().catch((error) => {
-        systemLogger.error('[RoomManager] Database load failed (no fallback):', error);
-      });
-    } else {
-      // Auto mode (default) - load repository sync, then try database async
-      this.loadRoomsFromRepository();
-      this.loadRoomsFromDatabase()
-        .then((success) => {
-          if (success) {
-            systemLogger.info('[RoomManager] Database loaded, overwriting repository data');
-          }
-        })
-        .catch(() => {
-          // Database failed, repository data already loaded
-        });
-    }
+    // Load from repository (handles backend selection via RepositoryFactory)
+    await this.loadRoomsFromRepository();
   }
 
-  private loadRoomsFromRepository(): void {
-    // Load rooms from repository
-    const roomsMap = this.repository.loadRooms();
+  private async loadRoomsFromRepository(): Promise<void> {
+    try {
+      const roomDataArray = await this.repository.findAll();
 
-    if (roomsMap.size > 0) {
-      // Convert map values to array for loadPrevalidatedRooms
-      const roomDataArray = Array.from(roomsMap.values());
-      this.loadPrevalidatedRooms(roomDataArray as RoomData[]);
-    } else {
-      // No rooms found, save initial empty state
-      this.saveRooms();
+      if (roomDataArray.length > 0) {
+        this.loadPrevalidatedRooms(roomDataArray);
+      } else {
+        // No rooms found, save initial empty state
+        this.saveRooms();
+      }
+    } catch (error) {
+      systemLogger.error('[RoomManager] Error loading rooms from repository:', error);
     }
   }
 
@@ -228,159 +226,43 @@ export class RoomManager implements IRoomManager {
       return;
     }
 
-    // Helper to save to JSON file
-    const saveToFile = () => {
-      try {
-        // Convert rooms to storable format (without players)
-        const roomsData = Array.from(this.rooms.values()).map((room) => {
-          // Convert NPC Map to an array of template IDs for storage
-          const npcTemplateIds: string[] = [];
-
-          // For each NPC in the room, store its template ID
-          room.npcs.forEach((npc) => {
-            npcTemplateIds.push(npc.templateId);
-          });
-
-          // Serialize item instances to a format suitable for storage
-          const serializedItemInstances = room.serializeItemInstances();
-
-          return {
-            id: room.id,
-            name: room.name,
-            description: room.description,
-            exits: room.exits,
-            items: room.items, // Keep legacy items for backward compatibility
-            itemInstances: serializedItemInstances, // Add new item instances
-            npcs: npcTemplateIds, // Use the array of template IDs
-            flags: room.flags, // Preserve room flags (bank, training, safe, etc.)
-            currency: room.currency,
-          };
-        });
-
-        fs.writeFileSync(ROOMS_FILE, JSON.stringify(roomsData, null, 2));
-      } catch (error) {
-        systemLogger.error('Error saving rooms:', error);
-      }
-    };
-
-    // Save based on storage backend config
-    if (STORAGE_BACKEND === 'json') {
-      // JSON only mode - save to file only
-      saveToFile();
-    } else if (isDatabaseOnly()) {
-      // Database only mode - save to database only
-      // Note: fire-and-forget pattern to maintain synchronous interface
-      void this.saveRoomsToDatabase().catch((error) => {
-        systemLogger.error('[RoomManager] Database save failed:', error);
-      });
-    } else {
-      // Auto mode (default) - save to both database AND JSON file (backup)
-      void this.saveRoomsToDatabase().catch((error) => {
-        systemLogger.error('[RoomManager] Database save failed:', error);
-      });
-      saveToFile();
-    }
-  }
-
-  /**
-   * Save rooms to database via Kysely
-   */
-  private async saveRoomsToDatabase(): Promise<void> {
-    await ensureInitialized();
-    const db = getDb();
-
-    // Wrap all inserts in a transaction for atomicity
-    await db.transaction().execute(async (trx) => {
-      for (const room of this.rooms.values()) {
-        const npcTemplateIds: string[] = [];
-        room.npcs.forEach((npc) => {
-          npcTemplateIds.push(npc.templateId);
-        });
-
-        const serializedItemInstances = room.serializeItemInstances();
-        const values = {
-          id: room.id,
-          name: room.name,
-          description: room.description,
-          exits: JSON.stringify(room.exits),
-          currency_gold: room.currency?.gold ?? 0,
-          currency_silver: room.currency?.silver ?? 0,
-          currency_copper: room.currency?.copper ?? 0,
-          flags: room.flags ? JSON.stringify(room.flags) : null,
-          npc_template_ids: npcTemplateIds.length > 0 ? JSON.stringify(npcTemplateIds) : null,
-          item_instances: serializedItemInstances ? JSON.stringify(serializedItemInstances) : null,
-        };
-
-        await trx
-          .insertInto('rooms')
-          .values(values)
-          .onConflict((oc) => oc.column('id').doUpdateSet(values))
-          .execute();
-      }
+    // Use async repository to save - fire-and-forget pattern to maintain sync interface
+    void this.saveRoomsAsync().catch((error) => {
+      systemLogger.error('[RoomManager] Save failed:', error);
     });
-    systemLogger.debug(`[RoomManager] Saved ${this.rooms.size} rooms to database`);
   }
 
-  /**
-   * Load rooms from database via Kysely
-   */
-  private async loadRoomsFromDatabase(): Promise<boolean> {
-    try {
-      await ensureInitialized();
-      const db = getDb();
-      const rows = await db.selectFrom('rooms').selectAll().execute();
+  private async saveRoomsAsync(): Promise<void> {
+    // Convert rooms to storable format
+    const roomsData: RoomData[] = Array.from(this.rooms.values()).map((room) => {
+      // Convert NPC Map to an array of template IDs for storage
+      const npcTemplateIds: string[] = [];
+      room.npcs.forEach((npc) => {
+        npcTemplateIds.push(npc.templateId);
+      });
 
-      if (rows.length === 0) {
-        return false; // No rooms in database, fall back to file
-      }
+      // Serialize item instances to a format suitable for storage
+      const serializedItemInstances = room.serializeItemInstances();
 
-      // Helper to safely parse JSON fields with fallback
-      const safeJsonParse = <T>(
-        value: string | null | undefined,
-        fallback: T,
-        fieldName: string,
-        roomId: string | number
-      ): T => {
-        if (value == null) {
-          return fallback;
-        }
-        try {
-          return JSON.parse(value) as T;
-        } catch (err) {
-          systemLogger.warn(
-            `[RoomManager] Failed to parse JSON for field "${fieldName}" on room ${roomId}; using fallback value. Error:`,
-            err
-          );
-          return fallback;
-        }
+      return {
+        id: room.id,
+        name: room.name,
+        description: room.description,
+        exits: room.exits,
+        items: room.items,
+        itemInstances: serializedItemInstances,
+        npcs: npcTemplateIds,
+        flags: room.flags,
+        currency: room.currency,
       };
+    });
 
-      const roomDataArray = rows.map((row) => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        exits: safeJsonParse<Exit[]>(row.exits, [], 'exits', row.id),
-        currency: {
-          gold: row.currency_gold,
-          silver: row.currency_silver,
-          copper: row.currency_copper,
-        },
-        flags: safeJsonParse<string[] | undefined>(
-          row.flags ?? undefined,
-          undefined,
-          'flags',
-          row.id
-        ),
-        npcs: safeJsonParse<string[]>(row.npc_template_ids, [], 'npc_template_ids', row.id),
-        itemInstances: safeJsonParse<string[]>(row.item_instances, [], 'item_instances', row.id),
-      }));
-
-      this.loadPrevalidatedRooms(roomDataArray);
-      systemLogger.info(`[RoomManager] Loaded ${rows.length} rooms from database`);
-      return true;
+    try {
+      await this.repository.saveAll(roomsData);
+      systemLogger.debug(`[RoomManager] Saved ${roomsData.length} rooms`);
     } catch (error) {
-      systemLogger.error('[RoomManager] Error loading from database:', error);
-      return false;
+      systemLogger.error('[RoomManager] Error saving rooms:', error);
+      throw error;
     }
   }
 

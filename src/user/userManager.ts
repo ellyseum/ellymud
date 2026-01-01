@@ -10,8 +10,7 @@ import { CombatSystem } from '../combat/combatSystem';
 import { RoomManager } from '../room/roomManager';
 import { systemLogger, getPlayerLogger } from '../utils/logger';
 import { parseAndValidateJson } from '../utils/jsonUtils';
-import config, { STORAGE_BACKEND, isDatabaseOnly } from '../config';
-import { getDb, ensureInitialized } from '../data/db';
+import config from '../config';
 
 const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 const SNAKE_SCORES_FILE = path.join(DATA_DIR, 'snake-scores.json');
@@ -30,8 +29,8 @@ interface RawSnakeScore {
   date: string;
 }
 
-import { IUserRepository, IPasswordService } from '../persistence/interfaces';
-import { FileUserRepository } from '../persistence/fileRepository';
+import { IAsyncUserRepository, IPasswordService } from '../persistence/interfaces';
+import { getUserRepository } from '../persistence/RepositoryFactory';
 import { getPasswordService } from '../persistence/passwordService';
 
 export class UserManager {
@@ -40,8 +39,10 @@ export class UserManager {
   private pendingTransfers: Map<string, ConnectedClient> = new Map();
   private snakeScores: SnakeScore[] = [];
   private testMode: boolean = false;
-  private repository: IUserRepository;
+  private repository: IAsyncUserRepository;
   private passwordService: IPasswordService;
+  private initialized: boolean = false;
+  private initPromise: Promise<void> | null = null;
 
   private static instance: UserManager | null = null;
 
@@ -65,7 +66,7 @@ export class UserManager {
    * @param passwordService Optional password service
    */
   public static createWithDependencies(
-    repository?: IUserRepository,
+    repository?: IAsyncUserRepository,
     passwordService?: IPasswordService
   ): UserManager {
     UserManager.resetInstance();
@@ -73,12 +74,32 @@ export class UserManager {
     return UserManager.instance;
   }
 
-  private constructor(repository?: IUserRepository, passwordService?: IPasswordService) {
-    this.repository = repository ?? new FileUserRepository();
+  private constructor(repository?: IAsyncUserRepository, passwordService?: IPasswordService) {
+    this.repository = repository ?? getUserRepository();
     this.passwordService = passwordService ?? getPasswordService();
-    this.loadUsers();
+    // Start async initialization
+    this.initPromise = this.initialize();
+  }
+
+  /**
+   * Async initialization - loads users from repository
+   * Called automatically in constructor, can be awaited externally
+   */
+  private async initialize(): Promise<void> {
+    if (this.initialized) return;
+    await this.loadUsers();
     this.loadSnakeScores();
     this.migrateSnakeScores();
+    this.initialized = true;
+  }
+
+  /**
+   * Ensure the manager is initialized before performing operations
+   */
+  public async ensureInitialized(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+    }
   }
 
   // Generate a random salt
@@ -185,7 +206,7 @@ export class UserManager {
     systemLogger.info('Pre-validated users loaded successfully');
   }
 
-  private loadUsers(): void {
+  private async loadUsers(): Promise<void> {
     // First try to load users from command line argument if provided
     if (config.DIRECT_USERS_DATA) {
       try {
@@ -200,37 +221,20 @@ export class UserManager {
       }
     }
 
-    // Load based on storage backend config
-    if (STORAGE_BACKEND === 'json') {
-      // JSON only mode - use repository directly
-      this.loadUsersFromRepository();
-    } else if (isDatabaseOnly()) {
-      // Database only mode - synchronously preload from repository, then refresh from database
-      this.loadUsersFromRepository();
-      this.loadUsersFromDatabase().catch((error) => {
-        systemLogger.error('[UserManager] Database load failed (no fallback):', error);
-      });
-    } else {
-      // Auto mode (default) - synchronously preload from repository, then try database
-      this.loadUsersFromRepository();
-      this.loadUsersFromDatabase().catch((error) => {
-        systemLogger.error(
-          '[UserManager] Auto mode database load failed, keeping repository data:',
-          error
-        );
-      });
-    }
+    // Load from repository (handles backend selection via RepositoryFactory)
+    await this.loadUsersFromRepository();
   }
 
-  private loadUsersFromRepository(): void {
+  private async loadUsersFromRepository(): Promise<void> {
     try {
       // Check if storage exists
-      if (!this.repository.storageExists()) {
+      const storageExists = await this.repository.storageExists();
+      if (!storageExists) {
         this.users = [];
         return;
       }
 
-      const userData = this.repository.loadUsers();
+      const userData = await this.repository.findAll();
 
       if (userData.length > 0) {
         this.loadPrevalidatedUsers(userData);
@@ -247,192 +251,26 @@ export class UserManager {
     }
   }
 
-  /**
-   * Load users from database via Kysely.
-   * Fire-and-forget pattern since loadUsers() is sync.
-   */
-  private async loadUsersFromDatabase(): Promise<void> {
-    try {
-      await ensureInitialized();
-      const db = getDb();
-      const rows = await db.selectFrom('users').selectAll().execute();
-
-      // Helper to safely parse JSON fields with fallback
-      const safeJsonParse = <T>(
-        value: string | null | undefined,
-        fallback: T,
-        fieldName: string,
-        username: string
-      ): T => {
-        if (value == null) {
-          return fallback;
-        }
-        try {
-          return JSON.parse(value) as T;
-        } catch (err) {
-          systemLogger.warn(
-            `[UserManager] Failed to parse JSON for field "${fieldName}" on user ${username}; using fallback value. Error:`,
-            err
-          );
-          return fallback;
-        }
-      };
-
-      this.users = rows.map((row) => ({
-        username: row.username,
-        passwordHash: row.password_hash,
-        salt: row.salt,
-        health: row.health,
-        maxHealth: row.max_health,
-        mana: row.mana,
-        maxMana: row.max_mana,
-        experience: row.experience,
-        level: row.level,
-        strength: row.strength,
-        dexterity: row.dexterity,
-        agility: row.agility,
-        constitution: row.constitution,
-        wisdom: row.wisdom,
-        intelligence: row.intelligence,
-        charisma: row.charisma,
-        equipment: safeJsonParse<{ [slot: string]: string } | undefined>(
-          row.equipment,
-          undefined,
-          'equipment',
-          row.username
-        ),
-        joinDate: new Date(row.join_date),
-        lastLogin: new Date(row.last_login),
-        totalPlayTime: row.total_play_time,
-        currentRoomId: row.current_room_id,
-        inventory: {
-          items: safeJsonParse<string[]>(row.inventory_items, [], 'inventory_items', row.username),
-          currency: {
-            gold: row.inventory_gold,
-            silver: row.inventory_silver,
-            copper: row.inventory_copper,
-          },
-        },
-        bank: { gold: row.bank_gold, silver: row.bank_silver, copper: row.bank_copper },
-        inCombat: row.in_combat === 1,
-        isUnconscious: row.is_unconscious === 1,
-        isResting: row.is_resting === 1,
-        isMeditating: row.is_meditating === 1,
-        flags: safeJsonParse<string[] | undefined>(row.flags, undefined, 'flags', row.username),
-        pendingAdminMessages: safeJsonParse<
-          Array<{ message: string; timestamp: string }> | undefined
-        >(row.pending_admin_messages, undefined, 'pending_admin_messages', row.username),
-        email: row.email || undefined,
-        description: row.description || undefined,
-      }));
-
-      systemLogger.info(`[UserManager] Loaded ${this.users.length} users from database`);
-    } catch (error) {
-      systemLogger.error('[UserManager] Error loading from database:', error);
-      // In database-only mode, keep existing in-memory users (preloaded from repository)
-      if (isDatabaseOnly()) {
-        systemLogger.warn(
-          '[UserManager] Database-only mode: keeping existing users after database load failure'
-        );
-      } else {
-        // In auto mode, users are already loaded from repository (line 215)
-        // No need to reload - just keep the preloaded data
-        systemLogger.warn(
-          '[UserManager] Database load failed in auto mode; continuing with repository-loaded users.'
-        );
-      }
-    }
-  }
-
   private saveUsers(): void {
     if (this.testMode) {
       systemLogger.debug('[UserManager] Skipping save - test mode active');
       return;
     }
 
-    // Save based on storage backend config
-    if (STORAGE_BACKEND === 'json') {
-      // JSON only mode - save to repository only
-      try {
-        this.repository.saveUsers(this.users);
-      } catch (error) {
-        systemLogger.error('Error saving users to file:', error);
-      }
-    } else if (isDatabaseOnly()) {
-      // Database only mode - save to database only
-      // Note: fire-and-forget pattern to maintain synchronous interface
-      // Consider refactoring callers to be async for proper error handling
-      void this.saveUsersToDatabase().catch((error) => {
-        systemLogger.error('[UserManager] Database save failed:', error);
-      });
-    } else {
-      // Auto mode (default) - save to both database AND JSON file (backup)
-      void this.saveUsersToDatabase().catch((error) => {
-        systemLogger.error('[UserManager] Database save failed:', error);
-      });
-      try {
-        this.repository.saveUsers(this.users);
-      } catch (error) {
-        systemLogger.error('Error saving users to file:', error);
-      }
-    }
+    // Use async repository to save - fire-and-forget pattern to maintain sync interface
+    void this.saveUsersAsync().catch((error) => {
+      systemLogger.error('[UserManager] Save failed:', error);
+    });
   }
 
-  private async saveUsersToDatabase(): Promise<void> {
-    await ensureInitialized();
-    const db = getDb();
-
-    // Wrap all inserts in a transaction for atomicity
-    await db.transaction().execute(async (trx) => {
-      for (const user of this.users) {
-        const values = {
-          username: user.username,
-          password_hash: user.passwordHash || '',
-          salt: user.salt || '',
-          health: user.health,
-          max_health: user.maxHealth,
-          mana: user.mana,
-          max_mana: user.maxMana,
-          experience: user.experience,
-          level: user.level,
-          strength: user.strength,
-          dexterity: user.dexterity,
-          agility: user.agility,
-          constitution: user.constitution,
-          wisdom: user.wisdom,
-          intelligence: user.intelligence,
-          charisma: user.charisma,
-          equipment: user.equipment ? JSON.stringify(user.equipment) : null,
-          join_date: user.joinDate instanceof Date ? user.joinDate.toISOString() : user.joinDate,
-          last_login:
-            user.lastLogin instanceof Date ? user.lastLogin.toISOString() : user.lastLogin,
-          total_play_time: user.totalPlayTime ?? 0,
-          current_room_id: user.currentRoomId,
-          inventory_items: user.inventory?.items ? JSON.stringify(user.inventory.items) : null,
-          inventory_gold: user.inventory?.currency?.gold ?? 0,
-          inventory_silver: user.inventory?.currency?.silver ?? 0,
-          inventory_copper: user.inventory?.currency?.copper ?? 0,
-          bank_gold: user.bank?.gold ?? 0,
-          bank_silver: user.bank?.silver ?? 0,
-          bank_copper: user.bank?.copper ?? 0,
-          in_combat: user.inCombat ? 1 : 0,
-          is_unconscious: user.isUnconscious ? 1 : 0,
-          is_resting: user.isResting ? 1 : 0,
-          is_meditating: user.isMeditating ? 1 : 0,
-          flags: user.flags ? JSON.stringify(user.flags) : null,
-          pending_admin_messages: user.pendingAdminMessages
-            ? JSON.stringify(user.pendingAdminMessages)
-            : null,
-          email: user.email || null,
-          description: user.description || null,
-        };
-        await trx
-          .insertInto('users')
-          .values(values)
-          .onConflict((oc) => oc.column('username').doUpdateSet(values))
-          .execute();
-      }
-    });
+  private async saveUsersAsync(): Promise<void> {
+    try {
+      await this.repository.saveAll(this.users);
+      systemLogger.debug(`[UserManager] Saved ${this.users.length} users`);
+    } catch (error) {
+      systemLogger.error('[UserManager] Error saving users:', error);
+      throw error;
+    }
   }
 
   /**
