@@ -42,6 +42,31 @@ jest.mock('../utils/logger', () => ({
     warn: jest.fn(),
     error: jest.fn(),
   })),
+  createContextLogger: jest.fn().mockReturnValue({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  }),
+  systemLogger: {
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
+jest.mock('../persistence/RepositoryFactory', () => ({
+  getNpcRepository: jest.fn().mockReturnValue({
+    findAll: jest.fn().mockResolvedValue([]),
+    findById: jest.fn().mockResolvedValue(undefined),
+    findByName: jest.fn().mockResolvedValue(undefined),
+    findHostile: jest.fn().mockResolvedValue([]),
+    findMerchants: jest.fn().mockResolvedValue([]),
+    save: jest.fn().mockResolvedValue(undefined),
+    saveAll: jest.fn().mockResolvedValue(undefined),
+    delete: jest.fn().mockResolvedValue(undefined),
+  }),
 }));
 
 jest.mock('../utils/itemManager', () => ({

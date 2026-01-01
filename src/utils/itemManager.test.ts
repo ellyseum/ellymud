@@ -6,6 +6,7 @@
 import { ItemManager } from './itemManager';
 import { GameItem, ItemInstance } from '../types';
 import { createMockUser } from '../test/helpers/mockFactories';
+import { IAsyncItemRepository } from '../persistence/interfaces';
 
 // Mock dependencies
 jest.mock('./logger', () => ({
@@ -497,11 +498,18 @@ describe('ItemManager with Repository Injection', () => {
       // Since createWithRepository is now available, we can test that it returns a manager
       // Note: The current implementation still falls back to file loading for backwards compatibility
       // but the repository is stored and can be used for future refactoring
-      const mockRepository = {
-        loadItems: jest.fn().mockReturnValue([]),
-        loadItemInstances: jest.fn().mockReturnValue([]),
-        saveItems: jest.fn(),
-        saveItemInstances: jest.fn(),
+      const mockRepository: IAsyncItemRepository = {
+        findAllTemplates: jest.fn().mockResolvedValue([]),
+        findTemplateById: jest.fn().mockResolvedValue(undefined),
+        findAllInstances: jest.fn().mockResolvedValue([]),
+        findInstanceById: jest.fn().mockResolvedValue(undefined),
+        findInstancesByTemplateId: jest.fn().mockResolvedValue([]),
+        saveTemplate: jest.fn().mockResolvedValue(undefined),
+        saveTemplates: jest.fn().mockResolvedValue(undefined),
+        deleteTemplate: jest.fn().mockResolvedValue(undefined),
+        saveInstance: jest.fn().mockResolvedValue(undefined),
+        saveInstances: jest.fn().mockResolvedValue(undefined),
+        deleteInstance: jest.fn().mockResolvedValue(undefined),
       };
 
       const manager = ItemManager.createWithRepository(mockRepository);
