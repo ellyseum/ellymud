@@ -27,6 +27,8 @@ import { GameTimerManager } from './timer/gameTimerManager';
 import { ConnectedClient, GlobalWithSkipMCP, MUDConfig, ServerStats } from './types';
 import { EffectManager } from './effects/effectManager';
 import { UserManager } from './user/userManager';
+import { ItemManager } from './utils/itemManager';
+import { NPC } from './combat/npc';
 import { MCPServer } from './mcp/mcpServer';
 import { VirtualSessionManager } from './mcp/virtualSessionManager';
 import { CommandRegistry } from './command/commandRegistry';
@@ -325,6 +327,27 @@ export class GameServer {
     this.shutdownManager.cancelShutdown();
   }
 
+  /**
+   * Initialize all managers with async data loading.
+   * This MUST complete before the server starts accepting connections.
+   */
+  private async initializeManagers(): Promise<void> {
+    systemLogger.info('Initializing managers with async data loading...');
+
+    // Wait for all managers to complete their async initialization
+    // These were started in the constructor but may not be complete yet
+    await Promise.all([
+      this.userManager.ensureInitialized(),
+      this.roomManager.ensureInitialized(),
+      ItemManager.getInstance().ensureInitialized(),
+    ]);
+
+    // Pre-warm the NPC cache (load from repository)
+    await NPC.loadNPCDataAsync();
+
+    systemLogger.info('All managers initialized successfully');
+  }
+
   public async start(): Promise<void> {
     try {
       // Check for storage backend changes and auto-migrate data if needed
@@ -338,6 +361,10 @@ export class GameServer {
         systemLogger.error('Auto-migration failed:', migrationError);
         systemLogger.warn('Continuing with existing data - manual migration may be required');
       }
+
+      // Wait for all managers to finish loading data before proceeding
+      // This ensures users, rooms, items, and NPCs are available
+      await this.initializeManagers();
 
       // First check and create admin user if needed
       const adminSetupSuccess = await this.checkAndCreateAdminUser();
