@@ -5,6 +5,9 @@
   "license": "AGPL-3.0-or-later",
   "main": "dist/server.js",
   "scripts": {
+    "admin:build": "vite build --config vite.admin.config.ts",
+    "admin:dev": "vite --config vite.admin.config.ts",
+    "admin:preview": "vite preview --config vite.admin.config.ts",
     "bootstrap": "./scripts/bootstrap.sh",
     "build": "tsc --build --verbose && echo '✓ BUILD SUCCESS' || (echo '✗ BUILD FAILED' && exit 1)",
     "build-watch": "tsc --build --watch",
@@ -70,6 +73,8 @@
     "jsonwebtoken": "^9.0.2",
     "kysely": "^0.28.9",
     "pg": "^8.16.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "socket.io": "^4.7.2",
     "uuid": "^9.0.1",
     "winston": "^3.17.0",
@@ -93,11 +98,14 @@
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^18.11.18",
     "@types/pg": "^8.16.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
     "@types/uuid": "^9.0.1",
     "@types/ws": "^8.5.4",
     "@types/yargs": "^17.0.33",
     "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.50.1",
+    "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^8.57.0",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
@@ -105,7 +113,8 @@
     "prettier": "^3.2.0",
     "ts-jest": "^29.4.6",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^5.0.0"
   },
   "lint-staged": {
     "src/**/*.ts": [
