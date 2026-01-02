@@ -1,36 +1,45 @@
-# Admin Interface
+# Admin Interface (Build Output)
+
+> ⚠️ **This directory contains BUILD OUTPUT from the React admin application.**
+> **Do not edit files here directly.** Source code is in [`admin-ui/`](../../admin-ui/).
 
 Web-based admin dashboard for EllyMUD server management and monitoring.
+
+## Source Location
+
+The admin interface is now a React application. To make changes:
+
+1. Edit source files in [`admin-ui/src/`](../../admin-ui/src/)
+2. Run `npm run admin:build` to regenerate this directory
+3. Or use `npm run admin:dev` for development with hot reload
 
 ## Contents
 
 | File               | Description                            |
 | ------------------ | -------------------------------------- |
-| `index.html`       | Admin portal entry page                |
-| `login.html`       | Admin authentication form              |
-| `dashboard.html`   | Main dashboard with session monitoring |
-| `dashboard.js`     | Dashboard logic and API interactions   |
-| `styles.css`       | Admin interface styling                |
+| `index.html`       | Vite-generated entry point             |
+| `assets/`          | Bundled JavaScript and CSS             |
+| `login.html`       | Legacy login page (fallback)           |
+| `styles.css`       | Legacy styles (fallback)               |
 | `config-test.html` | Configuration testing utility          |
 
 ## Features
 
 The admin dashboard provides:
 
-- **User Management**: View, edit, and manage user accounts
-- **Session Monitoring**: See who's online and their current activity
-- **Server Statistics**: Monitor server health and performance
-- **Configuration**: Adjust game settings in real-time
-- **Log Access**: View system and player logs
-- **Pipeline Metrics**: View agent pipeline execution statistics and history
+- **Overview Dashboard** - Server uptime, memory usage, player statistics
+- **Player Management** - View connected players, kick/ban users, inspect details
+- **Session Monitoring** - Real-time view of active game sessions
+- **Configuration Panel** - Modify game settings without server restart
+- **Pipeline Metrics** - View AI agent pipeline execution history and statistics
 
 ## Authentication
 
 Admin access requires:
 
 1. A user account with admin privileges
-2. Authentication via the login page
-3. Valid session maintained via cookies/tokens
+2. JWT-based authentication via the login form
+3. Token stored in browser localStorage
 
 ## Accessing the Dashboard
 
@@ -39,20 +48,25 @@ Admin access requires:
 3. Log in with admin credentials
 4. Dashboard loads with live server data
 
-## API Integration
+## Development
 
-The dashboard communicates with backend endpoints defined in `src/admin/adminApi.ts`. All API calls require authentication.
+For development with hot reload:
 
-Key endpoints used:
+```bash
+npm run admin:dev
+```
 
-- `GET /api/admin/users` - List all users
-- `GET /api/admin/sessions` - Active sessions
-- `GET /api/admin/stats` - Server statistics
-- `POST /api/admin/config` - Update configuration
-- `GET /api/admin/pipeline-metrics` - Pipeline execution metrics
+This starts Vite on port 5173 with API proxying to the main server.
+
+To rebuild for production:
+
+```bash
+npm run admin:build
+```
 
 ## Related
 
-- [src/admin/](../../src/admin/) - Backend API implementation
-- [src/admin/adminAuth.ts](../../src/admin/adminAuth.ts) - Authentication middleware
-- [public/](../) - Main web client
+- [`admin-ui/`](../../admin-ui/) - **React source code (edit here)**
+- [`vite.admin.config.ts`](../../vite.admin.config.ts) - Vite build configuration
+- [`src/admin/`](../../src/admin/) - Backend API implementation
+- [`public/`](../) - Main web client
