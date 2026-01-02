@@ -247,6 +247,8 @@ For detailed MCP server usage, see [src/mcp/README.md](src/mcp/README.md).
 
 ```
 ellymud/
+├── admin-ui/            # React admin dashboard source
+│   └── src/             # React components, hooks, services
 ├── src/                 # TypeScript source code
 │   ├── abilities/       # Spellcasting and skill system
 │   ├── command/         # Command system (50+ commands)
@@ -353,6 +355,20 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 - Development workflow
 - Coding standards
 - Pull request process
+
+### Admin UI Development
+
+The admin dashboard is a React application located in `admin-ui/`. 
+
+```bash
+# Start development server with hot reload
+npm run admin:dev
+
+# Build for production (outputs to public/admin/)
+npm run admin:build
+```
+
+The dev server runs on port 5173 and proxies API calls to the main server on port 3000. See [admin-ui/README.md](admin-ui/README.md) for more details.
 
 ### Building from Source
 
