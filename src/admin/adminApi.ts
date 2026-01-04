@@ -7,9 +7,11 @@ import { UserManager } from '../user/userManager';
 import { RoomManager } from '../room/roomManager';
 import fs from 'fs';
 import path from 'path';
+import config from '../config';
+import { createAdminMessageBox } from '../utils/messageFormatter';
 
-// Secret key for JWT tokens
-const JWT_SECRET = process.env.JWT_SECRET || 'mud-admin-secret-key';
+// Use the same JWT secret as the rest of the application
+const JWT_SECRET = config.JWT_SECRET;
 const TOKEN_EXPIRY = '1h';
 
 // Interface for pipeline execution metrics (from JSON files)
@@ -240,6 +242,40 @@ export function kickPlayer(clients: Map<string, ConnectedClient>) {
 }
 
 /**
+ * Send admin message to a connected player
+ */
+export function sendAdminMessage(clients: Map<string, ConnectedClient>) {
+  return (req: Request, res: Response) => {
+    const { clientId } = req.params;
+    const { message } = req.body;
+
+    if (!clientId) {
+      return res.status(400).json({ success: false, message: 'Client ID is required' });
+    }
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({ success: false, message: 'Message is required' });
+    }
+
+    const client = clients.get(clientId);
+
+    if (!client) {
+      return res.status(404).json({ success: false, message: 'Client not found' });
+    }
+
+    try {
+      const boxedMessage = createAdminMessageBox(message);
+      client.connection.write(boxedMessage);
+
+      res.json({ success: true, message: 'Message sent successfully' });
+    } catch (error) {
+      console.error('Error sending admin message:', error);
+      res.status(500).json({ success: false, message: 'Failed to send message' });
+    }
+  };
+}
+
+/**
  * Get connected player details
  */
 export function getConnectedPlayers(
@@ -398,6 +434,10 @@ export function getAllPlayers(userManager: UserManager) {
         joinDate: user.joinDate,
         lastLogin: user.lastLogin,
         currentRoomId: user.currentRoomId,
+        banned: user.banned || false,
+        banReason: user.banReason,
+        banExpires: user.banExpires,
+        isAdmin: user.isAdmin || false,
       }));
 
       res.json({ success: true, players });
@@ -595,6 +635,112 @@ export function deletePlayer(
     } catch (error) {
       console.error('Error deleting player:', error);
       res.status(500).json({ success: false, message: 'Failed to delete player' });
+    }
+  };
+}
+
+/**
+ * Ban a player
+ */
+export function banPlayer(
+  userManager: UserManager,
+  roomManager: RoomManager,
+  _clients: Map<string, ConnectedClient>
+) {
+  return (req: Request, res: Response) => {
+    try {
+      const { username } = req.params;
+      const { reason, durationMinutes } = req.body;
+
+      if (!username) {
+        return res.status(400).json({ success: false, message: 'Username is required' });
+      }
+
+      if (!reason || typeof reason !== 'string' || !reason.trim()) {
+        return res.status(400).json({ success: false, message: 'Ban reason is required' });
+      }
+
+      // Get the user
+      const user = userManager.getUser(username);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'Player not found' });
+      }
+
+      // Cannot ban admin
+      if (user.isAdmin) {
+        return res.status(403).json({ success: false, message: 'Cannot ban admin accounts' });
+      }
+
+      // Calculate ban expiration
+      let banExpires: string | null = null;
+      if (durationMinutes && typeof durationMinutes === 'number' && durationMinutes > 0) {
+        const expirationDate = new Date(Date.now() + durationMinutes * 60 * 1000);
+        banExpires = expirationDate.toISOString();
+      }
+
+      // Update user ban status
+      userManager.banUser(username, reason.trim(), banExpires);
+
+      // If player is online, disconnect them
+      const client = userManager.getActiveUserSession(username);
+      if (client) {
+        // Send a message to the client
+        const expiresMsg = banExpires
+          ? `Your ban expires on ${new Date(banExpires).toLocaleString()}.`
+          : 'This ban is permanent.';
+        client.connection.write(
+          `\r\n\r\nYou have been banned by an administrator.\r\nReason: ${reason.trim()}\r\n${expiresMsg}\r\n`
+        );
+
+        // Remove from all rooms
+        roomManager.removePlayerFromAllRooms(username);
+
+        // Unregister the user session
+        userManager.unregisterUserSession(username);
+
+        // Disconnect after a brief delay
+        setTimeout(() => {
+          client.connection.end();
+        }, 500);
+      }
+
+      res.json({ success: true, message: 'Player banned successfully' });
+    } catch (error) {
+      console.error('Error banning player:', error);
+      res.status(500).json({ success: false, message: 'Failed to ban player' });
+    }
+  };
+}
+
+/**
+ * Unban a player
+ */
+export function unbanPlayer(userManager: UserManager) {
+  return (req: Request, res: Response) => {
+    try {
+      const { username } = req.params;
+
+      if (!username) {
+        return res.status(400).json({ success: false, message: 'Username is required' });
+      }
+
+      // Get the user
+      const user = userManager.getUser(username);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'Player not found' });
+      }
+
+      if (!user.banned) {
+        return res.status(400).json({ success: false, message: 'Player is not banned' });
+      }
+
+      // Unban the user
+      userManager.unbanUser(username);
+
+      res.json({ success: true, message: 'Player unbanned successfully' });
+    } catch (error) {
+      console.error('Error unbanning player:', error);
+      res.status(500).json({ success: false, message: 'Failed to unban player' });
     }
   };
 }

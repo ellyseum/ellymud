@@ -20,9 +20,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (username: string, password: string): Promise<boolean> => {
     try {
       const response = await api.login(username, password);
-      if (response.success && response.data?.token) {
-        localStorage.setItem('mudAdminToken', response.data.token);
-        setToken(response.data.token);
+      // Token is at root level: { success: true, token: "..." }
+      const token = response.token || response.data?.token;
+      if (response.success && token) {
+        localStorage.setItem('mudAdminToken', token);
+        setToken(token);
         return true;
       }
       return false;

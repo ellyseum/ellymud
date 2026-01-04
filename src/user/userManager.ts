@@ -801,6 +801,69 @@ export class UserManager {
   }
 
   /**
+   * Ban a user
+   * @param username The username to ban
+   * @param reason The reason for the ban
+   * @param banExpires ISO date string when ban expires, or null for permanent
+   */
+  public banUser(username: string, reason: string, banExpires: string | null): boolean {
+    const user = this.getUser(username);
+    if (!user) return false;
+
+    user.banned = true;
+    user.banReason = reason;
+    user.banExpires = banExpires || undefined;
+    user.banDate = new Date().toISOString();
+
+    this.saveUsers();
+    return true;
+  }
+
+  /**
+   * Unban a user
+   * @param username The username to unban
+   */
+  public unbanUser(username: string): boolean {
+    const user = this.getUser(username);
+    if (!user) return false;
+
+    user.banned = false;
+    delete user.banReason;
+    delete user.banExpires;
+    delete user.banDate;
+
+    this.saveUsers();
+    return true;
+  }
+
+  /**
+   * Check if a user is banned (and if ban has expired)
+   * @returns Object with banned status, reason, and expiration
+   */
+  public checkBanStatus(username: string): { banned: boolean; reason?: string; expires?: string } {
+    const user = this.getUser(username);
+    if (!user || !user.banned) {
+      return { banned: false };
+    }
+
+    // Check if ban has expired
+    if (user.banExpires) {
+      const expiresDate = new Date(user.banExpires);
+      if (expiresDate <= new Date()) {
+        // Ban has expired, automatically unban
+        this.unbanUser(username);
+        return { banned: false };
+      }
+    }
+
+    return {
+      banned: true,
+      reason: user.banReason,
+      expires: user.banExpires,
+    };
+  }
+
+  /**
    * Get all users
    * Used by admin API to get a list of all players
    */

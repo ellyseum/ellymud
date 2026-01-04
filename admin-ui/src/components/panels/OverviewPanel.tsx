@@ -150,29 +150,29 @@ export function OverviewPanel() {
       <div className="row g-4">
         {/* Memory Usage */}
         <div className="col-md-6">
-          <div className="card">
-            <div className="card-header">
+          <div className="card border-secondary shadow-sm">
+            <div className="card-header bg-dark text-white border-bottom border-secondary">
               <i className="bi bi-memory me-2"></i>
               Memory Usage
             </div>
-            <div className="card-body">
+            <div className="card-body bg-dark text-white">
               {stats?.memoryUsage ? (
                 <div className="row">
                   <div className="col-6 mb-3">
                     <strong>RSS</strong>
-                    <p className="mb-0 text-info">{formatBytes(stats.memoryUsage.rss)}</p>
+                    <p className="mb-0 text-white">{formatBytes(stats.memoryUsage.rss)}</p>
                   </div>
                   <div className="col-6 mb-3">
                     <strong>Heap Total</strong>
-                    <p className="mb-0 text-info">{formatBytes(stats.memoryUsage.heapTotal)}</p>
+                    <p className="mb-0 text-white">{formatBytes(stats.memoryUsage.heapTotal)}</p>
                   </div>
                   <div className="col-6">
                     <strong>Heap Used</strong>
-                    <p className="mb-0 text-info">{formatBytes(stats.memoryUsage.heapUsed)}</p>
+                    <p className="mb-0 text-white">{formatBytes(stats.memoryUsage.heapUsed)}</p>
                   </div>
                   <div className="col-6">
                     <strong>External</strong>
-                    <p className="mb-0 text-info">{formatBytes(stats.memoryUsage.external)}</p>
+                    <p className="mb-0 text-white">{formatBytes(stats.memoryUsage.external)}</p>
                   </div>
                 </div>
               ) : (
@@ -184,19 +184,19 @@ export function OverviewPanel() {
 
         {/* Game Timer Configuration */}
         <div className="col-md-6">
-          <div className="card">
-            <div className="card-header">
+          <div className="card border-secondary shadow-sm">
+            <div className="card-header bg-dark text-white border-bottom border-secondary">
               <i className="bi bi-clock-history me-2"></i>
               Game Timer Configuration
             </div>
-            <div className="card-body">
+            <div className="card-body bg-dark text-white">
               <div className="mb-3">
                 <label htmlFor="tick-interval" className="form-label">
                   Tick Interval (ms)
                 </label>
                 <input
                   type="number"
-                  className="form-control"
+                  className="form-control bg-dark text-white border-secondary"
                   id="tick-interval"
                   value={tickInterval}
                   onChange={(e) => setTickInterval(e.target.value)}
@@ -210,7 +210,7 @@ export function OverviewPanel() {
                 </label>
                 <input
                   type="number"
-                  className="form-control"
+                  className="form-control bg-dark text-white border-secondary"
                   id="save-interval"
                   value={saveInterval}
                   onChange={(e) => setSaveInterval(e.target.value)}
@@ -220,7 +220,7 @@ export function OverviewPanel() {
               </div>
               <div className="d-flex gap-2">
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary text-white"
                   onClick={handleSaveTimerConfig}
                   disabled={saving}
                 >
@@ -240,7 +240,7 @@ export function OverviewPanel() {
                   <i className="bi bi-arrow-clockwise me-1"></i>
                   Refresh
                 </button>
-                <button className="btn btn-warning" onClick={handleForceSave}>
+                <button className="btn btn-warning text-dark" onClick={handleForceSave}>
                   <i className="bi bi-save me-1"></i>
                   Force Save
                 </button>

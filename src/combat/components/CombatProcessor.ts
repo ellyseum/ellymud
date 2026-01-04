@@ -387,7 +387,7 @@ export class CombatProcessor {
     const rooms = this.roomManager.getAllRooms();
 
     // Add more detailed logging for hostile NPCs
-    systemLogger.info(
+    systemLogger.debug(
       `Scanning rooms for hostile NPCs and players - found ${rooms.length} total rooms`
     );
     let hostileNpcsFound = 0;
@@ -453,9 +453,9 @@ export class CombatProcessor {
     }
 
     if (hostileNpcsFound > 0) {
-      systemLogger.info(`Found a total of ${hostileNpcsFound} hostile NPCs across all rooms`);
+      systemLogger.debug(`Found a total of ${hostileNpcsFound} hostile NPCs across all rooms`);
     } else {
-      systemLogger.info(`No hostile NPCs found in any rooms with players`);
+      systemLogger.debug(`No hostile NPCs found in any rooms with players`);
     }
   }
 

@@ -249,12 +249,37 @@ if (error) return <div className="error">{error}</div>;
 # Start dev server with hot reload (port 5173)
 npm run admin:dev
 
-# Build for production (outputs to public/admin/)
-npm run admin:build
-
 # Type check only
 cd admin-ui && npx tsc --noEmit
 ```
+
+## ⚠️ CRITICAL: Admin UI Build Process
+
+**DO NOT run `npm run build:admin` manually!**
+
+The admin UI is automatically built as part of the main server build:
+
+```bash
+# This is ALL you need - it builds TypeScript AND admin UI automatically
+npm start
+```
+
+The build chain works like this:
+1. `npm start` triggers `prestart` script
+2. `prestart` runs `npm run build`
+3. `build` runs: `tsc --build` → `npm run build:admin` → outputs to `public/admin/`
+
+**When to use what:**
+| Task | Command | Notes |
+|------|---------|-------|
+| Testing changes | `npm start` | Builds everything automatically |
+| Development with hot reload | `npm run admin:dev` | Only for admin UI dev on port 5173 |
+| Verify build works | `npm run build` | Only if specifically testing build |
+| E2E/Integration tests | Run test scripts | They handle their own builds |
+
+**Never needed:**
+- `npm run build:admin` (manual build - already part of `npm start`)
+- `rm -rf public/admin/assets/*` (cleaning assets manually)
 
 ## Vite Configuration
 
