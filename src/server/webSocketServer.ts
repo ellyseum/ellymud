@@ -10,6 +10,7 @@ import { RoomManager } from '../room/roomManager';
 import { colorize } from '../utils/colors';
 import { getPromptText } from '../utils/promptFormatter';
 import { writeMessageToClient } from '../utils/socketWriter';
+import { createAdminMessageBox } from '../utils/messageFormatter';
 import config from '../config';
 
 export class WebSocketServer {
@@ -33,36 +34,67 @@ export class WebSocketServer {
     this.serverStats = serverStats;
     this.jwtSecret = config.JWT_SECRET;
 
-    // Create Socket.IO server for WebSocket connections
-    this.io = new SocketIOServer(httpServer);
+    // Create Socket.IO server for WebSocket connections with CORS enabled
+    this.io = new SocketIOServer(httpServer, {
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+      },
+    });
 
-    // Add Socket.IO handler
+    systemLogger.info('[WebSocketServer] Socket.IO server initialized');
+
+    // Debug: Log all raw engine connections and events
+    this.io.engine.on('connection', (rawSocket) => {
+      systemLogger.info(`[WebSocketServer] Engine connection from ${rawSocket.remoteAddress}`);
+
+      rawSocket.on('message', (data: Buffer | string) => {
+        const msg = typeof data === 'string' ? data : data.toString();
+        systemLogger.info(`[WebSocketServer] Engine message: ${msg.substring(0, 100)}`);
+      });
+
+      rawSocket.on('close', (reason: string) => {
+        systemLogger.info(`[WebSocketServer] Engine socket closed: ${reason}`);
+      });
+
+      rawSocket.on('error', (err: Error) => {
+        systemLogger.info(`[WebSocketServer] Engine socket error: ${err.message}`);
+      });
+    });
+
+    // Add Socket.IO handler for ALL connections (default namespace)
+    // Both game clients and admin dashboard connect here via io()
     this.io.on('connection', (socket) => {
-      systemLogger.info(`Socket.IO client connected: ${socket.id}`);
+      systemLogger.info(`[WebSocketServer] Socket connected: ${socket.id}`);
 
-      // Create our custom connection wrapper
-      const connection = new SocketIOConnection(socket);
-      setupClientFn(connection);
+      // Set up monitor handlers BEFORE creating game client connection
+      // This way admin dashboard sockets work without becoming game clients
 
-      // Track total connections
-      this.serverStats.totalConnections++;
-
-      // Handle monitoring requests
+      // Handle monitoring requests (from admin dashboard)
       socket.on('monitor-user', (data) => {
+        systemLogger.info(`[Monitor] Received monitor-user request: ${JSON.stringify(data)}`);
         const { clientId, token } = data;
 
         // Verify admin token
         jwt.verify(token, this.jwtSecret, (err: jwt.VerifyErrors | null) => {
           if (err) {
+            systemLogger.info(`[Monitor] Token verification failed: ${err.message}`);
             socket.emit('monitor-error', { message: 'Authentication failed' });
             return;
           }
 
+          systemLogger.info(`[Monitor] Token verified, looking for client: ${clientId}`);
+
           const client = this.clients.get(clientId);
           if (!client) {
+            systemLogger.info(`[Monitor] Client not found: ${clientId}`);
             socket.emit('monitor-error', { message: 'Client not found' });
             return;
           }
+
+          systemLogger.info(
+            `[Monitor] Client found, setting up monitoring for ${client.user?.username || 'unknown user'}`
+          );
 
           // Store the admin socket for this client and set monitoring flag
           client.adminMonitorSocket = socket;
@@ -77,14 +109,27 @@ export class WebSocketServer {
             username: client.user ? client.user.username : 'Unknown',
             message: 'Monitoring session established',
           });
+          systemLogger.info(`[Monitor] Sent monitor-connected event`);
 
-          // Send current room description if user is authenticated
-          if (client.authenticated && client.user) {
+          // Send current room description and prompt to orient the admin
+          if (client.user) {
             const roomManager = RoomManager.getInstance(this.clients);
-            const room = roomManager.getRoom(client.user.currentRoomId);
+            const roomId = client.user.currentRoomId || roomManager.getStartingRoomId();
+            const room = roomManager.getRoom(roomId);
+
             if (room) {
+              // Get the room description excluding the monitored player
+              const roomDescription = room.getDescriptionExcludingPlayer(client.user.username);
+
+              // Get the user's prompt
+              const promptText = getPromptText(client);
+
+              // Get the user's current input buffer
+              const inputBuffer = client.buffer || '';
+
+              // Send the full context: room description + prompt + current input buffer
               socket.emit('monitor-output', {
-                data: `\r\n${colorize(`Current location: ${client.user.currentRoomId}`, 'cyan')}\r\n${room.getDescription()}\r\n`,
+                data: roomDescription + promptText + inputBuffer,
               });
             }
           }
@@ -92,53 +137,31 @@ export class WebSocketServer {
           // Set up handler for admin commands
           socket.on('admin-command', (commandData) => {
             if (commandData.clientId === clientId && client.authenticated) {
-              // Process the command as if it came from the user
               const commandStr = commandData.command;
-
-              // Echo the command to admin's terminal
               socket.emit('monitor-output', {
                 data: `${colorize('> ' + commandStr, 'green')}\r\n`,
               });
 
-              // If the user is currently typing something, clear their input first
               if (client.buffer.length > 0) {
-                // Get the current prompt length
                 const promptText = getPromptText(client);
                 const promptLength = promptText.length;
-
-                // Clear the entire line and return to beginning
                 client.connection.write(
                   '\r' + ' '.repeat(promptLength + client.buffer.length) + '\r'
                 );
-
-                // Redisplay the prompt (since we cleared it as well)
                 client.connection.write(promptText);
-
-                // Clear the buffer
                 client.buffer = '';
               }
 
-              // Pause briefly to ensure the line is cleared
               setTimeout(() => {
-                // When input is blocked, bypass the normal input handler and directly process the command
                 if (client.isInputBlocked === true) {
-                  // Write the command to the client's console so they can see what the admin is doing
                   client.connection.write(`\r\n\x1b[33mAdmin executed: ${commandStr}\x1b[0m\r\n`);
-
-                  // Process the command directly without going through handleClientData
                   const line = commandStr.trim();
-
-                  // Echo a newline to ensure clean output
                   client.connection.write('\r\n');
-
-                  // Process the input directly
                   processInputFn(client, line);
                 } else {
-                  // Normal flow - simulate the user typing this command by sending each character
                   for (const char of commandStr) {
                     handleClientDataFn(client, char);
                   }
-                  // Send enter key to execute the command
                   handleClientDataFn(client, '\r');
                 }
               }, 50);
@@ -148,14 +171,10 @@ export class WebSocketServer {
           // Handle block user input toggle button
           socket.on('block-user-input', (blockData) => {
             if (blockData.clientId === clientId && client.authenticated) {
-              // Set the input blocking state on the client
               client.isInputBlocked = blockData.blocked;
-
               systemLogger.info(
-                `Admin has ${blockData.blocked ? 'blocked' : 'unblocked'} input for client ${clientId}${client.user ? ` (${client.user.username})` : ''}`
+                `Admin has ${blockData.blocked ? 'blocked' : 'unblocked'} input for client ${clientId}`
               );
-
-              // Notify the user that their input has been blocked/unblocked
               if (client.authenticated) {
                 if (blockData.blocked) {
                   client.connection.write(
@@ -166,8 +185,6 @@ export class WebSocketServer {
                     '\r\n\x1b[33mAn admin has re-enabled your input ability.\x1b[0m\r\n'
                   );
                 }
-
-                // Re-display the prompt
                 const promptText = getPromptText(client);
                 client.connection.write(promptText);
                 if (client.buffer.length > 0) {
@@ -180,25 +197,14 @@ export class WebSocketServer {
           // Handle admin message
           socket.on('admin-message', (messageData) => {
             if (messageData.clientId === clientId && client.authenticated) {
-              // Log the message being sent
-              systemLogger.info(
-                `Admin sent message to client ${clientId}${client.user ? ` (${client.user.username})` : ''}: ${messageData.message}`
-              );
-
-              // Create a 3D box with the message inside
+              systemLogger.info(`Admin sent message to client ${clientId}: ${messageData.message}`);
               const boxedMessage = createAdminMessageBox(messageData.message);
-
-              // Send the boxed message to the client
               writeMessageToClient(client, boxedMessage);
-
-              // Re-display the prompt
               const promptText = getPromptText(client);
               client.connection.write(promptText);
               if (client.buffer.length > 0) {
                 client.connection.write(client.buffer);
               }
-
-              // Echo to the admin that the message was sent
               socket.emit('monitor-output', {
                 data: `\r\n\x1b[36mAdmin message sent successfully\x1b[0m\r\n`,
               });
@@ -210,27 +216,30 @@ export class WebSocketServer {
             if (client && client.adminMonitorSocket === socket) {
               delete client.adminMonitorSocket;
               client.isBeingMonitored = false;
-              client.isInputBlocked = false; // Make sure to unblock input when admin disconnects
+              client.isInputBlocked = false;
             }
           });
         });
       });
 
-      // Explicitly handle the stop-monitoring event
+      // Handle stop-monitoring event
       socket.on('stop-monitoring', (data) => {
         const clientId = data.clientId;
         if (!clientId) return;
-
         const client = this.clients.get(clientId);
         if (client && client.adminMonitorSocket === socket) {
-          systemLogger.info(
-            `Admin stopped monitoring client ${clientId}${client.user ? ` (${client.user.username})` : ''}`
-          );
+          systemLogger.info(`Admin stopped monitoring client ${clientId}`);
           client.isBeingMonitored = false;
-          client.isInputBlocked = false; // Also unblock input when monitoring stops
+          client.isInputBlocked = false;
           client.adminMonitorSocket = undefined;
         }
       });
+
+      // Create game client connection wrapper for ALL sockets
+      // Admin sockets just won't send keypress events
+      const connection = new SocketIOConnection(socket);
+      setupClientFn(connection);
+      this.serverStats.totalConnections++;
     });
   }
 
@@ -265,63 +274,4 @@ export class WebSocketServer {
       });
     });
   }
-}
-
-// Helper function to create admin message
-function createAdminMessageBox(message: string): string {
-  const maxLineLength = config.MAX_MESSAGE_LINE_LENGTH;
-  const horizontalBorder = '┏' + '━'.repeat(maxLineLength + 2) + '┓\r\n';
-  const bottomBorder = '┗' + '━'.repeat(maxLineLength + 2) + '┛\r\n';
-
-  // Wrap the message text
-  const words = message.split(' ');
-  const lines: string[] = [];
-  let currentLine = '';
-
-  for (const word of words) {
-    if (currentLine.length + word.length + 1 <= maxLineLength) {
-      currentLine += (currentLine.length > 0 ? ' ' : '') + word;
-    } else {
-      lines.push(currentLine);
-      currentLine = word;
-    }
-  }
-  if (currentLine.length > 0) {
-    lines.push(currentLine);
-  }
-
-  // Build the message box
-  let boxedMessage = horizontalBorder;
-
-  // Add a blank line at the top
-  boxedMessage += '┃ ' + ' '.repeat(maxLineLength) + ' ┃\r\n';
-
-  // Add title line
-  const titleText = 'Message from Admin';
-  const titlePadding = Math.floor((maxLineLength - titleText.length) / 2);
-  boxedMessage +=
-    '┃ ' +
-    ' '.repeat(titlePadding) +
-    '\x1b[1;33m' +
-    titleText +
-    '\x1b[0m' +
-    ' '.repeat(maxLineLength - titleText.length - titlePadding) +
-    ' ┃\r\n';
-
-  // Add a separating line
-  boxedMessage += '┃ ' + '─'.repeat(maxLineLength) + ' ┃\r\n';
-
-  // Add message content with line wrapping
-  for (const line of lines) {
-    const padding = maxLineLength - line.length;
-    boxedMessage += '┃ ' + line + ' '.repeat(padding) + ' ┃\r\n';
-  }
-
-  // Add a blank line at the bottom
-  boxedMessage += '┃ ' + ' '.repeat(maxLineLength) + ' ┃\r\n';
-
-  // Complete the box
-  boxedMessage += bottomBorder;
-
-  return boxedMessage;
 }

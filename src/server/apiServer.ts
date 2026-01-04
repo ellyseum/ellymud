@@ -1,8 +1,9 @@
 import http from 'http';
-import express from 'express';
+import express, { Request } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import path from 'path';
+import jwt from 'jsonwebtoken';
 import { systemLogger } from '../utils/logger';
 import { ConnectedClient, ServerStats } from '../types';
 import * as AdminApi from '../admin/adminApi';
@@ -12,13 +13,29 @@ import { GameTimerManager } from '../timer/gameTimerManager';
 import config from '../config';
 import rateLimit from 'express-rate-limit';
 
-// Rate limiter for API endpoints to prevent abuse
+// Helper to check if request has valid admin token
+const hasValidAdminToken = (req: Request): boolean => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+  const token = authHeader.substring(7);
+  try {
+    jwt.verify(token, config.JWT_SECRET);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// Rate limiter for unauthenticated API endpoints (strict)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: { success: false, message: 'Too many requests, please try again later.' },
+  skip: hasValidAdminToken, // Skip rate limiting for authenticated admins
 });
 
 // Stricter rate limiter for login endpoint
@@ -104,6 +121,11 @@ export class APIServer {
       AdminApi.kickPlayer(this.clients)
     );
     this.app.post(
+      '/api/admin/players/:clientId/message',
+      AdminApi.validateToken,
+      AdminApi.sendAdminMessage(this.clients)
+    );
+    this.app.post(
       '/api/admin/players/:clientId/monitor',
       AdminApi.validateToken,
       AdminApi.monitorPlayer(this.clients)
@@ -134,6 +156,16 @@ export class APIServer {
       '/api/admin/players/delete/:username',
       AdminApi.validateToken,
       AdminApi.deletePlayer(this.userManager, this.roomManager, this.clients)
+    );
+    this.app.post(
+      '/api/admin/players/ban/:username',
+      AdminApi.validateToken,
+      AdminApi.banPlayer(this.userManager, this.roomManager, this.clients)
+    );
+    this.app.post(
+      '/api/admin/players/unban/:username',
+      AdminApi.validateToken,
+      AdminApi.unbanPlayer(this.userManager)
     );
 
     // Game timer system endpoints
@@ -166,8 +198,25 @@ export class APIServer {
   }
 
   private setupStaticFiles(): void {
-    // Serve static files from the public directory
-    this.app.use(express.static(config.PUBLIC_DIR));
+    // Serve hashed assets with long cache (immutable)
+    this.app.use(
+      '/admin/assets',
+      express.static(path.join(config.PUBLIC_DIR, 'admin', 'assets'), {
+        maxAge: '1y',
+        immutable: true,
+      })
+    );
+
+    // Serve HTML files with no-cache (always revalidate)
+    this.app.use(
+      express.static(config.PUBLIC_DIR, {
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+          }
+        },
+      })
+    );
 
     // Serve only specific xterm.js packages from node_modules to avoid exposing private files
     const nodeModulesPath = path.join(__dirname, '..', '..', 'node_modules');

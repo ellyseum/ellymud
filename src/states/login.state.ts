@@ -169,6 +169,23 @@ export class LoginState implements ClientState {
     if (this.userManager.authenticateUser(username, input)) {
       client.stateData.maskInput = false; // Disable masking after successful login
 
+      // Check if user is banned
+      const banStatus = this.userManager.checkBanStatus(username);
+      if (banStatus.banned) {
+        let banMessage = '\r\n\r\nYour account has been banned.\r\n';
+        if (banStatus.reason) {
+          banMessage += `Reason: ${banStatus.reason}\r\n`;
+        }
+        if (banStatus.expires) {
+          banMessage += `Ban expires: ${new Date(banStatus.expires).toLocaleString()}\r\n`;
+        } else {
+          banMessage += 'This ban is permanent.\r\n';
+        }
+        writeToClient(client, colorize(banMessage, 'red'));
+        client.stateData.disconnect = true;
+        return false;
+      }
+
       // Check if this user is already logged in elsewhere
       if (this.userManager.isUserActive(username)) {
         // Ask the new login if they want to request a transfer

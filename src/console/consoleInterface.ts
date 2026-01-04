@@ -43,7 +43,7 @@ export class ConsoleInterface {
 
           // Forward the keypress to the registered handler
           // Add 'h' to the list of handled keys
-          if (['l', 'a', 'u', 'm', 's', 'q', 'h', '?'].includes(lowerKey)) {
+          if (['l', 'a', 'u', 'm', 's', 'q', 't', 'h', '?'].includes(lowerKey)) {
             // Handle 'h' and '?' specifically for help
             if (lowerKey === 'h' || lowerKey === '?') {
               this.displayHelpMessage();
@@ -101,7 +101,7 @@ export class ConsoleInterface {
       console.log('========================================');
       console.log(`Press 'l' to connect locally, 'a' for admin session`);
       console.log(`Press 'u' for users, 'm' to monitor, 's' for message`);
-      console.log(`Press 'q' to shutdown, 'h' or '?' for help`);
+      console.log(`Press 't' for stats, 'q' to shutdown, 'h' for help`);
       console.log('========================================');
     }
   }
@@ -113,6 +113,7 @@ export class ConsoleInterface {
     console.log('  u : User Admin Menu   - Open the user management interface.');
     console.log("  m : Monitor User      - Monitor an active user's session.");
     console.log('  s : System Message    - Send a broadcast message to all online users.');
+    console.log('  t : Server Stats      - Display server statistics and status.');
     console.log('  q : Shutdown Server   - Show options for shutting down the MUD server.');
     console.log('  h,? : Help            - Display this help message.');
     console.log('  Ctrl+C : Shutdown    - Immediately shut down the MUD server.');

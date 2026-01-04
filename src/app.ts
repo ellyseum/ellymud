@@ -421,9 +421,6 @@ export class GameServer {
       // Setup graceful shutdown handler
       this.setupShutdownHandler();
 
-      // Log welcome message with keyboard shortcuts using ConsoleManager
-      this.consoleManager.logWelcomeMessage();
-
       return Promise.resolve();
     } catch (error) {
       systemLogger.error('Error starting game server:', error);
@@ -612,6 +609,13 @@ export class GameServer {
    */
   public getStateLoader(): StateLoader {
     return this.mcpServer.getStateLoader();
+  }
+
+  /**
+   * Get server statistics for monitoring/admin purposes
+   */
+  public getServerStats(): ServerStats {
+    return this.serverStats;
   }
 
   /**

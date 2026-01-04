@@ -56,6 +56,9 @@ export class AdminAuth {
       const data = fs.readFileSync(ADMIN_FILE, 'utf8');
       const adminData: AdminData = JSON.parse(data);
       this.admins = adminData.admins || [];
+      systemLogger.debug(
+        `[AdminAuth] Loaded ${this.admins.length} admins: ${JSON.stringify(this.admins.map((a) => a.username))}`
+      );
     } catch (error) {
       systemLogger.error(`Error loading admins: ${error}`);
       this.admins = [];
@@ -85,6 +88,13 @@ export class AdminAuth {
 
     // Only allow super and admin levels, not mod
     return admin.level === 'super' || admin.level === 'admin';
+  }
+
+  /**
+   * Public method to check if a user has admin privileges
+   */
+  public isAdmin(username: string): boolean {
+    return this.isAdminOrSuperAdmin(username);
   }
 
   /**

@@ -230,11 +230,18 @@ export interface User {
   flags?: string[]; // Array to store player flags for permissions, quests, etc.
   pendingAdminMessages?: Array<{ message: string; timestamp: string }>; // Store admin messages for offline users
 
+  // Ban status fields
+  banned?: boolean; // Whether the user is banned
+  banReason?: string; // The reason for the ban
+  banExpires?: string; // ISO date string when ban expires, undefined for permanent
+  banDate?: string; // ISO date string when the ban was issued
+
   // Add missing optional properties used in UserAdminMenu
   email?: string;
   role?: string; // e.g., 'player', 'admin', 'builder'
   created?: Date; // Date user was created
   description?: string; // User-set description
+  isAdmin?: boolean; // Whether this is an admin account
 }
 
 export interface ConnectedClient {

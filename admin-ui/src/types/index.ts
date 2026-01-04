@@ -4,6 +4,8 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   message?: string;
   error?: string;
+  // Some endpoints return data at root level (e.g., login returns token directly)
+  token?: string;
 }
 
 // Server Stats
@@ -46,6 +48,10 @@ export interface Player {
   lastActivity: string;
   idleTime: number;
   lastLogin?: string;
+  banned?: boolean;
+  banReason?: string;
+  banExpires?: string;
+  isAdmin?: boolean;
 }
 
 export interface PlayerDetails {

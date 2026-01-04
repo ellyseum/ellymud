@@ -36,7 +36,7 @@ class ApiClient {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     });
-    return this.handleResponse(response);
+    return response.json();
   }
 
   // Server Stats
@@ -112,6 +112,15 @@ class ApiClient {
     return this.handleResponse(response);
   }
 
+  async sendAdminMessage(clientId: string, message: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE}/players/${clientId}/message`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ message }),
+    });
+    return this.handleResponse(response);
+  }
+
   async monitorPlayer(clientId: string): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE}/players/${clientId}/monitor`, {
       method: 'POST',
@@ -123,6 +132,23 @@ class ApiClient {
   async deletePlayer(username: string): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE}/players/delete/${username}`, {
       method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async banPlayer(username: string, reason: string, durationMinutes: number | null): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE}/players/ban/${username}`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ reason, durationMinutes }),
+    });
+    return this.handleResponse(response);
+  }
+
+  async unbanPlayer(username: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE}/players/unban/${username}`, {
+      method: 'POST',
       headers: this.getHeaders(),
     });
     return this.handleResponse(response);

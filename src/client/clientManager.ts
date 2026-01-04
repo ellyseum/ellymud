@@ -8,7 +8,7 @@ import { RoomManager } from '../room/roomManager';
 import { StateMachine } from '../state/stateMachine';
 import { formatUsername } from '../utils/formatters';
 import { getPromptText } from '../utils/promptFormatter';
-import { stopBuffering } from '../utils/socketWriter';
+import { stopBuffering, writeToClient } from '../utils/socketWriter';
 
 export class ClientManager {
   private static instance: ClientManager;
@@ -365,7 +365,7 @@ export class ClientManager {
           client.cursorPos--;
 
           // Update the terminal display (backspace, space, backspace)
-          client.connection.write('\b \b');
+          writeToClient(client, '\b \b');
         } else {
           // Cursor in the middle - need to redraw the whole line
           const newBuffer =
@@ -384,7 +384,7 @@ export class ClientManager {
     // Handle Enter (CR+LF, CR, or LF)
     if (data === '\r\n' || data === '\r' || data === '\n') {
       // Echo a newline
-      client.connection.write('\r\n');
+      writeToClient(client, '\r\n');
 
       // Process the completed line
       const line = client.buffer;
@@ -476,10 +476,10 @@ export class ClientManager {
       // Check if input should be masked (for password entry)
       if (client.stateData.maskInput) {
         // Show asterisk instead of the actual character
-        client.connection.write('*');
+        writeToClient(client, '*');
       } else {
-        // Normal echo of the character
-        client.connection.write(data);
+        // Normal echo of the character - use writeToClient to forward to admin monitor
+        writeToClient(client, data);
       }
     } else {
       // Cursor in the middle - insert and redraw
