@@ -252,36 +252,41 @@ export class NPC implements CombatEntity {
       return NPC.npcDataCache;
     }
 
-    // Try to load NPCs from command line argument if provided
-    if (config.DIRECT_NPCS_DATA) {
+    // If a load is already in progress, wait for it
+    if (NPC.loadPromise) {
+      return NPC.loadPromise;
+    }
+
+    // Start new load and store the promise
+    NPC.loadPromise = (async () => {
       try {
-        const npcArray = parseAndValidateJson<NPCData[]>(config.DIRECT_NPCS_DATA, 'npcs');
-        if (npcArray && Array.isArray(npcArray)) {
+        // Try to load NPCs from command line argument if provided
+        if (config.DIRECT_NPCS_DATA) {
+          const npcArray = parseAndValidateJson<NPCData[]>(config.DIRECT_NPCS_DATA, 'npcs');
+          if (npcArray && Array.isArray(npcArray)) {
+            return NPC.loadPrevalidatedNPCData(npcArray);
+          }
+        }
+
+        // Load from repository (handles backend selection via RepositoryFactory)
+        const repository = NPC.getRepository();
+        const npcArray = await repository.findAll();
+
+        if (npcArray && npcArray.length > 0) {
           return NPC.loadPrevalidatedNPCData(npcArray);
+        } else {
+          systemLogger.warn('No NPCs found in repository');
+          return new Map<string, NPCData>();
         }
       } catch (error) {
-        systemLogger.error('Failed to load NPCs from command line:', error);
+        systemLogger.error('Error loading NPCs:', error);
         throw error;
+      } finally {
+        NPC.loadPromise = null;
       }
-    }
+    })();
 
-    // Load from repository (handles backend selection via RepositoryFactory)
-    try {
-      const repository = NPC.getRepository();
-      const npcArray = await repository.findAll();
-
-      if (npcArray && npcArray.length > 0) {
-        return NPC.loadPrevalidatedNPCData(npcArray);
-      } else {
-        systemLogger.warn('No NPCs found in repository');
-        return new Map<string, NPCData>();
-      }
-    } catch (error) {
-      systemLogger.error('Error loading NPCs from repository:', error);
-      throw error;
-    } finally {
-      NPC.loadPromise = null;
-    }
+    return NPC.loadPromise;
   }
 
   // Add a method to clear the cache if needed (e.g., for reloading data)
