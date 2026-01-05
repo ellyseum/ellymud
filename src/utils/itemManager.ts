@@ -59,12 +59,14 @@ export class ItemManager {
     await this.loadItems();
     await this.loadItemInstances();
     this.initialized = true;
+    this.initPromise = null;
   }
 
   /**
    * Ensure the manager is initialized before performing operations
    */
   public async ensureInitialized(): Promise<void> {
+    if (this.initialized) return;
     if (this.initPromise) {
       await this.initPromise;
     }
@@ -387,13 +389,8 @@ export class ItemManager {
 
   private async saveItemInstancesAsync(): Promise<void> {
     const instances = Array.from(this.itemInstances.values());
-    try {
-      await this.repository.saveInstances(instances);
-      itemLogger.debug(`[ItemManager] Saved ${instances.length} item instances`);
-    } catch (error) {
-      itemLogger.error('[ItemManager] Error saving item instances:', error);
-      throw error;
-    }
+    await this.repository.saveInstances(instances);
+    itemLogger.debug(`[ItemManager] Saved ${instances.length} item instances`);
   }
 
   public saveItems(): void {
@@ -410,13 +407,8 @@ export class ItemManager {
 
   private async saveItemsAsync(): Promise<void> {
     const items = Array.from(this.items.values());
-    try {
-      await this.repository.saveTemplates(items);
-      itemLogger.debug(`[ItemManager] Saved ${items.length} item templates`);
-    } catch (error) {
-      itemLogger.error('[ItemManager] Error saving items:', error);
-      throw error;
-    }
+    await this.repository.saveTemplates(items);
+    itemLogger.debug(`[ItemManager] Saved ${items.length} item templates`);
   }
 
   /**
