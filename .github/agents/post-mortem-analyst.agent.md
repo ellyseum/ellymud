@@ -1,5 +1,5 @@
 ---
-name: Post-Mortem
+name: Post-Mortem Analyst
 description: Analyzes completed pipeline executions to identify patterns, lessons learned, and improvement opportunities.
 infer: true
 model: gemini-2.5-pro

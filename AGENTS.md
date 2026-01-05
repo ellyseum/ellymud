@@ -2,6 +2,45 @@
 
 > **This is the single source of truth** for core conventions and navigation to detailed context.
 
+## ⚠️ CRITICAL: Always Check AGENTS.md First
+
+**STOP! Before searching or reading source files, check the relevant AGENTS.md.**
+
+```
+❌ WRONG: grep_search or semantic_search immediately
+❌ WRONG: Reading source files without checking directory docs
+❌ WRONG: Scanning entire codebase when a navigation index exists
+
+✅ CORRECT: Check AGENTS.md in the relevant directory FIRST
+✅ CORRECT: Use the "Common Tasks" table to find the right AGENTS.md
+✅ CORRECT: Only read source files when AGENTS.md lacks detail
+```
+
+**Workflow:**
+
+1. User asks about a feature → Check "Common Tasks" table below
+2. Find the relevant `AGENTS.md` → Read it for context
+3. Only then read source files if more detail needed
+
+**Why this matters:**
+
+- AGENTS.md files are curated navigation indexes
+- They prevent wasted tool calls searching blindly
+- They document patterns, gotchas, and anti-patterns
+- Skipping them = slower responses and missed context
+
+### Common Mistakes to Avoid
+
+- ❌ Jumping straight to `grep_search` or `semantic_search` without checking AGENTS.md
+- ❌ Reading source files before consulting the directory's AGENTS.md
+- ❌ Answering questions about a module without mentioning which AGENTS.md was consulted
+- ❌ Assuming AGENTS.md only has file lists (they contain patterns, gotchas, and anti-patterns)
+- ✅ State which AGENTS.md you consulted when answering
+- ✅ Note what the AGENTS.md provided vs what required source file reading
+- ✅ Use AGENTS.md as the starting point, then dive deeper only if needed
+
+---
+
 ## ⚠️ CRITICAL: NEVER Kill All Node Processes
 
 **STOP! VS Code runs on Node.js. Killing all node processes will CRASH THE EDITOR!**
@@ -733,13 +772,26 @@ AI integration server on port 3100:
 
 Specialized agents are available in `.github/agents/`:
 
-| Agent                 | Purpose                      |
-| --------------------- | ---------------------------- |
-| Research              | Codebase investigation       |
-| Plan                  | Implementation planning      |
-| Implementation        | Execute plans                |
-| Validation            | Verify implementations       |
-| Documentation Updater | Maintain README/AGENTS files |
+| Agent                   | Purpose                                      |
+| ----------------------- | -------------------------------------------- |
+| **EllyMUD**             | Primary development assistant (recommended)  |
+| Problem Solver          | Main orchestrator                            |
+| Researcher              | Codebase investigation                       |
+| Planner                 | Implementation planning                      |
+| Implementer             | Execute plans                                |
+| Validator               | Verify implementations                       |
+| Output Reviewer         | Document quality assurance                   |
+| Post-Mortem Analyst     | Pipeline analysis                            |
+| Rollback Manager        | Safety checkpoints                           |
+| Documentation Updater   | Maintain README/AGENTS files                 |
+| Agent Updater           | Agent self-improvement                       |
+| E2E Tester              | Game testing via MCP tools                   |
+| Unit Test Orchestrator  | Test coverage orchestration                  |
+| Unit Test Creator       | Individual test file creation                |
+| Grounding Orchestrator  | Migrate agents to other projects             |
+| Grounding Runner        | Rewrite individual agents                    |
+
+**Recommended**: Use the **EllyMUD** agent for all development tasks. It has deep knowledge of the codebase and can delegate to specialists when needed.
 
 See [.github/agents/AGENTS.md](.github/agents/AGENTS.md) for full agent documentation.
 

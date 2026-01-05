@@ -1,6 +1,6 @@
 ---
-name: Plan
-description: Meticulous planning agent that transforms research into detailed, actionable implementation plans.
+name: Planner
+description: Meticulous planner that transforms research into detailed, actionable implementation plans.
 infer: true
 model: claude-4.5-opus
 argument-hint: Provide the research document path or describe the task to plan
@@ -19,11 +19,11 @@ tools:
   - todo # manage_todo_list - track planning progress
 handoffs:
   - label: Review Plan
-    agent: output-review
+    agent: output-reviewer
     prompt: Review and grade the implementation plan created above.
     send: false
   - label: Create Checkpoint
-    agent: rollback
+    agent: rollback-manager
     prompt: Create a safety checkpoint before implementation begins.
     send: false
 ---

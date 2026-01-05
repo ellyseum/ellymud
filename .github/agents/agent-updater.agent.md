@@ -1,5 +1,5 @@
 ---
-name: agent-updater
+name: Agent Updater
 description: Analyzes grade reports across all agents to aggregate improvement suggestions and create update plans for the agent ecosystem.
 infer: true
 model: claude-4.5-opus
@@ -145,13 +145,22 @@ Running a new command **INTERRUPTS** the previous one!
 
 | Agent | File |
 |-------|------|
-| Problem Solver | `.github/agents/problem-solver-orchestrator-manager.agent.md` |
-| Research | `.github/agents/research-agent.agent.md` |
-| Planning | `.github/agents/planning-agent.agent.md` |
-| Implementation | `.github/agents/implementation-agent.agent.md` |
-| Validation | `.github/agents/validation-agent.agent.md` |
-| Post-Mortem | `.github/agents/agent-post-mortem.agent.md` |
-| Documentation | `.github/agents/documentation-updater.agent.md` |
+| Problem Solver | `.github/agents/problem-solver.agent.md` |
+| Researcher | `.github/agents/researcher.agent.md` |
+| Planner | `.github/agents/planner.agent.md` |
+| Implementer | `.github/agents/implementer.agent.md` |
+| Validator | `.github/agents/validator.agent.md` |
+| Post-Mortem Analyst | `.github/agents/post-mortem-analyst.agent.md` |
+| Documentation Updater | `.github/agents/documentation-updater.agent.md` |
+| Output Reviewer | `.github/agents/output-reviewer.agent.md` |
+| Rollback Manager | `.github/agents/rollback-manager.agent.md` |
+| Agent Updater | `.github/agents/agent-updater.agent.md` |
+| E2E Tester | `.github/agents/e2e-tester.agent.md` |
+| Unit Test Orchestrator | `.github/agents/unit-test-orchestrator.agent.md` |
+| Unit Test Creator | `.github/agents/unit-test-creator.agent.md` |
+| Grounding Orchestrator | `.github/agents/grounding-orchestrator.agent.md` |
+| Grounding Runner | `.github/agents/grounding-runner.agent.md` |
+| EllyMUD | `.github/agents/ellymud.agent.md` |
 
 ---
 

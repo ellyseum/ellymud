@@ -244,8 +244,8 @@ You are a research agent for the **MyApp** project...
 
 | Source | Target |
 |--------|--------|
-| `Research Agent` | `Research Agent` (keep) |
-| `research-agent.agent.md` | `research-agent.agent.md` (keep) |
+| `Researcher` | `Researcher` (keep) |
+| `researcher.agent.md` | `researcher.agent.md` (keep) |
 | Handoff references | Keep pointing to same agents |
 
 ---
@@ -379,7 +379,7 @@ cat [target]/.github/agents/_sections_[agent-name]/*.md > [target]/.github/agent
 
 Example:
 ```bash
-cat /home/user/project/.github/agents/_sections_problem-solver/*.md > /home/user/project/.github/agents/problem-solver-orchestrator-manager.agent.md
+cat /home/user/project/.github/agents/_sections_problem-solver/*.md > /home/user/project/.github/agents/problem-solver.agent.md
 ```
 
 #### 5.2 Verify the Output

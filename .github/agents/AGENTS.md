@@ -10,7 +10,7 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Problem Solver Orchestrator                   │
-│  (problem-solver-orchestrator-manager.agent.md)                 │
+│  (problem-solver.agent.md)                                      │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
@@ -37,11 +37,36 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 
 ## Agent Reference
 
+### Primary Agent
+
+#### EllyMUD Development Agent
+
+**File**: `ellymud.agent.md`
+**Role**: Comprehensive development assistant
+**Capabilities**:
+
+- Deep knowledge of entire EllyMUD codebase
+- All conventions and best practices
+- AGENTS.md navigation system mastery
+- Agent ecosystem coordination (can handoff to specialists)
+- MCP game testing tools access
+
+**When to use**: Your default agent for all EllyMUD development tasks
+
+**Invocation**: Select "EllyMUD" agent in VS Code, or:
+```
+@EllyMUD [your question or task]
+```
+
+**Handoff capabilities**: Can delegate to Researcher, Planner, Implementer, Validator, E2E Tester, Documentation Updater, and Unit Test Orchestrator.
+
+---
+
 ### Core Pipeline Agents
 
 #### Problem Solver Orchestrator
 
-**File**: `problem-solver-orchestrator-manager.agent.md`
+**File**: `problem-solver.agent.md`
 **Role**: Main coordinator
 **Responsibilities**:
 
@@ -57,9 +82,9 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 "Using the agent pipeline, implement [feature]"
 ```
 
-#### Research Agent
+#### Researcher
 
-**File**: `research-agent.agent.md`
+**File**: `researcher.agent.md`
 **Role**: Deep codebase investigation
 **Output**: `research/research_YYYY-MM-DD_slug.md`
 **Capabilities**:
@@ -71,9 +96,9 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 
 **When to use**: Understanding existing code before making changes
 
-#### Planning Agent
+#### Planner
 
-**File**: `planning-agent.agent.md`
+**File**: `planner.agent.md`
 **Role**: Detailed implementation planning
 **Output**: `planning/plan_YYYY-MM-DD_slug.md`
 **Capabilities**:
@@ -95,9 +120,9 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 - [ ] Rationale: [Why this change]
 ```
 
-#### Implementation Agent
+#### Implementer
 
-**File**: `implementation-agent.agent.md`
+**File**: `implementer.agent.md`
 **Role**: Execute implementation plans
 **Output**: `implementation/impl_YYYY-MM-DD_slug.md`
 **Capabilities**:
@@ -114,9 +139,9 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 - Verify build after each file
 - Document all changes made
 
-#### Validation Agent
+#### Validator
 
-**File**: `validation-agent.agent.md`
+**File**: `validator.agent.md`
 **Role**: Quality verification
 **Output**: `validation/validation_YYYY-MM-DD_slug.md`
 **Capabilities**:
@@ -151,9 +176,9 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 
 ### Support Agents
 
-#### Rollback Agent
+#### Rollback Manager
 
-**File**: `rollback.agent.md`
+**File**: `rollback-manager.agent.md`
 **Role**: Safety checkpoint management
 **Capabilities**:
 
@@ -168,16 +193,16 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 git stash push -m "CHECKPOINT: [pipeline-id] - [description]"
 ```
 
-#### Post-Mortem Agent
+#### Post-Mortem Analyst
 
-**File**: `agent-post-mortem.agent.md`
+**File**: `post-mortem-analyst.agent.md`
 **Role**: Pipeline analysis
 **When invoked**: After pipeline completion (success or failure)
 **Output**: Analysis of what worked, what didn't, improvements
 
-#### Output Review Agent
+#### Output Reviewer
 
-**File**: `output-review.agent.md`
+**File**: `output-reviewer.agent.md`
 **Role**: Document quality assurance
 **Capabilities**:
 
@@ -197,7 +222,7 @@ git stash push -m "CHECKPOINT: [pipeline-id] - [description]"
 
 #### Unit Test Orchestrator
 
-**File**: `unit-test-generation/unit-test-orchestrator.agent.md`
+**File**: `unit-test-orchestrator.agent.md`
 **Role**: Systematic test coverage improvement
 **Output**: `unit-test-generation/coverage-matrix-*.md`, `unit-test-generation/report-*.md`
 **Capabilities**:
@@ -215,7 +240,7 @@ Using the Unit Test Orchestrator agent, generate unit tests for uncovered files
 
 #### Unit Test Creator
 
-**File**: `unit-test-generation/unit-test-creator.agent.md`
+**File**: `unit-test-creator.agent.md`
 **Role**: Create individual test files
 **Output**: `src/**/*.test.ts` (co-located with source)
 **Capabilities**:
@@ -228,9 +253,9 @@ Using the Unit Test Orchestrator agent, generate unit tests for uncovered files
 
 **Usually invoked by**: Unit Test Orchestrator (as sub-agent)
 
-#### Grounding Agent
+#### Grounding Orchestrator
 
-**File**: `grounding-agent.agent.md`
+**File**: `grounding-orchestrator.agent.md`
 **Role**: Migrate agents to new projects
 **Output**: `grounding/project-profile_*.md`, `grounding/*-stats.md`
 **Capabilities**:
@@ -314,26 +339,33 @@ The key artifact is the **Project Profile** (`grounding/project-profile_<project
 
 ### Default Agent Set
 
-When migrating the "full pipeline", these agents are included:
+When migrating the "full pipeline", these 15 agents are included:
 
 | Agent | Purpose |
 |-------|---------|
-| Problem Solver Orchestrator | Main coordinator |
-| Research Agent | Codebase investigation |
-| Planning Agent | Implementation planning |
-| Implementation Agent | Code execution |
-| Validation Agent | Quality verification |
-| Output Review Agent | Document quality |
-| Post-Mortem Agent | Pipeline analysis |
+| Problem Solver | Main orchestrator |
+| Researcher | Codebase investigation |
+| Planner | Implementation planning |
+| Implementer | Code execution |
+| Validator | Quality verification |
+| Output Reviewer | Document quality |
+| Post-Mortem Analyst | Pipeline analysis |
 | Documentation Updater | README/AGENTS maintenance |
-| Rollback Agent | Safety checkpoints |
+| Rollback Manager | Safety checkpoints |
 | Agent Updater | Agent self-improvement |
+| E2E Tester | End-to-end feature testing |
+| Unit Test Orchestrator | Test coverage orchestration |
+| Unit Test Creator | Individual test file creation |
+| Grounding Orchestrator | Agent migration (recursive) |
+| Grounding Runner | Individual agent rewriting |
+
+**NOT included** (project-specific): EllyMUD agent
 
 ### Usage
 
 **Basic invocation**:
 ```
-Using the Grounding Agent, migrate the problem solver pipeline to ~/projects/MyNewProject
+Using the Grounding Orchestrator, migrate the problem solver pipeline to ~/projects/MyNewProject
 ```
 
 **Specific agents only**:
@@ -480,6 +512,55 @@ See `agent-tests/AGENTS.md` for full documentation.
 4. If not recoverable: ROLLBACK
 5. Report failure with details
 6. Post-Mortem analysis
+```
+
+---
+
+## Chunked Writing Pattern (Large File Generation)
+
+**Claude has response length limits.** For large agent files (> 200 lines), use the **chunked writing approach**.
+
+### When to Use
+
+| Output Size | Approach |
+|-------------|----------|
+| < 200 lines | Direct write (single `create_file`) |
+| 200-500 lines | Chunked (recommended) |
+| > 500 lines | Chunked (**REQUIRED**) |
+
+### The Pattern
+
+1. **Create sections directory**: `mkdir -p .github/agents/_sections_<agent-name>`
+
+2. **Write sections as separate files** (numbered for ordering):
+   ```
+   01-frontmatter.md    # YAML frontmatter
+   02-title-and-role.md # Title, version, role definition
+   03-core-section.md   # First major section
+   04-another-section.md
+   ...
+   ```
+
+3. **Track progress** with `manage_todo_list`
+
+4. **Concatenate**: `cat _sections_<agent-name>/*.md > <agent-name>.agent.md`
+
+5. **Clean up**: `rm -rf _sections_<agent-name>`
+
+### Why This Works
+
+- Each section is small enough to write completely
+- Progress is trackable per section
+- Interruptions are recoverable (resume from last section)
+- Numbered prefixes ensure correct ordering
+
+### Example
+
+The EllyMUD agent (933 lines) was created using this pattern:
+```bash
+# 12 section files were created, then:
+cat _sections_ellymud/*.md > ellymud.agent.md
+rm -rf _sections_ellymud
 ```
 
 ---

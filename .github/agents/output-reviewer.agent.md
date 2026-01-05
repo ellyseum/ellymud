@@ -1,5 +1,5 @@
 ---
-name: Output Review
+name: Output Reviewer
 description: Document quality reviewer that grades, critiques, and rewrites agent outputs for clarity and actionability.
 infer: true
 model: claude-4.5-opus

@@ -82,26 +82,31 @@ When migrating the "full pipeline":
 
 | Agent | File | Purpose |
 |-------|------|---------|
-| Problem Solver | `problem-solver-orchestrator-manager.agent.md` | Main orchestrator |
-| Research | `research-agent.agent.md` | Codebase investigation |
-| Planning | `planning-agent.agent.md` | Implementation planning |
-| Implementation | `implementation-agent.agent.md` | Code execution |
-| Validation | `validation-agent.agent.md` | Quality verification |
-| Output Review | `output-review.agent.md` | Document quality |
-| Post-Mortem | `agent-post-mortem.agent.md` | Pipeline analysis |
+| Problem Solver | `problem-solver.agent.md` | Main orchestrator |
+| Researcher | `researcher.agent.md` | Codebase investigation |
+| Planner | `planner.agent.md` | Implementation planning |
+| Implementer | `implementer.agent.md` | Code execution |
+| Validator | `validator.agent.md` | Quality verification |
+| Output Reviewer | `output-reviewer.agent.md` | Document quality |
+| Post-Mortem Analyst | `post-mortem-analyst.agent.md` | Pipeline analysis |
 | Documentation Updater | `documentation-updater.agent.md` | README/AGENTS maintenance |
-| Rollback | `rollback.agent.md` | Safety checkpoints |
+| Rollback Manager | `rollback-manager.agent.md` | Safety checkpoints |
 | Agent Updater | `agent-updater.agent.md` | Agent self-improvement |
+| E2E Tester | `e2e-tester.agent.md` | End-to-end feature testing |
+| Unit Test Orchestrator | `unit-test-orchestrator.agent.md` | Test coverage orchestration |
+| Unit Test Creator | `unit-test-creator.agent.md` | Individual test file creation |
+| Grounding Orchestrator | `grounding-orchestrator.agent.md` | Agent migration (recursive) |
+| Grounding Runner | `grounding-runner.agent.md` | Individual agent rewriting |
 
 ## Invocation
 
 ```
-Using the Grounding Agent, migrate the problem solver pipeline to ~/projects/MyNewProject
+Using the Grounding Orchestrator, migrate the problem solver pipeline to ~/projects/MyNewProject
 ```
 
 Or for specific agents:
 ```
-Using the Grounding Agent, migrate only the Research and Planning agents to ~/projects/MyNewProject
+Using the Grounding Orchestrator, migrate only the Researcher and Planner agents to ~/projects/MyNewProject
 ```
 
 ## Workspace Symlink Requirement

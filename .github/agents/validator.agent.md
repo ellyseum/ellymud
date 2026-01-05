@@ -1,6 +1,6 @@
 ---
-name: Validation
-description: Thorough validation agent that verifies implementations against specifications and determines merge readiness.
+name: Validator
+description: Thorough validator that verifies implementations against specifications and determines merge readiness.
 infer: true
 model: gemini-2.5-pro
 argument-hint: Provide the implementation report path to validate
@@ -27,11 +27,11 @@ tools:
   - todo # manage_todo_list - track validation progress
 handoffs:
   - label: Approve & Post-Mortem
-    agent: agent-post-mortem
+    agent: post-mortem-analyst
     prompt: Analyze this successful pipeline execution for lessons learned.
     send: false
   - label: Reject & Rollback
-    agent: rollback
+    agent: rollback-manager
     prompt: Validation failed. Roll back to the last checkpoint.
     send: false
 ---

@@ -246,14 +246,6 @@ Save stats to: `.github/agents/metrics/stats/docs_YYYY-MM-DD_task-name-stats.md`
 | Files Updated       | X     |
 | Directories Audited | X     |
 
-## Quality Indicators
-
-| Metric             | Value |
-| ------------------ | ----- |
-| Coverage Before    | X%    |
-| Coverage After     | X%    |
-| Broken Links Fixed | X     |
-
 ## Agent Info
 
 | Field         | Value           |
@@ -990,190 +982,15 @@ After PR merges:
 
 ### Example README.md
 
-```markdown
-# Combat System
-
-Server-side combat mechanics including damage calculation, turn management, and NPC AI.
-
-## Contents
-
-| Path              | Description                                   |
-| ----------------- | --------------------------------------------- |
-| `combat.ts`       | Core combat loop and state management         |
-| `combatSystem.ts` | Combat initialization and entity registration |
-| `npc.ts`          | NPC combat behavior and AI routines           |
-| `components/`     | Modular combat components                     |
-
-## Overview
-
-The combat system handles all player-vs-NPC and player-vs-player encounters. It uses an event-driven architecture with a central combat loop that processes actions in tick intervals.
-
-## Related
-
-- [`../states/`](../states/) - Combat state machine integration
-- [`../effects/`](../effects/) - Status effects applied during combat
-- [`../user/`](../user/) - Player stats and damage application
-```
+See template above. Key points: no code blocks, brief descriptions, links to related directories.
 
 ### Example AGENTS.md
 
-```markdown
-# Combat System - LLM Context
-
-## Overview
-
-The combat system implements turn-based combat with real-time elements. Combat is tick-driven (configurable interval, default 2 seconds) where each tick processes queued actions for all participants.
-
-Key architectural decisions:
-
-- Event-driven: Combat events fire through the event system
-- Entity-agnostic: Both players and NPCs implement `CombatEntity` interface
-- State-managed: Combat states integrate with the global state machine
-
-## Architecture
-```
-
-CombatSystem (singleton)
-├── Active Combats Map<string, Combat>
-├── Combat
-│ ├── Participants: CombatEntity[]
-│ ├── Turn Queue: Action[]
-│ └── State: CombatState
-└── CombatProcessor
-├── Damage Calculator
-└── Effect Applicator
-
-````
-
-## File Reference
-
-### `combat.ts`
-
-**Purpose**: Core combat instance management. Each `Combat` object represents an active fight.
-
-**Key Exports**:
-```typescript
-export class Combat {
-  addParticipant(entity: CombatEntity): void
-  removeParticipant(entity: CombatEntity): void
-  queueAction(action: CombatAction): void
-  processTick(): CombatTickResult
-}
-````
-
-**Usage**:
-
-```typescript
-const combat = new Combat();
-combat.addParticipant(player);
-combat.addParticipant(npc);
-combat.queueAction({ type: 'attack', source: player, target: npc });
-```
-
-### `combatSystem.ts`
-
-**Purpose**: Singleton manager for all active combats. Entry point for starting/ending combat.
-
-**Key Exports**:
-
-```typescript
-export class CombatSystem {
-  static getInstance(): CombatSystem;
-  startCombat(initiator: CombatEntity, target: CombatEntity): Combat;
-  endCombat(combatId: string): void;
-  getCombat(entityId: string): Combat | undefined;
-}
-```
-
-### `npc.ts`
-
-**Purpose**: NPC-specific combat logic and AI decision making.
-
-**Key Exports**:
-
-```typescript
-export class NpcCombatAI {
-  selectAction(npc: NPC, combat: Combat): CombatAction;
-  shouldFlee(npc: NPC): boolean;
-}
-```
-
-## Conventions
-
-### Damage Calculation
-
-All damage flows through `calculateDamage()`. Never apply damage directly.
-
-```typescript
-// ✅ Correct
-const damage = calculateDamage(attacker, defender, weapon);
-defender.applyDamage(damage);
-
-// ❌ Incorrect
-defender.health -= weapon.damage; // Bypasses armor, effects, etc.
-```
-
-### Combat Events
-
-Always emit events for combat actions. Other systems listen to these.
-
-```typescript
-// ✅ Correct
-eventEmitter.emit('combat:damage', { source, target, amount });
-
-// ❌ Incorrect
-// Silently applying damage without events
-```
-
-## Common Tasks
-
-### Adding a New Combat Action
-
-1. Define action type in `types/combat.ts`
-2. Add handler in `CombatProcessor.processAction()`
-3. Add AI consideration in `NpcCombatAI.selectAction()`
-
-```typescript
-// In CombatProcessor
-case 'new_action':
-  return this.handleNewAction(action);
-```
-
-### Testing Combat
-
-```bash
-# Start server with test character
-npm start -- --forceSession=testuser
-
-# In game, find an NPC and attack
-> attack goblin
-```
-
-## Gotchas & Warnings
-
-- ⚠️ **Combat Persistence**: Combat state is NOT persisted. Server restart ends all combats.
-- ⚠️ **Tick Timing**: Don't assume tick order. Multiple actions in same tick have undefined order.
-- ⚠️ **Entity Death**: Always check `entity.isAlive()` before processing actions.
-- ⚠️ **Memory Leaks**: Combat objects must be cleaned up via `endCombat()`. Orphaned combats leak memory.
-
-## Useful Commands
-
-```bash
-# Debug combat state
-npm start -- -a
-# Then in console: debug combat <username>
-
-# Force end all combats (admin)
-# In game: /endallcombat
-```
-
-## Related Context
-
-- [`../states/`](../states/) - `CombatState` handles player input during combat
-- [`../effects/`](../effects/) - Status effects that modify combat (stun, bleed, etc.)
-- [`../user/`](../user/) - Player stats used in damage calculation
-- [`../timer/`](../timer/) - Combat tick timing via GameTimerManager
-
-```
-
-```
+See template above. Key sections to include:
+- Overview with architecture decisions
+- File Reference with exports and usage
+- Conventions with ✅/❌ examples
+- Common Tasks with step-by-step
+- Gotchas & Warnings
+- Useful Commands
+- Related Context links

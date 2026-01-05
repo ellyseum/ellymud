@@ -1,5 +1,18 @@
 # Copilot Instructions for EllyMUD
 
+## 🎯 Recommended: Use the EllyMUD Agent
+
+For the best development experience, use the **EllyMUD** agent (`.github/agents/ellymud-agent.agent.md`). It has:
+
+- Deep knowledge of the entire codebase
+- All conventions and best practices built-in
+- Ability to delegate to specialized agents when needed
+- MCP game testing tools access
+
+Select "EllyMUD" from the agent picker, or for default Copilot, follow the rules below.
+
+---
+
 ## ⚠️ CRITICAL: Context Discovery Strategy
 
 **ALWAYS check AGENTS.md files first** before scanning source files directly. This is mandatory - do not skip this step.
@@ -20,6 +33,16 @@
 - Documents patterns, anti-patterns, and gotchas specific to each module
 - Prevents reinventing existing utilities or violating conventions
 - Much faster than scanning entire codebases
+
+### Common Mistakes to Avoid
+
+- ❌ Jumping straight to `grep_search` or `semantic_search` without checking AGENTS.md
+- ❌ Reading source files before consulting the directory's AGENTS.md
+- ❌ Answering questions about a module without mentioning which AGENTS.md was consulted
+- ❌ Assuming AGENTS.md only has file lists (they contain patterns, gotchas, and anti-patterns)
+- ✅ State which AGENTS.md you consulted when answering
+- ✅ Note what the AGENTS.md provided vs what required source file reading
+- ✅ Use AGENTS.md as the starting point, then dive deeper only if needed
 
 ### AGENTS.md Locations
 

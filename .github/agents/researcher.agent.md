@@ -1,6 +1,6 @@
 ---
-name: Research
-description: Exhaustive technical research agent that investigates codebases and produces detailed research documents.
+name: Researcher
+description: Exhaustive technical researcher that investigates codebases and produces detailed research documents.
 infer: true
 model: gemini-2.5-pro
 argument-hint: Describe what aspect of the codebase to research
@@ -22,7 +22,7 @@ tools:
   - todo # manage_todo_list - track research progress
 handoffs:
   - label: Review Research
-    agent: output-review
+    agent: output-reviewer
     prompt: Review and grade the research document created above.
     send: false
 ---

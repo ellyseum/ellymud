@@ -65,19 +65,19 @@ GitHub-specific configuration files that enhance the development workflow. Conta
 **Core Agents**:
 | Agent | File | Role |
 |-------|------|------|
-| Problem Solver | `problem-solver-orchestrator-manager.agent.md` | Main coordinator |
-| Research | `research-agent.agent.md` | Codebase investigation |
-| Planning | `planning-agent.agent.md` | Implementation planning |
-| Implementation | `implementation-agent.agent.md` | Code execution |
-| Validation | `validation-agent.agent.md` | Quality verification |
+| Problem Solver | `problem-solver.agent.md` | Main coordinator |
+| Researcher | `researcher.agent.md` | Codebase investigation |
+| Planner | `planner.agent.md` | Implementation planning |
+| Implementer | `implementer.agent.md` | Code execution |
+| Validator | `validator.agent.md` | Quality verification |
 
 **Support Agents**:
 | Agent | File | Role |
 |-------|------|------|
-| Rollback | `rollback.agent.md` | Safety checkpoints |
-| Post-Mortem | `agent-post-mortem.agent.md` | Pipeline analysis |
-| Output Review | `output-review.agent.md` | Document quality |
-| Docs Updater | `documentation-updater.agent.md` | README/AGENTS maintenance |
+| Rollback Manager | `rollback-manager.agent.md` | Safety checkpoints |
+| Post-Mortem Analyst | `post-mortem-analyst.agent.md` | Pipeline analysis |
+| Output Reviewer | `output-reviewer.agent.md` | Document quality |
+| Documentation Updater | `documentation-updater.agent.md` | README/AGENTS maintenance |
 
 **Full documentation**: See [agents/AGENTS.md](agents/AGENTS.md)
 

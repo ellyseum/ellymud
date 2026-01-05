@@ -1,6 +1,6 @@
 ---
-name: Implementation
-description: Precise implementation agent that executes plans exactly as specified with full documentation.
+name: Implementer
+description: Precise implementer that executes plans exactly as specified with full documentation.
 infer: true
 model: claude-4.5-opus
 argument-hint: Provide the implementation plan path to execute
@@ -25,11 +25,11 @@ tools:
   - todo # manage_todo_list - track implementation progress
 handoffs:
   - label: Review Implementation
-    agent: output-review
+    agent: output-reviewer
     prompt: Review and grade the implementation report created above.
     send: false
   - label: Validate Changes
-    agent: validation-agent
+    agent: validator
     prompt: Validate the implementation against the plan and run tests.
     send: false
 ---

@@ -1,5 +1,5 @@
 ---
-name: Grounding Agent
+name: Grounding Orchestrator
 description: Orchestrates agent migration to new projects by analyzing target codebases and delegating agent rewrites to the Grounding Runner.
 infer: true
 model: claude-4.5-opus
@@ -149,25 +149,78 @@ Before doing ANY other work, you MUST:
 
 ## Default Agent Set
 
-If no specific agents are requested, migrate the **Problem Solver Pipeline**:
+If no specific agents are requested, migrate the **Full Agent Ecosystem** (15 portable agents):
 
 | Agent | File | Purpose |
 |-------|------|---------|
-| Problem Solver | `problem-solver-orchestrator-manager.agent.md` | Main orchestrator |
-| Research | `research-agent.agent.md` | Codebase investigation |
-| Planning | `planning-agent.agent.md` | Implementation planning |
-| Implementation | `implementation-agent.agent.md` | Code execution |
-| Validation | `validation-agent.agent.md` | Quality verification |
-| Output Review | `output-review.agent.md` | Document quality |
-| Post-Mortem | `agent-post-mortem.agent.md` | Pipeline analysis |
+| Problem Solver | `problem-solver.agent.md` | Main orchestrator |
+| Researcher | `researcher.agent.md` | Codebase investigation |
+| Planner | `planner.agent.md` | Implementation planning |
+| Implementer | `implementer.agent.md` | Code execution |
+| Validator | `validator.agent.md` | Quality verification |
+| Output Reviewer | `output-reviewer.agent.md` | Document quality |
+| Post-Mortem Analyst | `post-mortem-analyst.agent.md` | Pipeline analysis |
 | Documentation Updater | `documentation-updater.agent.md` | README/AGENTS maintenance |
-| Rollback | `rollback.agent.md` | Safety checkpoints |
+| Rollback Manager | `rollback-manager.agent.md` | Safety checkpoints |
 | Agent Updater | `agent-updater.agent.md` | Agent self-improvement |
+| E2E Tester | `e2e-tester.agent.md` | End-to-end feature testing |
+| Unit Test Orchestrator | `unit-test-orchestrator.agent.md` | Test coverage orchestration |
+| Unit Test Creator | `unit-test-creator.agent.md` | Individual test file creation |
+| Grounding Orchestrator | `grounding-orchestrator.agent.md` | Agent migration (recursive) |
+| Grounding Runner | `grounding-runner.agent.md` | Individual agent rewriting |
 
-Also migrate supporting files:
-- `metrics/server.js` - Pipeline metrics dashboard
-- `metrics/pipeline-metrics-schema.json` - Metrics schema
-- `metrics/stage-stats-schema.json` - Stats schema
+**NOT included** (project-specific):
+- `ellymud.agent.md` - EllyMUD-specific, not portable
+
+### Supporting Files and Directories
+
+Also migrate these supporting files and create necessary output directories:
+
+**Metrics Dashboard:**
+- `metrics/server.js` - Pipeline metrics dashboard (web UI)
+- `metrics/server.mjs` - ES module version (if present)
+- `metrics/pipeline-metrics-schema.json` - Pipeline aggregation schema
+- `metrics/stage-stats-schema.json` - Individual stats schema
+- `metrics/README.md` - Human documentation
+- `metrics/AGENTS.md` - LLM context
+- `metrics/stats/` - Create empty output directory
+- `metrics/executions/` - Create empty output directory
+
+**Agent Testing Harness:**
+- `agent-tests/run-tests.sh` - Automated test runner
+- `agent-tests/test-definitions.json` - Test configurations
+- `agent-tests/test-cases/*.md` - All test case definitions
+- `agent-tests/README.md` - Human documentation
+- `agent-tests/AGENTS.md` - LLM context
+- `agent-tests/results/` - Create empty output directory
+
+**Root Documentation:**
+- `AGENTS.md` - Main LLM context (adapt for target project)
+- `README.md` - Human overview (adapt for target project)
+- `ARCHITECTURE.md` - Architecture documentation (if present)
+- `CHANGELOG.md` - Start fresh for target project
+
+**Output Directories** (create empty):
+- `research/` - Research agent outputs
+- `planning/` - Planning agent outputs
+- `implementation/` - Implementation agent outputs
+- `validation/` - Validation agent outputs
+- `suggestions/` - Post-mortem suggestions
+- `updates/` - Agent updater outputs
+- `grounding/` - Grounding agent outputs
+- `unit-test-generation/` - Unit test orchestrator outputs
+- `documentation/` - Documentation updater outputs
+
+**Output Directories** (create empty):
+- `research/` - Research agent outputs
+- `planning/` - Planning agent outputs
+- `implementation/` - Implementation agent outputs
+- `validation/` - Validation agent outputs
+- `suggestions/` - Post-mortem suggestions
+- `updates/` - Agent updater outputs
+- `grounding/` - Grounding agent outputs
+- `unit-test-generation/` - Unit test orchestrator outputs
+- `documentation/` - Documentation updater outputs
 
 ---
 
@@ -483,7 +536,7 @@ Save stats to: `.github/agents/grounding/grounding_YYYY-MM-DD_<target-name>-stat
 | Agent | Status | Output Path |
 |-------|--------|-------------|
 | Problem Solver | ✅ | .github/agents/problem-solver.agent.md |
-| Research | ✅ | .github/agents/research-agent.agent.md |
+| Researcher | ✅ | .github/agents/researcher.agent.md |
 | ... | ... | ... |
 
 ## Handoff

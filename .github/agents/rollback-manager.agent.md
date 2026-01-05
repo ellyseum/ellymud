@@ -1,5 +1,5 @@
 ---
-name: Rollback
+name: Rollback Manager
 description: Safety checkpoint manager that creates git stash checkpoints and can restore previous states on failure.
 infer: true
 model: claude-4.5-opus
@@ -20,7 +20,7 @@ tools:
   - todo # manage_todo_list - track rollback progress
 handoffs:
   - label: Resume Planning
-    agent: planning-agent
+    agent: planner
     prompt: Rollback complete. Create a revised implementation plan.
     send: false
 ---
