@@ -80,6 +80,15 @@ READMEs are human-readable overviews without code blocks. AGENTS.md files are co
 
 Keep formats consistent and simple. Complex documentation becomes outdated faster.
 
+### 6. Location Index Sync
+
+**When creating a new AGENTS.md file**, you MUST add it to the "AGENTS.md Locations" list in `.github/copilot-instructions.md`. This keeps the project's documentation index accurate.
+
+```bash
+# Verify all AGENTS.md files are indexed:
+find . -name "AGENTS.md" -type f | grep -v node_modules | sort
+```
+
 ---
 
 ## Definition of Done
@@ -98,6 +107,7 @@ Keep formats consistent and simple. Complex documentation becomes outdated faste
 - [ ] All links verified working
 - [ ] Content matches actual code
 - [ ] README and AGENTS.md are paired
+- [ ] **New AGENTS.md files added to `.github/copilot-instructions.md` locations list**
 
 ### Report File (MANDATORY)
 
