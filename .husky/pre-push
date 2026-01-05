@@ -2,6 +2,16 @@
 # - Feature branches: Lint + prettier only (rely on GitHub Actions for tests)
 # - Main branch: Full test suite (no CI safety net for direct pushes)
 
+# Skip checks for branch deletions
+# Pre-push hook receives: <local ref> <local sha> <remote ref> <remote sha>
+# For deletions, local_sha is all zeros
+while read local_ref local_sha remote_ref remote_sha; do
+  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+    echo "🗑️  Branch deletion detected - skipping checks"
+    exit 0
+  fi
+done
+
 # Get the current branch name
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
