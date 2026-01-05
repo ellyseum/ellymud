@@ -25,7 +25,7 @@ List what you've already tried or researched:
 ## Environment (if relevant)
 
 - **OS**: [e.g., Ubuntu 22.04]
-- **Node.js Version**: [e.g., 18.17.0]
+- **Node.js Version**: [e.g., 20.19.0]
 - **EllyMUD Version**: [e.g., 0.0.1]
 
 ## Additional Information

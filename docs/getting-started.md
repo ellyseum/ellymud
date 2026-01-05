@@ -27,7 +27,7 @@ EllyMUD is a Multi-User Dungeon (MUD) - a text-based multiplayer online role-pla
 
 Before you begin, ensure you have the following installed:
 
-- **Node.js** version 18.x or higher
+- **Node.js** version 20.19 or higher
   - Check: `node --version`
   - Download from: https://nodejs.org/
 - **npm** version 8.x or higher

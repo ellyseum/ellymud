@@ -35,7 +35,7 @@ Paste relevant logs here
 ## Environment
 
 - **OS**: [e.g., Ubuntu 22.04, Windows 11, macOS 13]
-- **Node.js Version**: [e.g., 18.17.0]
+- **Node.js Version**: [e.g., 20.19.0]
 - **EllyMUD Version**: [e.g., 0.0.1]
 - **Connection Method**: [e.g., Telnet, Web Client, WebSocket]
 

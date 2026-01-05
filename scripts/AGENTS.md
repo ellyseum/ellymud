@@ -13,7 +13,7 @@ This directory contains shell scripts for project automation. These are standalo
 **What it does**:
 
 1. Checks system requirements (git, curl, make)
-2. Ensures Node.js 18+ and npm are installed
+2. Ensures Node.js 20.19+ and npm are installed
 3. Runs `npm install` for dependencies
 4. Creates `.env` file from template
 5. Initializes data directories

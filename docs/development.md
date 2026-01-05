@@ -21,7 +21,7 @@ License: AGPL-3.0-or-later; commercial/proprietary licensing available via https
 
 Ensure you have the following installed:
 
-- **Node.js 18.x or higher**
+- **Node.js 20.19 or higher**
 - **npm 8.x or higher**
 - **Git**
 - **A code editor** (VS Code recommended)

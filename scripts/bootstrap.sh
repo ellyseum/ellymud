@@ -196,7 +196,7 @@ print_header "Step 2: Checking Node.js and npm"
 if [ "$SKIP_NODE" = true ]; then
     print_warn "Skipping Node.js check (--skip-node)"
 else
-    NODE_MIN_VERSION="18"
+    NODE_MIN_VERSION="20"
     
     if check_command node; then
         NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)

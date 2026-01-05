@@ -34,7 +34,7 @@ License: AGPL-3.0-or-later; commercial/proprietary licensing available via https
 
 ### Software Requirements
 
-- Node.js 18.x or higher
+- Node.js 20.19 or higher
 - npm 8.x or higher
 - PM2 (for process management)
 - nginx (for reverse proxy, optional but recommended)
@@ -103,7 +103,7 @@ sudo apt upgrade -y
 
 ```bash
 # Using NodeSource repository
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # Verify installation

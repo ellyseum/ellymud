@@ -3,7 +3,7 @@
 [![CI](https://github.com/ellyseum/ellymud/actions/workflows/ci.yml/badge.svg)](https://github.com/ellyseum/ellymud/actions/workflows/ci.yml)
 [![GitHub Code Scanning](https://github.com/ellyseum/ellymud/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/ellyseum/ellymud/security/code-scanning)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-green.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.19.0-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-green)](https://www.typescriptlang.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ellyseum/ellymud)](https://github.com/ellyseum/ellymud/commits/main)
@@ -92,7 +92,7 @@ A modern, extensible Multi-User Dungeon (MUD) built with Node.js and TypeScript.
 
 ### Prerequisites
 
-- **Node.js** 18.x or higher
+- **Node.js** 20.19 or higher
 - **npm** 8.x or higher
 
 ### Installation
@@ -417,7 +417,7 @@ Found a security vulnerability? Please see our [Security Policy](SECURITY.md) fo
 - 1 CPU core
 - 512 MB RAM
 - 5 GB disk space
-- Node.js 18+
+- Node.js 20.19+
 
 ### Recommended
 

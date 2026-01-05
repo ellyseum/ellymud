@@ -196,7 +196,7 @@ export async function movePlayer(client: Client, direction: string): Promise<boo
 
 ### Prerequisites
 
-- Node.js 18.x or higher
+- Node.js 20.19 or higher
 - npm 8.x or higher
 - Git
 
