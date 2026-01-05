@@ -256,6 +256,7 @@ export const createMockUserManager = (): jest.Mocked<UserManager> =>
     setTestMode: jest.fn(),
     updateLastLogin: jest.fn(),
     registerUserSession: jest.fn(),
+    checkBanStatus: jest.fn().mockReturnValue({ banned: false }),
   }) as unknown as jest.Mocked<UserManager>;
 
 /**

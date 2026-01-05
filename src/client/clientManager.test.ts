@@ -32,6 +32,7 @@ jest.mock('../utils/promptFormatter', () => ({
 
 jest.mock('../utils/socketWriter', () => ({
   stopBuffering: jest.fn(),
+  writeToClient: jest.fn(),
 }));
 
 jest.mock('../combat/combatSystem', () => ({
@@ -43,7 +44,9 @@ jest.mock('../combat/combatSystem', () => ({
 }));
 
 import { systemLogger } from '../utils/logger';
-import { stopBuffering } from '../utils/socketWriter';
+import { stopBuffering, writeToClient } from '../utils/socketWriter';
+
+const mockWriteToClient = writeToClient as jest.MockedFunction<typeof writeToClient>;
 
 describe('ClientManager', () => {
   let clientManager: ClientManager;
@@ -222,7 +225,7 @@ describe('ClientManager', () => {
       it('should echo characters to the client', () => {
         clientManager.handleClientData(client, 'a');
 
-        expect(mockConnection.write).toHaveBeenCalledWith('a');
+        expect(mockWriteToClient).toHaveBeenCalledWith(client, 'a');
         expect(client.buffer).toBe('a');
       });
 
@@ -253,7 +256,7 @@ describe('ClientManager', () => {
         clientManager.handleClientData(client, '\b');
 
         expect(client.buffer).toBe('tes');
-        expect(mockConnection.write).toHaveBeenCalledWith('\b \b');
+        expect(mockWriteToClient).toHaveBeenCalledWith(client, '\b \b');
       });
 
       it('should handle DEL character (\\x7F)', () => {
@@ -272,7 +275,7 @@ describe('ClientManager', () => {
         clientManager.handleClientData(client, '\b');
 
         expect(client.buffer).toBe('');
-        expect(mockConnection.write).not.toHaveBeenCalled();
+        expect(mockWriteToClient).not.toHaveBeenCalled();
       });
 
       it('should stop buffering when buffer becomes empty', () => {
@@ -320,7 +323,7 @@ describe('ClientManager', () => {
       it('should echo newline and stop buffering', () => {
         clientManager.handleClientData(client, '\r\n');
 
-        expect(mockConnection.write).toHaveBeenCalledWith('\r\n');
+        expect(mockWriteToClient).toHaveBeenCalledWith(client, '\r\n');
         expect(stopBuffering).toHaveBeenCalledWith(client);
       });
     });
@@ -354,7 +357,7 @@ describe('ClientManager', () => {
 
         clientManager.handleClientData(client, 'p');
 
-        expect(mockConnection.write).toHaveBeenCalledWith('*');
+        expect(mockWriteToClient).toHaveBeenCalledWith(client, '*');
         expect(client.buffer).toBe('p');
       });
     });
