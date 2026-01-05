@@ -228,6 +228,158 @@ Using the Unit Test Orchestrator agent, generate unit tests for uncovered files
 
 **Usually invoked by**: Unit Test Orchestrator (as sub-agent)
 
+#### Grounding Agent
+
+**File**: `grounding-agent.agent.md`
+**Role**: Migrate agents to new projects
+**Output**: `grounding/project-profile_*.md`, `grounding/*-stats.md`
+**Capabilities**:
+
+- Analyze target project (language, structure, tooling)
+- Build comprehensive Project Profile
+- Delegate agent rewrites to Grounding Runner
+- Verify migrated agents are properly structured
+
+**Invocation**:
+```
+Using the Grounding Agent, migrate the problem solver pipeline to /path/to/my/project
+```
+
+#### Grounding Runner
+
+**File**: `grounding-runner.agent.md`
+**Role**: Rewrite individual agents for new projects
+**Output**: Target project's `.github/agents/*.agent.md`
+**Capabilities**:
+
+- Preserve agent essence (role, tools, workflow)
+- Transform project-specific elements (paths, commands)
+- Adapt to target project conventions
+- Create self-contained agent definitions
+
+**Usually invoked by**: Grounding Agent (as sub-agent)
+
+---
+
+## Grounding System: Agent Migration to Other Projects
+
+The Grounding system enables migrating the agent pipeline from EllyMUD to any other project, adapting agents to work with that project's language, structure, tooling, and conventions.
+
+### Purpose
+
+The agent pipeline (Research → Plan → Implement → Validate) is not EllyMUD-specific. The Grounding system allows you to:
+
+- **Port the agent ecosystem** to any TypeScript/JavaScript project (or other languages)
+- **Preserve agent behavior** while adapting project-specific details
+- **Maintain pipeline integrity** so agents work together in the new context
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Grounding Agent (Orchestrator)                │
+├─────────────────────────────────────────────────────────────────┤
+│  1. Create symlink to target project (workspace access)         │
+│  2. Analyze target project comprehensively                      │
+│  3. Build Project Profile document                              │
+│  4. Delegate each agent rewrite to Grounding Runner             │
+│  5. Verify migrated agents are properly structured              │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Grounding Runner (Per-Agent)                  │
+├─────────────────────────────────────────────────────────────────┤
+│  • Read source agent definition                                  │
+│  • Read Project Profile for target conventions                   │
+│  • Rewrite agent preserving essence, adapting specifics          │
+│  • Create agent file in target project's .github/agents/         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Project Profile
+
+The key artifact is the **Project Profile** (`grounding/project-profile_<project>.md`), which captures:
+
+| Section | Information |
+|---------|-------------|
+| Language & Runtime | TypeScript, Node.js version, module system |
+| Package Management | npm/yarn/pnpm, monorepo structure |
+| Project Structure | Directory layout, key paths |
+| Commands | build, test, dev, lint commands |
+| Testing | Framework (Jest/Vitest), patterns, coverage |
+| Quality Tools | Linter config, formatters, pre-commit hooks |
+| Conventions | Coding style, file naming, import patterns |
+| Key Differences | Explicit mapping from source to target |
+
+### Default Agent Set
+
+When migrating the "full pipeline", these agents are included:
+
+| Agent | Purpose |
+|-------|---------|
+| Problem Solver Orchestrator | Main coordinator |
+| Research Agent | Codebase investigation |
+| Planning Agent | Implementation planning |
+| Implementation Agent | Code execution |
+| Validation Agent | Quality verification |
+| Output Review Agent | Document quality |
+| Post-Mortem Agent | Pipeline analysis |
+| Documentation Updater | README/AGENTS maintenance |
+| Rollback Agent | Safety checkpoints |
+| Agent Updater | Agent self-improvement |
+
+### Usage
+
+**Basic invocation**:
+```
+Using the Grounding Agent, migrate the problem solver pipeline to ~/projects/MyNewProject
+```
+
+**Specific agents only**:
+```
+Using the Grounding Agent, migrate only the Research and Planning agents to ~/projects/MyNewProject
+```
+
+**With existing profile** (skip analysis):
+```
+Using the Grounding Agent with the existing project profile, migrate agents to ~/projects/MyNewProject
+```
+
+### What Gets Adapted
+
+| EllyMUD-Specific | Becomes Target-Specific |
+|------------------|------------------------|
+| `npm run build` | `yarn build` (if Yarn project) |
+| `npm test` | `yarn test` or `pnpm test` |
+| Jest patterns | Vitest patterns (if applicable) |
+| `src/` paths | `apps/`, `libs/`, etc. |
+| Socket/Telnet references | REST API, GraphQL, etc. |
+| JSON file storage | Database patterns |
+| MCP server testing | API testing patterns |
+
+### Output Locations
+
+| File | Location |
+|------|----------|
+| Project Profile | `.github/agents/grounding/project-profile_<name>.md` |
+| Migration Stats | `.github/agents/grounding/<name>-stats.md` |
+| Migrated Agents | Target project's `.github/agents/*.agent.md` |
+
+### Workspace Symlink Requirement
+
+The Grounding Agent must create a symlink to access the target project:
+
+```bash
+# Creates symlink so VS Code tools can access target project
+ln -s ~/projects/TargetProject /home/jocel/projects/ellymud/TargetProject
+
+# After grounding completes, symlink is removed
+rm /home/jocel/projects/ellymud/TargetProject
+```
+
+This is required because VS Code agent tools are sandboxed to the current workspace.
+
 ---
 
 ## Agent Testing

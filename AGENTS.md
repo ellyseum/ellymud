@@ -113,6 +113,21 @@ This rule exists because:
 
 ---
 
+## ⚠️ CRITICAL: AGENTS.md Location Index Sync
+
+**When creating a new directory with an AGENTS.md file**, you MUST add it to the "AGENTS.md Locations" list in `.github/copilot-instructions.md`.
+
+```bash
+# Verify all AGENTS.md files are indexed:
+find . -name "AGENTS.md" -type f | grep -v node_modules | sort
+```
+
+| When you create... | You MUST also update... |
+| ------------------ | ----------------------- |
+| `foo/AGENTS.md`    | `.github/copilot-instructions.md` (locations list) |
+
+---
+
 ## ⚠️ CRITICAL: NEVER Create README.md in `.github/` Directory
 
 **STOP! GitHub treats `.github/README.md` specially - it will OVERRIDE the root README.md when viewing the repository!**
@@ -363,11 +378,31 @@ make agent-test            # Run agent tests
 ### Using npm directly
 
 ```bash
-npm start                          # Standard start
+npm start                          # Standard start (BUILDS EVERYTHING including admin UI)
 npm start -- -a                    # Admin auto-login
 npm start -- --forceSession=user   # Login as specific user
 npm run dev                        # Development with hot reload
 ```
+
+### ⚠️ CRITICAL: Build Process
+
+**`npm start` automatically builds everything** - TypeScript AND admin UI.
+
+```
+npm start → prestart → npm run build → tsc + build:admin → public/admin/
+```
+
+**DO NOT manually run:**
+- `npm run build:admin` (redundant - already part of `npm start`)
+- `rm -rf public/admin/assets/*` (unnecessary manual cleaning)
+
+**When to use what:**
+| Task | Command |
+|------|---------|
+| Testing changes | `npm start` |
+| Run tests | `npm test` or `make test` |
+| Dev with hot reload | `npm run dev` or `make dev` |
+| Admin UI hot reload | `npm run admin:dev` |
 
 ---
 

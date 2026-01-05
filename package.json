@@ -3,6 +3,9 @@
   "version": "1.1.0",
   "description": "Elly Mud / LLM Engineered Multi User Dungeon",
   "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "main": "dist/server.js",
   "scripts": {
     "admin:build": "vite build --config vite.admin.config.ts",
@@ -102,7 +105,7 @@
     "@types/ioredis": "^4.28.10",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.2",
-    "@types/node": "^18.11.18",
+    "@types/node": "^22.12.0",
     "@types/pg": "^8.16.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
