@@ -61,12 +61,14 @@ export class RoomManager implements IRoomManager {
     if (this.initialized) return;
     await this.loadRooms();
     this.initialized = true;
+    this.initPromise = null;
   }
 
   /**
    * Ensure the manager is initialized before performing operations
    */
   public async ensureInitialized(): Promise<void> {
+    if (this.initialized) return;
     if (this.initPromise) {
       await this.initPromise;
     }
@@ -257,13 +259,8 @@ export class RoomManager implements IRoomManager {
       };
     });
 
-    try {
-      await this.repository.saveAll(roomsData);
-      systemLogger.debug(`[RoomManager] Saved ${roomsData.length} rooms`);
-    } catch (error) {
-      systemLogger.error('[RoomManager] Error saving rooms:', error);
-      throw error;
-    }
+    await this.repository.saveAll(roomsData);
+    systemLogger.debug(`[RoomManager] Saved ${roomsData.length} rooms`);
   }
 
   // Core room management methods
