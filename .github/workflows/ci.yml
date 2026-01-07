@@ -10,6 +10,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Minimal permissions for security - only read repository contents
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build & Test
