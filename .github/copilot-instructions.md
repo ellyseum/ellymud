@@ -72,13 +72,6 @@ The project uses a hierarchical documentation system:
 │   └── workflows/AGENTS.md                   ← GitHub Actions
 ├── .vscode/AGENTS.md                         ← VS Code settings
 │
-├── admin-ui/AGENTS.md                        ← Admin UI root
-│   └── src/AGENTS.md                         ← Admin UI source
-│       ├── hooks/AGENTS.md                   ← React hooks
-│       ├── services/AGENTS.md                ← API services
-│       ├── types/AGENTS.md                   ← TypeScript types
-│       └── utils/AGENTS.md                   ← Utility functions
-│
 ├── data/AGENTS.md                            ← JSON data files
 │   └── test-snapshots/AGENTS.md              ← Test snapshots
 │       └── fresh/AGENTS.md                   ← Fresh state snapshot
@@ -107,6 +100,10 @@ The project uses a hierarchical documentation system:
 │   ├── data/AGENTS.md                        ← Data layer
 │   │   └── __mocks__/AGENTS.md               ← Data mocks
 │   ├── effects/AGENTS.md                     ← Effects system
+│   ├── frontend/AGENTS.md                    ← Unified frontend (Vite MPA)
+│   │   ├── game/AGENTS.md                    ← Game client (xterm.js)
+│   │   ├── admin/AGENTS.md                   ← Admin panel (React)
+│   │   └── shared/AGENTS.md                  ← Shared utilities
 │   ├── mcp/AGENTS.md                         ← MCP server API
 │   ├── persistence/AGENTS.md                 ← Storage backends
 │   │   └── mappers/AGENTS.md                 ← Data mappers

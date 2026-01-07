@@ -1,4 +1,5 @@
 import http from 'http';
+import fs from 'fs';
 import express, { Request } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -198,7 +199,15 @@ export class APIServer {
   }
 
   private setupStaticFiles(): void {
-    // Serve hashed assets with long cache (immutable)
+    // Serve hashed assets with long cache (immutable) - both game and admin
+    this.app.use(
+      '/assets',
+      express.static(path.join(config.PUBLIC_DIR, 'assets'), {
+        maxAge: '1y',
+        immutable: true,
+      })
+    );
+
     this.app.use(
       '/admin/assets',
       express.static(path.join(config.PUBLIC_DIR, 'admin', 'assets'), {
@@ -218,17 +227,17 @@ export class APIServer {
       })
     );
 
-    // Serve only specific xterm.js packages from node_modules to avoid exposing private files
-    const nodeModulesPath = path.join(__dirname, '..', '..', 'node_modules');
-    this.app.use('/node_modules/xterm', express.static(path.join(nodeModulesPath, 'xterm')));
-    this.app.use(
-      '/node_modules/xterm-addon-fit',
-      express.static(path.join(nodeModulesPath, 'xterm-addon-fit'))
-    );
-    this.app.use(
-      '/node_modules/xterm-addon-web-links',
-      express.static(path.join(nodeModulesPath, 'xterm-addon-web-links'))
-    );
+    // Admin SPA fallback - serve admin/index.html for /admin/* routes
+    this.app.get('/admin/*', (_req, res, next) => {
+      const adminIndex = path.join(config.PUBLIC_DIR, 'admin', 'index.html');
+      if (fs.existsSync(adminIndex)) {
+        res.sendFile(adminIndex);
+      } else {
+        next();
+      }
+    });
+
+    // Note: xterm.js is now bundled by Vite, no need to serve from node_modules
   }
 
   public start(): Promise<void> {

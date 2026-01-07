@@ -1,4 +1,12 @@
-import { ApiResponse, ServerStats, GameTimerConfig, Player, PlayerDetails, MUDConfig, PipelineMetrics } from '../types';
+import {
+  ApiResponse,
+  ServerStats,
+  GameTimerConfig,
+  Player,
+  PlayerDetails,
+  MUDConfig,
+  PipelineMetrics,
+} from '../types';
 
 const API_BASE = '/api/admin';
 
@@ -94,7 +102,10 @@ class ApiClient {
     return this.handleResponse(response);
   }
 
-  async updatePlayer(username: string, data: Partial<PlayerDetails> & { newPassword?: string }): Promise<ApiResponse> {
+  async updatePlayer(
+    username: string,
+    data: Partial<PlayerDetails> & { newPassword?: string }
+  ): Promise<ApiResponse> {
     // Use POST as specified in the plan to fix the PUT bug
     const response = await fetch(`${API_BASE}/players/update/${username}`, {
       method: 'POST',
@@ -137,7 +148,11 @@ class ApiClient {
     return this.handleResponse(response);
   }
 
-  async banPlayer(username: string, reason: string, durationMinutes: number | null): Promise<ApiResponse> {
+  async banPlayer(
+    username: string,
+    reason: string,
+    durationMinutes: number | null
+  ): Promise<ApiResponse> {
     const response = await fetch(`${API_BASE}/players/ban/${username}`, {
       method: 'POST',
       headers: this.getHeaders(),

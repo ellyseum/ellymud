@@ -1,0 +1,83 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #1a1a1a;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #f0f0f0;
+}
+
+.terminal-container {
+  width: 800px;
+  height: 500px;
+  background-color: #0f0f0f;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.terminal-header {
+  background-color: #333;
+  padding: 8px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status span {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 3px;
+}
+
+.admin-link {
+  color: #888;
+  text-decoration: none;
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  background-color: #444;
+  transition: background-color 0.2s;
+}
+
+.admin-link:hover {
+  background-color: #555;
+  color: #fff;
+}
+
+.connected {
+  background-color: #2a4;
+  color: #fff;
+}
+
+.disconnected {
+  background-color: #a42;
+  color: #fff;
+}
+
+#terminal {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* xterm.js overrides */
+.xterm {
+  height: 100%;
+  padding: 2px;
+}
+
+.xterm-viewport {
+  overflow-y: auto !important;
+}
