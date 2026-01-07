@@ -704,6 +704,15 @@ Find detailed information in these AGENTS.md files:
 | **Rooms**                   | [src/room/AGENTS.md](src/room/AGENTS.md)                         | Room navigation, exits, contents       |
 | **Users**                   | [src/user/AGENTS.md](src/user/AGENTS.md)                         | Authentication, stats, inventory       |
 
+### Frontend (Vite MPA)
+
+| System          | Location                                                | What You'll Find                          |
+| --------------- | ------------------------------------------------------- | ----------------------------------------- |
+| **Frontend**    | [src/frontend/AGENTS.md](src/frontend/AGENTS.md)        | Unified frontend, Vite MPA config         |
+| **Game Client** | [src/frontend/game/AGENTS.md](src/frontend/game/AGENTS.md) | xterm.js terminal, Socket.IO           |
+| **Admin Panel** | [src/frontend/admin/AGENTS.md](src/frontend/admin/AGENTS.md) | React 18 SPA, dashboard components     |
+| **Shared**      | [src/frontend/shared/AGENTS.md](src/frontend/shared/AGENTS.md) | Shared types and utilities            |
+
 ### Infrastructure
 
 | System          | Location                                             | What You'll Find                            |
@@ -742,6 +751,7 @@ Find detailed information in these AGENTS.md files:
 | `src/config.ts`             | Server configuration        |
 | `src/utils/socketWriter.ts` | **MUST use for all output** |
 | `src/utils/colors.ts`       | ANSI color formatting       |
+| `vite.config.ts`            | Frontend Vite MPA config    |
 
 ---
 
@@ -765,6 +775,9 @@ AI integration server on port 3100:
 | Add room features | [src/room/AGENTS.md](src/room/AGENTS.md)                         |
 | Modify user stats | [src/user/AGENTS.md](src/user/AGENTS.md)                         |
 | Add MCP endpoint  | [src/mcp/AGENTS.md](src/mcp/AGENTS.md)                           |
+| Modify frontend   | [src/frontend/AGENTS.md](src/frontend/AGENTS.md)                 |
+| Admin panel       | [src/frontend/admin/AGENTS.md](src/frontend/admin/AGENTS.md)     |
+| Game client       | [src/frontend/game/AGENTS.md](src/frontend/game/AGENTS.md)       |
 
 ---
 

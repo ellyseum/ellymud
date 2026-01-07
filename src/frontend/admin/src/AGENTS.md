@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is the source directory for the React admin dashboard. The application is built with React 18, TypeScript, and Vite.
+This is the source directory for the React admin dashboard. The application is built with React 18, TypeScript, and Vite as part of the unified frontend MPA.
 
 ## File Structure
 
@@ -53,19 +53,19 @@ export function SomePanel() {
 
 ## Build Configuration
 
-The Vite config is at project root: `vite.admin.config.ts`
+The Vite config is at project root: `vite.config.ts` (unified MPA config)
 
 ```typescript
-// Key settings
-root: 'admin-ui',           // Source root
-outDir: '../public/admin',  // Build output
-base: '/admin/',            // URL base path
+// Key settings for admin
+root: 'src/frontend',        // Source root
+outDir: '../../dist/public', // Build output
+// Admin served at /admin/ via MPA input config
 ```
 
 ## Development Commands
 
 ```bash
-npm run admin:dev     # Start dev server (port 5173)
-npm run admin:build   # Production build
-npm run admin:preview # Preview production build
+npm run dev:frontend     # Start unified dev server (port 5173)
+npm run build:frontend   # Production build
+npm run preview:frontend # Preview production build
 ```

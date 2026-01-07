@@ -17,9 +17,10 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["admin/src/*"],
+      "@shared/*": ["shared/*"]
     }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["game/**/*", "admin/**/*", "shared/**/*"],
+  "exclude": ["node_modules"]
 }

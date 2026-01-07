@@ -59,7 +59,7 @@ export const RESTRICTED_USERNAMES = [
 
 // File paths
 export const DATA_DIR = cliConfig.dataDir;
-export const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+export const PUBLIC_DIR = path.join(__dirname, '..', 'dist', 'public');
 export const ADMIN_DIR = path.join(DATA_DIR, 'admin');
 
 // File locations
