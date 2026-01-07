@@ -102,6 +102,66 @@ Only use `git` terminal commands for:
 
 ---
 
+## ⚠️ CRITICAL: NEVER Interrupt Push/Pull Operations
+
+**STOP! Git push and pull commands run pre-push/pre-pull hooks that can take MINUTES to complete.**
+
+### The Problem
+
+When you run `git push`, the command may:
+1. Run pre-push hooks (linting, formatting checks)
+2. Run the **entire test suite** (can take 30-120+ seconds)
+3. Build the project
+4. Only THEN push to remote
+
+**If you run ANY terminal command while push is running, you KILL the push and all its hooks!**
+
+### What Happens When You Interrupt
+
+```
+❌ CATASTROPHIC MISTAKE:
+   run_in_terminal("git push")         → returns "❯" (hooks running)
+   terminal_last_command               → "currently executing..."
+   run_in_terminal("echo test")        → KILLS THE PUSH! Tests aborted!
+   
+   User now has to re-run push, wasting 2+ minutes of their time.
+```
+
+### Correct Workflow for Push/Pull
+
+```
+✅ CORRECT - BE PATIENT:
+   run_in_terminal("git push")         → returns "❯" (hooks running)
+   terminal_last_command               → "currently executing..." 
+   terminal_last_command               → "currently executing..." (wait!)
+   terminal_last_command               → "currently executing..." (keep waiting!)
+   ... (wait 30-120 seconds for tests) ...
+   terminal_last_command               → exit code: 0, "Pushed to origin/main"
+   
+   ONLY NOW is it safe to run another command.
+```
+
+### How Long to Wait
+
+| Operation | Typical Duration | Max Wait |
+|-----------|------------------|----------|
+| `git push` (with hooks) | 30-120 seconds | 5 minutes |
+| `git pull` | 5-30 seconds | 2 minutes |
+| `git commit` (with hooks) | 5-15 seconds | 1 minute |
+
+### Signs Push Is Still Running
+
+- `terminal_last_command` shows "currently executing"
+- Output shows test runners (`RUNS`, `PASS`, `FAIL`)
+- Output shows build steps (`Building...`, `Compiling...`)
+- No exit code visible yet
+
+### MANDATORY Rule
+
+**After running `git push`, call `terminal_last_command` repeatedly (with reasonable delays) until you see an exit code. DO NOT run any other terminal command until push completes.**
+
+---
+
 ## ⚠️ CRITICAL: Minimal User Interaction
 
 **Optimize for zero unnecessary confirmations.** Only ask the user when genuinely uncertain.

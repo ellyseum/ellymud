@@ -109,9 +109,9 @@ async function ensureExists(
  * Get MUD configuration - API handler
  */
 export function getMUDConfig() {
-  return (req: Request, res: Response) => {
+  return async (req: Request, res: Response) => {
     try {
-      const config = loadMUDConfig();
+      const config = await loadMUDConfig();
       res.json({ success: true, config });
     } catch (error) {
       console.error('Error getting MUD configuration:', error);

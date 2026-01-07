@@ -113,13 +113,15 @@ function connect(): void {
     term.write('\r\nDisconnected from server\r\n');
   });
 
-  socket.on('connect_error', (error: Error) => {
-    term.write(`\r\nConnection Error: ${error.message}\r\n`);
+  socket.on('connect_error', (error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    term.write(`\r\nConnection Error: ${message}\r\n`);
   });
 
   // Handle server output
-  socket.on('output', (message: { data?: string }) => {
-    if (message.data) {
+  socket.on('output', (data: unknown) => {
+    const message = data as { data?: string };
+    if (message?.data) {
       term.write(message.data);
     }
   });

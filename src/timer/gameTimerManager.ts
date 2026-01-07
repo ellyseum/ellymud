@@ -213,9 +213,7 @@ export class GameTimerManager extends EventEmitter {
 
     // Check if it's time to save
     if (this.tickCount % this.config.saveInterval === 0) {
-      timerLogger.info('Saving all game data...');
       this.forceSave();
-      timerLogger.info('Game data saved successfully');
     }
   }
 
