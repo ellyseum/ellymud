@@ -92,6 +92,7 @@ You are the **EllyMUD Development Agent**—a comprehensive assistant with deep 
 - Use `console.log` (use logger utilities)
 - Read `todos/` folder unless explicitly asked
 - Create `.github/README.md` (overrides repo README)
+- Make frontend/UI changes without reading `src/frontend/admin/STYLE_GUIDE.md`
 
 ### Your Expertise Levels
 
@@ -412,6 +413,103 @@ When `run_in_terminal` returns just `❯` with no output, the command is **still
 | 8080 | WebSocket Server | `lsof -i :8080 -t \| xargs kill` |
 | 3100 | MCP Server | `lsof -i :3100 -t \| xargs kill` |
 | 3000 | Admin API | `lsof -i :3000 -t \| xargs kill` |
+
+### ⛔ CRITICAL: Running Server in Background
+
+**When starting the server for testing, you MUST use headless mode flags.**
+
+```bash
+# ✅ CORRECT - headless mode for background execution
+npm start -- --noConsole --silent --force &
+
+# ❌ WRONG - will hang waiting for TTY input or password prompts
+npm start &
+node dist/server.js &
+npm start -- --noConsole --silent &  # Missing --force!
+```
+
+**Required flags for background operation:**
+
+| Flag | Alias | Purpose |
+|------|-------|---------|
+| `--noConsole` | `-c` | Disable interactive console (prevents TTY issues) |
+| `--silent` | `-s` | Suppress console output |
+| `--force` | `-f` | Force create admin user with default password (skips prompts) |
+| `&` | - | Run in background |
+
+**Standard Test Flow:**
+
+```bash
+# 1. Start server in headless mode
+npm start -- --noConsole --silent --force &
+SERVER_PID=$!
+sleep 3
+
+# 2. Verify server is running
+curl -s http://localhost:3100/health || echo "Server not ready"
+
+# 3. Run your tests (use MCP virtual sessions)
+
+# 4. ALWAYS cleanup when done
+kill $SERVER_PID 2>/dev/null || lsof -i :8023 -t | xargs kill
+```
+
+**Why these flags matter:**
+- `--noConsole`: Server tries to attach to interactive console without this, causing hangs
+- `--silent`: Prevents log spam flooding the terminal
+- `--force`: Auto-creates admin user without interactive password prompts that would block
+- Always clean up the server when testing is complete
+
+### ⚡ Frontend-Only Changes (No Server Restart Needed)
+
+**When making frontend changes (React, CSS, TypeScript in `src/frontend/`), you do NOT need to restart the server.** Just rebuild the frontend:
+
+```bash
+# ✅ CORRECT - rebuild frontend only (server stays running)
+npm run build:frontend
+
+# ❌ WRONG - unnecessary server restart for frontend changes
+lsof -i :8080 -t | xargs kill && npm start -- --noConsole --silent --force &
+```
+
+**Why this works:**
+- The server serves static files from `dist/public/`
+- `npm run build:frontend` updates those files in place
+- Browser refresh picks up the new files immediately
+- No server restart = faster iteration
+
+**When you DO need to restart the server:**
+- Backend TypeScript changes (`src/` except `src/frontend/`)
+- Server configuration changes
+- API endpoint changes
+- After running `npm run build` (full build)
+
+### 🎨 Frontend Style Guide (MUST READ for UI Changes)
+
+**STOP! Before making ANY frontend/UI/styling changes, read the style guide:**
+
+📄 **`src/frontend/admin/STYLE_GUIDE.md`**
+
+This guide documents:
+- **Color palette** with CSS variables (use these, not hardcoded colors)
+- **Critical anti-patterns** that break the dark theme
+- **Component patterns** for cards, tables, modals, forms, breadcrumbs
+- **Chart.js styling** for consistent chart appearance
+
+**Common dark theme bugs to avoid:**
+| Issue | Problem | Fix |
+|-------|---------|-----|
+| Breadcrumbs | Dark text on dark bg (invisible) | Add inline style overrides |
+| Warning badges | Yellow on yellow | Add `text-dark` class |
+| Modal close button | Black X on dark header | Use `btn-close-white` |
+| Form controls | CSS cascade breaks in modals | Add explicit `bg-dark text-white` |
+
+**Quick rules:**
+- ✅ Always use CSS variables: `var(--accent-color)` not `#74b9ff`
+- ✅ Test all text is readable on dark backgrounds
+- ✅ Warning badges ALWAYS need `text-dark`
+- ✅ Breadcrumbs ALWAYS need style overrides
+- ✅ Use Bootstrap Icons (`bi-*` classes)
 
 ---
 

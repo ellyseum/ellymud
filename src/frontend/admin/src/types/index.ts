@@ -99,15 +99,33 @@ export interface PipelineMetrics {
     successful: number;
     failed: number;
     successRate: string;
+    totalTokens: number;
   };
   stages: Record<string, StageStats>;
   executions: PipelineExecution[];
+  tokenUsage: TokenUsage;
+  toolCalls: ToolCall[];
+  complexity: Record<string, number>;
+  modeDistribution: Record<string, number>;
+  pipelineReport: string;
+  commonIssues: string[];
 }
 
 export interface StageStats {
   avgDuration: number;
   avgScore: number | null;
   failureRate: number;
+  total: number;
+}
+
+export interface TokenUsage {
+  total: number;
+  byStage: Record<string, number>;
+}
+
+export interface ToolCall {
+  name: string;
+  count: number;
 }
 
 export interface PipelineExecution {
@@ -128,6 +146,27 @@ export interface StageData {
   verdict?: string;
 }
 
+// Stage Reports
+export interface StageReportFile {
+  filename: string;
+  type: 'report' | 'reviewed' | 'grade';
+  size: number;
+  modified: string;
+}
+
+export interface StageReportsResponse {
+  stage: string;
+  files: StageReportFile[];
+}
+
+export interface ReportFileResponse {
+  stage: string;
+  filename: string;
+  content: string;
+  size: number;
+  modified: string;
+}
+
 // Auth
 export interface AuthState {
   isAuthenticated: boolean;
@@ -140,3 +179,11 @@ export interface AuthState {
 
 // Tab Types
 export type TabId = 'dashboard' | 'client' | 'players' | 'config' | 'pipeline';
+
+// Pipeline Sub-Tab Types
+export type PipelineSubTab =
+  | 'dashboard'
+  | 'research'
+  | 'planning'
+  | 'implementation'
+  | 'validation';

@@ -799,41 +799,204 @@ const PIPELINE_METRICS_DIR = path.join(
   'executions'
 );
 
+const PIPELINE_STATS_DIR = path.join(
+  __dirname,
+  '..',
+  '..',
+  '.github',
+  'agents',
+  'metrics',
+  'stats'
+);
+
+const PIPELINE_REPORT_PATH = path.join(
+  __dirname,
+  '..',
+  '..',
+  '.github',
+  'agents',
+  'metrics',
+  'pipeline-report.md'
+);
+
+/**
+ * Parse markdown table into array of objects
+ */
+function parseMarkdownTable(tableText: string): Record<string, string>[] {
+  const lines = tableText
+    .trim()
+    .split('\n')
+    .filter((line) => line.trim());
+  if (lines.length < 2) return [];
+
+  const headerLine = lines[0];
+  const headers = headerLine
+    .split('|')
+    .map((h) => h.trim())
+    .filter((h) => h.length > 0);
+
+  const rows: Record<string, string>[] = [];
+  for (let i = 2; i < lines.length; i++) {
+    const cells = lines[i]
+      .split('|')
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0);
+    if (cells.length >= 2) {
+      const row: Record<string, string> = {};
+      headers.forEach((header, idx) => {
+        row[header] = cells[idx] || '';
+      });
+      rows.push(row);
+    }
+  }
+  return rows;
+}
+
+/**
+ * Parse stats markdown file to extract sections
+ */
+function parseStatsMarkdown(content: string): {
+  tokenUsage?: Record<string, number>;
+  toolCalls?: Record<string, number>;
+  timing?: Record<string, string | number>;
+} {
+  const result: {
+    tokenUsage?: Record<string, number>;
+    toolCalls?: Record<string, number>;
+    timing?: Record<string, string | number>;
+  } = {};
+
+  // Find sections
+  const sectionRegex = /^##\s+(.+)$/gm;
+  const sections: { name: string; startIndex: number }[] = [];
+  let match;
+  while ((match = sectionRegex.exec(content)) !== null) {
+    sections.push({ name: match[1].trim(), startIndex: match.index });
+  }
+
+  for (let i = 0; i < sections.length; i++) {
+    const section = sections[i];
+    const nextStart = sections[i + 1]?.startIndex || content.length;
+    const sectionContent = content.slice(section.startIndex, nextStart);
+    const sectionNameLower = section.name.toLowerCase();
+
+    if (sectionContent.includes('|')) {
+      const tableMatch = sectionContent.match(/(\|.+\|[\s\S]*?\n)(?=\n[^|]|\n*$)/);
+      if (tableMatch) {
+        const tableData = parseMarkdownTable(tableMatch[0]);
+        if (tableData.length > 0) {
+          const firstRow = tableData[0];
+          const keys = Object.keys(firstRow);
+
+          // Key-value style table
+          if (keys.length === 2) {
+            const kvObject: Record<string, number | string> = {};
+            tableData.forEach((row) => {
+              const k = row[keys[0]]?.replace(/\*\*/g, '').trim();
+              const v = row[keys[1]]?.replace(/\*\*/g, '').trim();
+              if (k) {
+                const numMatch = v?.match(/^~?(\d+(?:,\d+)?(?:\.\d+)?)/);
+                kvObject[k] = numMatch ? parseFloat(numMatch[1].replace(',', '')) : v;
+              }
+            });
+
+            if (sectionNameLower.includes('token') || sectionNameLower.includes('usage')) {
+              result.tokenUsage = kvObject as Record<string, number>;
+            } else if (sectionNameLower.includes('tool')) {
+              result.toolCalls = kvObject as Record<string, number>;
+            } else if (sectionNameLower.includes('timing')) {
+              result.timing = kvObject;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Load all stats files
+ */
+async function loadAllStats(): Promise<
+  Array<{
+    filename: string;
+    stage: string;
+    tokenUsage?: Record<string, number>;
+    toolCalls?: Record<string, number>;
+    timing?: Record<string, string | number>;
+  }>
+> {
+  try {
+    await fs.promises.access(PIPELINE_STATS_DIR);
+  } catch {
+    return [];
+  }
+
+  const files = await fs.promises.readdir(PIPELINE_STATS_DIR);
+  const statsFiles = files.filter((f) => f.endsWith('-stats.md'));
+
+  const results: Array<{
+    filename: string;
+    stage: string;
+    tokenUsage?: Record<string, number>;
+    toolCalls?: Record<string, number>;
+    timing?: Record<string, string | number>;
+  }> = [];
+
+  for (const filename of statsFiles) {
+    try {
+      const content = await fs.promises.readFile(path.join(PIPELINE_STATS_DIR, filename), 'utf-8');
+      const parsed = parseStatsMarkdown(content);
+      const parts = filename.replace('-stats.md', '').split('_');
+      results.push({
+        filename,
+        stage: parts[0] || 'unknown',
+        ...parsed,
+      });
+    } catch {
+      // Skip files that can't be read
+    }
+  }
+
+  return results;
+}
+
 /**
  * Get pipeline metrics - API handler
  */
 export function getPipelineMetrics() {
-  return async (req: Request, res: Response) => {
+  return async (_req: Request, res: Response) => {
     try {
       // Check if directory exists
+      const executions: PipelineExecution[] = [];
       try {
         await fs.promises.access(PIPELINE_METRICS_DIR);
-      } catch {
-        // Directory doesn't exist, return empty metrics
-        return res.json({
-          success: true,
-          summary: { total: 0, successful: 0, failed: 0, successRate: 0 },
-          stages: {},
-          executions: [],
-        });
-      }
 
-      // Read all JSON files in the directory
-      const files = await fs.promises.readdir(PIPELINE_METRICS_DIR);
-      const jsonFiles = files.filter(
-        (f) => f.endsWith('.json') && f !== 'pipeline-metrics-schema.json'
-      );
+        // Read all JSON files in the directory
+        const files = await fs.promises.readdir(PIPELINE_METRICS_DIR);
+        const jsonFiles = files.filter(
+          (f) => f.endsWith('.json') && f !== 'pipeline-metrics-schema.json'
+        );
 
-      const executions: PipelineExecution[] = [];
-
-      for (const file of jsonFiles) {
-        try {
-          const content = await fs.promises.readFile(path.join(PIPELINE_METRICS_DIR, file), 'utf8');
-          executions.push(JSON.parse(content));
-        } catch (e) {
-          console.error(`Error reading pipeline metrics file ${file}:`, e);
+        for (const file of jsonFiles) {
+          try {
+            const content = await fs.promises.readFile(
+              path.join(PIPELINE_METRICS_DIR, file),
+              'utf8'
+            );
+            executions.push(JSON.parse(content));
+          } catch (e) {
+            console.error(`Error reading pipeline metrics file ${file}:`, e);
+          }
         }
+      } catch {
+        // Directory doesn't exist
       }
+
+      // Load stats files for token/tool metrics
+      const allStats = await loadAllStats();
 
       // Calculate aggregated metrics
       const total = executions.length;
@@ -846,7 +1009,7 @@ export function getPipelineMetrics() {
       const stages = ['research', 'planning', 'implementation', 'validation'];
       const stageStats: Record<
         string,
-        { avgDuration: number; avgScore: number | null; failureRate: number }
+        { avgDuration: number; avgScore: number | null; failureRate: number; total: number }
       > = {};
 
       stages.forEach((stage) => {
@@ -865,9 +1028,90 @@ export function getPipelineMetrics() {
             avgDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
             avgScore: scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null,
             failureRate: (failures / stageData.length) * 100,
+            total: stageData.length,
           };
         }
       });
+
+      // Calculate token usage from stats files
+      const tokenUsage: { total: number; byStage: Record<string, number> } = {
+        total: 0,
+        byStage: {},
+      };
+
+      allStats.forEach((s) => {
+        if (s.tokenUsage) {
+          const stageTokens =
+            typeof s.tokenUsage.Total === 'number'
+              ? s.tokenUsage.Total
+              : typeof s.tokenUsage.total === 'number'
+                ? s.tokenUsage.total
+                : 0;
+
+          if (stageTokens > 0) {
+            tokenUsage.total += stageTokens;
+            if (!tokenUsage.byStage[s.stage]) {
+              tokenUsage.byStage[s.stage] = 0;
+            }
+            tokenUsage.byStage[s.stage] += stageTokens;
+          }
+        }
+      });
+
+      // Calculate tool calls from stats files
+      const toolCallsMap: Record<string, number> = {};
+      allStats.forEach((s) => {
+        if (s.toolCalls) {
+          Object.entries(s.toolCalls).forEach(([key, val]) => {
+            if (key !== 'Total' && key !== 'total') {
+              toolCallsMap[key] = (toolCallsMap[key] || 0) + (Number(val) || 0);
+            }
+          });
+        }
+      });
+
+      const toolCalls = Object.entries(toolCallsMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15)
+        .map(([name, count]) => ({ name, count }));
+
+      // Calculate complexity distribution
+      const complexity: Record<string, number> = {};
+      executions.forEach((e) => {
+        const c = ((e as Record<string, unknown>).complexity as string) || 'Unknown';
+        complexity[c] = (complexity[c] || 0) + 1;
+      });
+
+      // Calculate mode distribution
+      const modeDistribution: Record<string, number> = {};
+      executions.forEach((e) => {
+        const m = ((e as Record<string, unknown>).mode as string) || 'Unknown';
+        modeDistribution[m] = (modeDistribution[m] || 0) + 1;
+      });
+
+      // Load pipeline report markdown
+      let pipelineReport = '';
+      try {
+        pipelineReport = await fs.promises.readFile(PIPELINE_REPORT_PATH, 'utf-8');
+      } catch {
+        pipelineReport =
+          '# Pipeline Report\n\nNo report generated yet. Run `scripts/generate-pipeline-report.sh` to generate.';
+      }
+
+      // Identify common issues (placeholder - could be enhanced with pattern detection)
+      const commonIssues: string[] = [];
+      const failedExecutions = executions.filter((e) => e.outcome !== 'success');
+      if (failedExecutions.length > 0) {
+        // Add some basic issue detection
+        const inProgressCount = executions.filter((e) => e.outcome === 'in-progress').length;
+        if (inProgressCount > 0) {
+          commonIssues.push(`${inProgressCount} pipeline(s) still in progress`);
+        }
+        const rolledBackCount = executions.filter((e) => e.outcome === 'rolled-back').length;
+        if (rolledBackCount > 0) {
+          commonIssues.push(`${rolledBackCount} pipeline(s) were rolled back`);
+        }
+      }
 
       // Sort executions by date (newest first) and limit to 20
       const sortedExecutions = executions
@@ -880,16 +1124,156 @@ export function getPipelineMetrics() {
           total,
           successful,
           failed,
-          successRate: total > 0 ? ((successful / total) * 100).toFixed(1) : 0,
+          successRate: total > 0 ? ((successful / total) * 100).toFixed(1) : '0',
+          totalTokens: tokenUsage.total,
         },
         stages: stageStats,
         executions: sortedExecutions,
+        tokenUsage,
+        toolCalls,
+        complexity,
+        modeDistribution,
+        pipelineReport,
+        commonIssues,
       });
     } catch (error) {
       console.error('Error getting pipeline metrics:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve pipeline metrics',
+      });
+    }
+  };
+}
+
+// Agents directory for stage reports
+const AGENTS_DIR = path.join(__dirname, '..', '..', '.github', 'agents');
+
+/**
+ * Get stage reports (research, planning, implementation, validation)
+ */
+export function getStageReports() {
+  return async (req: Request, res: Response) => {
+    try {
+      const stage = req.params.stage;
+      const validStages = ['research', 'planning', 'implementation', 'validation'];
+
+      if (!validStages.includes(stage)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid stage. Must be one of: ${validStages.join(', ')}`,
+        });
+      }
+
+      const stageDir = path.join(AGENTS_DIR, stage);
+
+      try {
+        await fs.promises.access(stageDir);
+      } catch {
+        return res.json({
+          success: true,
+          stage,
+          files: [],
+        });
+      }
+
+      const allFiles = await fs.promises.readdir(stageDir);
+      const mdFiles = allFiles.filter(
+        (f) => f.endsWith('.md') && !f.startsWith('README') && !f.startsWith('AGENTS')
+      );
+
+      const files: Array<{
+        filename: string;
+        type: string;
+        size: number;
+        modified: string;
+      }> = [];
+
+      for (const filename of mdFiles.sort().reverse()) {
+        try {
+          const stat = await fs.promises.stat(path.join(stageDir, filename));
+          let type = 'report';
+          if (filename.includes('-grade')) type = 'grade';
+          else if (filename.includes('-reviewed')) type = 'reviewed';
+
+          files.push({
+            filename,
+            type,
+            size: stat.size,
+            modified: stat.mtime.toISOString(),
+          });
+        } catch {
+          // Skip files we can't stat
+        }
+      }
+
+      res.json({
+        success: true,
+        stage,
+        files,
+      });
+    } catch (error) {
+      console.error('Error getting stage reports:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve stage reports',
+      });
+    }
+  };
+}
+
+/**
+ * Get a specific report file content
+ */
+export function getReportFile() {
+  return async (req: Request, res: Response) => {
+    try {
+      const { stage, filename } = req.params;
+      const validStages = ['research', 'planning', 'implementation', 'validation'];
+
+      if (!validStages.includes(stage)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid stage. Must be one of: ${validStages.join(', ')}`,
+        });
+      }
+
+      // Sanitize filename to prevent directory traversal
+      const sanitizedFilename = path.basename(filename);
+      if (!sanitizedFilename.endsWith('.md')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Only markdown files are supported',
+        });
+      }
+
+      const filePath = path.join(AGENTS_DIR, stage, sanitizedFilename);
+
+      try {
+        await fs.promises.access(filePath);
+      } catch {
+        return res.status(404).json({
+          success: false,
+          message: 'File not found',
+        });
+      }
+
+      const content = await fs.promises.readFile(filePath, 'utf-8');
+      const stat = await fs.promises.stat(filePath);
+
+      res.json({
+        success: true,
+        stage,
+        filename: sanitizedFilename,
+        content,
+        size: stat.size,
+        modified: stat.mtime.toISOString(),
+      });
+    } catch (error) {
+      console.error('Error getting report file:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve report file',
       });
     }
   };

@@ -153,7 +153,7 @@ The agent ecosystem is a multi-agent development pipeline that coordinates speci
 
 **Server Testing (Fully Autonomous)**:
 
-- Start server: `npm start -- --noConsole --silent &`
+- Start server: `npm start -- --noConsole --silent --force &`
 - Wait for ready: `sleep 3 && curl -s http://localhost:3100/health`
 - Test via MCP virtual sessions (no user intervention)
 - Cleanup: `pkill -f "node.*dist/server.js"`

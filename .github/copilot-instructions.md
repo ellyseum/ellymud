@@ -184,6 +184,7 @@ const userManager = new UserManager();
 - ❌ Do NOT create `.github/README.md` (overrides repo README)
 - ❌ Do NOT commit files in `.github/agents/research/`, `planning/`, etc. (ephemeral)
 - ❌ Do NOT create AGENTS.md without adding it to the locations list in this file
+- ❌ Do NOT make frontend/UI changes without reading `src/frontend/admin/STYLE_GUIDE.md`
 
 ## Common Tasks
 
@@ -203,6 +204,7 @@ const userManager = new UserManager();
 | Add mob data | `data/mobs/AGENTS.md` |
 | Add room data | `data/rooms/AGENTS.md` |
 | Write tests | `tests/AGENTS.md` |
+| **Frontend/UI changes** | **`src/frontend/admin/STYLE_GUIDE.md`** |
 
 ## Testing
 

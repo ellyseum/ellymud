@@ -147,6 +147,28 @@ When a planned task is NOT strictly required for core feature functionality:
 
 ---
 
+## ⚠️ CRITICAL: Frontend Style Guide
+
+**STOP!** Before making ANY frontend/UI/styling changes, read the style guide:
+
+📄 **`src/frontend/admin/STYLE_GUIDE.md`**
+
+**Common dark theme bugs to avoid:**
+| Issue | Problem | Fix |
+|-------|---------|-----|
+| Breadcrumbs | Dark text on dark bg | Add inline style overrides |
+| Warning badges | Yellow on yellow | Add `text-dark` class |
+| Modal close button | Black X on dark header | Use `btn-close-white` |
+| Form controls | CSS cascade breaks | Add explicit `bg-dark text-white` |
+
+**Quick rules:**
+- ✅ Always use CSS variables: `var(--accent-color)` not `#74b9ff`
+- ✅ Warning badges ALWAYS need `text-dark`
+- ✅ Breadcrumbs ALWAYS need style overrides
+- ✅ Use Bootstrap Icons (`bi-*` classes)
+
+---
+
 ## ⚠️ CRITICAL: Terminal Command Best Practices
 
 ### Build Strategy - BUILD ONLY AT THE END

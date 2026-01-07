@@ -196,6 +196,20 @@ export class APIServer {
       AdminApi.validateToken,
       AdminApi.getPipelineMetrics()
     );
+
+    // Stage reports endpoints
+    this.app.get(
+      '/api/admin/stage-reports/:stage',
+      AdminApi.validateToken,
+      AdminApi.getStageReports()
+    );
+
+    // Report file viewer endpoint
+    this.app.get(
+      '/api/admin/report-file/:stage/:filename',
+      AdminApi.validateToken,
+      AdminApi.getReportFile()
+    );
   }
 
   private setupStaticFiles(): void {

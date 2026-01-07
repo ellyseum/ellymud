@@ -778,6 +778,7 @@ AI integration server on port 3100:
 | Modify frontend   | [src/frontend/AGENTS.md](src/frontend/AGENTS.md)                 |
 | Admin panel       | [src/frontend/admin/AGENTS.md](src/frontend/admin/AGENTS.md)     |
 | Game client       | [src/frontend/game/AGENTS.md](src/frontend/game/AGENTS.md)       |
+| **Frontend/UI styling** | [src/frontend/admin/STYLE_GUIDE.md](src/frontend/admin/STYLE_GUIDE.md) |
 
 ---
 

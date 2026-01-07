@@ -139,6 +139,18 @@ Compare implementation against the plan, not personal preferences. The plan is t
 - Use MCP virtual sessions for all functional testing
 - **ALWAYS** clean up: kill server when testing is complete
 
+### 6. Frontend Style Validation
+
+When validating frontend changes, verify compliance with the style guide:
+
+📄 **`src/frontend/admin/STYLE_GUIDE.md`**
+
+**Check for common violations:**
+- ❌ Breadcrumbs without style overrides (text invisible on dark background)
+- ❌ Warning badges without `text-dark` class
+- ❌ Modal close buttons without `btn-close-white`
+- ❌ Hardcoded colors instead of CSS variables
+
 ---
 
 ## Evidence Requirements

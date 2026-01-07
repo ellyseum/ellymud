@@ -6,6 +6,8 @@ import {
   PlayerDetails,
   MUDConfig,
   PipelineMetrics,
+  StageReportsResponse,
+  ReportFileResponse,
 } from '../types';
 
 const API_BASE = '/api/admin';
@@ -191,6 +193,25 @@ class ApiClient {
     const response = await fetch(`${API_BASE}/pipeline-metrics`, {
       headers: this.getHeaders(),
     });
+    return this.handleResponse(response);
+  }
+
+  // Stage Reports
+  async getStageReports(stage: string): Promise<ApiResponse<StageReportsResponse>> {
+    const response = await fetch(`${API_BASE}/stage-reports/${stage}`, {
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  // Report File Viewer
+  async getReportFile(stage: string, filename: string): Promise<ApiResponse<ReportFileResponse>> {
+    const response = await fetch(
+      `${API_BASE}/report-file/${stage}/${encodeURIComponent(filename)}`,
+      {
+        headers: this.getHeaders(),
+      }
+    );
     return this.handleResponse(response);
   }
 }

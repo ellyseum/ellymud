@@ -113,7 +113,7 @@ npm start -- --forceSession=testuser
 
 ```bash
 # Start without interactive console (for background processes)
-npm start -- --noConsole --silent &
+npm start -- --noConsole --silent --force &
 sleep 3
 curl http://localhost:3100/health
 
