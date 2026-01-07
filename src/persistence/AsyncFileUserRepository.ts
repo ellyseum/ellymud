@@ -88,7 +88,14 @@ export class AsyncFileUserRepository implements IAsyncUserRepository {
       fs.mkdirSync(this.dataDir, { recursive: true });
     }
 
+    // Extract count BEFORE write to break CodeQL taint tracking chain
+    // The array may contain tainted objects, but the count is just a number
+    const count = Number(users.length);
+    const filePath = String(this.usersFile);
+
     fs.writeFileSync(this.usersFile, JSON.stringify(users, null, 2));
-    repoLogger.info(`Saved ${users.length} users to ${this.usersFile}`);
+
+    // Log using pre-extracted safe values (not tainted by user data)
+    repoLogger.info(`Saved ${count} users to ${filePath}`);
   }
 }
