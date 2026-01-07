@@ -82,12 +82,14 @@ jest.mock('../../user/userManager', () => ({
 
 const mockIsInCombat = jest.fn().mockReturnValue(false);
 const mockGetCombat = jest.fn().mockReturnValue(null);
+const mockGetActiveCombatsInRoom = jest.fn().mockReturnValue([]);
 
 jest.mock('../../combat/combatSystem', () => ({
   CombatSystem: {
     getInstance: jest.fn(() => ({
       isInCombat: mockIsInCombat,
       getCombat: mockGetCombat,
+      getActiveCombatsInRoom: mockGetActiveCombatsInRoom,
     })),
   },
 }));

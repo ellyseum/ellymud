@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  * Commercial licensing available via https://github.com/ellyseum
  */
+// Load environment variables FIRST, before any other imports that depend on them
+import dotenv from 'dotenv';
+dotenv.config();
+
 // Server entry point uses dynamic typing for error handling
 import { GameServer } from './app';
 import * as config from './config';
@@ -11,10 +15,6 @@ import { JsonValidationError } from './utils/jsonUtils';
 import { systemLogger } from './utils/logger';
 import { ensureMCPApiKey } from './utils/mcpKeySetup';
 import { GlobalWithSkipMCP } from './types';
-import dotenv from 'dotenv';
-
-// Load environment variables from .env file
-dotenv.config();
 
 // This file now acts as a simple entry point that creates and starts the game server
 let gameServer: GameServer;
