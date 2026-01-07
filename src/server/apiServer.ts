@@ -228,7 +228,14 @@ export class APIServer {
     );
 
     // Admin SPA fallback - serve admin/index.html for /admin/* routes
-    this.app.get('/admin/*', (_req, res, next) => {
+    const adminFallbackLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 300, // limit each IP to 300 admin SPA fallback requests per windowMs
+      standardHeaders: true,
+      legacyHeaders: false,
+    });
+
+    this.app.get('/admin/*', adminFallbackLimiter, (_req, res, next) => {
       const adminIndex = path.join(config.PUBLIC_DIR, 'admin', 'index.html');
       if (fs.existsSync(adminIndex)) {
         res.sendFile(adminIndex);
