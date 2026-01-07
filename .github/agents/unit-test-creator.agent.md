@@ -2,7 +2,6 @@
 name: Unit Test Creator
 description: Creates high-quality, comprehensive unit tests for individual TypeScript files following project conventions and best practices.
 infer: true
-model: claude-4.5-opus
 argument-hint: Provide the target file path and coverage context to generate tests
 tools:
   # Search tools
@@ -14,13 +13,13 @@ tools:
   - read # read_file - read file contents
   # Edit tools
   - edit/createFile # create_file - create new files
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Execute tools
   - execute/runInTerminal # run_in_terminal - run shell commands
   - execute/getTerminalOutput # get_terminal_output - get command output
-  - execute/terminalLastCommand # terminal_last_command - get last command results
+  - read/terminalLastCommand # terminal_last_command - get last command results
   # Diagnostics
-  - vscode/problems # get_errors - get compile/lint errors
+  - read/problems # get_errors - get compile/lint errors
   # Task tracking
   - todo # manage_todo_list - track test creation progress
 ---

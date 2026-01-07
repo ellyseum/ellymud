@@ -2,7 +2,6 @@
 name: Unit Test Orchestrator
 description: Orchestrates systematic unit test generation across the codebase by analyzing coverage, delegating to the Unit Test Creator, and tracking progress.
 infer: true
-model: claude-4.5-opus
 argument-hint: Run to analyze coverage and generate unit tests for uncovered files
 tools:
   # Search tools
@@ -14,17 +13,17 @@ tools:
   - read # read_file - read file contents
   # Edit tools
   - edit/createFile # create_file - create new files
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Execute tools
   - execute/runInTerminal # run_in_terminal - run shell commands
   - execute/getTerminalOutput # get_terminal_output - get command output
-  - execute/terminalLastCommand # terminal_last_command - get last command results
+  - read/terminalLastCommand # terminal_last_command - get last command results
   # Diagnostics
-  - vscode/problems # get_errors - get compile/lint errors
+  - read/problems # get_errors - get compile/lint errors
   # Task tracking
   - todo # manage_todo_list - track orchestration progress
   # Sub-agent delegation
-  - subagent # runSubagent - delegate to Unit Test Creator
+  - agent/runSubagent # runSubagent - delegate to Unit Test Creator
 handoffs:
   - label: Create Unit Test
     agent: Unit Test Creator

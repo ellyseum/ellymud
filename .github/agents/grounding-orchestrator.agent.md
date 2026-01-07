@@ -2,7 +2,6 @@
 name: Grounding Orchestrator
 description: Orchestrates agent migration to new projects by analyzing target codebases and delegating agent rewrites to the Grounding Runner.
 infer: true
-model: claude-4.5-opus
 argument-hint: Specify target project path and optionally which agents to ground
 tools:
   # Search tools (for analyzing target project)
@@ -15,17 +14,17 @@ tools:
   # Edit tools (for creating output reports)
   - edit/createFile # create_file - create new files
   - edit/createDirectory # create_directory - create directories
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Execute tools (for checking project setup)
   - execute/runInTerminal # run_in_terminal - run shell commands
   - execute/getTerminalOutput # get_terminal_output - get command output
-  - execute/terminalLastCommand # terminal_last_command - get last command results
+  - read/terminalLastCommand # terminal_last_command - get last command results
   # Diagnostics
-  - vscode/problems # get_errors - get compile/lint errors
+  - read/problems # get_errors - get compile/lint errors
   # Task tracking
   - todo # manage_todo_list - track grounding progress
   # Sub-agent delegation
-  - subagent # runSubagent - delegate to Grounding Runner
+  - agent/runSubagent # runSubagent - delegate to Grounding Runner
 handoffs:
   - label: Ground Agent
     agent: Grounding Runner

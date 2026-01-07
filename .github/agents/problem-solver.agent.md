@@ -2,7 +2,6 @@
 name: Problem Solver
 description: Master orchestrator that manages the full development pipeline. Can be used as subagent for complex multi-step tasks.
 infer: true
-model: claude-4.5-opus
 argument-hint: Describe the problem, bug, or feature you want to implement
 tools:
   # Search tools (for reviewing agent outputs)
@@ -12,7 +11,7 @@ tools:
   - read # read_file - read agent outputs and grade reports
   # Edit tools (for creating metrics)
   - edit/createFile # create_file - create metrics files
-  - edit/replaceInFile # replace_string_in_file - update metrics
+  - edit/editFiles # replace_string_in_file - update metrics
   # Execute tools (for git commands and PR creation)
   - execute/runInTerminal # run_in_terminal - git checkout, commit, push
   - execute/getTerminalOutput # get_terminal_output - check command results
@@ -935,7 +934,7 @@ The Problem Solver orchestrates other agents through **handoffs** but also needs
 **Example**: Creating `.github/agents/metrics/executions/pipeline_2024-12-19_feature.json`  
 **Tips**: Use for metrics collection at pipeline end
 
-### `edit/replaceInFile` (replace_string_in_file)
+### `edit/editFiles` (replace_string_in_file)
 
 **Purpose**: Update existing metrics or tracking files  
 **When to Use**: When adding stage completion data to metrics  

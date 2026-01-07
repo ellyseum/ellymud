@@ -2,7 +2,6 @@
 name: EllyMUD
 description: Comprehensive EllyMUD development assistant with deep repository knowledge, conventions mastery, and agent ecosystem coordination capabilities.
 infer: true
-model: claude-sonnet-4-20250514
 argument-hint: Describe what you want to do (implement feature, understand code, debug issue, coordinate agents)
 tools:
   # Search tools
@@ -15,26 +14,26 @@ tools:
   # Edit tools
   - edit/createFile # create_file - create new files
   - edit/createDirectory # create_directory - create directories
-  - edit/replaceInFile # replace_string_in_file - edit files
-  - edit/multi # multi_replace_string_in_file - batch edits
+  - edit/editFiles # replace_string_in_file - edit files
+  - edit/editFiles # multi_replace_string_in_file - batch edits
   # Execute tools
   - execute/runInTerminal # run_in_terminal - run shell commands
   - execute/getTerminalOutput # get_terminal_output - get command output
-  - execute/terminalLastCommand # terminal_last_command - get last command results
+  - read/terminalLastCommand # terminal_last_command - get last command results
   # Test tools
-  - testing/runTests # runTests - run unit/integration tests
+  - execute/runTests # runTests - run unit/integration tests
   # Diagnostics
-  - vscode/problems # get_errors - get compile/lint errors
+  - read/problems # get_errors - get compile/lint errors
   # Git tools
-  - git/diff # get_changed_files - see uncommitted changes
+  - search/changes # get_changed_files - see uncommitted changes
   # Web tools
   - web/fetch # fetch_webpage - fetch web content
   # Task tracking
   - todo # manage_todo_list - track progress
   # MCP tools for game testing
   - ellymud-mcp-server/*
-  # Sub-agent delegation
-  - subagent # runSubagent - delegate to specialized agents
+  # Agent coordination
+  - agent/runSubagent # runSubagent - delegate to specialized agents
 handoffs:
   - label: Research Deep Dive
     agent: Researcher

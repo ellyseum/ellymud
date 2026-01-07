@@ -90,6 +90,46 @@
       "description": "Estimated cost in USD (optional)",
       "minimum": 0
     },
+    "premiumRequests": {
+      "type": "object",
+      "description": "Premium request tracking for GitHub Copilot billing",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "description": "Total premium requests across all stages",
+          "minimum": 0
+        },
+        "byStage": {
+          "type": "object",
+          "description": "Premium requests broken down by pipeline stage",
+          "properties": {
+            "research": { "type": "integer", "minimum": 0 },
+            "planning": { "type": "integer", "minimum": 0 },
+            "implementation": { "type": "integer", "minimum": 0 },
+            "validation": { "type": "integer", "minimum": 0 },
+            "review": { "type": "integer", "minimum": 0 },
+            "postMortem": { "type": "integer", "minimum": 0 },
+            "documentation": { "type": "integer", "minimum": 0 },
+            "orchestrator": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "byCostTier": {
+          "type": "object",
+          "description": "Requests grouped by cost tier multiplier",
+          "properties": {
+            "free": { "type": "integer", "description": "0x tier (GPT-4.1, GPT-4o)", "minimum": 0 },
+            "low": { "type": "integer", "description": "0.33x tier (GPT-5 mini, Haiku 4.5, Gemini Flash)", "minimum": 0 },
+            "standard": { "type": "integer", "description": "1x tier (Sonnet 4/4.5, Gemini Pro, GPT-5.x)", "minimum": 0 },
+            "premium": { "type": "integer", "description": "3x tier (Claude Opus 4.5)", "minimum": 0 }
+          }
+        },
+        "weightedTotal": {
+          "type": "number",
+          "description": "Total requests weighted by cost tier (0x*0 + 0.33x*0.33 + 1x*1 + 3x*3)",
+          "minimum": 0
+        }
+      }
+    },
     "outputs": {
       "type": "object",
       "description": "References to all pipeline output files",
@@ -245,6 +285,20 @@
         "tokensUsed": {
           "type": "integer",
           "description": "Estimated tokens used in this stage (from stats file)",
+          "minimum": 0
+        },
+        "modelUsed": {
+          "type": "string",
+          "description": "The actual model used for this stage (e.g., 'Claude Opus 4.5')"
+        },
+        "costTier": {
+          "type": "string",
+          "enum": ["0x", "0.33x", "1x", "3x"],
+          "description": "Cost tier of the model used"
+        },
+        "premiumRequests": {
+          "type": "integer",
+          "description": "Number of premium requests made in this stage",
           "minimum": 0
         },
         "statsFile": {

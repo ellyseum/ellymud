@@ -2,7 +2,6 @@
 name: Researcher
 description: Exhaustive technical researcher that investigates codebases and produces detailed research documents.
 infer: true
-model: gemini-2.5-pro
 argument-hint: Describe what aspect of the codebase to research
 tools:
   # Search tools
@@ -14,7 +13,7 @@ tools:
   - read # read_file - read file contents
   # Edit tools (for creating research documents)
   - edit/createFile # create_file - create new files
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Web tools
   - web/fetch # fetch_webpage - fetch web content
   - web/githubRepo # github_repo - search GitHub repos
@@ -248,12 +247,26 @@ Save stats to: `.github/agents/metrics/stats/research_YYYY-MM-DD_task-name-stats
 | Next Stage | planning |
 | Ready      | Yes/No   |
 
+## Model & Premium Requests
+
+| Field            | Value                                    |
+| ---------------- | ---------------------------------------- |
+| Model Used       | [model name from session, e.g. "Claude Opus 4.5"] |
+| Cost Tier        | [0x \| 0.33x \| 1x \| 3x]                |
+| Premium Requests | [number of requests in this session]     |
+
+### Cost Tier Reference
+
+- **0x (Free)**: GPT-4.1, GPT-4o
+- **0.33x**: GPT-5 mini, Claude Haiku 4.5, Gemini 3 Flash
+- **1x**: Claude Sonnet 4/4.5, Gemini 2.5 Pro, GPT-5.x series
+- **3x**: Claude Opus 4.5
+
 ## Agent Info
 
-| Field         | Value          |
-| ------------- | -------------- |
-| Agent Version | 1.0.0          |
-| Model         | gemini-2.5-pro |
+| Field         | Value |
+| ------------- | ----- |
+| Agent Version | 1.1.0 |
 ```
 
 ### Token Estimation
@@ -311,7 +324,7 @@ This section documents each tool available to this agent and when to use it.
 **Example**: Creating `.github/agents/research/research_combat_system.md`  
 **Tips**: Only use for creating research output documents, not for code changes
 
-### `edit/replaceInFile` (replace_string_in_file)
+### `edit/editFiles` (replace_string_in_file)
 
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When updating existing research documents with new findings  

@@ -2,7 +2,6 @@
 name: Planner
 description: Meticulous planner that transforms research into detailed, actionable implementation plans.
 infer: true
-model: claude-4.5-opus
 argument-hint: Provide the research document path or describe the task to plan
 tools:
   # Search tools
@@ -14,7 +13,7 @@ tools:
   - read # read_file - read file contents
   # Edit tools (for creating plans)
   - edit/createFile # create_file - create new files
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Task tracking
   - todo # manage_todo_list - track planning progress
 handoffs:
@@ -279,12 +278,26 @@ Save stats to: `.github/agents/metrics/stats/plan_YYYY-MM-DD_task-name-stats.md`
 | Next Stage | implementation |
 | Ready      | Yes/No         |
 
+## Model & Premium Requests
+
+| Field            | Value                                    |
+| ---------------- | ---------------------------------------- |
+| Model Used       | [model name from session, e.g. "Claude Opus 4.5"] |
+| Cost Tier        | [0x \| 0.33x \| 1x \| 3x]                |
+| Premium Requests | [number of requests in this session]     |
+
+### Cost Tier Reference
+
+- **0x (Free)**: GPT-4.1, GPT-4o
+- **0.33x**: GPT-5 mini, Claude Haiku 4.5, Gemini 3 Flash
+- **1x**: Claude Sonnet 4/4.5, Gemini 2.5 Pro, GPT-5.x series
+- **3x**: Claude Opus 4.5
+
 ## Agent Info
 
-| Field         | Value           |
-| ------------- | --------------- |
-| Agent Version | 1.0.0           |
-| Model         | claude-4.5-opus |
+| Field         | Value |
+| ------------- | ----- |
+| Agent Version | 1.1.0 |
 ```
 
 ### Token Estimation
@@ -342,7 +355,7 @@ This section documents each tool available to this agent and when to use it.
 **Example**: Creating `.github/agents/planning/plan_20241219_combat_feature.md`  
 **Tips**: Only use for creating planning output documents, not for code
 
-### `edit/replaceInFile` (replace_string_in_file)
+### `edit/editFiles` (replace_string_in_file)
 
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When updating existing plan documents with additional details  

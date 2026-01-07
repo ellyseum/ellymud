@@ -2,7 +2,6 @@
 name: Implementer
 description: Precise implementer that executes plans exactly as specified with full documentation.
 infer: true
-model: claude-4.5-opus
 argument-hint: Provide the implementation plan path to execute
 tools:
   # Search tools
@@ -15,12 +14,12 @@ tools:
   # Edit tools
   - edit/createFile # create_file - create new files
   - edit/createDirectory # create_directory - create directories
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Execute tools
   - execute/runInTerminal # run_in_terminal - run shell commands
   - execute/getTerminalOutput # get_terminal_output - get command output
   # Diagnostics
-  - vscode/problems # get_errors - get compile/lint errors
+  - read/problems # get_errors - get compile/lint errors
   # Task tracking
   - todo # manage_todo_list - track implementation progress
 handoffs:
@@ -404,12 +403,26 @@ Save stats to: `.github/agents/metrics/stats/impl_YYYY-MM-DD_task-name-stats.md`
 | Next Stage | validation |
 | Ready      | Yes/No     |
 
+## Model & Premium Requests
+
+| Field            | Value                                    |
+| ---------------- | ---------------------------------------- |
+| Model Used       | [model name from session, e.g. "Claude Opus 4.5"] |
+| Cost Tier        | [0x \| 0.33x \| 1x \| 3x]                |
+| Premium Requests | [number of requests in this session]     |
+
+### Cost Tier Reference
+
+- **0x (Free)**: GPT-4.1, GPT-4o
+- **0.33x**: GPT-5 mini, Claude Haiku 4.5, Gemini 3 Flash
+- **1x**: Claude Sonnet 4/4.5, Gemini 2.5 Pro, GPT-5.x series
+- **3x**: Claude Opus 4.5
+
 ## Agent Info
 
-| Field         | Value           |
-| ------------- | --------------- |
-| Agent Version | 1.0.0           |
-| Model         | claude-4.5-opus |
+| Field         | Value |
+| ------------- | ----- |
+| Agent Version | 1.1.0 |
 ```
 
 ### Token Estimation
@@ -474,7 +487,7 @@ This section documents each tool available to this agent and when to use it.
 **Example**: Creating `src/newfeature/` directory for new module  
 **Tips**: Recursively creates all directories in path; not strictly needed if using create_file
 
-### `edit/replaceInFile` (replace_string_in_file)
+### `edit/editFiles` (replace_string_in_file)
 
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When plan specifies modifying existing code  
@@ -499,7 +512,7 @@ This section documents each tool available to this agent and when to use it.
 **Example**: Getting output from a watch process  
 **Tips**: Use the terminal ID returned by `runInTerminal` with `isBackground: true`
 
-### `execute/terminalLastCommand` (terminal_last_command)
+### `read/terminalLastCommand` (terminal_last_command)
 
 **Purpose**: Get status and output of the most recent terminal command  
 **When to Use**: AFTER EVERY `run_in_terminal` call to check completion  
@@ -509,7 +522,7 @@ This section documents each tool available to this agent and when to use it.
 - Keep polling until you see an exit code (0 = success, non-zero = error)
 - This is your primary tool for knowing when commands finish
 
-### `vscode/problems` (get_errors)
+### `read/problems` (get_errors)
 
 **Purpose**: Get compile/lint errors in files  
 **When to Use**: After edits to verify no errors introduced  

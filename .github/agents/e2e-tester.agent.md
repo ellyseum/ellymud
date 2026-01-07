@@ -2,7 +2,6 @@
 name: E2E Tester
 description: End-to-end testing agent that uses MCP tools to test EllyMUD game functionality, verifying features work correctly from a player's perspective.
 infer: true
-model: claude-sonnet-4-20250514
 argument-hint: Describe the feature or scenario to test (e.g., "regeneration", "combat", "movement")
 tools:
   # MCP tools for game testing (primary tools)

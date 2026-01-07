@@ -2,7 +2,6 @@
 name: Output Reviewer
 description: Document quality reviewer that grades, critiques, and rewrites agent outputs for clarity and actionability.
 infer: true
-model: claude-4.5-opus
 argument-hint: Provide the document path to review and grade
 tools:
   # Read tools
@@ -13,7 +12,7 @@ tools:
   - search/listDirectory # list_dir - list directory contents
   # Edit tools (for creating review reports)
   - edit/createFile # create_file - create new files
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Task tracking
   - todo # manage_todo_list - track review progress
 ---
@@ -289,11 +288,25 @@ Save stats to: `.github/agents/metrics/stats/review_YYYY-MM-DD_task-name-stats.m
 | Issues Found | X |
 | Sections Rewritten | X |
 
+## Model & Premium Requests
+
+| Field            | Value                                    |
+| ---------------- | ---------------------------------------- |
+| Model Used       | [model name from session, e.g. "Claude Opus 4.5"] |
+| Cost Tier        | [0x \| 0.33x \| 1x \| 3x]                |
+| Premium Requests | [number of requests in this session]     |
+
+### Cost Tier Reference
+
+- **0x (Free)**: GPT-4.1, GPT-4o
+- **0.33x**: GPT-5 mini, Claude Haiku 4.5, Gemini 3 Flash
+- **1x**: Claude Sonnet 4/4.5, Gemini 2.5 Pro, GPT-5.x series
+- **3x**: Claude Opus 4.5
+
 ## Agent Info
 | Field | Value |
 |-------|-------|
-| Agent Version | 1.2.0 |
-| Model | claude-4.5-opus |
+| Agent Version | 1.3.0 |
 ````
 
 ---
@@ -337,7 +350,7 @@ This section documents each tool available to this agent and when to use it.
 **Example**: Creating `.github/agents/research/research_combat_system-reviewed.md`  
 **Tips**: Use `-reviewed` suffix; preserve original document untouched
 
-### `edit/replaceInFile` (replace_string_in_file)
+### `edit/editFiles` (replace_string_in_file)
 
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When iteratively improving the reviewed document  

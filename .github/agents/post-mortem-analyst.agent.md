@@ -2,7 +2,6 @@
 name: Post-Mortem Analyst
 description: Analyzes completed pipeline executions to identify patterns, lessons learned, and improvement opportunities.
 infer: true
-model: gemini-2.5-pro
 argument-hint: Provide the task name or 'latest' to analyze most recent pipeline
 tools:
   # Search tools
@@ -14,7 +13,7 @@ tools:
   - read # read_file - read file contents
   # Edit tools (for creating post-mortem reports)
   - edit/createFile # create_file - create new files
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Task tracking
   - todo # manage_todo_list - track analysis progress
 handoffs:
@@ -209,12 +208,26 @@ Save stats to: `.github/agents/metrics/stats/postmortem_YYYY-MM-DD_task-name-sta
 | Patterns Found  | X     |
 | Action Items    | X     |
 
+## Model & Premium Requests
+
+| Field            | Value                                    |
+| ---------------- | ---------------------------------------- |
+| Model Used       | [model name from session, e.g. "Claude Opus 4.5"] |
+| Cost Tier        | [0x \| 0.33x \| 1x \| 3x]                |
+| Premium Requests | [number of requests in this session]     |
+
+### Cost Tier Reference
+
+- **0x (Free)**: GPT-4.1, GPT-4o
+- **0.33x**: GPT-5 mini, Claude Haiku 4.5, Gemini 3 Flash
+- **1x**: Claude Sonnet 4/4.5, Gemini 2.5 Pro, GPT-5.x series
+- **3x**: Claude Opus 4.5
+
 ## Agent Info
 
-| Field         | Value          |
-| ------------- | -------------- |
-| Agent Version | 1.1.0          |
-| Model         | gemini-2.5-pro |
+| Field         | Value |
+| ------------- | ----- |
+| Agent Version | 1.2.0 |
 ```
 
 ---
@@ -265,7 +278,7 @@ This section documents each tool available to this agent and when to use it.
 **Example**: Creating `.github/agents/suggestions/post-mortem-2024-12-19.md`  
 **Tips**: Use for post-mortem output and recommended agent updates
 
-### `edit/replaceInFile` (replace_string_in_file)
+### `edit/editFiles` (replace_string_in_file)
 
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When updating agent definitions with improvements  

@@ -2,7 +2,6 @@
 name: Rollback Manager
 description: Safety checkpoint manager that creates git stash checkpoints and can restore previous states on failure.
 infer: true
-model: claude-4.5-opus
 argument-hint: 'Operation: CREATE, LIST, ROLLBACK, or EMERGENCY_ROLLBACK'
 tools:
   # Execute tools (for git commands)
@@ -15,7 +14,7 @@ tools:
   - read # read_file - read file contents
   # Edit tools (for creating checkpoint logs)
   - edit/createFile # create_file - create new files
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Task tracking
   - todo # manage_todo_list - track rollback progress
 handoffs:
@@ -295,7 +294,7 @@ After running **ANY** terminal command:
 **Example**: Creating `.github/rollback/checkpoint_log.md`  
 **Tips**: Use to document checkpoint history for the session
 
-### `edit/replaceInFile` (replace_string_in_file)
+### `edit/editFiles` (replace_string_in_file)
 
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When updating checkpoint log with new entries  

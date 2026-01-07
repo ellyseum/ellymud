@@ -2,7 +2,6 @@
 name: Documentation Updater
 description: Maintains README.md and AGENTS.md files across all directories for human and LLM documentation.
 infer: true
-model: claude-4.5-opus
 argument-hint: Specify directories to audit or 'full' for complete scan
 tools:
   # Search tools
@@ -14,7 +13,7 @@ tools:
   - read # read_file - read file contents
   # Edit tools
   - edit/createFile # create_file - create new files
-  - edit/replaceInFile # replace_string_in_file - edit existing files
+  - edit/editFiles # replace_string_in_file - edit existing files
   # Execute tools
   - execute/runInTerminal # run_in_terminal - run shell commands
   - execute/getTerminalOutput # get_terminal_output - get output from background processes
@@ -302,7 +301,7 @@ This section documents each tool available to this agent and when to use it.
 **Example**: Creating `src/combat/README.md`  
 **Tips**: Follow templates exactly; create both README.md and AGENTS.md together; automatically creates parent directories
 
-### `edit/replaceInFile` (replace_string_in_file)
+### `edit/editFiles` (replace_string_in_file)
 
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When updating existing documentation  

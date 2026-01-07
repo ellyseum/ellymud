@@ -2,7 +2,6 @@
 name: Grounding Runner
 description: Rewrites individual agent definitions for a new target project, preserving core functionality while adapting to project-specific conventions.
 infer: true
-model: claude-4.5-opus
 argument-hint: Provide source agent path, target location, and project profile
 tools:
   # Search tools (for understanding target project context)
@@ -15,10 +14,10 @@ tools:
   # Edit tools (for creating the grounded agent)
   - edit/createFile # create_file - create new files
   - edit/createDirectory # create_directory - create directories
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Execute tools (for concatenation and cleanup)
   - execute/runInTerminal # run_in_terminal - concatenate files, cleanup
-  - execute/terminalLastCommand # terminal_last_command - verify command success
+  - read/terminalLastCommand # terminal_last_command - verify command success
   # Task tracking
   - todo # manage_todo_list - track rewrite progress
 ---

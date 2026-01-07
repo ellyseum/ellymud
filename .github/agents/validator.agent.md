@@ -2,7 +2,6 @@
 name: Validator
 description: Thorough validator that verifies implementations against specifications and determines merge readiness.
 infer: true
-model: gemini-2.5-pro
 argument-hint: Provide the implementation report path to validate
 tools:
   # Search tools
@@ -14,13 +13,13 @@ tools:
   - read # read_file - read file contents
   # Edit tools (for creating validation reports)
   - edit/createFile # create_file - create new files
-  - edit/replaceInFile # replace_string_in_file - edit files
+  - edit/editFiles # replace_string_in_file - edit files
   # Execute tools
   - execute/runInTerminal # run_in_terminal - run shell commands
   - execute/getTerminalOutput # get_terminal_output - get command output
   - execute/testFailure # test_failure - get unit test failure info
   # Diagnostics
-  - vscode/problems # get_errors - get compile/lint errors
+  - read/problems # get_errors - get compile/lint errors
   # MCP tools for game testing
   - ellymud-mcp-server/*
   # Task tracking
@@ -410,12 +409,26 @@ Save stats to: `.github/agents/metrics/stats/validation_YYYY-MM-DD_task-name-sta
 | Next Stage | complete/remediation |
 | Ready      | Yes/No               |
 
+## Model & Premium Requests
+
+| Field            | Value                                    |
+| ---------------- | ---------------------------------------- |
+| Model Used       | [model name from session, e.g. "Claude Opus 4.5"] |
+| Cost Tier        | [0x \| 0.33x \| 1x \| 3x]                |
+| Premium Requests | [number of requests in this session]     |
+
+### Cost Tier Reference
+
+- **0x (Free)**: GPT-4.1, GPT-4o
+- **0.33x**: GPT-5 mini, Claude Haiku 4.5, Gemini 3 Flash
+- **1x**: Claude Sonnet 4/4.5, Gemini 2.5 Pro, GPT-5.x series
+- **3x**: Claude Opus 4.5
+
 ## Agent Info
 
-| Field         | Value          |
-| ------------- | -------------- |
-| Agent Version | 1.1.0          |
-| Model         | gemini-2.5-pro |
+| Field         | Value |
+| ------------- | ----- |
+| Agent Version | 1.2.0 |
 ```
 
 ### Token Estimation
@@ -473,7 +486,7 @@ This section documents each tool available to this agent and when to use it.
 **Example**: Creating `.github/agents/validation/validation_20241219_combat_feature.md`  
 **Tips**: Only use for creating validation output documents
 
-### `edit/replaceInFile` (replace_string_in_file)
+### `edit/editFiles` (replace_string_in_file)
 
 **Purpose**: Edit an existing file by replacing exact text  
 **When to Use**: When updating validation report with additional findings  
@@ -594,7 +607,7 @@ terminal_last_command()  // → exit code: 0, output: "BUILD SUCCESS"
 **Example**: Getting failure details to understand what went wrong  
 **Tips**: Use after `npm test` fails to get actionable failure information
 
-### `vscode/problems` (get_errors)
+### `read/problems` (get_errors)
 
 **Purpose**: Get compile/lint errors in files  
 **When to Use**: After loading context, check for any pre-existing or new errors  

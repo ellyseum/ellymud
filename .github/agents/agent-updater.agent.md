@@ -2,7 +2,6 @@
 name: Agent Updater
 description: Analyzes grade reports across all agents to aggregate improvement suggestions and create update plans for the agent ecosystem.
 infer: true
-model: claude-4.5-opus
 argument-hint: Run without arguments to process all unprocessed grades, or specify a task name
 tools:
   # Search tools (for finding grade files and existing updates)
@@ -14,12 +13,12 @@ tools:
   # Edit tools (for creating update files and matrices)
   - edit/createFile # create_file - create update plans and matrices
   - edit/createDirectory # create_directory - create updates directory
-  - edit/replaceInFile # replace_string_in_file - update matrices and files
-  - edit/multi_edit # multi_replace_string_in_file - batch agent updates
+  - edit/editFiles # replace_string_in_file - update matrices and files
+  - edit/editFiles # multi_replace_string_in_file - batch agent updates
   # Execute tools (for git operations)
   - execute/runInTerminal # run_in_terminal - git branch, commit, push, PR
   - execute/getTerminalOutput # get_terminal_output - check command results
-  - execute/terminalLastCommand # terminal_last_command - verify command output
+  - read/terminalLastCommand # terminal_last_command - verify command output
   # Task tracking
   - todo # manage_todo_list - track update progress
 ---
