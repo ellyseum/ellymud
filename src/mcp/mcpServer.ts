@@ -1544,6 +1544,50 @@ export class MCPServer {
           required: ['enabled'],
         },
       },
+      {
+        name: 'sync_artifacts_to_hub',
+        description:
+          'Sync pipeline artifacts from local development to the hub codespace. Requires GitHub CLI authentication.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            dryRun: {
+              type: 'boolean',
+              description: 'Preview changes without actually syncing (default: false)',
+            },
+            hubCodespace: {
+              type: 'string',
+              description:
+                'Hub codespace name (default: PIPELINE_HUB_CODESPACE env var or "ellymud-pipeline-hub")',
+            },
+          },
+          required: [],
+        },
+      },
+      {
+        name: 'sync_artifacts_from_hub',
+        description:
+          'Sync pipeline artifacts from the hub codespace to local development. Requires GitHub CLI authentication.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            dryRun: {
+              type: 'boolean',
+              description: 'Preview changes without actually syncing (default: false)',
+            },
+            hubCodespace: {
+              type: 'string',
+              description:
+                'Hub codespace name (default: PIPELINE_HUB_CODESPACE env var or "ellymud-pipeline-hub")',
+            },
+            force: {
+              type: 'boolean',
+              description: 'Overwrite local files even if they are newer (default: false)',
+            },
+          },
+          required: [],
+        },
+      },
     ];
   }
 
@@ -1652,6 +1696,19 @@ export class MCPServer {
           break;
         case 'set_test_mode':
           result = this.setTestMode(toolArgs.enabled as boolean);
+          break;
+        case 'sync_artifacts_to_hub':
+          result = await this.syncArtifactsToHub(
+            toolArgs.dryRun as boolean | undefined,
+            toolArgs.hubCodespace as string | undefined
+          );
+          break;
+        case 'sync_artifacts_from_hub':
+          result = await this.syncArtifactsFromHub(
+            toolArgs.dryRun as boolean | undefined,
+            toolArgs.hubCodespace as string | undefined,
+            toolArgs.force as boolean | undefined
+          );
           break;
         default:
           res.status(400).json({
@@ -1988,6 +2045,90 @@ export class MCPServer {
         ? 'Test mode enabled: timer paused, use advance_game_ticks to advance time'
         : 'Test mode disabled: timer resumed',
     };
+  }
+
+  /**
+   * Sync artifacts to hub codespace
+   */
+  private async syncArtifactsToHub(
+    dryRun?: boolean,
+    hubCodespace?: string
+  ): Promise<{ success: boolean; artifactsSynced: number; details: string[] }> {
+    const { execSync } = await import('child_process');
+    const args: string[] = [];
+
+    if (dryRun) args.push('--dry-run');
+    if (hubCodespace) args.push(`--hub=${hubCodespace}`);
+
+    try {
+      const scriptPath = join(__dirname, '../../scripts/sync-to-hub.sh');
+      const result = execSync(`${scriptPath} ${args.join(' ')}`, {
+        encoding: 'utf-8',
+        timeout: 300000, // 5 minute timeout
+        env: { ...process.env },
+      });
+
+      // Parse output for synced count
+      const syncedMatch = result.match(/Synced:\s*(\d+)/);
+      const artifactsSynced = syncedMatch ? parseInt(syncedMatch[1], 10) : 0;
+
+      return {
+        success: true,
+        artifactsSynced,
+        details: result.split('\n').filter((line) => line.trim()),
+      };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      mcpLogger.error(`Failed to sync artifacts to hub: ${errorMsg}`);
+      return {
+        success: false,
+        artifactsSynced: 0,
+        details: [errorMsg],
+      };
+    }
+  }
+
+  /**
+   * Sync artifacts from hub codespace
+   */
+  private async syncArtifactsFromHub(
+    dryRun?: boolean,
+    hubCodespace?: string,
+    force?: boolean
+  ): Promise<{ success: boolean; artifactsSynced: number; details: string[] }> {
+    const { execSync } = await import('child_process');
+    const args: string[] = [];
+
+    if (dryRun) args.push('--dry-run');
+    if (hubCodespace) args.push(`--hub=${hubCodespace}`);
+    if (force) args.push('--force');
+
+    try {
+      const scriptPath = join(__dirname, '../../scripts/sync-from-hub.sh');
+      const result = execSync(`${scriptPath} ${args.join(' ')}`, {
+        encoding: 'utf-8',
+        timeout: 300000, // 5 minute timeout
+        env: { ...process.env },
+      });
+
+      // Parse output for pulled count
+      const pulledMatch = result.match(/Pulled:\s*(\d+)/);
+      const artifactsSynced = pulledMatch ? parseInt(pulledMatch[1], 10) : 0;
+
+      return {
+        success: true,
+        artifactsSynced,
+        details: result.split('\n').filter((line) => line.trim()),
+      };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      mcpLogger.error(`Failed to sync artifacts from hub: ${errorMsg}`);
+      return {
+        success: false,
+        artifactsSynced: 0,
+        details: [errorMsg],
+      };
+    }
   }
 
   /**
