@@ -112,6 +112,136 @@ Summary:
 
 **File patterns checked** (to determine if directory has content):
 
+### `pipeline-artifacts-list.sh`
+
+**Purpose**: List all pipeline artifacts in the `.github/agents` directory with metadata.
+
+**What it does**:
+
+1. Scans `.github/agents` directories for artifact files
+2. Groups and lists artifacts by type (research, planning, implementation, validation, metrics, suggestions, documentation)
+3. Outputs file paths with date and type information
+
+**Usage**:
+
+```bash
+# List all artifacts
+./scripts/pipeline-artifacts-list.sh
+
+# Filter by type
+./scripts/pipeline-artifacts-list.sh --type=research
+
+# JSON output for scripting
+./scripts/pipeline-artifacts-list.sh --json
+```
+
+**Options**:
+
+- `--type=TYPE` - Filter by artifact type (research, planning, implementation, validation, metrics, suggestions, documentation)
+- `--json` - Output in JSON format for programmatic consumption
+- `--help` - Show help message
+
+**Exit codes**:
+
+- `0`: Success
+
+### `sync-to-hub.sh`
+
+**Purpose**: Push local pipeline artifacts to a hub codespace for sharing across environments.
+
+**What it does**:
+
+1. Verifies GitHub CLI is installed and authenticated
+2. Finds and starts the hub codespace if needed
+3. Lists local artifacts to sync
+4. Copies artifacts to hub codespace via `gh codespace cp`
+5. Stops the codespace (unless `--no-stop`)
+6. Reports sync summary
+
+**Usage**:
+
+```bash
+# Sync to default hub
+./scripts/sync-to-hub.sh
+
+# Preview what would be synced
+./scripts/sync-to-hub.sh --dry-run
+
+# Sync to specific hub
+./scripts/sync-to-hub.sh --hub=my-hub-codespace
+```
+
+**Options**:
+
+- `--dry-run` - Preview changes without actually syncing
+- `--hub=NAME` - Hub codespace name (default: `$PIPELINE_HUB_CODESPACE` or `ellymud-pipeline-hub`)
+- `--no-stop` - Don't stop the codespace after sync
+- `--help` - Show help message
+
+**Environment Variables**:
+
+- `PIPELINE_HUB_CODESPACE` - Default hub codespace name
+
+**Exit codes**:
+
+- `0`: Success
+- `1`: GitHub CLI not installed, not authenticated, or codespace not found
+
+**Requirements**:
+
+- `gh` - GitHub CLI (install: https://cli.github.com/)
+- GitHub authentication (`gh auth login`)
+- Access to the target codespace
+
+### `sync-from-hub.sh`
+
+**Purpose**: Pull pipeline artifacts from a hub codespace to local development.
+
+**What it does**:
+
+1. Verifies GitHub CLI is installed and authenticated
+2. Finds and starts the hub codespace if needed
+3. Lists remote artifacts on hub
+4. Copies artifacts from hub to local via `gh codespace cp`
+5. Stops the codespace (unless `--no-stop`)
+6. Reports sync summary
+
+**Usage**:
+
+```bash
+# Sync from default hub
+./scripts/sync-from-hub.sh
+
+# Preview what would be synced
+./scripts/sync-from-hub.sh --dry-run
+
+# Force overwrite local files
+./scripts/sync-from-hub.sh --force
+```
+
+**Options**:
+
+- `--dry-run` - Preview changes without actually syncing
+- `--hub=NAME` - Hub codespace name (default: `$PIPELINE_HUB_CODESPACE` or `ellymud-pipeline-hub`)
+- `--no-stop` - Don't stop the codespace after sync
+- `--force` - Overwrite local files even if they are newer
+- `--help` - Show help message
+
+**Environment Variables**:
+
+- `PIPELINE_HUB_CODESPACE` - Default hub codespace name
+
+**Exit codes**:
+
+- `0`: Success
+- `1`: GitHub CLI not installed, not authenticated, or codespace not found
+
+**Requirements**:
+
+- `gh` - GitHub CLI (install: https://cli.github.com/)
+- GitHub authentication (`gh auth login`)
+- Access to the target codespace
+
 ### `generate-pipeline-report.sh`
 
 **Purpose**: Generate a markdown summary report from agent pipeline execution metrics.

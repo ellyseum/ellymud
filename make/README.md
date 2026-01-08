@@ -4,18 +4,19 @@ Modular Makefile definitions organized by functionality. The root `Makefile` inc
 
 ## Structure
 
-| File        | Purpose                                         |
-| ----------- | ----------------------------------------------- |
-| `config.mk` | Shared variables, paths, and ANSI colors        |
-| `setup.mk`  | Bootstrap, install, and environment setup       |
-| `dev.mk`    | Development workflow commands and file watching |
-| `build.mk`  | TypeScript compilation and linting              |
-| `server.mk` | Server start, stop, status, and health checks   |
-| `test.mk`   | Testing and validation commands                 |
-| `agents.mk` | Agent ecosystem and MCP tests                   |
-| `docker.mk` | Docker build and deployment                     |
-| `utils.mk`  | Cleaning, log viewing, and backup utilities     |
-| `docs.mk`   | Documentation generation tasks                  |
+| File           | Purpose                                         |
+| -------------- | ----------------------------------------------- |
+| `config.mk`    | Shared variables, paths, and ANSI colors        |
+| `setup.mk`     | Bootstrap, install, and environment setup       |
+| `dev.mk`       | Development workflow commands and file watching |
+| `build.mk`     | TypeScript compilation and linting              |
+| `server.mk`    | Server start, stop, status, and health checks   |
+| `test.mk`      | Testing and validation commands                 |
+| `agents.mk`    | Agent ecosystem and MCP tests                   |
+| `artifacts.mk` | Pipeline artifact listing and hub sync          |
+| `docker.mk`    | Docker build and deployment                     |
+| `utils.mk`     | Cleaning, log viewing, and backup utilities     |
+| `docs.mk`      | Documentation generation tasks                  |
 
 ## Usage
 
@@ -62,6 +63,16 @@ make logs-mcp       # View recent MCP server logs
 make clean          # Clean build artifacts
 make backup         # Create data backup
 make outdated       # Check for outdated npm packages
+```
+
+**Artifact Sync:**
+
+```bash
+make artifact-list      # List all pipeline artifacts
+make artifact-push      # Sync artifacts to hub codespace
+make artifact-pull      # Sync artifacts from hub codespace
+make artifact-push-dry  # Preview push (dry run)
+make artifact-pull-dry  # Preview pull (dry run)
 ```
 
 ## Adding New Targets

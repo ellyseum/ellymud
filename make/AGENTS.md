@@ -17,6 +17,7 @@ make/
 ├── server.mk       # Server start/stop/status/health
 ├── test.mk         # Testing and validation
 ├── agents.mk       # Agent ecosystem tests
+├── artifacts.mk    # Pipeline artifact listing and sync
 ├── docker.mk       # Docker and deployment
 ├── utils.mk        # Cleaning, logs, backups
 └── docs.mk         # Documentation tasks
@@ -132,6 +133,33 @@ The `##` comment is parsed by `make help` to display all available targets.
 - `agent-test-list` - List test IDs
 - `agent-validate` - Check naming convention
 - `agent-research`, `agent-planning`, etc. - Per-agent tests
+
+### artifacts.mk
+
+- `artifact-list` - List all pipeline artifacts with metadata
+- `artifact-push` - Sync artifacts TO hub codespace
+- `artifact-pull` - Sync artifacts FROM hub codespace
+- `artifact-push-dry` - Preview push (dry run)
+- `artifact-pull-dry` - Preview pull (dry run)
+
+**Environment Variables**:
+- `PIPELINE_HUB_CODESPACE` - Default hub codespace name (default: `ellymud-pipeline-hub`)
+
+**Usage examples**:
+
+```bash
+# List all artifacts
+make artifact-list
+
+# Preview what would be synced
+make artifact-push-dry
+
+# Sync to hub
+make artifact-push
+
+# Pull from hub
+make artifact-pull
+```
 
 ### docker.mk
 

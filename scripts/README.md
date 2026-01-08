@@ -13,6 +13,9 @@ For technical details, command syntax, and examples, see [AGENTS.md](AGENTS.md).
 | `data-migrate.ts`             | Bidirectional migration between JSON and database (SQLite/PostgreSQL)     |
 | `generate-pipeline-report.sh` | Generates markdown report from agent pipeline metrics                     |
 | `migrate-json-to-sqlite.ts`   | Legacy migration script (superseded by `data-migrate.ts`)                 |
+| `pipeline-artifacts-list.sh`  | Lists all pipeline artifacts with type filtering and JSON output          |
+| `sync-to-hub.sh`              | Syncs pipeline artifacts from local to hub codespace                      |
+| `sync-from-hub.sh`            | Syncs pipeline artifacts from hub codespace to local                      |
 
 ## Purpose
 
@@ -31,6 +34,16 @@ Scans directories for missing or incomplete documentation pairs. Used by pre-com
 ### Pipeline Report Generation
 
 Aggregates agent pipeline execution metrics into a readable summary report.
+
+### Pipeline Artifact Sync
+
+A suite of scripts for synchronizing pipeline artifacts between local development and a hub codespace. Useful for multi-environment agent workflows where artifacts need to be shared.
+
+- **List artifacts** - View all local artifacts by type
+- **Push to hub** - Sync artifacts to a central hub codespace
+- **Pull from hub** - Pull artifacts from hub to local
+
+Requires GitHub CLI (`gh`) to be installed and authenticated.
 
 ## Related
 

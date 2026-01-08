@@ -71,6 +71,8 @@ Three MCP tools control game timing for E2E testing:
 | `set_test_mode` | POST | `/api/test/mode` | Enable/disable test mode |
 | `advance_game_ticks` | POST | `/api/test/advance-ticks` | Advance N ticks synchronously |
 | `get_game_tick` | GET | `/api/test/tick-count` | Get current tick count |
+| `sync_artifacts_to_hub` | - | Shell script | Sync artifacts to hub codespace |
+| `sync_artifacts_from_hub` | - | Shell script | Sync artifacts from hub codespace |
 
 ### Usage Pattern
 
@@ -91,6 +93,78 @@ await fetch('/api/test/advance-ticks', {
 // 4. Check game state
 const combatState = await fetch('/api/combat-state');
 ```
+
+## Artifact Sync Tools
+
+Two MCP tools enable synchronizing pipeline artifacts between codespaces:
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `sync_artifacts_to_hub` | Push local artifacts to hub | `dryRun?`, `hubCodespace?` |
+| `sync_artifacts_from_hub` | Pull artifacts from hub | `dryRun?`, `hubCodespace?`, `force?` |
+
+### Tool Definitions
+
+```typescript
+// sync_artifacts_to_hub
+{
+  name: 'sync_artifacts_to_hub',
+  description: 'Sync pipeline artifacts from local development to the hub codespace.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      dryRun: { type: 'boolean', description: 'Preview without syncing' },
+      hubCodespace: { type: 'string', description: 'Hub codespace name' },
+    },
+    required: [],
+  },
+}
+
+// sync_artifacts_from_hub
+{
+  name: 'sync_artifacts_from_hub',
+  description: 'Sync pipeline artifacts from the hub codespace to local development.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      dryRun: { type: 'boolean', description: 'Preview without syncing' },
+      hubCodespace: { type: 'string', description: 'Hub codespace name' },
+      force: { type: 'boolean', description: 'Overwrite local even if newer' },
+    },
+    required: [],
+  },
+}
+```
+
+### Implementation Pattern
+
+These tools execute shell scripts via `execSync`:
+
+```typescript
+private async syncArtifactsToHub(
+  dryRun?: boolean,
+  hubCodespace?: string
+): Promise<{ success: boolean; artifactsSynced: number; details: string[] }> {
+  const { execSync } = await import('child_process');
+  const args: string[] = [];
+
+  if (dryRun) args.push('--dry-run');
+  if (hubCodespace) args.push(`--hub=${hubCodespace}`);
+
+  const scriptPath = join(__dirname, '../../scripts/sync-to-hub.sh');
+  const result = execSync(`${scriptPath} ${args.join(' ')}`, {
+    encoding: 'utf-8',
+    timeout: 300000, // 5 minute timeout
+  });
+  // ...
+}
+```
+
+### Requirements
+
+- **GitHub CLI (`gh`)** must be installed and authenticated
+- **Hub codespace** must exist and be accessible
+- Default hub name: `PIPELINE_HUB_CODESPACE` env var or `ellymud-pipeline-hub`
 
 ## Conventions
 
