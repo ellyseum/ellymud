@@ -28,6 +28,8 @@ The MCP server is integrated into the main EllyMUD server and starts automatical
 - **advance_game_ticks** - Advance the game timer by N ticks (Test Mode only)
 - **get_game_tick** - Get the current game tick count
 - **set_test_mode** - Enable or disable test mode (pauses/resumes timer)
+- **sync_artifacts_to_hub** - Sync pipeline artifacts from local to hub codespace
+- **sync_artifacts_from_hub** - Sync pipeline artifacts from hub codespace to local
 
 ## Running the MCP Server
 
