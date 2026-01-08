@@ -2096,7 +2096,7 @@ export class MCPServer {
     hubCodespace?: string,
     force?: boolean
   ): Promise<{ success: boolean; artifactsSynced: number; details: string[] }> {
-    const { execSync } = await import('child_process');
+    const { execFileSync } = await import('child_process');
     const args: string[] = [];
 
     if (dryRun) args.push('--dry-run');
@@ -2105,7 +2105,7 @@ export class MCPServer {
 
     try {
       const scriptPath = join(__dirname, '../../scripts/sync-from-hub.sh');
-      const result = execSync(`${scriptPath} ${args.join(' ')}`, {
+      const result = execFileSync(scriptPath, args, {
         encoding: 'utf-8',
         timeout: 300000, // 5 minute timeout
         env: { ...process.env },
