@@ -222,9 +222,9 @@ sync_artifact() {
     
     print_step "Syncing: $local_path"
     
-    # Validate paths to prevent command injection
-    if [[ ! "$local_path" =~ ^[A-Za-z0-9._/-]+$ ]]; then
-        print_error "Invalid path contains unsafe characters: $local_path"
+    # Validate paths to prevent command injection and directory traversal
+    if [[ ! "$local_path" =~ ^[A-Za-z0-9._/-]+$ ]] || [[ "$local_path" == *".."* ]]; then
+        print_error "Invalid path contains unsafe characters or directory traversal: $local_path"
         ((FAILED_COUNT++))
         return
     fi
@@ -233,9 +233,9 @@ sync_artifact() {
     local remote_dir
     remote_dir=$(dirname "$local_path")
     
-    # Validate remote_dir to avoid command injection in SSH command
+    # Validate remote_dir to avoid command injection and directory traversal in SSH command
     if [[ -n "$remote_dir" && "$remote_dir" != "." ]]; then
-        if [[ ! "$remote_dir" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+        if [[ ! "$remote_dir" =~ ^[A-Za-z0-9._/-]+$ ]] || [[ "$remote_dir" == *".."* ]]; then
             print_error "Unsafe remote directory path, skipping: $remote_dir"
             ((FAILED_COUNT++))
             return

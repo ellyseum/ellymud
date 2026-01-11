@@ -240,9 +240,9 @@ sync_artifact() {
     
     print_step "Pulling: $remote_path"
     
-    # Validate paths to prevent command injection
-    if [[ ! "$remote_path" =~ ^[A-Za-z0-9._/-]+$ ]]; then
-        print_error "Invalid path contains unsafe characters: $remote_path"
+    # Validate paths to prevent command injection and directory traversal
+    if [[ ! "$remote_path" =~ ^[A-Za-z0-9._/-]+$ ]] || [[ "$remote_path" == *".."* ]]; then
+        print_error "Invalid path contains unsafe characters or directory traversal: $remote_path"
         ((FAILED_COUNT++))
         return
     fi
