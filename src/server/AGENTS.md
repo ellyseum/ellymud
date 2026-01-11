@@ -96,9 +96,10 @@ export class ShutdownManager {
 1. Stop accepting new connections
 2. Notify all connected clients
 3. Save all user data
-4. Close all connections
-5. Close server sockets
-6. Exit process
+4. Save room state via `roomManager.forceSaveState()` (saves only mutable state to room_state.json)
+5. Close all connections
+6. Close server sockets
+7. Exit process
 
 ## Port Configuration
 

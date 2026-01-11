@@ -68,9 +68,12 @@ export class RoomManager implements IRoomManager {
   addItemToRoom(roomId: string, item: Item): void;
   removeItemFromRoom(roomId: string, itemId: string): void;
 
-  // State persistence (NEW)
-  forceSaveState(): void;           // Trigger state save to room_state.json
-  forceSaveTemplates(): void;       // Save templates to rooms.json (admin)
+  // State persistence
+  forceSaveState(): void;           // Trigger state save to room_state.json (used by autosave)
+  forceSaveTemplates(): void;       // Save templates to rooms.json (admin/world editor only)
+  
+  // Room reset
+  resetRoom(roomId: string, clearFirst?: boolean): Promise<void>;  // Reset room to spawn defaults
 }
 ```
 
@@ -121,6 +124,11 @@ export class Room {
   gridY?: number;   // Y coordinate for visual editor
   gridZ?: number;   // Floor/level (Z coordinate)
   hasChanged: boolean; // Track if state needs saving
+  
+  // --- Spawn Defaults (immutable template data) ---
+  spawnItems?: string[];     // Item template IDs for reset
+  spawnNpcs?: string[];      // NPC template IDs for reset
+  spawnCurrency?: Currency;  // Starting currency for reset
 
   getExit(direction: string): Exit | undefined;
   addPlayer(username: string): void;
@@ -128,6 +136,9 @@ export class Room {
   toData(): RoomData;  // Convert to plain data object
   addItemInstance(instanceId: string, templateId: string): void;
   removeItemInstance(instanceId: string): boolean;
+  serializeItemInstances(): Array<{ instanceId, templateId }>;  // For state persistence
+  clearItemInstances(): void;  // Used by resetRoom()
+  hydrateItemInstances(serialized): void;  // Load from saved state
 }
 ```
 
@@ -191,9 +202,25 @@ export { RoomState, RoomStateData, SerializedItemInstance } from './roomState';
 // Plain data for serialization
 export interface RoomData {
   id: string;
-  // ... combined template + state fields
+  name?: string;
+  description?: string;
+  exits: Exit[];
+  items?: (string | Item)[];
+  currency?: Currency;
+  flags?: string[];
+  areaId?: string;
+  gridX?: number;
+  gridY?: number;
+  gridZ?: number;
+  
+  // --- Spawn Defaults (immutable template data) ---
+  spawnItems?: string[];     // Item template IDs to spawn on reset
+  spawnNpcs?: string[];      // NPC template IDs to spawn on reset
+  spawnCurrency?: Currency;  // Starting currency on reset
 }
 ```
+
+**Spawn Default Fields**: These fields define what items, NPCs, and currency should be present when a room is reset to its default state. They are stored in `rooms.json` as part of the template and are immutable during gameplay.
 
 ### `interfaces.ts`
 
@@ -351,6 +378,23 @@ for (const npc of npcs) {
 roomManager.addItemToRoom(roomId, item);
 ```
 
+### Resetting a Room to Spawn Defaults
+
+```typescript
+// Reset room to its spawn defaults (clears current state, respawns from template)
+await roomManager.resetRoom('town-square');
+
+// Reset without clearing first (adds spawns to existing state)
+await roomManager.resetRoom('town-square', false);
+```
+
+The `resetRoom()` method:
+1. Clears current items, NPCs, and currency (if `clearFirst` is true)
+2. Restores `spawnCurrency` from the room template
+3. Creates new item instances from `spawnItems` template IDs
+4. Instantiates NPCs from `spawnNpcs` template IDs
+5. Marks room as changed and saves state
+
 ### Migrating Existing Room Data
 
 If you have existing rooms with state embedded in `rooms.json`:
@@ -364,6 +408,9 @@ npx ts-node scripts/migrate-room-state.ts
 
 # Optionally clean templates (remove state fields from rooms.json)
 npx ts-node scripts/migrate-room-state.ts --clean-templates
+
+# Extract current state as spawn defaults (for new rooms)
+npx ts-node scripts/migrate-room-state.ts --extract-spawn-defaults
 ```
 
 ## Gotchas & Warnings
@@ -375,6 +422,8 @@ npx ts-node scripts/migrate-room-state.ts --clean-templates
 - ⚠️ **Exit Validation**: Always validate exit exists before moving
 - ⚠️ **Template vs State**: Templates are read-only; don't try to persist template changes via state repository
 - ⚠️ **hasChanged Flag**: Room.hasChanged tracks state modifications; used by autosave to determine what needs saving
+- ⚠️ **forceSave() is DEPRECATED**: Use `forceSaveState()` for autosave (runtime state) or `forceSaveTemplates()` for world editor changes
+- ⚠️ **Spawn Defaults are Immutable**: `spawnItems`, `spawnNpcs`, `spawnCurrency` should only be modified via world editor, not during gameplay
 
 ## Related Context
 

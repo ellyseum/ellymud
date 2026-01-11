@@ -27,6 +27,10 @@ interface RoomConstructorData {
   gridX?: number;
   gridY?: number;
   gridZ?: number;
+  // --- Spawn Defaults ---
+  spawnItems?: string[];
+  spawnNpcs?: string[];
+  spawnCurrency?: Currency;
 }
 
 export class Room {
@@ -55,6 +59,11 @@ export class Room {
   gridY?: number;
   gridZ?: number;
 
+  // --- Spawn Defaults (immutable template data) ---
+  spawnItems?: string[];
+  spawnNpcs?: string[];
+  spawnCurrency?: Currency;
+
   constructor(room: RoomConstructorData) {
     this.id = room.id;
     this.name = room.name || room.shortDescription || 'Unknown Room';
@@ -66,6 +75,11 @@ export class Room {
     this.gridY = room.gridY;
     this.gridZ = room.gridZ;
     this.flags = room.flags || [];
+
+    // Initialize spawn defaults
+    this.spawnItems = room.spawnItems;
+    this.spawnNpcs = room.spawnNpcs;
+    this.spawnCurrency = room.spawnCurrency;
 
     // Initialize itemInstances
     this.itemInstances = new Map();
@@ -261,6 +275,14 @@ export class Room {
       instanceId,
       templateId,
     }));
+  }
+
+  /**
+   * Clear all item instances from the room
+   */
+  clearItemInstances(): void {
+    this.itemInstances.clear();
+    this.hasChanged = true;
   }
 
   /**

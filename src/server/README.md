@@ -52,7 +52,7 @@ GameServer (app.ts)
 
 - Handles SIGINT/SIGTERM signals
 - Graceful client disconnection
-- Data persistence before exit
+- Data persistence before exit (user data + room state)
 - Cleanup of resources
 
 ## Related

@@ -13,6 +13,7 @@ import { IAsyncRoomRepository, IAsyncRoomStateRepository } from '../persistence/
 import { getRoomRepository, getRoomStateRepository } from '../persistence/RepositoryFactory';
 import { RoomState } from './roomData';
 import config from '../config';
+import { ItemManager } from '../utils/itemManager';
 
 // Import our service classes
 import { DirectionHelper } from './services/directionHelper';
@@ -302,38 +303,30 @@ export class RoomManager implements IRoomManager {
   }
 
   private async saveRoomsAsync(): Promise<void> {
-    // Convert rooms to storable format, excluding the emergency void room
+    // NOTE: Only save template data, NOT mutable state
+    // Mutable state is saved separately via saveRoomStateAsync()
     const roomsData: RoomData[] = Array.from(this.rooms.values())
       .filter((room) => room.id !== EMERGENCY_ROOM_ID) // Never persist emergency room
       .map((room) => {
-        // Convert NPC Map to an array of template IDs for storage
-        const npcTemplateIds: string[] = [];
-        room.npcs.forEach((npc) => {
-          npcTemplateIds.push(npc.templateId);
-        });
-
-        // Serialize item instances to a format suitable for storage
-        const serializedItemInstances = room.serializeItemInstances();
-
         return {
           id: room.id,
           name: room.name,
           description: room.description,
           exits: room.exits,
-          items: room.items,
-          itemInstances: serializedItemInstances,
-          npcs: npcTemplateIds,
           flags: room.flags,
-          currency: room.currency,
           areaId: room.areaId,
           gridX: room.gridX,
           gridY: room.gridY,
           gridZ: room.gridZ,
+          // Spawn defaults (immutable template data)
+          spawnItems: room.spawnItems,
+          spawnNpcs: room.spawnNpcs,
+          spawnCurrency: room.spawnCurrency,
         };
       });
 
     await this.repository.saveAll(roomsData);
-    systemLogger.debug(`[RoomManager] Saved ${roomsData.length} rooms`);
+    systemLogger.debug(`[RoomManager] Saved ${roomsData.length} room templates`);
   }
 
   // Core room management methods
@@ -655,6 +648,47 @@ To create rooms and build your world, follow these steps:
   }
 
   /**
+   * Reset a room to its spawn defaults
+   */
+  public async resetRoom(roomId: string, clearFirst: boolean = true): Promise<void> {
+    const room = this.rooms.get(roomId);
+    if (!room) {
+      throw new Error(`Room '${roomId}' not found`);
+    }
+
+    systemLogger.info(`[RoomManager] Resetting room: ${roomId}`);
+
+    if (clearFirst) {
+      room.items = [];
+      room.clearItemInstances();
+      room.npcs.clear();
+      room.currency = { gold: 0, silver: 0, copper: 0 };
+    }
+
+    if (room.spawnCurrency) {
+      room.currency = { ...room.spawnCurrency };
+    }
+
+    if (room.spawnItems?.length) {
+      const itemManager = ItemManager.getInstance();
+      for (const templateId of room.spawnItems) {
+        const instance = itemManager.createItemInstance(templateId, 'room-reset');
+        if (instance) {
+          room.addItemInstance(instance.instanceId, instance.templateId);
+        }
+      }
+    }
+
+    if (room.spawnNpcs?.length) {
+      const npcData = await NPC.loadNPCDataAsync();
+      this.npcInteractionService.instantiateNpcsFromTemplates(room, room.spawnNpcs, npcData);
+    }
+
+    room.hasChanged = true;
+    await this.saveRoomStateAsync();
+  }
+
+  /**
    * Enable or disable test mode.
    * When enabled, file persistence is skipped to avoid overwriting main game data.
    * @param enabled True to enable test mode, false to disable
@@ -794,7 +828,8 @@ To create rooms and build your world, follow these steps:
 
     this.rooms.delete(roomId);
     await this.repository.delete(roomId);
-    systemLogger.info(`[RoomManager] Deleted room: ${roomId}`);
+    await this.stateRepository.delete(roomId);
+    systemLogger.info(`[RoomManager] Deleted room and state: ${roomId}`);
   }
 
   /**

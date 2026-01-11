@@ -28,9 +28,12 @@ Rooms are the spatial containers of the MUD world:
 Room data is split into two categories:
 
 - **Templates** (immutable): Static room definitions loaded from `rooms.json`
+  - Includes: id, name, description, exits, flags, areaId, grid coordinates
+  - Also includes spawn defaults: `spawnItems`, `spawnNpcs`, `spawnCurrency`
 - **State** (mutable): Runtime data saved to `room_state.json` via autosave
+  - Includes: current items, NPCs, and currency in the room
 
-This separation allows templates to remain stable while state changes persist across restarts.
+This separation allows templates to remain stable while state changes persist across restarts. The spawn defaults define what gets restored when `resetRoom()` is called.
 
 ## RoomManager Operations
 
@@ -44,6 +47,9 @@ This separation allows templates to remain stable while state changes persist ac
 - `deleteRoom(roomId)` - Remove room (World Builder API)
 - `linkRooms(fromId, toId, direction)` - Create exit between rooms
 - `unlinkRooms(roomId, direction)` - Remove exit from room
+- `resetRoom(roomId)` - Reset room to spawn defaults (respawn items, NPCs, currency)
+- `forceSaveState()` - Save runtime state to room_state.json
+- `forceSaveTemplates()` - Save templates to rooms.json (admin only)
 
 ## Room Structure
 
@@ -58,6 +64,9 @@ Each room has:
 - `flags` - Special room properties (`safe`, `training`, `bank`, `shop`)
 - `areaId` - Optional area this room belongs to
 - `gridX`, `gridY`, `gridZ` - Grid coordinates for visual editor
+- `spawnItems` - Item template IDs to spawn when room is reset
+- `spawnNpcs` - NPC template IDs to spawn when room is reset
+- `spawnCurrency` - Starting currency when room is reset
 
 ## Services
 

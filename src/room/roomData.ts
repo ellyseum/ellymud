@@ -25,7 +25,7 @@ export interface RoomData {
   items?: (string | Item)[];
   players?: string[];
   npcs?: string[] | Map<string, NPC>;
-  currency: Currency;
+  currency?: Currency;
   flags?: string[];
   /** Area this room belongs to (optional for backward compatibility) */
   areaId?: string;
@@ -35,4 +35,11 @@ export interface RoomData {
   gridY?: number;
   /** Floor/level for multi-level areas (optional) */
   gridZ?: number;
+  // --- Spawn Defaults (immutable template data) ---
+  /** Item template IDs to spawn when room is reset */
+  spawnItems?: string[];
+  /** NPC template IDs to spawn when room is reset */
+  spawnNpcs?: string[];
+  /** Starting currency when room is reset */
+  spawnCurrency?: Currency;
 }

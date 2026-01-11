@@ -518,7 +518,7 @@ export class GameServer {
       // Save the data directly instead of using gameTimerManager.forceSave()
       // This avoids the error with this.roomManager.forceSave not being a function
       this.userManager.forceSave();
-      this.roomManager.forceSave();
+      this.roomManager.forceSaveState();
 
       // Log successful save
       systemLogger.info('Game data saved successfully during shutdown');
@@ -644,7 +644,7 @@ export class GameServer {
     try {
       // Save the data directly
       this.userManager.forceSave();
-      this.roomManager.forceSave();
+      this.roomManager.forceSaveState();
 
       // Log successful save
       systemLogger.info('Game data saved successfully during shutdown');

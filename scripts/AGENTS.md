@@ -357,6 +357,7 @@ npx ts-node scripts/data-migrate.ts switch sqlite
 1. Reads existing `rooms.json`
 2. Extracts mutable state (items, NPCs, currency) into `room_state.json`
 3. Optionally cleans `rooms.json` to contain only template data
+4. Optionally extracts current state as spawn defaults in templates
 
 **Usage**:
 
@@ -369,12 +370,16 @@ npx ts-node scripts/migrate-room-state.ts
 
 # Also remove state fields from rooms.json
 npx ts-node scripts/migrate-room-state.ts --clean-templates
+
+# Extract current state as spawn defaults (for setting up respawn data)
+npx ts-node scripts/migrate-room-state.ts --extract-spawn-defaults
 ```
 
 **Options**:
 
 - `--dry-run` - Show what would be done without writing files
 - `--clean-templates` - Remove state fields from rooms.json (creates backup first)
+- `--extract-spawn-defaults` - Copy current state as spawn defaults in templates
 
 **Output files**:
 

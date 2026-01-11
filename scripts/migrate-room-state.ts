@@ -6,13 +6,15 @@
  * 1. Reads existing rooms.json
  * 2. Extracts state data (items, NPCs, currency) into room_state.json
  * 3. Optionally cleans rooms.json to contain only template data
+ * 4. Optionally extracts current state as spawn defaults
  * 
  * Usage:
- *   npx ts-node scripts/migrate-room-state.ts [--clean-templates]
+ *   npx ts-node scripts/migrate-room-state.ts [--clean-templates] [--extract-spawn-defaults]
  * 
  * Options:
- *   --clean-templates  Remove state fields from rooms.json (default: false)
- *   --dry-run          Show what would be done without writing files
+ *   --clean-templates         Remove state fields from rooms.json (default: false)
+ *   --extract-spawn-defaults  Copy current state as spawn defaults in templates
+ *   --dry-run                 Show what would be done without writing files
  */
 
 import fs from 'fs';
@@ -51,6 +53,10 @@ interface RoomTemplate {
   gridX?: number;
   gridY?: number;
   defaultNpcs?: string[];
+  // Spawn defaults
+  spawnItems?: string[];
+  spawnNpcs?: string[];
+  spawnCurrency?: { gold: number; silver: number; copper: number };
 }
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
@@ -58,11 +64,12 @@ const ROOMS_FILE = path.join(DATA_DIR, 'rooms.json');
 const STATE_FILE = path.join(DATA_DIR, 'room_state.json');
 const BACKUP_FILE = path.join(DATA_DIR, 'rooms.json.backup');
 
-function parseArgs(): { cleanTemplates: boolean; dryRun: boolean } {
+function parseArgs(): { cleanTemplates: boolean; dryRun: boolean; extractSpawnDefaults: boolean } {
   const args = process.argv.slice(2);
   return {
     cleanTemplates: args.includes('--clean-templates'),
     dryRun: args.includes('--dry-run'),
+    extractSpawnDefaults: args.includes('--extract-spawn-defaults'),
   };
 }
 
@@ -86,25 +93,45 @@ function extractState(rooms: RoomDataLegacy[]): RoomState[] {
   }));
 }
 
-function extractTemplates(rooms: RoomDataLegacy[]): RoomTemplate[] {
-  return rooms.map((room) => ({
-    id: room.id,
-    name: room.name,
-    description: room.description,
-    exits: room.exits,
-    flags: room.flags,
-    areaId: room.areaId,
-    gridX: room.gridX,
-    gridY: room.gridY,
-  }));
+function extractTemplates(rooms: RoomDataLegacy[], extractSpawnDefaults: boolean = false): RoomTemplate[] {
+  return rooms.map((room) => {
+    const template: RoomTemplate = {
+      id: room.id,
+      name: room.name,
+      description: room.description,
+      exits: room.exits,
+      flags: room.flags,
+      areaId: room.areaId,
+      gridX: room.gridX,
+      gridY: room.gridY,
+    };
+
+    // Optionally extract current state as spawn defaults
+    if (extractSpawnDefaults) {
+      if (room.npcs && room.npcs.length > 0) {
+        template.spawnNpcs = room.npcs;
+      }
+      if (room.items && room.items.length > 0) {
+        template.spawnItems = room.items;
+      }
+      const hasCurrency = room.currency && 
+        (room.currency.gold > 0 || room.currency.silver > 0 || room.currency.copper > 0);
+      if (hasCurrency) {
+        template.spawnCurrency = room.currency;
+      }
+    }
+
+    return template;
+  });
 }
 
 function main(): void {
-  const { cleanTemplates, dryRun } = parseArgs();
+  const { cleanTemplates, dryRun, extractSpawnDefaults } = parseArgs();
 
   console.log('=== Room State Migration Script ===\n');
   console.log(`Mode: ${dryRun ? 'DRY RUN' : 'LIVE'}`);
-  console.log(`Clean templates: ${cleanTemplates}\n`);
+  console.log(`Clean templates: ${cleanTemplates}`);
+  console.log(`Extract spawn defaults: ${extractSpawnDefaults}\n`);
 
   // Load existing rooms
   const rooms = loadRooms();
@@ -157,9 +184,12 @@ function main(): void {
     fs.copyFileSync(ROOMS_FILE, BACKUP_FILE);
     console.log(`✓ Backup created at ${BACKUP_FILE}`);
 
-    const templates = extractTemplates(rooms);
+    const templates = extractTemplates(rooms, extractSpawnDefaults);
     fs.writeFileSync(ROOMS_FILE, JSON.stringify(templates, null, 2));
     console.log(`✓ Cleaned ${ROOMS_FILE} (removed state fields)`);
+    if (extractSpawnDefaults) {
+      console.log(`✓ Added spawn defaults from current state`);
+    }
   }
 
   console.log('\n=== Migration Complete ===');

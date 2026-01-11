@@ -108,10 +108,18 @@ npm run data:switch postgres  # Switch to PostgreSQL
     "flags": ["safe", "bank"],
     "areaId": "town",
     "gridX": 0,
-    "gridY": 0
+    "gridY": 0,
+    "spawnItems": ["torch", "welcome-sign"],
+    "spawnNpcs": ["guard-1", "merchant-1"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
   }
 ]
 ```
+
+**Spawn Default Fields** (used by `resetRoom()`):
+- `spawnItems` - Item template IDs to spawn when room is reset
+- `spawnNpcs` - NPC template IDs to spawn when room is reset  
+- `spawnCurrency` - Starting currency when room is reset
 
 **Note**: Room templates no longer contain runtime state (items, NPCs, currency). That data is now stored in `room_state.json`.
 
@@ -136,9 +144,14 @@ npm run data:switch postgres  # Switch to PostgreSQL
 **Fields**:
 - `roomId` - Links to room template in rooms.json
 - `itemInstances` - Items currently in the room (instanceId → templateId)
-- `npcTemplateIds` - NPC templates to spawn in this room
-- `currency` - Gold/silver/copper on the floor
+- `npcTemplateIds` - NPC templates currently spawned in this room
+- `currency` - Gold/silver/copper currently on the floor
 - `items` - Legacy string-based items (deprecated)
+
+**Key Concepts**:
+- State is separate from templates - templates in `rooms.json` define what *should* spawn, state in `room_state.json` tracks what *currently exists*
+- `resetRoom()` clears current state and respawns from template spawn defaults
+- State is saved periodically via autosave and on server shutdown
 
 **Migration**: Use `scripts/migrate-room-state.ts` to split existing rooms.json data.
 
