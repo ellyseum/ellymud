@@ -32,6 +32,11 @@ The `data-migrate.ts` script provides bidirectional migration between JSON files
 
 The `migrate-room-state.ts` script separates room templates (static definitions) from runtime state (items, NPCs, currency). This enables autosave of mutable data while keeping templates immutable.
 
+**Options**:
+- `--dry-run` - Preview changes without writing files
+- `--clean-templates` - Remove runtime state from rooms.json
+- `--extract-spawn-defaults` - Copy current state as spawn defaults in templates (for setting up respawn data)
+
 ### Documentation Validation
 
 Scans directories for missing or incomplete documentation pairs. Used by pre-commit hooks to ensure README.md and AGENTS.md files are kept in sync.

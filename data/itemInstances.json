@@ -1712,5 +1712,665 @@
         "details": "Created by npc:goblin:c51b6e1e-d9ea-43b2-a3a3-65136413099d"
       }
     ]
+  },
+  {
+    "instanceId": "b1ec44dd-cea4-4129-99a5-1016b2226a05",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.335Z",
+    "createdBy": "npc:goblin:26af67b9-785c-4ee9-a898-ce1e60cc2abc",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.335Z",
+        "event": "created",
+        "details": "Created by npc:goblin:26af67b9-785c-4ee9-a898-ce1e60cc2abc"
+      }
+    ]
+  },
+  {
+    "instanceId": "1d966721-d29e-4fbc-9dc3-8236f4dbae8f",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.343Z",
+    "createdBy": "npc:goblin:2ae3d195-9eed-4a0c-85cb-75d1ddbc707c",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.343Z",
+        "event": "created",
+        "details": "Created by npc:goblin:2ae3d195-9eed-4a0c-85cb-75d1ddbc707c"
+      }
+    ]
+  },
+  {
+    "instanceId": "23daeff1-5e42-4295-a66e-41c3c466cbe8",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.351Z",
+    "createdBy": "npc:goblin:93a988c9-1a64-4a10-a132-67628531fcd6",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.351Z",
+        "event": "created",
+        "details": "Created by npc:goblin:93a988c9-1a64-4a10-a132-67628531fcd6"
+      }
+    ]
+  },
+  {
+    "instanceId": "72ca43e3-0323-46ec-b8b4-fbf3fbce056c",
+    "templateId": "sword-001",
+    "created": "2026-01-11T23:34:59.353Z",
+    "createdBy": "npc:goblin:93a988c9-1a64-4a10-a132-67628531fcd6",
+    "properties": {
+      "durability": {
+        "current": 100,
+        "max": 100
+      },
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.353Z",
+        "event": "created",
+        "details": "Created by npc:goblin:93a988c9-1a64-4a10-a132-67628531fcd6"
+      }
+    ]
+  },
+  {
+    "instanceId": "7e60be79-65c3-4573-af46-1b246c0090d7",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.358Z",
+    "createdBy": "npc:goblin:1a82b884-0622-4eb0-9b30-94ee51796f3c",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.358Z",
+        "event": "created",
+        "details": "Created by npc:goblin:1a82b884-0622-4eb0-9b30-94ee51796f3c"
+      }
+    ]
+  },
+  {
+    "instanceId": "69eafb87-9ed7-4407-ae9f-6161bb1999b0",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.363Z",
+    "createdBy": "npc:goblin:fdead240-b8ec-4c0d-973f-788655b4bdc6",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.363Z",
+        "event": "created",
+        "details": "Created by npc:goblin:fdead240-b8ec-4c0d-973f-788655b4bdc6"
+      }
+    ]
+  },
+  {
+    "instanceId": "e60fdc97-6178-4180-aeb1-c6c44c2e83a4",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.371Z",
+    "createdBy": "npc:goblin:ae46ccef-301a-45cf-b0d6-ee0362ec70e3",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.371Z",
+        "event": "created",
+        "details": "Created by npc:goblin:ae46ccef-301a-45cf-b0d6-ee0362ec70e3"
+      }
+    ]
+  },
+  {
+    "instanceId": "beec45c8-c652-4bfc-9bdf-b3e8f97ed2fb",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.378Z",
+    "createdBy": "npc:goblin:b7cdda39-d6d2-4051-9a80-3a6630cd1e55",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.378Z",
+        "event": "created",
+        "details": "Created by npc:goblin:b7cdda39-d6d2-4051-9a80-3a6630cd1e55"
+      }
+    ]
+  },
+  {
+    "instanceId": "9e012de7-afc9-445c-ad3d-5a46b78d24c0",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.396Z",
+    "createdBy": "npc:goblin:5b1b234e-ed88-491c-aec3-d5b658471f6b",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.396Z",
+        "event": "created",
+        "details": "Created by npc:goblin:5b1b234e-ed88-491c-aec3-d5b658471f6b"
+      }
+    ]
+  },
+  {
+    "instanceId": "82f1d738-8e5e-4db0-bc7a-c21f62d6dcb6",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.404Z",
+    "createdBy": "npc:goblin:d92411b8-b77d-4eb0-b615-e070d663d65a",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.404Z",
+        "event": "created",
+        "details": "Created by npc:goblin:d92411b8-b77d-4eb0-b615-e070d663d65a"
+      }
+    ]
+  },
+  {
+    "instanceId": "17b7c888-5c21-495f-b0fb-dbb68502bad0",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.411Z",
+    "createdBy": "npc:goblin:73c14623-157b-455e-b280-8c6d9d3c02b7",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.411Z",
+        "event": "created",
+        "details": "Created by npc:goblin:73c14623-157b-455e-b280-8c6d9d3c02b7"
+      }
+    ]
+  },
+  {
+    "instanceId": "35699fb2-67d6-4261-8d03-e5e13fb1b771",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.421Z",
+    "createdBy": "npc:goblin:c2f33e99-ffc5-416d-ae57-738b27f9b7c7",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.421Z",
+        "event": "created",
+        "details": "Created by npc:goblin:c2f33e99-ffc5-416d-ae57-738b27f9b7c7"
+      }
+    ]
+  },
+  {
+    "instanceId": "6e54fe24-f4cd-41c7-a6c8-5c9b2815b2ac",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.427Z",
+    "createdBy": "npc:goblin:3b11bbe7-bb23-49c7-93d7-4a831ddb8290",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.427Z",
+        "event": "created",
+        "details": "Created by npc:goblin:3b11bbe7-bb23-49c7-93d7-4a831ddb8290"
+      }
+    ]
+  },
+  {
+    "instanceId": "9f28fb10-c5c1-4cce-a693-e45a7f938e1d",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.443Z",
+    "createdBy": "npc:goblin:30afeae6-6620-4932-954e-d44d90ff9cbb",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.443Z",
+        "event": "created",
+        "details": "Created by npc:goblin:30afeae6-6620-4932-954e-d44d90ff9cbb"
+      }
+    ]
+  },
+  {
+    "instanceId": "021c377a-7b93-4301-a0d2-b99919633c20",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.452Z",
+    "createdBy": "npc:goblin:3abd8707-e8b0-4b0d-8c79-5680176fe1c2",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.452Z",
+        "event": "created",
+        "details": "Created by npc:goblin:3abd8707-e8b0-4b0d-8c79-5680176fe1c2"
+      }
+    ]
+  },
+  {
+    "instanceId": "b08bffc6-3099-4ebe-b204-3176530dac46",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.462Z",
+    "createdBy": "npc:goblin:672bd9ba-4736-4071-968c-d5469ee44980",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.462Z",
+        "event": "created",
+        "details": "Created by npc:goblin:672bd9ba-4736-4071-968c-d5469ee44980"
+      }
+    ]
+  },
+  {
+    "instanceId": "47af604b-c73d-437a-9d21-dbcf0f3fb5a2",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.469Z",
+    "createdBy": "npc:goblin:8cdeab9c-3b8b-4933-afe2-cf7bdc77830b",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.469Z",
+        "event": "created",
+        "details": "Created by npc:goblin:8cdeab9c-3b8b-4933-afe2-cf7bdc77830b"
+      }
+    ]
+  },
+  {
+    "instanceId": "da790626-e57b-4bb9-9b8b-db9731172837",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.476Z",
+    "createdBy": "npc:goblin:9eb071fc-236f-486c-b5d1-4b200d738ec7",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.476Z",
+        "event": "created",
+        "details": "Created by npc:goblin:9eb071fc-236f-486c-b5d1-4b200d738ec7"
+      }
+    ]
+  },
+  {
+    "instanceId": "c73fc1f9-ab9c-49eb-85fa-52235b9eb820",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.482Z",
+    "createdBy": "npc:goblin:7b21b635-09a0-4c9b-b99d-9456c7f22f3f",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.482Z",
+        "event": "created",
+        "details": "Created by npc:goblin:7b21b635-09a0-4c9b-b99d-9456c7f22f3f"
+      }
+    ]
+  },
+  {
+    "instanceId": "ab250891-35a5-4673-ac90-100bd27488d4",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.495Z",
+    "createdBy": "npc:goblin:59e80916-e74c-4f82-b2a2-6ac9d164ffc3",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.495Z",
+        "event": "created",
+        "details": "Created by npc:goblin:59e80916-e74c-4f82-b2a2-6ac9d164ffc3"
+      }
+    ]
+  },
+  {
+    "instanceId": "53661a47-4bbf-4b4d-a921-db00d3c62e96",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.512Z",
+    "createdBy": "npc:goblin:fa8d8ab0-1926-448d-a653-7e5794038210",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.512Z",
+        "event": "created",
+        "details": "Created by npc:goblin:fa8d8ab0-1926-448d-a653-7e5794038210"
+      }
+    ]
+  },
+  {
+    "instanceId": "d2970e92-c001-42a2-b452-4d917e6f99c0",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.518Z",
+    "createdBy": "npc:goblin:f6658027-9ed3-4ce4-924f-e2bccdd628e2",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.518Z",
+        "event": "created",
+        "details": "Created by npc:goblin:f6658027-9ed3-4ce4-924f-e2bccdd628e2"
+      }
+    ]
+  },
+  {
+    "instanceId": "f652e8ee-9833-40c1-b22f-34e53ff55578",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.532Z",
+    "createdBy": "npc:goblin:1e011dc9-d206-4dc3-bf9e-2af90557a8f4",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.532Z",
+        "event": "created",
+        "details": "Created by npc:goblin:1e011dc9-d206-4dc3-bf9e-2af90557a8f4"
+      }
+    ]
+  },
+  {
+    "instanceId": "78c1f3f1-44f8-4e5b-924e-dfc7937fd48d",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.546Z",
+    "createdBy": "npc:goblin:04a21c97-9fd7-4491-b076-b34965f37108",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.546Z",
+        "event": "created",
+        "details": "Created by npc:goblin:04a21c97-9fd7-4491-b076-b34965f37108"
+      }
+    ]
+  },
+  {
+    "instanceId": "12745390-639a-4560-8340-ab55a25fe4d6",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.556Z",
+    "createdBy": "npc:goblin:5afdcc32-ccef-446a-9f2c-01b6d9469e60",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.556Z",
+        "event": "created",
+        "details": "Created by npc:goblin:5afdcc32-ccef-446a-9f2c-01b6d9469e60"
+      }
+    ]
+  },
+  {
+    "instanceId": "55e605e5-dc94-4a11-bf1d-2d9ad4eba3d0",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.566Z",
+    "createdBy": "npc:goblin:ff423fa3-7322-4b16-859b-604d2643f182",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.566Z",
+        "event": "created",
+        "details": "Created by npc:goblin:ff423fa3-7322-4b16-859b-604d2643f182"
+      }
+    ]
+  },
+  {
+    "instanceId": "b984927b-31bb-424d-ab09-ef08b43302d5",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.576Z",
+    "createdBy": "npc:goblin:afe1c625-23da-475f-80ed-af1021275ac4",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.576Z",
+        "event": "created",
+        "details": "Created by npc:goblin:afe1c625-23da-475f-80ed-af1021275ac4"
+      }
+    ]
+  },
+  {
+    "instanceId": "5f59163f-ef03-41f9-afb4-a738b54226be",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.584Z",
+    "createdBy": "npc:goblin:9a3ba0a6-3777-401c-a678-4e399067594c",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.584Z",
+        "event": "created",
+        "details": "Created by npc:goblin:9a3ba0a6-3777-401c-a678-4e399067594c"
+      }
+    ]
+  },
+  {
+    "instanceId": "418fec37-955c-4ea4-9027-1a2a340e87b5",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.593Z",
+    "createdBy": "npc:goblin:7d24d8aa-c2b7-43a9-bf01-5fde4917242d",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.593Z",
+        "event": "created",
+        "details": "Created by npc:goblin:7d24d8aa-c2b7-43a9-bf01-5fde4917242d"
+      }
+    ]
+  },
+  {
+    "instanceId": "18908411-0cd3-4c7f-921e-1d444078e564",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.606Z",
+    "createdBy": "npc:goblin:cc9a7892-9991-4cbc-95c8-2a0705fed41b",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.606Z",
+        "event": "created",
+        "details": "Created by npc:goblin:cc9a7892-9991-4cbc-95c8-2a0705fed41b"
+      }
+    ]
+  },
+  {
+    "instanceId": "8362aeb7-7f53-46bb-b26c-6c7e904db007",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.616Z",
+    "createdBy": "npc:goblin:7910b7f9-3386-4b6f-8bbf-124998126005",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.616Z",
+        "event": "created",
+        "details": "Created by npc:goblin:7910b7f9-3386-4b6f-8bbf-124998126005"
+      }
+    ]
+  },
+  {
+    "instanceId": "6c8a0c9d-71fd-482c-93e8-187fc0e4ba2d",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.624Z",
+    "createdBy": "npc:goblin:3044a9a8-0632-47ed-ba88-be19c7810133",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.624Z",
+        "event": "created",
+        "details": "Created by npc:goblin:3044a9a8-0632-47ed-ba88-be19c7810133"
+      }
+    ]
+  },
+  {
+    "instanceId": "227911ba-9e1d-47a9-9391-3b3c5fa2cbda",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.628Z",
+    "createdBy": "npc:goblin:14e491f0-b4dc-4b9d-8bca-62d1c6efde39",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.628Z",
+        "event": "created",
+        "details": "Created by npc:goblin:14e491f0-b4dc-4b9d-8bca-62d1c6efde39"
+      }
+    ]
+  },
+  {
+    "instanceId": "887e11e3-6f8c-4c10-85cd-45d14af14da5",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.641Z",
+    "createdBy": "npc:goblin:6e30f6da-1f8b-43e6-abab-c8d444ce5376",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.641Z",
+        "event": "created",
+        "details": "Created by npc:goblin:6e30f6da-1f8b-43e6-abab-c8d444ce5376"
+      }
+    ]
+  },
+  {
+    "instanceId": "456cc776-8ca5-41ac-911e-d7324e06b59f",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.645Z",
+    "createdBy": "npc:goblin:178b4a84-3dc2-4d9e-973d-4ef9a269c0cc",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.645Z",
+        "event": "created",
+        "details": "Created by npc:goblin:178b4a84-3dc2-4d9e-973d-4ef9a269c0cc"
+      }
+    ]
+  },
+  {
+    "instanceId": "ae61ac3f-43a4-4328-96af-3397134d3ce6",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.653Z",
+    "createdBy": "npc:goblin:9ac8b455-dbf2-44be-96e2-32d7d280ae5c",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.653Z",
+        "event": "created",
+        "details": "Created by npc:goblin:9ac8b455-dbf2-44be-96e2-32d7d280ae5c"
+      }
+    ]
+  },
+  {
+    "instanceId": "13069400-5f7e-4537-947a-1ab2dc293b99",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.674Z",
+    "createdBy": "npc:goblin:9a131b2b-9cc9-496d-a864-bc43e859a54b",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.674Z",
+        "event": "created",
+        "details": "Created by npc:goblin:9a131b2b-9cc9-496d-a864-bc43e859a54b"
+      }
+    ]
+  },
+  {
+    "instanceId": "2244df9f-b886-460d-a236-4f81d73dee2b",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.690Z",
+    "createdBy": "npc:goblin:2702c893-bf34-4ebe-a912-e14090c151f2",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.690Z",
+        "event": "created",
+        "details": "Created by npc:goblin:2702c893-bf34-4ebe-a912-e14090c151f2"
+      }
+    ]
+  },
+  {
+    "instanceId": "9ad374d7-ec5f-44a3-99d6-d0f7b18a1b52",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.718Z",
+    "createdBy": "npc:goblin:7ec383b0-0638-44d9-ae90-c2d1dfb56b55",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.718Z",
+        "event": "created",
+        "details": "Created by npc:goblin:7ec383b0-0638-44d9-ae90-c2d1dfb56b55"
+      }
+    ]
+  },
+  {
+    "instanceId": "6c2e0c1a-99f5-4c13-bd56-6ce15b17a27e",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.741Z",
+    "createdBy": "npc:goblin:5b17ca70-2a6b-4910-a1a8-faf8accaea8b",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.741Z",
+        "event": "created",
+        "details": "Created by npc:goblin:5b17ca70-2a6b-4910-a1a8-faf8accaea8b"
+      }
+    ]
+  },
+  {
+    "instanceId": "2542aff4-fa45-466d-840c-02d76fb6d4e0",
+    "templateId": "potion_healing_1",
+    "created": "2026-01-11T23:34:59.766Z",
+    "createdBy": "npc:goblin:6b695ead-75c1-42bc-8a75-f5b35bd0f2fc",
+    "properties": {
+      "quality": "common"
+    },
+    "history": [
+      {
+        "timestamp": "2026-01-11T23:34:59.766Z",
+        "event": "created",
+        "details": "Created by npc:goblin:6b695ead-75c1-42bc-8a75-f5b35bd0f2fc"
+      }
+    ]
   }
 ]
