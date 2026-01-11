@@ -164,6 +164,74 @@ Never alter factual findings. Remove speculation and reasoning artifacts. Conver
 
 ---
 
+## ⚠️ CRITICAL: Chunked Output Mode (For Large Documents)
+
+**When your reviewed document would exceed the response length limit, use Chunked Output Mode.**
+
+This mode writes your output incrementally to avoid hitting the output limit.
+
+### When to Use Chunked Output Mode
+
+- The original document is 300+ lines
+- Your review requires substantial rewrites
+- You've previously hit "response length limit" errors
+- You need to create both reviewed doc AND grade report
+
+### Chunked Output Protocol
+
+**Step 1**: Create the reviewed document first
+
+```markdown
+# Create reviewed file with condensed content
+create_file(
+  path: ".github/agents/[stage]/[document]-reviewed.md",
+  content: "# [Document Title] (Reviewed)\n\n---\n**Review Summary**\n...[condensed content]..."
+)
+```
+
+**Step 2**: If reviewed doc is large, append sections using `replace_string_in_file`
+
+**Step 3**: Create the grade report
+
+```markdown
+# Create grade file
+create_file(
+  path: ".github/agents/[stage]/[document]-grade.md",
+  content: "# Grade Report: [Document]\n\n| Metric | Value |\n|--------|-------|\n| Score | XX/100 |..."
+)
+```
+
+**Step 4**: Verify both files exist
+
+### Chunked Output Rules
+
+| Rule | Description |
+|------|-------------|
+| **Reviewed doc first** | Always create -reviewed.md before -grade.md |
+| **Self-contained chunks** | Each chunk should be valid markdown |
+| **No partial tables** | Complete tables in one chunk |
+| **Verify after creation** | Use list_dir to confirm files exist |
+
+### Two-File Requirement
+
+**You MUST create BOTH files:**
+1. `*-reviewed.md` - The condensed, improved document
+2. `*-grade.md` - The grade report with score and feedback
+
+If you only have capacity for one file, prioritize the `-reviewed.md` file since it's what the next agent consumes.
+
+### Failure Recovery
+
+If you hit a length limit:
+1. Check what files already exist with `list_dir`
+2. Read any partial file with `read_file`
+3. Complete missing content using `replace_string_in_file`
+4. Create any missing files
+
+**NEVER leave without both files created.**
+
+---
+
 ## Definition of Done
 
 **You are DONE when ALL of these are true:**

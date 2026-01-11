@@ -285,6 +285,75 @@ $ wc -l src/command/commands/wave.command.ts
 
 ---
 
+## ⚠️ CRITICAL: Chunked Output Mode (For Large Reports)
+
+**When your validation report would exceed the response length limit, use Chunked Output Mode.**
+
+This mode writes your report incrementally to avoid hitting the output limit.
+
+### When to Use Chunked Output Mode
+
+- You're validating 10+ implementation tasks
+- The implementation spans many files
+- You've previously hit "response length limit" errors
+- Test output or verification logs are extensive
+
+### Chunked Output Protocol
+
+**Step 1**: Create the file with summary and first validations
+
+```markdown
+# Create validation file with header and first checks
+create_file(
+  path: ".github/agents/validation/validation_TOPIC_TIMESTAMP.md",
+  content: "# Validation Report: [Feature]\n\n## Summary\n...[header + first verifications]..."
+)
+```
+
+**Step 2**: Append remaining validations using `replace_string_in_file`
+
+```markdown
+# Find the END of the document and append
+replace_string_in_file(
+  path: ".github/agents/validation/validation_TOPIC_TIMESTAMP.md",
+  oldString: "[last few lines of current content]",
+  newString: "[last few lines of current content]\n\n### Task Validation: TASK-006\n..."
+)
+```
+
+**Step 3**: Repeat until all validations documented
+
+**Step 4**: Add final verdict section
+
+### Chunked Output Rules
+
+| Rule | Description |
+|------|-------------|
+| **Self-contained chunks** | Each chunk should be valid markdown |
+| **Complete task validations** | Never split a task validation across chunks |
+| **Verdict last** | Always add PASS/FAIL verdict in final chunk |
+| **Evidence included** | Each validation must include evidence |
+
+### Best Practice: Validate-Then-Document
+
+For large validations:
+1. Run all verifications first, note results
+2. Create report file with summary
+3. Append task validations in batches
+4. Add final verdict and recommendations
+
+### Failure Recovery
+
+If you hit a length limit:
+1. Read the current report state
+2. Note which validations are missing
+3. Continue from where the file ends
+4. Always ensure VERDICT section is present
+
+**NEVER leave without a PASS/FAIL verdict.**
+
+---
+
 ## Definition of Done
 
 **You are DONE when ALL of these are true:**

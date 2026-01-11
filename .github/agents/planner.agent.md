@@ -90,6 +90,91 @@ public removePlayerFromAllRooms(username: string): void
 
 ---
 
+## ⚠️ CRITICAL: Chunked Output Mode (For Large Documents)
+
+**When your output would exceed the response length limit, use Chunked Output Mode.**
+
+This mode writes your document incrementally to avoid hitting the output limit.
+
+### When to Use Chunked Output Mode
+
+- Your plan has 10+ tasks with full code snippets
+- You've previously hit "response length limit" errors
+- The research document is 400+ lines (suggesting complex output)
+- You're planning a multi-phase, multi-file feature
+
+### Chunked Output Protocol
+
+**Step 1**: Create the file with initial sections
+
+```markdown
+# Create file with header and first sections
+create_file(
+  path: ".github/agents/planning/plan_TIMESTAMP.md",
+  content: "# Implementation Plan: [Name]\n\n## 1. Executive Summary\n...[first 2-3 sections]..."
+)
+```
+
+**Step 2**: Append remaining sections using `replace_string_in_file`
+
+```markdown
+# Find the END of the document and append
+replace_string_in_file(
+  path: ".github/agents/planning/plan_TIMESTAMP.md",
+  oldString: "[last few lines of current content]",
+  newString: "[last few lines of current content]\n\n## 4. Next Section\n...[more content]..."
+)
+```
+
+**Step 3**: Repeat Step 2 until document is complete
+
+**Step 4**: Verify document integrity
+
+```markdown
+# Read the file to confirm all sections present
+read_file(path: ".github/agents/planning/plan_TIMESTAMP.md", startLine: 1, endLine: 50)
+```
+
+### Chunked Output Rules
+
+| Rule | Description |
+|------|-------------|
+| **Self-contained chunks** | Each chunk should be valid markdown |
+| **No partial tables** | Complete tables in one chunk |
+| **No partial code blocks** | Complete code fences in one chunk |
+| **Overlap context** | Use 3-5 lines overlap in oldString |
+| **Verify after each chunk** | Optionally read to confirm |
+
+### Example: Multi-Phase Plan in Chunks
+
+**Chunk 1** (create_file):
+- Header, Executive Summary, Solution Architecture
+- ~150-200 lines
+
+**Chunk 2** (replace_string_in_file):
+- Phase 1 and Phase 2 tasks (TASK-001 through TASK-005)
+- ~150-200 lines
+
+**Chunk 3** (replace_string_in_file):
+- Phase 3 and Phase 4 tasks (TASK-006 through TASK-010)
+- ~150-200 lines
+
+**Chunk 4** (replace_string_in_file):
+- Risk Assessment, Test Scenarios, Rollback Plan
+- ~100-150 lines
+
+### Failure Recovery
+
+If you hit a length limit mid-chunk:
+1. Note which section you were writing
+2. Read the current file state
+3. Continue from where the file ends
+4. Complete the remaining sections
+
+**NEVER leave a document incomplete. Always finish all sections.**
+
+---
+
 ## Definition of Done
 
 **You are DONE when ALL of these are true:**

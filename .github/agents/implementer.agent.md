@@ -104,6 +104,80 @@ Document where you're stuck and proceed to the next task, or create the implemen
 
 ---
 
+## ⚠️ CRITICAL: Chunked Output Mode (For Large Reports)
+
+**When your implementation report would exceed the response length limit, use Chunked Output Mode.**
+
+This mode writes your report incrementally to avoid hitting the output limit.
+
+### When to Use Chunked Output Mode
+
+- Your implementation has 10+ tasks with detailed changes
+- You've previously hit "response length limit" errors
+- The plan spans multiple phases with many files
+- You're documenting extensive code changes
+
+### Chunked Output Protocol
+
+**Step 1**: Create the file with initial sections
+
+```markdown
+# Create file with header and first completed tasks
+create_file(
+  path: ".github/agents/implementation/impl_TOPIC_TIMESTAMP.md",
+  content: "# Implementation Report: [Feature]\n\n## Summary\n...[header + first 3-5 tasks]..."
+)
+```
+
+**Step 2**: Append remaining tasks using `replace_string_in_file`
+
+```markdown
+# Find the END of the document and append
+replace_string_in_file(
+  path: ".github/agents/implementation/impl_TOPIC_TIMESTAMP.md",
+  oldString: "[last few lines of current content]",
+  newString: "[last few lines of current content]\n\n### TASK-006: ...\n...[more tasks]..."
+)
+```
+
+**Step 3**: Repeat Step 2 until all tasks are documented
+
+**Step 4**: Add final sections (verification, deviations, summary)
+
+**Step 5**: Verify document integrity
+
+### Chunked Output Rules
+
+| Rule | Description |
+|------|-------------|
+| **Self-contained chunks** | Each chunk should be valid markdown |
+| **Complete task entries** | Never split a task across chunks |
+| **No partial code blocks** | Complete code fences in one chunk |
+| **Overlap context** | Use 3-5 lines overlap in oldString |
+| **Write as you go** | Document each task right after completing it |
+
+### Best Practice: Write-As-You-Implement
+
+For large implementations, write the report incrementally:
+
+1. Create report file with header after first task
+2. After completing each task, append its documentation
+3. Final chunk adds summary and verification results
+
+This prevents losing work if you hit limits and provides real-time progress visibility.
+
+### Failure Recovery
+
+If you hit a length limit mid-chunk:
+1. Read the current report state
+2. Note which task you were documenting
+3. Continue from where the file ends
+4. Complete the remaining documentation
+
+**NEVER leave a report incomplete. Always document all completed tasks.**
+
+---
+
 ## Core Principles
 
 ### 1. Precision Over Creativity
