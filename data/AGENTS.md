@@ -150,6 +150,42 @@ npm run data:switch postgres  # Switch to PostgreSQL
 ]
 ```
 
+### `areas.json`
+
+**Purpose**: Area definitions for grouping rooms with shared properties
+
+```json
+[
+  {
+    "id": "town-center",
+    "name": "Town Center",
+    "description": "The central hub of the town, with safe zones and shops",
+    "levelRange": { "min": 1, "max": 5 },
+    "flags": ["starter-zone", "safe"],
+    "combatConfig": {
+      "pvpEnabled": false,
+      "dangerLevel": 1,
+      "xpMultiplier": 1.0
+    },
+    "spawnConfig": [],
+    "defaultRoomFlags": ["safe"],
+    "created": "2026-01-10T00:00:00.000Z",
+    "modified": "2026-01-10T00:00:00.000Z"
+  }
+]
+```
+
+**Area Fields**:
+- `id` - Unique identifier (e.g., 'enchanted-forest')
+- `name` - Display name
+- `description` - Area description for world builders
+- `levelRange` - Recommended level range `{ min, max }`
+- `flags` - Area-level flags (e.g., 'no-recall', 'quest-zone')
+- `combatConfig` - PvP settings, danger level, XP multipliers
+- `spawnConfig` - NPC spawn rules per area
+- `defaultRoomFlags` - Flags applied to new rooms in this area
+- `created`/`modified` - ISO timestamps
+
 ### `npcs.json`
 
 **Purpose**: NPC templates

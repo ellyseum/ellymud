@@ -556,4 +556,31 @@ export class Room {
         return '';
     }
   }
+
+  /**
+   * Convert room to data format for serialization
+   * Used by World Builder API and persistence
+   */
+  toData(): import('./roomData').RoomData {
+    // Convert NPC instances to template IDs
+    const npcTemplateIds: string[] = [];
+    this.npcs.forEach((npc) => {
+      if (npc.templateId && !npcTemplateIds.includes(npc.templateId)) {
+        npcTemplateIds.push(npc.templateId);
+      }
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      shortDescription: this.name,
+      longDescription: this.description,
+      exits: this.exits,
+      items: this.items,
+      npcs: npcTemplateIds,
+      currency: this.currency,
+      flags: this.flags,
+    };
+  }
 }

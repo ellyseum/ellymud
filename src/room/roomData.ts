@@ -23,4 +23,12 @@ export interface RoomData {
   npcs?: string[] | Map<string, NPC>;
   currency: Currency;
   flags?: string[];
+  /** Area this room belongs to (optional for backward compatibility) */
+  areaId?: string;
+  /** Grid X coordinate for visual editor */
+  gridX?: number;
+  /** Grid Y coordinate for visual editor */
+  gridY?: number;
+  /** Floor/level for multi-level areas (optional) */
+  gridZ?: number;
 }

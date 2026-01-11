@@ -34,6 +34,13 @@ export class RoomManager implements IRoomManager {
   getAllRooms(): Map<string, Room>;
   getStartingRoomId(): string;
 
+  // CRUD operations (for World Builder)
+  createRoom(roomData: RoomData): Promise<Room>;
+  updateRoomData(roomData: RoomData): Promise<void>;
+  deleteRoom(roomId: string): Promise<void>;
+  linkRooms(fromId: string, toId: string, direction: string): Promise<void>;
+  unlinkRooms(roomId: string, direction: string): Promise<void>;
+
   // Player operations
   lookRoom(client: ConnectedClient): void;
   briefLookRoom(client: ConnectedClient): void;
@@ -76,10 +83,15 @@ export class Room {
   players: string[]; // usernames
   flags: string[]; // e.g. ['safe', 'training']
   currency: Currency;
+  areaId?: string;  // Area this room belongs to
+  gridX?: number;   // X coordinate for visual editor
+  gridY?: number;   // Y coordinate for visual editor
+  gridZ?: number;   // Floor/level (Z coordinate)
 
   getExit(direction: string): Exit | undefined;
   addPlayer(username: string): void;
   removePlayer(username: string): void;
+  toData(): RoomData;  // Convert to plain data object
 }
 ```
 
@@ -140,7 +152,11 @@ Rooms are stored in `data/rooms.json`:
   ],
   "items": [],
   "npcs": ["merchant-1"],
-  "currency": { "gold": 0, "silver": 0, "copper": 0 }
+  "currency": { "gold": 0, "silver": 0, "copper": 0 },
+  "areaId": "town-center",
+  "gridX": 5,
+  "gridY": 5,
+  "gridZ": 0
 }
 ```
 
@@ -249,3 +265,5 @@ roomManager.addItemToRoom(roomId, item);
 - [`../command/commands/move.command.ts`](../command/commands/move.command.ts) - Uses movePlayer
 - [`../combat/combatSystem.ts`](../combat/combatSystem.ts) - Combat is room-scoped
 - [`../../data/rooms.json`](../../data/rooms.json) - Room definitions
+- [`../area/`](../area/) - Area entities that group rooms
+- [`../admin/adminApi.ts`](../admin/adminApi.ts) - Room CRUD API endpoints

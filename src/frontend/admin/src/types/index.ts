@@ -178,7 +178,7 @@ export interface AuthState {
 }
 
 // Tab Types
-export type TabId = 'dashboard' | 'client' | 'players' | 'config' | 'pipeline';
+export type TabId = 'dashboard' | 'client' | 'players' | 'config' | 'pipeline' | 'worldbuilder';
 
 // Pipeline Sub-Tab Types
 export type PipelineSubTab =
@@ -187,3 +187,95 @@ export type PipelineSubTab =
   | 'planning'
   | 'implementation'
   | 'validation';
+
+// ============================================================================
+// AREA & WORLD BUILDER TYPES
+// ============================================================================
+
+/**
+ * Combat configuration for an area
+ */
+export interface AreaCombatConfig {
+  pvpEnabled: boolean;
+  dangerLevel: number;
+  xpMultiplier: number;
+}
+
+/**
+ * NPC spawn configuration
+ */
+export interface AreaSpawnConfig {
+  npcTemplateId: string;
+  maxInstances: number;
+  respawnTicks: number;
+  spawnRooms?: string[];
+}
+
+/**
+ * Area entity
+ */
+export interface Area {
+  id: string;
+  name: string;
+  description: string;
+  levelRange: { min: number; max: number };
+  flags: string[];
+  combatConfig?: AreaCombatConfig;
+  spawnConfig: AreaSpawnConfig[];
+  defaultRoomFlags?: string[];
+  created: string;
+  modified: string;
+}
+
+/**
+ * Room data with coordinates
+ */
+export interface RoomData {
+  id: string;
+  name?: string;
+  description?: string;
+  shortDescription?: string;
+  longDescription?: string;
+  exits: Exit[];
+  items?: string[];
+  npcs?: string[];
+  flags?: string[];
+  areaId?: string;
+  gridX?: number;
+  gridY?: number;
+  gridZ?: number;
+}
+
+/**
+ * Room exit
+ */
+export interface Exit {
+  direction: string;
+  roomId: string;
+}
+
+/**
+ * AI room generation request
+ */
+export interface AIGenerateRoomRequest {
+  roomName: string;
+  areaContext?: string;
+  style?: 'fantasy' | 'dark' | 'mystical' | 'medieval';
+}
+
+/**
+ * AI room generation response
+ */
+export interface AIGenerateRoomResponse {
+  description: string;
+  suggestedExits?: string[];
+  suggestedNpcs?: string[];
+}
+
+/**
+ * Area with rooms response
+ */
+export interface AreaWithRooms {
+  area: Area;
+  rooms: RoomData[];
+}
