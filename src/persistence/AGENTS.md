@@ -26,7 +26,6 @@ mappers/                         # Field conversion (snake_case ↔ camelCase)
 
 ```typescript
 import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository, getAreaRepository, getRoomStateRepository } from '../persistence';
-import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository, getRoomStateRepository } from '../persistence';
 
 // Returns appropriate implementation based on STORAGE_BACKEND env var
 const userRepo = getUserRepository();
@@ -35,7 +34,6 @@ const itemRepo = getItemRepository();
 const npcRepo = getNpcRepository();
 const areaRepo = getAreaRepository();
 const roomStateRepo = getRoomStateRepository();  // Room state persistence
-const roomStateRepo = getRoomStateRepository();  // NEW: Room state persistence
 
 // All repositories implement async interfaces
 const users = await userRepo.findAll();
@@ -184,7 +182,6 @@ await repo.save({
 ```
 
 **Key Point**: This repository handles `room_state.json`, keeping mutable data separate from the immutable templates in `rooms.json`.
-- `AsyncFileNpcRepository` - JSON file NPC template storage
 
 ### `mappers/`
 

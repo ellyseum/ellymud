@@ -27,11 +27,6 @@ const users = await getUserRepository().findAll();
 const npcs = await getNpcRepository().findAll();
 const areas = await getAreaRepository().findAll();
 const roomState = await getRoomStateRepository().findAll();
-import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository, getRoomStateRepository } from './persistence';
-
-const users = await getUserRepository().findAll();
-const npcs = await getNpcRepository().findAll();
-const roomState = await getRoomStateRepository().findAll();
 ```
 
 ## Purpose
