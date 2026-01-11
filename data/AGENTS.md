@@ -92,7 +92,7 @@ npm run data:switch postgres  # Switch to PostgreSQL
 
 ### `rooms.json`
 
-**Purpose**: Room definitions
+**Purpose**: Room templates (static, immutable definitions)
 
 ```json
 [
@@ -105,13 +105,42 @@ npm run data:switch postgres  # Switch to PostgreSQL
       { "direction": "north", "targetRoomId": "market" },
       { "direction": "east", "targetRoomId": "tavern" }
     ],
-    "items": [],
-    "npcs": [],
     "flags": ["safe", "bank"],
-    "currency": { "gold": 0, "silver": 0, "copper": 0 }
+    "areaId": "town",
+    "gridX": 0,
+    "gridY": 0
   }
 ]
 ```
+
+**Note**: Room templates no longer contain runtime state (items, NPCs, currency). That data is now stored in `room_state.json`.
+
+### `room_state.json`
+
+**Purpose**: Mutable room runtime state (saved via autosave)
+
+```json
+[
+  {
+    "roomId": "town-square",
+    "itemInstances": [
+      { "instanceId": "sword-001", "templateId": "sword-iron" }
+    ],
+    "npcTemplateIds": ["guard-1", "merchant-1"],
+    "currency": { "gold": 100, "silver": 50, "copper": 25 },
+    "items": []
+  }
+]
+```
+
+**Fields**:
+- `roomId` - Links to room template in rooms.json
+- `itemInstances` - Items currently in the room (instanceId → templateId)
+- `npcTemplateIds` - NPC templates to spawn in this room
+- `currency` - Gold/silver/copper on the floor
+- `items` - Legacy string-based items (deprecated)
+
+**Migration**: Use `scripts/migrate-room-state.ts` to split existing rooms.json data.
 
 ### `items.json`
 

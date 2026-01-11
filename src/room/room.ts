@@ -264,6 +264,17 @@ export class Room {
   }
 
   /**
+   * Hydrate item instances from saved state data
+   * @param serialized Array of serialized item instances
+   */
+  hydrateItemInstances(serialized: Array<{ instanceId: string; templateId: string }>): void {
+    this.itemInstances.clear();
+    for (const item of serialized) {
+      this.itemInstances.set(item.instanceId, item.templateId);
+    }
+  }
+
+  /**
    * Legacy method for backward compatibility
    */
   addItem(item: string | { name: string }): void {

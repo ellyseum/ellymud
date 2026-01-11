@@ -30,7 +30,8 @@ npm run data:switch <backend>  # Switch backend with migration
 | File | Description | DB Table |
 |------|-------------|----------|
 | `users.json` | User accounts, stats, inventory | `users` ✅ |
-| `rooms.json` | Room definitions, exits, contents | `rooms` ✅ |
+| `rooms.json` | Room templates (static definitions) | `rooms` ✅ |
+| `room_state.json` | Room runtime state (items, NPCs, currency) | - (file-only) |
 | `items.json` | Item templates (weapons, armor, etc.) | `item_templates` ✅ |
 | `itemInstances.json` | Instantiated items in the world | `item_instances` ✅ |
 | `areas.json` | Area definitions (groups of rooms) | - (JSON only) |

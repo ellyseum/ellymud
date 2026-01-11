@@ -4,12 +4,15 @@ Room data management, navigation, and room-scoped interactions for the MUD world
 
 ## Contents
 
-| Path             | Description                                       |
-| ---------------- | ------------------------------------------------- |
-| `roomManager.ts` | Singleton managing all room data and operations   |
-| `room.ts`        | Room class definition with properties and methods |
-| `interfaces.ts`  | Room-related TypeScript interfaces                |
-| `services/`      | Modular room services for specific functionality  |
+| Path              | Description                                       |
+| ----------------- | ------------------------------------------------- |
+| `roomManager.ts`  | Singleton managing all room data and operations   |
+| `room.ts`         | Room class definition with properties and methods |
+| `roomTemplate.ts` | Static room template interface (immutable)        |
+| `roomState.ts`    | Mutable room state interface (items, NPCs)        |
+| `roomData.ts`     | Shared data interfaces and re-exports             |
+| `interfaces.ts`   | Room-related TypeScript interfaces                |
+| `services/`       | Modular room services for specific functionality  |
 
 ## What Rooms Do
 
@@ -19,6 +22,15 @@ Rooms are the spatial containers of the MUD world:
 - **Navigation**: Rooms connect via exits (north, south, east, west, up, down)
 - **Content**: Rooms contain items, NPCs, and other players
 - **Events**: Room-scoped messages, combat, and interactions
+
+## Architecture: Templates vs State
+
+Room data is split into two categories:
+
+- **Templates** (immutable): Static room definitions loaded from `rooms.json`
+- **State** (mutable): Runtime data saved to `room_state.json` via autosave
+
+This separation allows templates to remain stable while state changes persist across restarts.
 
 ## RoomManager Operations
 
