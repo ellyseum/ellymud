@@ -183,34 +183,6 @@ await repo.save({
 
 **Key Point**: This repository handles `room_state.json`, keeping mutable data separate from the immutable templates in `rooms.json`.
 
-### `AsyncFileRoomStateRepository.ts`
-
-**Purpose**: Persists mutable room state separately from templates.
-
-```typescript
-import { AsyncFileRoomStateRepository } from '../persistence/AsyncFileRoomStateRepository';
-import { RoomState } from '../room/roomData';
-
-const repo = new AsyncFileRoomStateRepository();
-
-// Load all room states
-const states = await repo.findAll();
-
-// Get state for specific room
-const state = await repo.findByRoomId('town-square');
-
-// Save updated state
-await repo.save({
-  roomId: 'town-square',
-  itemInstances: [{ instanceId: 'sword-001', templateId: 'sword-iron' }],
-  npcTemplateIds: ['guard-1'],
-  currency: { gold: 100, silver: 50, copper: 25 }
-});
-```
-
-**Key Point**: This repository handles `room_state.json`, keeping mutable data separate from the immutable templates in `rooms.json`.
-- `AsyncFileNpcRepository` - JSON file NPC template storage
-
 ### `mappers/`
 
 **Purpose**: Centralized field conversion between DB and domain objects.
