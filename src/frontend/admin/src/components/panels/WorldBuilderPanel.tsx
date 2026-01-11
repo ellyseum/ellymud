@@ -645,31 +645,6 @@ export function WorldBuilderPanel() {
     setShowNewRoomModal(true);
   };
 
-  // Handle room position update from canvas drag
-  const handleUpdateRoomPosition = useCallback(async (roomId: string, x: number, y: number) => {
-    try {
-      // Update room with new grid position
-      await api.updateRoom(roomId, { gridX: Math.round(x), gridY: Math.round(y) });
-      
-      // Update local state
-      setAllRooms(prev => prev.map(room => 
-        room.id === roomId ? { ...room, gridX: Math.round(x), gridY: Math.round(y) } : room
-      ));
-      
-      if (selectedArea) {
-        setSelectedArea(prev => prev ? {
-          ...prev,
-          rooms: prev.rooms.map(room => 
-            room.id === roomId ? { ...room, gridX: Math.round(x), gridY: Math.round(y) } : room
-          )
-        } : null);
-      }
-    } catch (err) {
-      console.error('Error updating room position:', err);
-      // Silent fail for position updates - not critical
-    }
-  }, [selectedArea]);
-
   // Get opposite direction for bidirectional connections
   const getOppositeDirection = (direction: string): string => {
     const opposites: Record<string, string> = {
