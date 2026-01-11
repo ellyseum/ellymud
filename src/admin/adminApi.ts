@@ -1500,6 +1500,10 @@ export function createRoom() {
   return async (req: Request, res: Response) => {
     try {
       const roomData = req.body;
+      if (process.env.DEBUG === 'true') {
+        console.log('[DEBUG POST /rooms] Received roomData:', JSON.stringify(roomData));
+        console.log('[DEBUG POST /rooms] gridX:', roomData.gridX, 'gridY:', roomData.gridY);
+      }
 
       if (!roomData.id) {
         return res.status(400).json({
@@ -1536,6 +1540,16 @@ export function createRoom() {
         gridY: roomData.gridY,
         gridZ: roomData.gridZ,
       };
+
+      if (process.env.DEBUG === 'true') {
+        console.log('[DEBUG POST /rooms] fullRoomData:', JSON.stringify(fullRoomData));
+        console.log(
+          '[DEBUG POST /rooms] fullRoomData.gridX:',
+          fullRoomData.gridX,
+          'gridY:',
+          fullRoomData.gridY
+        );
+      }
 
       await roomManager.createRoom(fullRoomData);
 

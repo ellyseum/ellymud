@@ -1,48 +1,12 @@
 [
   {
-    "id": "start",
-    "name": "Town Square",
-    "description": "You are standing in the central town square. A large fountain bubbles peacefully in the center. Cobblestone paths lead in various directions.",
+    "id": "town-center-room-1",
+    "name": "Room 1",
+    "description": "A newly created room.",
     "exits": [
       {
         "direction": "north",
-        "roomId": "north-path"
-      },
-      {
-        "direction": "east",
-        "roomId": "east-road"
-      },
-      {
-        "direction": "south",
-        "roomId": "south-gate"
-      },
-      {
-        "direction": "west",
-        "roomId": "west-alley"
-      }
-    ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [
-      "goblin"
-    ],
-    "flags": [
-      "safe"
-    ],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    }
-  },
-  {
-    "id": "north-path",
-    "name": "North Path",
-    "description": "A quiet path leading north from the town square. Trees line both sides of the path.",
-    "exits": [
-      {
-        "direction": "south",
-        "roomId": "start"
+        "roomId": "town-center-room-2"
       }
     ],
     "items": [],
@@ -53,16 +17,23 @@
       "gold": 0,
       "silver": 0,
       "copper": 0
-    }
+    },
+    "areaId": "town-center",
+    "gridX": 0,
+    "gridY": 0
   },
   {
-    "id": "east-road",
-    "name": "East Road",
-    "description": "A well-maintained road leading east. You can hear the sounds of commerce in the distance.",
+    "id": "town-center-room-2",
+    "name": "Room 2",
+    "description": "A newly created room.",
     "exits": [
       {
-        "direction": "west",
-        "roomId": "start"
+        "direction": "south",
+        "roomId": "town-center-room-1"
+      },
+      {
+        "direction": "north",
+        "roomId": "town-center-room-3"
       }
     ],
     "items": [],
@@ -73,16 +44,77 @@
       "gold": 0,
       "silver": 0,
       "copper": 0
-    }
+    },
+    "areaId": "town-center",
+    "gridX": 0,
+    "gridY": -1
   },
   {
-    "id": "south-gate",
-    "name": "South Gate",
-    "description": "The southern gate of the town. Heavy wooden doors stand open, guarded by stone towers.",
+    "id": "town-center-room-3",
+    "name": "Room 3",
+    "description": "A newly created room.",
+    "exits": [
+      {
+        "direction": "south",
+        "roomId": "town-center-room-2"
+      },
+      {
+        "direction": "northeast",
+        "roomId": "town-center-room-4"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "flags": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    },
+    "areaId": "town-center",
+    "gridX": 0,
+    "gridY": -2
+  },
+  {
+    "id": "town-center-room-4",
+    "name": "Room 4",
+    "description": "A newly created room.",
+    "exits": [
+      {
+        "direction": "southwest",
+        "roomId": "town-center-room-3"
+      },
+      {
+        "direction": "south",
+        "roomId": "town-center-room-5"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "flags": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    },
+    "areaId": "town-center",
+    "gridX": 1,
+    "gridY": -3
+  },
+  {
+    "id": "town-center-room-5",
+    "name": "Room 5",
+    "description": "A newly created room.",
     "exits": [
       {
         "direction": "north",
-        "roomId": "start"
+        "roomId": "town-center-room-4"
+      },
+      {
+        "direction": "south",
+        "roomId": "town-center-room-6"
       }
     ],
     "items": [],
@@ -93,28 +125,194 @@
       "gold": 0,
       "silver": 0,
       "copper": 0
-    }
+    },
+    "areaId": "town-center",
+    "gridX": 1,
+    "gridY": -2
   },
   {
-    "id": "west-alley",
-    "name": "West Alley",
-    "description": "A narrow alley leading west. Shadows gather in the corners.",
+    "id": "town-center-room-6",
+    "name": "Room 6",
+    "description": "A newly created room.",
     "exits": [
       {
-        "direction": "east",
-        "roomId": "start"
+        "direction": "north",
+        "roomId": "town-center-room-5"
+      },
+      {
+        "direction": "south",
+        "roomId": "town-center-room-7"
       }
     ],
     "items": [],
     "itemInstances": [],
-    "npcs": [
-      "goblin"
-    ],
+    "npcs": [],
     "flags": [],
     "currency": {
       "gold": 0,
       "silver": 0,
       "copper": 0
-    }
+    },
+    "areaId": "town-center",
+    "gridX": 1,
+    "gridY": -1
+  },
+  {
+    "id": "town-center-room-7",
+    "name": "Room 7",
+    "description": "A newly created room.",
+    "exits": [
+      {
+        "direction": "north",
+        "roomId": "town-center-room-6"
+      },
+      {
+        "direction": "south",
+        "roomId": "town-center-room-8"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "flags": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    },
+    "areaId": "town-center",
+    "gridX": 1,
+    "gridY": 0
+  },
+  {
+    "id": "town-center-room-8",
+    "name": "Room 8",
+    "description": "A newly created room.",
+    "exits": [
+      {
+        "direction": "north",
+        "roomId": "town-center-room-7"
+      },
+      {
+        "direction": "west",
+        "roomId": "town-center-room-9"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "flags": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    },
+    "areaId": "town-center",
+    "gridX": 1,
+    "gridY": 1
+  },
+  {
+    "id": "town-center-room-9",
+    "name": "Room 9",
+    "description": "A newly created room.",
+    "exits": [
+      {
+        "direction": "east",
+        "roomId": "town-center-room-8"
+      },
+      {
+        "direction": "northwest",
+        "roomId": "town-center-room-10"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "flags": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    },
+    "areaId": "town-center",
+    "gridX": 0,
+    "gridY": 1
+  },
+  {
+    "id": "town-center-room-10",
+    "name": "Room 10",
+    "description": "A newly created room.",
+    "exits": [
+      {
+        "direction": "southeast",
+        "roomId": "town-center-room-9"
+      },
+      {
+        "direction": "southwest",
+        "roomId": "town-center-room-11"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "flags": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    },
+    "areaId": "town-center",
+    "gridX": -1,
+    "gridY": 0
+  },
+  {
+    "id": "town-center-room-11",
+    "name": "Room 11",
+    "description": "A newly created room.",
+    "exits": [
+      {
+        "direction": "northeast",
+        "roomId": "town-center-room-10"
+      },
+      {
+        "direction": "southeast",
+        "roomId": "town-center-room-12"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "flags": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    },
+    "areaId": "town-center",
+    "gridX": -2,
+    "gridY": 1
+  },
+  {
+    "id": "town-center-room-12",
+    "name": "Room 12",
+    "description": "A newly created room.",
+    "exits": [
+      {
+        "direction": "northwest",
+        "roomId": "town-center-room-11"
+      }
+    ],
+    "items": [],
+    "itemInstances": [],
+    "npcs": [],
+    "flags": [],
+    "currency": {
+      "gold": 0,
+      "silver": 0,
+      "copper": 0
+    },
+    "areaId": "town-center",
+    "gridX": -1,
+    "gridY": 2
   }
 ]

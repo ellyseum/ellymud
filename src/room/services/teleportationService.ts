@@ -5,6 +5,7 @@ import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { formatUsername } from '../../utils/formatters';
 import { systemLogger, getPlayerLogger } from '../../utils/logger';
+import { EMERGENCY_ROOM_ID } from '../roomManager';
 
 export class TeleportationService implements ITeleportationService {
   private roomManager: {
@@ -45,8 +46,14 @@ export class TeleportationService implements ITeleportationService {
     if (!client.user) return false;
 
     // Check if the player is in a valid room
+    // Treat empty or emergency room ID as "no valid room"
     const currentRoomId = client.user.currentRoomId;
-    if (currentRoomId && this.roomManager.getRoom(currentRoomId)) {
+    const hasValidRoom =
+      currentRoomId &&
+      currentRoomId !== EMERGENCY_ROOM_ID &&
+      this.roomManager.getRoom(currentRoomId);
+
+    if (hasValidRoom) {
       // Player is in a valid room, no need to teleport
       return false;
     }

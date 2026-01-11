@@ -11,7 +11,7 @@ import { formatUsername } from '../../utils/formatters';
 import { getPlayerLogger } from '../../utils/logger';
 import { CommandHandler } from '../../command/commandHandler';
 import { UserManager } from '../../user/userManager';
-import { RoomManager } from '../roomManager';
+import { RoomManager, EMERGENCY_ROOM_ID } from '../roomManager';
 
 export class PlayerMovementService implements IPlayerMovementService {
   private roomManager: {
@@ -83,8 +83,10 @@ export class PlayerMovementService implements IPlayerMovementService {
       return false;
     }
 
-    // Get current room
-    const currentRoomId = client.user.currentRoomId || this.roomManager.getStartingRoomId();
+    // Get current room - treat emergency room ID as "no saved room"
+    const savedRoomId = client.user.currentRoomId;
+    const effectiveRoomId = savedRoomId && savedRoomId !== EMERGENCY_ROOM_ID ? savedRoomId : null;
+    const currentRoomId = effectiveRoomId || this.roomManager.getStartingRoomId();
     const currentRoom = this.roomManager.getRoom(currentRoomId);
 
     if (!currentRoom) {
