@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { api } from '../../services/api';
-import { MUDConfig } from '../../types';
+import { MUDConfig, RoomData } from '../../types';
 import { LoadingSpinner } from '../LoadingSpinner';
 
 export function ConfigPanel() {
@@ -9,6 +9,11 @@ export function ConfigPanel() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [usingMockData, setUsingMockData] = useState(false);
+  
+  // Rooms for typeahead dropdown
+  const [allRooms, setAllRooms] = useState<RoomData[]>([]);
+  const [roomSearchQuery, setRoomSearchQuery] = useState('');
+  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -25,6 +30,16 @@ export function ConfigPanel() {
     backupInterval: '',
     logLevel: 'info',
   });
+  
+  // Filtered rooms for typeahead
+  const filteredRooms = useMemo(() => {
+    if (!roomSearchQuery.trim()) return allRooms.slice(0, 20); // Show first 20 when empty
+    const query = roomSearchQuery.toLowerCase();
+    return allRooms.filter(room => 
+      room.id.toLowerCase().includes(query) || 
+      room.name.toLowerCase().includes(query)
+    ).slice(0, 20);
+  }, [allRooms, roomSearchQuery]);
 
   const fetchConfig = useCallback(async () => {
     setLoading(true);
@@ -92,6 +107,23 @@ export function ConfigPanel() {
   useEffect(() => {
     fetchConfig();
   }, [fetchConfig]);
+
+  // Fetch rooms for typeahead dropdown
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await api.getRooms();
+        const roomsData = response as { success: boolean; rooms?: RoomData[]; data?: { rooms: RoomData[] } };
+        if (roomsData.success) {
+          const rooms = roomsData.rooms || roomsData.data?.rooms || [];
+          setAllRooms(rooms);
+        }
+      } catch (err) {
+        console.error('Error fetching rooms for dropdown:', err);
+      }
+    };
+    fetchRooms();
+  }, []);
 
   const handleSave = async () => {
     if (!formData.playersPath || !formData.roomsPath) {
@@ -234,14 +266,61 @@ export function ConfigPanel() {
             <div className="card-body">
               <div className="mb-3">
                 <label className="form-label">Starting Room</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={formData.startingRoom}
-                  onChange={(e) =>
-                    setFormData({ ...formData, startingRoom: e.target.value })
-                  }
-                />
+                <div className="position-relative">
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={roomSearchQuery || formData.startingRoom}
+                    onChange={(e) => {
+                      setRoomSearchQuery(e.target.value);
+                      setShowRoomDropdown(true);
+                    }}
+                    onFocus={() => {
+                      setRoomSearchQuery(formData.startingRoom);
+                      setShowRoomDropdown(true);
+                    }}
+                    onBlur={() => {
+                      // Delay to allow click on dropdown item
+                      setTimeout(() => setShowRoomDropdown(false), 200);
+                    }}
+                    placeholder="Type to search rooms..."
+                  />
+                  {showRoomDropdown && filteredRooms.length > 0 && (
+                    <div 
+                      className="dropdown-menu show w-100" 
+                      style={{ 
+                        maxHeight: '200px', 
+                        overflowY: 'auto',
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        zIndex: 1000
+                      }}
+                    >
+                      {filteredRooms.map(room => (
+                        <button
+                          key={room.id}
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setFormData({ ...formData, startingRoom: room.id });
+                            setRoomSearchQuery('');
+                            setShowRoomDropdown(false);
+                          }}
+                        >
+                          <strong>{room.id}</strong>
+                          <span className="text-muted ms-2">- {room.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {formData.startingRoom && !roomSearchQuery && (
+                    <small className="text-muted">
+                      {allRooms.find(r => r.id === formData.startingRoom)?.name || 
+                        <span className="text-warning">Room not found!</span>}
+                    </small>
+                  )}
+                </div>
               </div>
               <div className="mb-3">
                 <label className="form-label">Max Players</label>

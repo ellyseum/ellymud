@@ -39,6 +39,7 @@ import { getPromptText } from './utils/promptFormatter'; // Import the getPrompt
 import { TestModeOptions, getDefaultTestModeOptions } from './testing/testMode';
 import { StateLoader } from './testing/stateLoader';
 import { checkAndAutoMigrate } from './data/autoMigrate';
+import { AreaManager } from './area/areaManager';
 
 /**
  * Port configuration for GameServer
@@ -340,6 +341,7 @@ export class GameServer {
       this.userManager.ensureInitialized(),
       this.roomManager.ensureInitialized(),
       ItemManager.getInstance().ensureInitialized(),
+      AreaManager.getInstance().initialize(),
     ]);
 
     // Pre-warm the NPC cache (load from repository)

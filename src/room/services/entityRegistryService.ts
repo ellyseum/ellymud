@@ -6,6 +6,7 @@ import { colorize } from '../../utils/colors';
 import { writeToClient, writeFormattedMessageToClient } from '../../utils/socketWriter';
 import { formatUsername } from '../../utils/formatters';
 import { ItemManager } from '../../utils/itemManager';
+import { EMERGENCY_ROOM_ID } from '../roomManager';
 
 export class EntityRegistryService implements IEntityRegistryService {
   private roomManager: {
@@ -104,8 +105,10 @@ export class EntityRegistryService implements IEntityRegistryService {
     // Get ItemManager instance
     const itemManager = ItemManager.getInstance();
 
-    // Get current room
-    const roomId = client.user.currentRoomId || this.roomManager.getStartingRoomId();
+    // Get current room - treat emergency room ID as "no saved room"
+    const savedRoomId = client.user.currentRoomId;
+    const effectiveRoomId = savedRoomId && savedRoomId !== EMERGENCY_ROOM_ID ? savedRoomId : null;
+    const roomId = effectiveRoomId || this.roomManager.getStartingRoomId();
     const room = this.roomManager.getRoom(roomId);
 
     if (!room) {

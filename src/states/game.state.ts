@@ -1,7 +1,7 @@
 import { ClientState, ClientStateType, ConnectedClient } from '../types';
 import { colorize } from '../utils/colors';
 import { writeFormattedMessageToClient, drawCommandPrompt } from '../utils/socketWriter';
-import { RoomManager } from '../room/roomManager';
+import { RoomManager, EMERGENCY_ROOM_ID } from '../room/roomManager';
 import { formatUsername } from '../utils/formatters';
 import { createContextLogger } from '../utils/logger';
 
@@ -41,16 +41,24 @@ export class GameState implements ClientState {
     }
 
     // Determine which room to enter
+    // Treat emergency void room as "no saved room" - always find a real room
+    const savedRoomId = client.user.currentRoomId;
+    const effectiveSavedRoom =
+      savedRoomId && savedRoomId !== EMERGENCY_ROOM_ID ? savedRoomId : null;
+
     const roomId =
       client.stateData?.previousRoomId ||
-      client.user.currentRoomId ||
+      effectiveSavedRoom ||
       this.roomManager.getStartingRoomId();
 
     // Get the room and add player
     const room = this.roomManager.getRoom(roomId);
     if (room) {
       room.addPlayer(client.user.username);
-      client.user.currentRoomId = roomId;
+      // Only save room ID if it's not the emergency room
+      if (roomId !== EMERGENCY_ROOM_ID) {
+        client.user.currentRoomId = roomId;
+      }
 
       // Get the username for messaging
       const username = formatUsername(client.user.username);
@@ -62,13 +70,44 @@ export class GameState implements ClientState {
     } else {
       // Fallback to starting room if specified room doesn't exist
       const startingRoomId = this.roomManager.getStartingRoomId();
+      // getRoom will auto-create the emergency room if startingRoomId is EMERGENCY_ROOM_ID
       const startingRoom = this.roomManager.getRoom(startingRoomId);
+
       if (startingRoom) {
         startingRoom.addPlayer(client.user.username);
-        client.user.currentRoomId = startingRoomId;
-        gameLogger.warn(
-          `Room ${roomId} not found, placing user in starting room ${startingRoomId}`
-        );
+        // Only save room ID if it's not the emergency room
+        if (startingRoomId !== EMERGENCY_ROOM_ID) {
+          client.user.currentRoomId = startingRoomId;
+        }
+
+        // Show appropriate message based on room type
+        if (startingRoomId === EMERGENCY_ROOM_ID) {
+          writeFormattedMessageToClient(
+            client,
+            colorize('\r\n⚠ No rooms exist in this world yet!\r\n', 'yellow') +
+              colorize(
+                'You have been placed in the Void. Read the instructions below to create your world.\r\n\r\n',
+                'cyan'
+              )
+          );
+          gameLogger.warn(
+            `No rooms exist! User ${client.user.username} placed in emergency void room`
+          );
+        } else {
+          writeFormattedMessageToClient(
+            client,
+            colorize(
+              `Your previous location no longer exists. You have been moved to ${startingRoom.name}.\r\n`,
+              'yellow'
+            )
+          );
+          gameLogger.warn(
+            `Room ${roomId} not found, placing user in starting room ${startingRoomId}`
+          );
+        }
+      } else {
+        // This should never happen now that getRoom auto-creates emergency room
+        gameLogger.error(`Critical: Could not get any room for user ${client.user.username}`);
       }
     }
 

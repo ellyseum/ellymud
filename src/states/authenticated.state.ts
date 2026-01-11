@@ -7,7 +7,7 @@ import {
   drawCommandPrompt,
 } from '../utils/socketWriter';
 import { formatUsername } from '../utils/formatters';
-import { RoomManager } from '../room/roomManager';
+import { RoomManager, EMERGENCY_ROOM_ID } from '../room/roomManager';
 import { Room } from '../room/room';
 import { UserManager } from '../user/userManager';
 import { CombatSystem } from '../combat/combatSystem';
@@ -233,6 +233,21 @@ export class AuthenticatedState implements ClientState {
       client.user.currentRoomId = client.stateData.previousRoomId;
       delete client.stateData.previousRoomId;
       delete client.stateData.previousState;
+    }
+
+    // Ensure player has a valid room - treat empty or emergency room as "needs assignment"
+    const savedRoomId = client.user.currentRoomId;
+    const needsRoomAssignment = !savedRoomId || savedRoomId === EMERGENCY_ROOM_ID;
+
+    if (needsRoomAssignment) {
+      // Assign player to the starting room
+      const startingRoomId = this.roomManager.getStartingRoomId();
+      if (startingRoomId !== EMERGENCY_ROOM_ID) {
+        client.user.currentRoomId = startingRoomId;
+        authStateLogger.info(
+          `Assigned ${client.user.username} to starting room: ${startingRoomId}`
+        );
+      }
     }
 
     // Ensure client is in the room

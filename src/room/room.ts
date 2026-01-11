@@ -21,6 +21,12 @@ interface RoomConstructorData {
   objects?: (string | Item)[];
   currency?: Currency;
   npcs?: Map<string, NPC> | string[];
+  /** Area this room belongs to */
+  areaId?: string;
+  /** Grid coordinates for visual editor */
+  gridX?: number;
+  gridY?: number;
+  gridZ?: number;
 }
 
 export class Room {
@@ -42,12 +48,23 @@ export class Room {
   private itemManager: ItemManager;
   public hasChanged: boolean = false;
 
+  /** Area this room belongs to (for World Builder) */
+  areaId?: string;
+  /** Grid coordinates for visual editor */
+  gridX?: number;
+  gridY?: number;
+  gridZ?: number;
+
   constructor(room: RoomConstructorData) {
     this.id = room.id;
     this.name = room.name || room.shortDescription || 'Unknown Room';
     this.description = room.description || room.longDescription || '';
     this.exits = room.exits || [];
     this.players = room.players || [];
+    this.areaId = room.areaId;
+    this.gridX = room.gridX;
+    this.gridY = room.gridY;
+    this.gridZ = room.gridZ;
     this.flags = room.flags || [];
 
     // Initialize itemInstances
@@ -581,6 +598,10 @@ export class Room {
       npcs: npcTemplateIds,
       currency: this.currency,
       flags: this.flags,
+      areaId: this.areaId,
+      gridX: this.gridX,
+      gridY: this.gridY,
+      gridZ: this.gridZ,
     };
   }
 }
