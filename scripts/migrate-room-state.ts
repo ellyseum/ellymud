@@ -50,6 +50,7 @@ interface RoomTemplate {
   areaId?: string;
   gridX?: number;
   gridY?: number;
+  defaultNpcs?: string[];
 }
 
 const DATA_DIR = path.join(__dirname, '..', 'data');

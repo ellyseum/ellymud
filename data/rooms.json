@@ -9,15 +9,7 @@
         "roomId": "town-center-room-2"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": 0,
     "gridY": 0
@@ -36,15 +28,7 @@
         "roomId": "town-center-room-3"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": 0,
     "gridY": -1
@@ -63,15 +47,7 @@
         "roomId": "town-center-room-4"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": 0,
     "gridY": -2
@@ -90,15 +66,7 @@
         "roomId": "town-center-room-5"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": 1,
     "gridY": -3
@@ -117,15 +85,7 @@
         "roomId": "town-center-room-6"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": 1,
     "gridY": -2
@@ -144,15 +104,7 @@
         "roomId": "town-center-room-7"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": 1,
     "gridY": -1
@@ -171,15 +123,7 @@
         "roomId": "town-center-room-8"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": 1,
     "gridY": 0
@@ -198,15 +142,7 @@
         "roomId": "town-center-room-9"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": 1,
     "gridY": 1
@@ -225,15 +161,7 @@
         "roomId": "town-center-room-10"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": 0,
     "gridY": 1
@@ -252,15 +180,7 @@
         "roomId": "town-center-room-11"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": -1,
     "gridY": 0
@@ -279,15 +199,7 @@
         "roomId": "town-center-room-12"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": -2,
     "gridY": 1
@@ -302,15 +214,7 @@
         "roomId": "town-center-room-11"
       }
     ],
-    "items": [],
-    "itemInstances": [],
-    "npcs": [],
     "flags": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "areaId": "town-center",
     "gridX": -1,
     "gridY": 2
