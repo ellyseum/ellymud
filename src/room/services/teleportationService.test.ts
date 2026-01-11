@@ -6,6 +6,7 @@
 import { TeleportationService } from './teleportationService';
 import { Room } from '../room';
 import { createMockUser, createMockClient, createMockRoom } from '../../test/helpers/mockFactories';
+import { EMERGENCY_ROOM_ID } from '../roomManager';
 
 // Mock dependencies
 jest.mock('../../utils/colors', () => ({
@@ -30,6 +31,18 @@ jest.mock('../../utils/logger', () => ({
     error: jest.fn(),
   },
   getPlayerLogger: jest.fn(() => ({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  })),
+  createContextLogger: jest.fn(() => ({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  })),
+  createMechanicsLogger: jest.fn(() => ({
     info: jest.fn(),
     debug: jest.fn(),
     warn: jest.fn(),
@@ -131,6 +144,29 @@ describe('TeleportationService', () => {
       const result = teleportationService.teleportToStartingRoomIfNeeded(client);
 
       expect(result).toBe(true);
+    });
+
+    it('should return true (teleport needed) when currentRoomId is EMERGENCY_ROOM_ID', () => {
+      const client = createMockClient({
+        user: createMockUser({ currentRoomId: EMERGENCY_ROOM_ID }),
+      });
+
+      const result = teleportationService.teleportToStartingRoomIfNeeded(client);
+
+      expect(result).toBe(true);
+    });
+
+    it('should call teleportToStartingRoom when currentRoomId is EMERGENCY_ROOM_ID', () => {
+      const client = createMockClient({
+        user: createMockUser({ currentRoomId: EMERGENCY_ROOM_ID }),
+      });
+
+      teleportationService.teleportToStartingRoomIfNeeded(client);
+
+      // Verify teleportation happened by checking that user was moved to starting room
+      expect(client.user!.currentRoomId).toBe('starting-room');
+      expect(startingRoom.addPlayer).toHaveBeenCalledWith('testuser');
+      expect(mockWriteToClient).toHaveBeenCalledWith(client, expect.stringContaining('teleported'));
     });
   });
 

@@ -150,6 +150,42 @@ describe('Room', () => {
 
       expect(room.flags).toEqual(['safe', 'no-combat']);
     });
+
+    it('should accept and store areaId', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        areaId: 'town-area',
+      });
+
+      expect(room.areaId).toBe('town-area');
+    });
+
+    it('should accept and store gridX, gridY, gridZ coordinates', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+        gridX: 5,
+        gridY: 10,
+        gridZ: 2,
+      });
+
+      expect(room.gridX).toBe(5);
+      expect(room.gridY).toBe(10);
+      expect(room.gridZ).toBe(2);
+    });
+
+    it('should handle undefined grid coordinates', () => {
+      const room = new Room({
+        id: 'test',
+        name: 'Test',
+      });
+
+      expect(room.areaId).toBeUndefined();
+      expect(room.gridX).toBeUndefined();
+      expect(room.gridY).toBeUndefined();
+      expect(room.gridZ).toBeUndefined();
+    });
   });
 
   describe('addPlayer', () => {
@@ -680,6 +716,92 @@ describe('Room Additional Coverage', () => {
 
       expect(desc).toContain('1 gold piece');
       expect(desc).not.toContain('pieces');
+    });
+  });
+
+  describe('toData', () => {
+    it('should include areaId in output', () => {
+      const room = new Room({
+        id: 'test-room',
+        name: 'Test Room',
+        description: 'A test room',
+        areaId: 'dungeon-area',
+      });
+
+      const data = room.toData();
+
+      expect(data.areaId).toBe('dungeon-area');
+    });
+
+    it('should include gridX, gridY, gridZ in output', () => {
+      const room = new Room({
+        id: 'test-room',
+        name: 'Test Room',
+        description: 'A test room',
+        gridX: 3,
+        gridY: 7,
+        gridZ: 1,
+      });
+
+      const data = room.toData();
+
+      expect(data.gridX).toBe(3);
+      expect(data.gridY).toBe(7);
+      expect(data.gridZ).toBe(1);
+    });
+
+    it('should handle undefined grid coordinates in output', () => {
+      const room = new Room({
+        id: 'test-room',
+        name: 'Test Room',
+        description: 'A test room',
+      });
+
+      const data = room.toData();
+
+      expect(data.areaId).toBeUndefined();
+      expect(data.gridX).toBeUndefined();
+      expect(data.gridY).toBeUndefined();
+      expect(data.gridZ).toBeUndefined();
+    });
+
+    it('should include all basic properties in output', () => {
+      const room = new Room({
+        id: 'test-room',
+        name: 'Test Room',
+        description: 'A test room',
+        exits: [{ direction: 'north', roomId: 'other-room' }],
+        flags: ['safe'],
+        currency: { gold: 10, silver: 5, copper: 0 },
+      });
+
+      const data = room.toData();
+
+      expect(data.id).toBe('test-room');
+      expect(data.name).toBe('Test Room');
+      expect(data.description).toBe('A test room');
+      expect(data.exits).toEqual([{ direction: 'north', roomId: 'other-room' }]);
+      expect(data.flags).toEqual(['safe']);
+      expect(data.currency).toEqual({ gold: 10, silver: 5, copper: 0 });
+    });
+
+    it('should include all World Builder properties together', () => {
+      const room = new Room({
+        id: 'grid-room',
+        name: 'Grid Room',
+        description: 'A room with grid coordinates',
+        areaId: 'forest-area',
+        gridX: 0,
+        gridY: 0,
+        gridZ: 0,
+      });
+
+      const data = room.toData();
+
+      expect(data.areaId).toBe('forest-area');
+      expect(data.gridX).toBe(0);
+      expect(data.gridY).toBe(0);
+      expect(data.gridZ).toBe(0);
     });
   });
 });
