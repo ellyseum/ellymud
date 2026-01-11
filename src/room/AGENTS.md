@@ -116,7 +116,7 @@ export class Room {
   players: string[]; // usernames
   flags: string[]; // e.g. ['safe', 'training']
   currency: Currency;
-areaId?: string;  // Area this room belongs to
+  areaId?: string;  // Area this room belongs to
   gridX?: number;   // X coordinate for visual editor
   gridY?: number;   // Y coordinate for visual editor
   gridZ?: number;   // Floor/level (Z coordinate)
@@ -125,7 +125,7 @@ areaId?: string;  // Area this room belongs to
   getExit(direction: string): Exit | undefined;
   addPlayer(username: string): void;
   removePlayer(username: string): void;
-toData(): RoomData;  // Convert to plain data object
+  toData(): RoomData;  // Convert to plain data object
   addItemInstance(instanceId: string, templateId: string): void;
   removeItemInstance(instanceId: string): boolean;
 }
