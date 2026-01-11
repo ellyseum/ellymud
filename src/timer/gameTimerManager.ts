@@ -366,8 +366,8 @@ export class GameTimerManager extends EventEmitter {
       // Save users
       this.userManager.forceSave();
 
-      // Save rooms
-      this.roomManager.forceSave();
+      // Save room state only (not templates)
+      this.roomManager.forceSaveState();
 
       // Emit save event for other systems to hook into
       this.emit('save');

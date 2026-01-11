@@ -9,8 +9,9 @@ import { systemLogger } from '../utils/logger';
 import { NPC } from '../combat/npc';
 import { IRoomManager } from './interfaces';
 import { parseAndValidateJson } from '../utils/jsonUtils';
-import { IAsyncRoomRepository } from '../persistence/interfaces';
-import { getRoomRepository } from '../persistence/RepositoryFactory';
+import { IAsyncRoomRepository, IAsyncRoomStateRepository } from '../persistence/interfaces';
+import { getRoomRepository, getRoomStateRepository } from '../persistence/RepositoryFactory';
+import { RoomState } from './roomData';
 import config from '../config';
 
 // Import our service classes
@@ -46,6 +47,7 @@ export class RoomManager implements IRoomManager {
   private roomUINotificationService!: RoomUINotificationService;
   private teleportationService!: TeleportationService;
   private repository: IAsyncRoomRepository;
+  private stateRepository: IAsyncRoomStateRepository;
   private initialized: boolean = false;
   private initPromise: Promise<void> | null = null;
 
@@ -53,10 +55,15 @@ export class RoomManager implements IRoomManager {
   private static instance: RoomManager | null = null;
 
   // Make constructor private for singleton pattern
-  private constructor(clients: Map<string, ConnectedClient>, repository?: IAsyncRoomRepository) {
+  private constructor(
+    clients: Map<string, ConnectedClient>,
+    repository?: IAsyncRoomRepository,
+    stateRepository?: IAsyncRoomStateRepository
+  ) {
     systemLogger.info('Creating RoomManager instance');
     this.clients = clients;
     this.repository = repository ?? getRoomRepository();
+    this.stateRepository = stateRepository ?? getRoomStateRepository();
 
     // Initialize services
     this.initializeServices();
@@ -71,6 +78,7 @@ export class RoomManager implements IRoomManager {
   private async initialize(): Promise<void> {
     if (this.initialized) return;
     await this.loadRooms();
+    await this.loadRoomState();
     this.initialized = true;
     this.initPromise = null;
   }
@@ -104,16 +112,18 @@ export class RoomManager implements IRoomManager {
   }
 
   /**
-   * Create a RoomManager with a custom repository (for testing)
+   * Create a RoomManager with custom repositories (for testing)
    * @param clients The connected clients map
-   * @param repository Optional repository implementation
+   * @param repository Optional room repository implementation
+   * @param stateRepository Optional state repository implementation
    */
   public static createWithRepository(
     clients: Map<string, ConnectedClient>,
-    repository: IAsyncRoomRepository
+    repository: IAsyncRoomRepository,
+    stateRepository?: IAsyncRoomStateRepository
   ): RoomManager {
     RoomManager.resetInstance();
-    RoomManager.instance = new RoomManager(clients, repository);
+    RoomManager.instance = new RoomManager(clients, repository, stateRepository);
     return RoomManager.instance;
   }
 
@@ -229,6 +239,52 @@ export class RoomManager implements IRoomManager {
       }
     } catch (error) {
       systemLogger.error('[RoomManager] Error loading rooms from repository:', error);
+    }
+  }
+
+  /**
+   * Load room state (items, NPCs, currency) from state repository
+   * Called after rooms are loaded to hydrate runtime state
+   */
+  private async loadRoomState(): Promise<void> {
+    try {
+      const states = await this.stateRepository.findAll();
+
+      if (states.length === 0) {
+        systemLogger.info('[RoomManager] No room state found, using defaults');
+        return;
+      }
+
+      let hydratedCount = 0;
+      for (const state of states) {
+        const room = this.rooms.get(state.roomId);
+        if (room) {
+          // Hydrate room with saved state
+          room.currency = state.currency;
+
+          // Legacy items support
+          if (state.items && state.items.length > 0) {
+            room.items = state.items;
+          }
+
+          // Item instances - will be hydrated by ItemManager
+          // For now, store the serialized data for later hydration
+          if (state.itemInstances && state.itemInstances.length > 0) {
+            room.hydrateItemInstances(state.itemInstances);
+          }
+
+          // NPCs are instantiated from templates during room loading
+          // State only persists which templates were in the room
+          hydratedCount++;
+        } else {
+          systemLogger.warn(`[RoomManager] Room state for unknown room: ${state.roomId}`);
+        }
+      }
+
+      systemLogger.info(`[RoomManager] Hydrated ${hydratedCount} rooms with saved state`);
+    } catch (error) {
+      systemLogger.error('[RoomManager] Error loading room state:', error);
+      // Continue with defaults - don't fail server startup
     }
   }
 
@@ -537,10 +593,64 @@ To create rooms and build your world, follow these steps:
   }
 
   /**
-   * Force saving rooms data
+   * Force saving rooms data (DEPRECATED - use forceSaveState for autosave)
    * Public method for tick system to call
+   * @deprecated Use forceSaveState() for autosave, forceSaveTemplates() for templates
    */
   public forceSave(): void {
+    this.saveRooms();
+  }
+
+  /**
+   * Save only room state (items, NPCs, currency) - used by autosave
+   * This is the primary save method called during gameplay
+   */
+  public forceSaveState(): void {
+    if (this.testMode) {
+      systemLogger.debug('[RoomManager] Skipping state save - test mode active');
+      return;
+    }
+
+    void this.saveRoomStateAsync().catch((error) => {
+      systemLogger.error('[RoomManager] State save failed:', error);
+    });
+  }
+
+  /**
+   * Async implementation of room state save
+   */
+  private async saveRoomStateAsync(): Promise<void> {
+    const states: RoomState[] = Array.from(this.rooms.values()).map((room) => {
+      const npcTemplateIds: string[] = [];
+      room.npcs.forEach((npc) => {
+        npcTemplateIds.push(npc.templateId);
+      });
+
+      const serializedItemInstances = room.serializeItemInstances();
+
+      // Convert items to string IDs for storage
+      const itemIds: string[] = room.items
+        .map((item) => (typeof item === 'string' ? item : item.name))
+        .filter((id): id is string => id !== undefined && id !== null);
+
+      return {
+        roomId: room.id,
+        itemInstances: serializedItemInstances,
+        npcTemplateIds,
+        currency: room.currency,
+        items: itemIds,
+      };
+    });
+
+    await this.stateRepository.saveAll(states);
+    systemLogger.debug(`[RoomManager] Saved state for ${states.length} rooms`);
+  }
+
+  /**
+   * Force saving room templates (rarely needed - only for world editor)
+   * Templates are static and don't change during normal gameplay
+   */
+  public forceSaveTemplates(): void {
     this.saveRooms();
   }
 

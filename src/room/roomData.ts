@@ -7,6 +7,10 @@
 import { Currency, Exit, Item } from '../types';
 import { NPC } from '../combat/npc';
 
+// Re-export template and state interfaces for centralized access
+export { RoomTemplate, RoomTemplateWithDefaults } from './roomTemplate';
+export { RoomState, RoomStateData, SerializedItemInstance } from './roomState';
+
 /**
  * Plain data representation of a Room
  * Used for storage and transfer, not runtime operations

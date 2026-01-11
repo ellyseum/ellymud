@@ -6,7 +6,7 @@
 
 import { GameItem, ItemInstance, User } from '../types';
 import { Room } from '../room/room';
-import { RoomData } from '../room/roomData';
+import { RoomData, RoomState } from '../room/roomData';
 import { NPCData } from '../combat/npc';
 import { Area } from '../area/area';
 
@@ -63,6 +63,21 @@ export interface IAsyncRoomRepository {
   save(room: RoomData): Promise<void>;
   saveAll(rooms: RoomData[]): Promise<void>;
   delete(id: string): Promise<void>;
+}
+
+/**
+ * Async repository interface for Room State persistence
+ * Handles mutable room data (items, NPCs, currency) separately from templates
+ */
+export interface IAsyncRoomStateRepository {
+  // Read operations
+  findAll(): Promise<RoomState[]>;
+  findByRoomId(roomId: string): Promise<RoomState | undefined>;
+
+  // Write operations
+  save(state: RoomState): Promise<void>;
+  saveAll(states: RoomState[]): Promise<void>;
+  delete(roomId: string): Promise<void>;
 }
 
 /**

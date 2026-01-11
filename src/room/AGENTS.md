@@ -9,12 +9,24 @@ The room system manages the game world's spatial structure. Each room has an ID,
 ```
 RoomManager (Singleton)
 ├── rooms: Map<string, Room>
-├── DirectionHelper         - Direction name normalization
-├── EntityRegistryService   - Track entities in rooms
-├── NPCInteractionService   - NPC targeting in rooms
-├── PlayerMovementService   - Player navigation
-├── RoomUINotificationService - Room messages
-└── TeleportationService    - Teleport players
+├── templateRepository          - Load static templates (rooms.json)
+├── stateRepository             - Save/load mutable state (room_state.json)
+├── DirectionHelper             - Direction name normalization
+├── EntityRegistryService       - Track entities in rooms
+├── NPCInteractionService       - NPC targeting in rooms
+├── PlayerMovementService       - Player navigation
+├── RoomUINotificationService   - Room messages
+└── TeleportationService        - Teleport players
+
+Data Separation:
+┌─────────────────────────────────────────────────────────────┐
+│ RoomTemplate (roomTemplate.ts)      │ RoomState (roomState.ts) │
+├─────────────────────────────────────┼──────────────────────────┤
+│ id, name, description               │ itemInstances            │
+│ exits, flags                        │ npcTemplateIds           │
+│ areaId, gridX, gridY                │ currency                 │
+│ (read-only from rooms.json)         │ (saved to room_state.json)│
+└─────────────────────────────────────┴──────────────────────────┘
 ```
 
 ## File Reference
@@ -55,7 +67,28 @@ export class RoomManager implements IRoomManager {
   // Item management
   addItemToRoom(roomId: string, item: Item): void;
   removeItemFromRoom(roomId: string, itemId: string): void;
+
+  // State persistence (NEW)
+  forceSaveState(): void;           // Trigger state save to room_state.json
+  forceSaveTemplates(): void;       // Save templates to rooms.json (admin)
 }
+```
+
+**Singleton Pattern with State Repository**:
+
+```typescript
+// ✅ Correct - uses default repositories
+const roomManager = RoomManager.getInstance(clients);
+
+// ✅ Correct - inject custom repositories (testing)
+const roomManager = RoomManager.getInstance(
+  clients,
+  mockTemplateRepo,
+  mockStateRepo
+);
+
+// ❌ Incorrect - constructor is private
+const roomManager = new RoomManager(clients);
 ```
 
 **Singleton Pattern**:
@@ -83,15 +116,82 @@ export class Room {
   players: string[]; // usernames
   flags: string[]; // e.g. ['safe', 'training']
   currency: Currency;
-  areaId?: string;  // Area this room belongs to
+areaId?: string;  // Area this room belongs to
   gridX?: number;   // X coordinate for visual editor
   gridY?: number;   // Y coordinate for visual editor
   gridZ?: number;   // Floor/level (Z coordinate)
+  hasChanged: boolean; // Track if state needs saving
 
   getExit(direction: string): Exit | undefined;
   addPlayer(username: string): void;
   removePlayer(username: string): void;
-  toData(): RoomData;  // Convert to plain data object
+toData(): RoomData;  // Convert to plain data object
+  addItemInstance(instanceId: string, templateId: string): void;
+  removeItemInstance(instanceId: string): boolean;
+}
+```
+
+### `roomTemplate.ts`
+
+**Purpose**: Static room template interface (immutable data)
+
+```typescript
+// Core room template - loaded once, never saved
+export interface RoomTemplate {
+  id: string;
+  name: string;
+  description: string;
+  exits: Exit[];
+  flags: string[];
+  areaId?: string;
+  gridX?: number;
+  gridY?: number;
+}
+
+// Extended with default spawns
+export interface RoomTemplateWithDefaults extends RoomTemplate {
+  defaultNpcs?: string[];
+}
+```
+
+**Key Point**: Templates are loaded from `rooms.json` at startup and never modified during gameplay.
+
+### `roomState.ts`
+
+**Purpose**: Mutable room state interface (runtime data)
+
+```typescript
+// Minimal item reference for storage
+export interface SerializedItemInstance {
+  instanceId: string;
+  templateId: string;
+}
+
+// Room state - saved periodically via autosave
+export interface RoomState {
+  roomId: string;
+  itemInstances: SerializedItemInstance[];
+  npcTemplateIds: string[];
+  currency: Currency;
+  items?: string[]; // Legacy field
+}
+```
+
+**Key Point**: State is saved to `room_state.json` via autosave and loaded on startup.
+
+### `roomData.ts`
+
+**Purpose**: Centralized exports and shared interfaces
+
+```typescript
+// Re-exports for convenient imports
+export { RoomTemplate, RoomTemplateWithDefaults } from './roomTemplate';
+export { RoomState, RoomStateData, SerializedItemInstance } from './roomState';
+
+// Plain data for serialization
+export interface RoomData {
+  id: string;
+  // ... combined template + state fields
 }
 ```
 
@@ -251,6 +351,21 @@ for (const npc of npcs) {
 roomManager.addItemToRoom(roomId, item);
 ```
 
+### Migrating Existing Room Data
+
+If you have existing rooms with state embedded in `rooms.json`:
+
+```bash
+# Dry run - see what would change
+npx ts-node scripts/migrate-room-state.ts --dry-run
+
+# Create room_state.json from existing data
+npx ts-node scripts/migrate-room-state.ts
+
+# Optionally clean templates (remove state fields from rooms.json)
+npx ts-node scripts/migrate-room-state.ts --clean-templates
+```
+
 ## Gotchas & Warnings
 
 - ⚠️ **Singleton**: Always use `getInstance()`, never `new RoomManager()`
@@ -258,12 +373,16 @@ roomManager.addItemToRoom(roomId, item);
 - ⚠️ **Player Tracking**: Rooms track players by username, not client ID
 - ⚠️ **Starting Room**: Default is `'start'`—must exist in rooms.json
 - ⚠️ **Exit Validation**: Always validate exit exists before moving
+- ⚠️ **Template vs State**: Templates are read-only; don't try to persist template changes via state repository
+- ⚠️ **hasChanged Flag**: Room.hasChanged tracks state modifications; used by autosave to determine what needs saving
 
 ## Related Context
 
 - [`../command/commands/look.command.ts`](../command/commands/look.command.ts) - Uses lookRoom
 - [`../command/commands/move.command.ts`](../command/commands/move.command.ts) - Uses movePlayer
 - [`../combat/combatSystem.ts`](../combat/combatSystem.ts) - Combat is room-scoped
-- [`../../data/rooms.json`](../../data/rooms.json) - Room definitions
+- [`../../data/rooms.json`](../../data/rooms.json) - Room template definitions
+- [`../../data/room_state.json`](../../data/room_state.json) - Runtime room state
 - [`../area/`](../area/) - Area entities that group rooms
 - [`../admin/adminApi.ts`](../admin/adminApi.ts) - Room CRUD API endpoints
+- [`../persistence/AsyncFileRoomStateRepository.ts`](../persistence/AsyncFileRoomStateRepository.ts) - State persistence

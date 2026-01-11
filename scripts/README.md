@@ -11,6 +11,7 @@ For technical details, command syntax, and examples, see [AGENTS.md](AGENTS.md).
 | `bootstrap.sh`                | Fresh system setup - installs dependencies and configures environment     |
 | `check-paired-docs.sh`        | Validates README.md and AGENTS.md pairs across all directories            |
 | `data-migrate.ts`             | Bidirectional migration between JSON and database (SQLite/PostgreSQL)     |
+| `migrate-room-state.ts`       | Split room data into templates and mutable state                          |
 | `generate-pipeline-report.sh` | Generates markdown report from agent pipeline metrics                     |
 | `migrate-json-to-sqlite.ts`   | Legacy migration script (superseded by `data-migrate.ts`)                 |
 | `pipeline-artifacts-list.sh`  | Lists all pipeline artifacts with type filtering and JSON output          |
@@ -26,6 +27,10 @@ Sets up a fresh development environment. Run once after cloning the repository. 
 ### Database Migration
 
 The `data-migrate.ts` script provides bidirectional migration between JSON files and database (SQLite or PostgreSQL). It supports migrating users, rooms, items, item instances, and NPCs. Safe to run multiple times using upsert logic.
+
+### Room State Migration
+
+The `migrate-room-state.ts` script separates room templates (static definitions) from runtime state (items, NPCs, currency). This enables autosave of mutable data while keeping templates immutable.
 
 ### Documentation Validation
 

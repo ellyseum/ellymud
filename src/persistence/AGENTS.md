@@ -25,7 +25,8 @@ mappers/                         # Field conversion (snake_case ↔ camelCase)
 **The factory is the single source of truth for storage backend selection.**
 
 ```typescript
-import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository, getAreaRepository } from '../persistence';
+import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository, getAreaRepository, getRoomStateRepository } from '../persistence';
+import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository, getRoomStateRepository } from '../persistence';
 
 // Returns appropriate implementation based on STORAGE_BACKEND env var
 const userRepo = getUserRepository();
@@ -33,12 +34,15 @@ const roomRepo = getRoomRepository();
 const itemRepo = getItemRepository();
 const npcRepo = getNpcRepository();
 const areaRepo = getAreaRepository();
+const roomStateRepo = getRoomStateRepository();  // Room state persistence
+const roomStateRepo = getRoomStateRepository();  // NEW: Room state persistence
 
 // All repositories implement async interfaces
 const users = await userRepo.findAll();
 const user = await userRepo.findByUsername('admin');
 const npcs = await npcRepo.findAll();
 const hostileNpcs = await npcRepo.findHostile();
+const roomStates = await roomStateRepo.findAll();
 ```
 
 ## Key Files
@@ -77,6 +81,15 @@ export interface IAsyncRoomRepository {
   save(room: RoomData): Promise<void>;
   saveAll(rooms: RoomData[]): Promise<void>;
   delete(id: string): Promise<void>;
+}
+
+export interface IAsyncRoomStateRepository {
+  // Handles mutable room data separately from templates
+  findAll(): Promise<RoomState[]>;
+  findByRoomId(roomId: string): Promise<RoomState | undefined>;
+  save(state: RoomState): Promise<void>;
+  saveAll(states: RoomState[]): Promise<void>;
+  delete(roomId: string): Promise<void>;
 }
 
 export interface IAsyncItemRepository {
@@ -139,10 +152,39 @@ const hostileNpcs = await npcRepo.findHostile();
 **Purpose**: JSON file implementations with async interface.
 
 - `AsyncFileUserRepository` - JSON file user storage
-- `AsyncFileRoomRepository` - JSON file room storage
+- `AsyncFileRoomRepository` - JSON file room template storage
+- `AsyncFileRoomStateRepository` - JSON file room state storage (items, NPCs, currency)
 - `AsyncFileItemRepository` - JSON file item storage
 - `AsyncFileNpcRepository` - JSON file NPC template storage
 - `AsyncFileAreaRepository` - JSON file area storage (data/areas.json)
+
+### `AsyncFileRoomStateRepository.ts`
+
+**Purpose**: Persists mutable room state separately from templates.
+
+```typescript
+import { AsyncFileRoomStateRepository } from '../persistence/AsyncFileRoomStateRepository';
+import { RoomState } from '../room/roomData';
+
+const repo = new AsyncFileRoomStateRepository();
+
+// Load all room states
+const states = await repo.findAll();
+
+// Get state for specific room
+const state = await repo.findByRoomId('town-square');
+
+// Save updated state
+await repo.save({
+  roomId: 'town-square',
+  itemInstances: [{ instanceId: 'sword-001', templateId: 'sword-iron' }],
+  npcTemplateIds: ['guard-1'],
+  currency: { gold: 100, silver: 50, copper: 25 }
+});
+```
+
+**Key Point**: This repository handles `room_state.json`, keeping mutable data separate from the immutable templates in `rooms.json`.
+- `AsyncFileNpcRepository` - JSON file NPC template storage
 
 ### `mappers/`
 

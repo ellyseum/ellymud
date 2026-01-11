@@ -348,6 +348,73 @@ npx ts-node scripts/data-migrate.ts export
 npx ts-node scripts/data-migrate.ts switch sqlite
 ```
 
+### `migrate-room-state.ts`
+
+**Purpose**: Split existing room data into templates (static) and state (mutable).
+
+**What it does**:
+
+1. Reads existing `rooms.json`
+2. Extracts mutable state (items, NPCs, currency) into `room_state.json`
+3. Optionally cleans `rooms.json` to contain only template data
+
+**Usage**:
+
+```bash
+# Dry run - see what would change
+npx ts-node scripts/migrate-room-state.ts --dry-run
+
+# Create room_state.json from existing data
+npx ts-node scripts/migrate-room-state.ts
+
+# Also remove state fields from rooms.json
+npx ts-node scripts/migrate-room-state.ts --clean-templates
+```
+
+**Options**:
+
+- `--dry-run` - Show what would be done without writing files
+- `--clean-templates` - Remove state fields from rooms.json (creates backup first)
+
+**Output files**:
+
+- `data/room_state.json` - Extracted state data
+- `data/rooms.json.backup` - Backup before cleaning (if --clean-templates used)
+
+**State fields extracted**:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `roomId` | string | Links to room template |
+| `itemInstances` | array | Items in room (instanceId → templateId) |
+| `npcTemplateIds` | string[] | NPCs to spawn in room |
+| `currency` | object | Gold/silver/copper on floor |
+| `items` | string[] | Legacy items (deprecated) |
+
+**Sample output**:
+
+```
+=== Room State Migration Script ===
+
+Mode: LIVE
+Clean templates: false
+
+Loaded 45 rooms from data/rooms.json
+
+State summary:
+  Total rooms: 45
+  Rooms with state data: 12
+
+Sample state entries:
+  - town-square: 2 items, 3 NPCs, 100g/50s/25c
+  - tavern: 5 items, 1 NPCs, 0g/0s/0c
+  ... and 10 more
+
+✓ Created data/room_state.json
+
+=== Migration Complete ===
+```
+
 ### `migrate-json-to-sqlite.ts`
 
 **Purpose**: Legacy one-time migration script (superseded by `data-migrate.ts`).

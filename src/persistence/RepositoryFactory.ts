@@ -11,6 +11,7 @@ import { STORAGE_BACKEND } from '../config';
 import {
   IAsyncUserRepository,
   IAsyncRoomRepository,
+  IAsyncRoomStateRepository,
   IAsyncItemRepository,
   IAsyncNpcRepository,
   IAsyncAreaRepository,
@@ -22,6 +23,7 @@ import { KyselyItemRepository } from './KyselyItemRepository';
 import { KyselyNpcRepository } from './KyselyNpcRepository';
 import { AsyncFileUserRepository } from './AsyncFileUserRepository';
 import { AsyncFileRoomRepository } from './AsyncFileRoomRepository';
+import { AsyncFileRoomStateRepository } from './AsyncFileRoomStateRepository';
 import { AsyncFileItemRepository } from './AsyncFileItemRepository';
 import { AsyncFileNpcRepository } from './AsyncFileNpcRepository';
 import { AsyncFileAreaRepository } from './AsyncFileAreaRepository';
@@ -51,6 +53,17 @@ export function getRoomRepository(config?: RepositoryConfig): IAsyncRoomReposito
     return new KyselyRoomRepository();
   }
   return new AsyncFileRoomRepository(config);
+}
+
+/**
+ * Get the appropriate RoomStateRepository based on STORAGE_BACKEND
+ * Note: Database backend uses the same repository (state is in room table)
+ * File backend uses separate file for state
+ */
+export function getRoomStateRepository(config?: RepositoryConfig): IAsyncRoomStateRepository {
+  // For now, only file backend is supported for state
+  // Database backends will need a KyselyRoomStateRepository in the future
+  return new AsyncFileRoomStateRepository(config);
 }
 
 /**
