@@ -240,6 +240,13 @@ sync_artifact() {
     
     print_step "Pulling: $remote_path"
     
+    # Validate paths to prevent command injection
+    if [[ ! "$remote_path" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+        print_error "Invalid path contains unsafe characters: $remote_path"
+        ((FAILED_COUNT++))
+        return
+    fi
+    
     # Ensure local directory exists
     mkdir -p "$local_dir"
     

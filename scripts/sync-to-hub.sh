@@ -142,6 +142,15 @@ preflight_checks() {
     fi
     print_success "GitHub authentication valid"
     
+    # Check jq
+    print_step "Checking jq..."
+    if ! check_command jq; then
+        print_error "jq is not installed"
+        print_info "Install: apt-get install jq (or brew install jq)"
+        exit 1
+    fi
+    print_success "jq found"
+    
     # Check hub codespace exists
     print_step "Finding hub codespace: $HUB_CODESPACE"
     if ! gh codespace list --json name -q ".[] | select(.name == \"$HUB_CODESPACE\")" | grep -q "$HUB_CODESPACE"; then
@@ -213,9 +222,26 @@ sync_artifact() {
     
     print_step "Syncing: $local_path"
     
+    # Validate paths to prevent command injection
+    if [[ ! "$local_path" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+        print_error "Invalid path contains unsafe characters: $local_path"
+        ((FAILED_COUNT++))
+        return
+    fi
+    
     # Ensure remote directory exists
-    local remote_dir=$(dirname "$local_path")
-    gh codespace ssh -c "$HUB_CODESPACE" -- "mkdir -p /workspaces/ellymud/$remote_dir" 2>/dev/null || true
+    local remote_dir
+    remote_dir=$(dirname "$local_path")
+    
+    # Validate remote_dir to avoid command injection in SSH command
+    if [[ -n "$remote_dir" && "$remote_dir" != "." ]]; then
+        if [[ ! "$remote_dir" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            print_error "Unsafe remote directory path, skipping: $remote_dir"
+            ((FAILED_COUNT++))
+            return
+        fi
+        gh codespace ssh -c "$HUB_CODESPACE" -- "mkdir -p /workspaces/ellymud/$remote_dir" 2>/dev/null || true
+    fi
     
     # Copy file
     if gh codespace cp "$full_local_path" "remote:$HUB_CODESPACE:/workspaces/ellymud/$local_path" 2>/dev/null; then
