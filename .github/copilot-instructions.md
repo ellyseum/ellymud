@@ -88,6 +88,7 @@ The project uses a hierarchical documentation system:
 ├── src/AGENTS.md                             ← Source root
 │   ├── abilities/AGENTS.md                   ← Ability system
 │   ├── admin/AGENTS.md                       ← Admin API
+│   ├── area/AGENTS.md                        ← Area management
 │   ├── client/AGENTS.md                      ← Client management
 │   ├── combat/AGENTS.md                      ← Combat mechanics
 │   │   └── components/AGENTS.md              ← Combat components

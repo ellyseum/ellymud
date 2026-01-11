@@ -12,6 +12,7 @@ const tabs: { id: TabId; icon: string; label: string }[] = [
   { id: 'players', icon: 'bi-people', label: 'Players' },
   { id: 'config', icon: 'bi-gear', label: 'Config' },
   { id: 'pipeline', icon: 'bi-diagram-3', label: 'Pipeline' },
+  { id: 'worldbuilder', icon: 'bi-map', label: 'World Builder' },
 ];
 
 export function Sidebar({ activeTab, onTabChange }: SidebarProps) {

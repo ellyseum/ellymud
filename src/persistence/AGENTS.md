@@ -25,13 +25,14 @@ mappers/                         # Field conversion (snake_case ↔ camelCase)
 **The factory is the single source of truth for storage backend selection.**
 
 ```typescript
-import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository } from '../persistence';
+import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository, getAreaRepository } from '../persistence';
 
 // Returns appropriate implementation based on STORAGE_BACKEND env var
 const userRepo = getUserRepository();
 const roomRepo = getRoomRepository();
 const itemRepo = getItemRepository();
 const npcRepo = getNpcRepository();
+const areaRepo = getAreaRepository();
 
 // All repositories implement async interfaces
 const users = await userRepo.findAll();
@@ -102,6 +103,14 @@ export interface IAsyncNpcRepository {
   saveAll(npcs: NPCData[]): Promise<void>;
   delete(id: string): Promise<void>;
 }
+
+export interface IAsyncAreaRepository {
+  findAll(): Promise<Area[]>;
+  findById(id: string): Promise<Area | undefined>;
+  save(area: Area): Promise<void>;
+  saveAll(areas: Area[]): Promise<void>;
+  delete(id: string): Promise<void>;
+}
 ```
 
 ### `Kysely*Repository.ts` files
@@ -133,6 +142,7 @@ const hostileNpcs = await npcRepo.findHostile();
 - `AsyncFileRoomRepository` - JSON file room storage
 - `AsyncFileItemRepository` - JSON file item storage
 - `AsyncFileNpcRepository` - JSON file NPC template storage
+- `AsyncFileAreaRepository` - JSON file area storage (data/areas.json)
 
 ### `mappers/`
 

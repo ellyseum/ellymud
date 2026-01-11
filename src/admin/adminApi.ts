@@ -1278,3 +1278,470 @@ export function getReportFile() {
     }
   };
 }
+
+// ============================================================================
+// AREA API HANDLERS
+// ============================================================================
+
+import { AreaManager } from '../area/areaManager';
+import { CreateAreaDTO, UpdateAreaDTO } from '../area/area';
+
+/**
+ * Get all areas - API handler
+ */
+export function getAllAreas() {
+  return async (_req: Request, res: Response) => {
+    try {
+      const areaManager = AreaManager.getInstance();
+      const areas = areaManager.getAll();
+      res.json({ success: true, areas });
+    } catch (error) {
+      console.error('Error getting areas:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve areas',
+      });
+    }
+  };
+}
+
+/**
+ * Get area by ID with associated rooms - API handler
+ */
+export function getAreaById() {
+  return async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const areaManager = AreaManager.getInstance();
+      const area = areaManager.getById(id);
+
+      if (!area) {
+        return res.status(404).json({
+          success: false,
+          message: `Area '${id}' not found`,
+        });
+      }
+
+      // Get rooms belonging to this area
+      const roomManager = RoomManager.getInstance(new Map());
+      await roomManager.ensureInitialized();
+      const allRooms = roomManager.getAllRooms();
+      const areaRooms = allRooms.filter((room) => {
+        const data = room.toData();
+        return data.areaId === id;
+      });
+
+      res.json({
+        success: true,
+        area,
+        rooms: areaRooms.map((r) => r.toData()),
+      });
+    } catch (error) {
+      console.error('Error getting area:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve area',
+      });
+    }
+  };
+}
+
+/**
+ * Create a new area - API handler
+ */
+export function createArea() {
+  return async (req: Request, res: Response) => {
+    try {
+      const dto: CreateAreaDTO = req.body;
+
+      if (!dto.id || !dto.name) {
+        return res.status(400).json({
+          success: false,
+          message: 'Area ID and name are required',
+        });
+      }
+
+      const areaManager = AreaManager.getInstance();
+      const area = await areaManager.create(dto);
+
+      res.status(201).json({
+        success: true,
+        message: 'Area created successfully',
+        area,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create area';
+      console.error('Error creating area:', error);
+      res.status(400).json({
+        success: false,
+        message,
+      });
+    }
+  };
+}
+
+/**
+ * Update an area - API handler
+ */
+export function updateArea() {
+  return async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const dto: UpdateAreaDTO = req.body;
+
+      const areaManager = AreaManager.getInstance();
+      const area = await areaManager.update(id, dto);
+
+      res.json({
+        success: true,
+        message: 'Area updated successfully',
+        area,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update area';
+      console.error('Error updating area:', error);
+      res.status(400).json({
+        success: false,
+        message,
+      });
+    }
+  };
+}
+
+/**
+ * Delete an area - API handler
+ */
+export function deleteArea() {
+  return async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const areaManager = AreaManager.getInstance();
+      await areaManager.delete(id);
+
+      res.json({
+        success: true,
+        message: `Area '${id}' deleted successfully`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete area';
+      console.error('Error deleting area:', error);
+      res.status(400).json({
+        success: false,
+        message,
+      });
+    }
+  };
+}
+
+// ============================================================================
+// ROOM API HANDLERS
+// ============================================================================
+
+/**
+ * Get all rooms - API handler
+ */
+export function getAllRooms() {
+  return async (_req: Request, res: Response) => {
+    try {
+      const roomManager = RoomManager.getInstance(new Map());
+      await roomManager.ensureInitialized();
+      const rooms = roomManager.getAllRooms();
+      res.json({
+        success: true,
+        rooms: rooms.map((r) => r.toData()),
+      });
+    } catch (error) {
+      console.error('Error getting rooms:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve rooms',
+      });
+    }
+  };
+}
+
+/**
+ * Get room by ID - API handler
+ */
+export function getRoomById() {
+  return async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const roomManager = RoomManager.getInstance(new Map());
+      await roomManager.ensureInitialized();
+      const room = roomManager.getRoom(id);
+
+      if (!room) {
+        return res.status(404).json({
+          success: false,
+          message: `Room '${id}' not found`,
+        });
+      }
+
+      res.json({
+        success: true,
+        room: room.toData(),
+      });
+    } catch (error) {
+      console.error('Error getting room:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve room',
+      });
+    }
+  };
+}
+
+/**
+ * Create a new room - API handler
+ */
+export function createRoom() {
+  return async (req: Request, res: Response) => {
+    try {
+      const roomData = req.body;
+
+      if (!roomData.id) {
+        return res.status(400).json({
+          success: false,
+          message: 'Room ID is required',
+        });
+      }
+
+      const roomManager = RoomManager.getInstance(new Map());
+      await roomManager.ensureInitialized();
+
+      // Check if room already exists
+      if (roomManager.getRoom(roomData.id)) {
+        return res.status(400).json({
+          success: false,
+          message: `Room '${roomData.id}' already exists`,
+        });
+      }
+
+      // Create room with defaults
+      const fullRoomData = {
+        id: roomData.id,
+        name: roomData.name ?? 'New Room',
+        description: roomData.description ?? 'An empty room.',
+        shortDescription: roomData.shortDescription,
+        longDescription: roomData.longDescription,
+        exits: roomData.exits ?? [],
+        items: roomData.items ?? [],
+        npcs: roomData.npcs ?? [],
+        currency: roomData.currency ?? { gold: 0, silver: 0, copper: 0 },
+        flags: roomData.flags ?? [],
+        areaId: roomData.areaId,
+        gridX: roomData.gridX,
+        gridY: roomData.gridY,
+        gridZ: roomData.gridZ,
+      };
+
+      await roomManager.createRoom(fullRoomData);
+
+      res.status(201).json({
+        success: true,
+        message: 'Room created successfully',
+        room: fullRoomData,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create room';
+      console.error('Error creating room:', error);
+      res.status(400).json({
+        success: false,
+        message,
+      });
+    }
+  };
+}
+
+/**
+ * Update a room - API handler
+ */
+export function updateRoom() {
+  return async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      const roomManager = RoomManager.getInstance(new Map());
+      await roomManager.ensureInitialized();
+      const room = roomManager.getRoom(id);
+
+      if (!room) {
+        return res.status(404).json({
+          success: false,
+          message: `Room '${id}' not found`,
+        });
+      }
+
+      // Apply updates
+      const currentData = room.toData();
+      const updatedData = {
+        ...currentData,
+        ...updates,
+        id: currentData.id, // Prevent ID change
+      };
+
+      await roomManager.updateRoomData(updatedData);
+
+      res.json({
+        success: true,
+        message: 'Room updated successfully',
+        room: updatedData,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update room';
+      console.error('Error updating room:', error);
+      res.status(400).json({
+        success: false,
+        message,
+      });
+    }
+  };
+}
+
+/**
+ * Delete a room - API handler
+ */
+export function deleteRoom() {
+  return async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const roomManager = RoomManager.getInstance(new Map());
+      await roomManager.ensureInitialized();
+      const room = roomManager.getRoom(id);
+
+      if (!room) {
+        return res.status(404).json({
+          success: false,
+          message: `Room '${id}' not found`,
+        });
+      }
+
+      await roomManager.deleteRoom(id);
+
+      res.json({
+        success: true,
+        message: `Room '${id}' deleted successfully`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete room';
+      console.error('Error deleting room:', error);
+      res.status(400).json({
+        success: false,
+        message,
+      });
+    }
+  };
+}
+
+// ============================================================================
+// AI GENERATION HANDLERS
+// ============================================================================
+
+interface AIGenerateRoomRequest {
+  roomName: string;
+  areaContext?: string;
+  style?: 'fantasy' | 'dark' | 'mystical' | 'medieval';
+}
+
+interface AIGenerateRoomResponse {
+  description: string;
+  suggestedExits?: string[];
+  suggestedNpcs?: string[];
+}
+
+/**
+ * Generate room content using AI - API handler
+ * Note: Requires OPENAI_API_KEY environment variable
+ */
+export function generateRoomContent() {
+  return async (req: Request, res: Response) => {
+    try {
+      const { roomName, areaContext, style } = req.body as AIGenerateRoomRequest;
+
+      if (!roomName) {
+        return res.status(400).json({
+          success: false,
+          message: 'Room name is required',
+        });
+      }
+
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        // Return a generated placeholder if no API key
+        const placeholder: AIGenerateRoomResponse = {
+          description: `You are in ${roomName}. ${areaContext ? `This is part of ${areaContext}. ` : ''}The area has a ${style ?? 'fantasy'} atmosphere.`,
+          suggestedExits: ['north', 'south'],
+          suggestedNpcs: [],
+        };
+        return res.json({
+          success: true,
+          generated: placeholder,
+          note: 'AI generation requires OPENAI_API_KEY. Using placeholder.',
+        });
+      }
+
+      // Call OpenAI API
+      const prompt = `Generate a MUD room description for a room called "${roomName}".
+${areaContext ? `Context: This room is part of ${areaContext}.` : ''}
+${style ? `Style: ${style}` : 'Style: fantasy'}
+
+Respond with JSON in this format:
+{
+  "description": "A vivid 2-3 sentence description of the room",
+  "suggestedExits": ["direction1", "direction2"],
+  "suggestedNpcs": ["npc_type1"]
+}`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          max_tokens: 300,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
+
+      const data = (await response.json()) as {
+        choices?: Array<{ message?: { content?: string } }>;
+      };
+      const content = data.choices?.[0]?.message?.content;
+
+      if (!content) {
+        throw new Error('No content in OpenAI response');
+      }
+
+      // Parse JSON from response
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('Could not parse JSON from AI response');
+      }
+
+      const generated: AIGenerateRoomResponse = JSON.parse(jsonMatch[0]);
+
+      res.json({
+        success: true,
+        generated,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'AI generation failed';
+      console.error('Error generating room content:', error);
+      res.status(500).json({
+        success: false,
+        message,
+      });
+    }
+  };
+}

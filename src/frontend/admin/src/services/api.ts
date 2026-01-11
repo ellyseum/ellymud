@@ -8,6 +8,8 @@ import {
   PipelineMetrics,
   StageReportsResponse,
   ReportFileResponse,
+  Area,
+  RoomData,
 } from '../types';
 
 const API_BASE = '/api/admin';
@@ -212,6 +214,95 @@ class ApiClient {
         headers: this.getHeaders(),
       }
     );
+    return this.handleResponse(response);
+  }
+
+  // Areas
+  async getAreas(): Promise<ApiResponse<{ areas: Area[] }>> {
+    const response = await fetch(`${API_BASE}/areas`, {
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getAreaById(id: string): Promise<ApiResponse<{ area: Area }>> {
+    const response = await fetch(`${API_BASE}/areas/${id}`, {
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async createArea(area: Partial<Area>): Promise<ApiResponse<{ area: Area }>> {
+    const response = await fetch(`${API_BASE}/areas`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(area),
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateArea(id: string, area: Partial<Area>): Promise<ApiResponse<{ area: Area }>> {
+    const response = await fetch(`${API_BASE}/areas/${id}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(area),
+    });
+    return this.handleResponse(response);
+  }
+
+  async deleteArea(id: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE}/areas/${id}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  // Rooms
+  async getRooms(): Promise<ApiResponse<{ rooms: RoomData[] }>> {
+    const response = await fetch(`${API_BASE}/rooms`, {
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getRoomById(id: string): Promise<ApiResponse<{ room: RoomData }>> {
+    const response = await fetch(`${API_BASE}/rooms/${id}`, {
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async createRoom(room: Partial<RoomData>): Promise<ApiResponse<{ room: RoomData }>> {
+    const response = await fetch(`${API_BASE}/rooms`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(room),
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateRoom(id: string, room: Partial<RoomData>): Promise<ApiResponse<{ room: RoomData }>> {
+    const response = await fetch(`${API_BASE}/rooms/${id}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(room),
+    });
+    return this.handleResponse(response);
+  }
+
+  async deleteRoom(id: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE}/rooms/${id}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getRoomsByAreaId(areaId: string): Promise<ApiResponse<{ rooms: RoomData[] }>> {
+    const response = await fetch(`${API_BASE}/rooms?areaId=${encodeURIComponent(areaId)}`, {
+      headers: this.getHeaders(),
+    });
     return this.handleResponse(response);
   }
 }

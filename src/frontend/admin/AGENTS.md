@@ -60,6 +60,7 @@ createRoot(document.getElementById('root')!).render(<App />);
 - `PlayersPanel` - Player list management
 - `ConfigPanel` - MUD config editor
 - `PipelinePanel` - Pipeline metrics
+- `WorldBuilderPanel` - Area and room visual editor
 
 ## Subdirectories
 

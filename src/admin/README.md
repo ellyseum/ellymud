@@ -18,6 +18,7 @@ The Admin API provides:
 - **Server Control**: Start/stop services, view health status
 - **Configuration**: Update game settings via API
 - **Log Access**: Query and search system logs
+- **World Building**: Create and manage areas and rooms via API
 
 ## Authentication
 
@@ -39,9 +40,23 @@ All admin endpoints require authentication:
 | GET    | `/api/admin/stats`     | Server statistics |
 | GET    | `/api/admin/config`    | Current config    |
 | POST   | `/api/admin/config`    | Update config     |
+| GET    | `/api/admin/areas`     | List all areas    |
+| GET    | `/api/admin/areas/:id` | Get area + rooms  |
+| POST   | `/api/admin/areas`     | Create area       |
+| PUT    | `/api/admin/areas/:id` | Update area       |
+| DELETE | `/api/admin/areas/:id` | Delete area       |
+| GET    | `/api/admin/rooms`     | List all rooms    |
+| GET    | `/api/admin/rooms/:id` | Get room by ID    |
+| POST   | `/api/admin/rooms`     | Create room       |
+| PUT    | `/api/admin/rooms/:id` | Update room       |
+| DELETE | `/api/admin/rooms/:id` | Delete room       |
+| POST   | `/api/admin/rooms/link`  | Link rooms      |
+| POST   | `/api/admin/rooms/unlink`| Unlink rooms    |
 
 ## Related
 
 - [public/admin/](../../public/admin/) - Admin dashboard frontend
 - [src/server/apiServer.ts](../server/apiServer.ts) - Express server setup
 - [src/user/userManager.ts](../user/userManager.ts) - User data access
+- [src/area/areaManager.ts](../area/areaManager.ts) - Area CRUD operations
+- [src/room/roomManager.ts](../room/roomManager.ts) - Room CRUD operations

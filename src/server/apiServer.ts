@@ -210,6 +210,27 @@ export class APIServer {
       AdminApi.validateToken,
       AdminApi.getReportFile()
     );
+
+    // Area routes (World Builder)
+    this.app.get('/api/admin/areas', AdminApi.validateToken, AdminApi.getAllAreas());
+    this.app.get('/api/admin/areas/:id', AdminApi.validateToken, AdminApi.getAreaById());
+    this.app.post('/api/admin/areas', AdminApi.validateToken, AdminApi.createArea());
+    this.app.put('/api/admin/areas/:id', AdminApi.validateToken, AdminApi.updateArea());
+    this.app.delete('/api/admin/areas/:id', AdminApi.validateToken, AdminApi.deleteArea());
+
+    // Room routes (World Builder)
+    this.app.get('/api/admin/rooms', AdminApi.validateToken, AdminApi.getAllRooms());
+    this.app.get('/api/admin/rooms/:id', AdminApi.validateToken, AdminApi.getRoomById());
+    this.app.post('/api/admin/rooms', AdminApi.validateToken, AdminApi.createRoom());
+    this.app.put('/api/admin/rooms/:id', AdminApi.validateToken, AdminApi.updateRoom());
+    this.app.delete('/api/admin/rooms/:id', AdminApi.validateToken, AdminApi.deleteRoom());
+
+    // AI generation routes (World Builder)
+    this.app.post(
+      '/api/admin/ai/generate-room',
+      AdminApi.validateToken,
+      AdminApi.generateRoomContent()
+    );
   }
 
   private setupStaticFiles(): void {

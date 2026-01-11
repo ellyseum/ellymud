@@ -8,6 +8,7 @@ import { GameItem, ItemInstance, User } from '../types';
 import { Room } from '../room/room';
 import { RoomData } from '../room/roomData';
 import { NPCData } from '../combat/npc';
+import { Area } from '../area/area';
 
 /**
  * Async repository interface for Item data persistence
@@ -169,4 +170,19 @@ export interface IPasswordService {
  */
 export interface RepositoryConfig {
   dataDir: string;
+}
+
+/**
+ * Async repository interface for Area data persistence
+ * Used by RepositoryFactory pattern - all methods are async
+ */
+export interface IAsyncAreaRepository {
+  // Read operations
+  findAll(): Promise<Area[]>;
+  findById(id: string): Promise<Area | undefined>;
+
+  // Write operations
+  save(area: Area): Promise<void>;
+  saveAll(areas: Area[]): Promise<void>;
+  delete(id: string): Promise<void>;
 }

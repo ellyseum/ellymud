@@ -27,6 +27,11 @@ Rooms are the spatial containers of the MUD world:
 - `getNPCsInRoom(roomId)` - List NPCs in a room
 - `movePlayer(player, direction)` - Handle player movement
 - `broadcastToRoom(roomId, message)` - Send message to all in room
+- `createRoom(roomData)` - Create new room (World Builder API)
+- `updateRoomData(roomData)` - Update room properties (World Builder API)
+- `deleteRoom(roomId)` - Remove room (World Builder API)
+- `linkRooms(fromId, toId, direction)` - Create exit between rooms
+- `unlinkRooms(roomId, direction)` - Remove exit from room
 
 ## Room Structure
 
@@ -39,6 +44,8 @@ Each room has:
 - `items` - Items on the ground
 - `npcs` - NPCs currently in the room
 - `flags` - Special room properties (`safe`, `training`, `bank`, `shop`)
+- `areaId` - Optional area this room belongs to
+- `gridX`, `gridY`, `gridZ` - Grid coordinates for visual editor
 
 ## Services
 
@@ -53,4 +60,5 @@ Room functionality is decomposed into services:
 
 - [src/command/commands/look.command.ts](../command/commands/look.command.ts) - View room
 - [src/command/commands/move.command.ts](../command/commands/move.command.ts) - Navigate between rooms
+- [src/area/](../area/) - Area management (groups of rooms)
 - [data/rooms.json](../../data/rooms.json) - Room definitions

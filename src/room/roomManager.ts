@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { Room } from './room';
 import { RoomData } from './roomData';
-import { ConnectedClient } from '../types';
+import { ConnectedClient, Exit } from '../types';
 import { systemLogger } from '../utils/logger';
 import { NPC } from '../combat/npc';
 import { IRoomManager } from './interfaces';
@@ -459,5 +459,112 @@ export class RoomManager implements IRoomManager {
       systemLogger.error(`[RoomManager] Error saving rooms to ${filePath}:`, error);
       throw error;
     }
+  }
+
+  // ============================================================================
+  // CRUD Methods for World Builder
+  // ============================================================================
+
+  /**
+   * Create a new room from data
+   */
+  public async createRoom(roomData: RoomData): Promise<Room> {
+    if (this.rooms.has(roomData.id)) {
+      throw new Error(`Room '${roomData.id}' already exists`);
+    }
+
+    const room = new Room(roomData);
+    this.rooms.set(roomData.id, room);
+    await this.repository.save(roomData);
+    systemLogger.info(`[RoomManager] Created room: ${roomData.id}`);
+    return room;
+  }
+
+  /**
+   * Update room data (overload for RoomData input)
+   */
+  public async updateRoomData(roomData: RoomData): Promise<void> {
+    const room = this.rooms.get(roomData.id);
+    if (!room) {
+      throw new Error(`Room '${roomData.id}' not found`);
+    }
+
+    // Update in-memory room
+    const newRoom = new Room(roomData);
+    this.rooms.set(roomData.id, newRoom);
+
+    // Persist
+    await this.repository.save(roomData);
+    systemLogger.info(`[RoomManager] Updated room: ${roomData.id}`);
+  }
+
+  /**
+   * Delete a room
+   */
+  public async deleteRoom(roomId: string): Promise<void> {
+    if (!this.rooms.has(roomId)) {
+      throw new Error(`Room '${roomId}' not found`);
+    }
+
+    this.rooms.delete(roomId);
+    await this.repository.delete(roomId);
+    systemLogger.info(`[RoomManager] Deleted room: ${roomId}`);
+  }
+
+  /**
+   * Connect two rooms with exits
+   * Creates bidirectional exits between rooms
+   */
+  public async connectRooms(
+    fromRoomId: string,
+    toRoomId: string,
+    fromDirection: string,
+    toDirection: string
+  ): Promise<void> {
+    const fromRoom = this.getRoom(fromRoomId);
+    const toRoom = this.getRoom(toRoomId);
+
+    if (!fromRoom) {
+      throw new Error(`Source room '${fromRoomId}' not found`);
+    }
+    if (!toRoom) {
+      throw new Error(`Target room '${toRoomId}' not found`);
+    }
+
+    // Add exit from source to target
+    const fromData = fromRoom.toData();
+    const existingFromExit = fromData.exits.find((e: Exit) => e.direction === fromDirection);
+    if (existingFromExit) {
+      existingFromExit.roomId = toRoomId;
+    } else {
+      fromData.exits.push({ direction: fromDirection, roomId: toRoomId });
+    }
+
+    // Add exit from target to source
+    const toData = toRoom.toData();
+    const existingToExit = toData.exits.find((e: Exit) => e.direction === toDirection);
+    if (existingToExit) {
+      existingToExit.roomId = fromRoomId;
+    } else {
+      toData.exits.push({ direction: toDirection, roomId: fromRoomId });
+    }
+
+    // Save both rooms
+    await this.updateRoomData(fromData);
+    await this.updateRoomData(toData);
+  }
+
+  /**
+   * Disconnect an exit from a room
+   */
+  public async disconnectExit(roomId: string, direction: string): Promise<void> {
+    const room = this.getRoom(roomId);
+    if (!room) {
+      throw new Error(`Room '${roomId}' not found`);
+    }
+
+    const data = room.toData();
+    data.exits = data.exits.filter((e: Exit) => e.direction !== direction);
+    await this.updateRoomData(data);
   }
 }

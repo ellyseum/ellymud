@@ -33,6 +33,7 @@ npm run data:switch <backend>  # Switch backend with migration
 | `rooms.json` | Room definitions, exits, contents | `rooms` ✅ |
 | `items.json` | Item templates (weapons, armor, etc.) | `item_templates` ✅ |
 | `itemInstances.json` | Instantiated items in the world | `item_instances` ✅ |
+| `areas.json` | Area definitions (groups of rooms) | - (JSON only) |
 | `npcs.json` | NPC templates and behaviors | - (Phase 3) |
 | `abilities.json` | Spell and ability definitions | - (Phase 6) |
 | `merchant-state.json` | Merchant inventory state | - (Phase 4) |

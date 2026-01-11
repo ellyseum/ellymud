@@ -20,10 +20,11 @@ Repository pattern abstractions for data storage, supporting multiple backends (
 Use the Repository Factory to get the appropriate implementation:
 
 ```typescript
-import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository } from './persistence';
+import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository, getAreaRepository } from './persistence';
 
 const users = await getUserRepository().findAll();
 const npcs = await getNpcRepository().findAll();
+const areas = await getAreaRepository().findAll();
 ```
 
 ## Purpose
