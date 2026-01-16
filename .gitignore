@@ -28,6 +28,10 @@ data/users.json
 data/admin.json
 data/bug-reports.json
 
+# Runtime-generated game state (not committed)
+data/itemInstances.json
+data/room_state.json
+
 # SQLite database files (generated, not committed)
 data/*.db
 data/*.db-journal
