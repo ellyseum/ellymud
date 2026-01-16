@@ -10,12 +10,17 @@ export class SpawnCommand implements Command {
   name = 'spawn';
   description = 'Spawn an NPC in the current room';
 
-  // Cached NPC data to avoid reloading the file for each spawn command
-  private npcData: Map<string, NPCData>;
-
   constructor(private roomManager: RoomManager) {
-    // Load NPC data when the command is created
-    this.npcData = NPC.loadNPCData();
+    // NPC data is loaded dynamically from NPC.loadNPCData() instead of caching here
+    // This ensures we always have the latest data from the warmed cache
+  }
+
+  /**
+   * Get current NPC data from the cache
+   * This fetches fresh data each time to ensure cache is up-to-date
+   */
+  private getNpcData(): Map<string, NPCData> {
+    return NPC.loadNPCData();
   }
 
   execute(client: ConnectedClient, args: string): void {
@@ -55,8 +60,11 @@ export class SpawnCommand implements Command {
       }
     }
 
+    // Get the current NPC data
+    const npcData = this.getNpcData();
+
     // Check if the requested NPC exists in our data
-    if (!this.npcData.has(npcType)) {
+    if (!npcData.has(npcType)) {
       writeToClient(
         client,
         colorize(
@@ -68,7 +76,7 @@ export class SpawnCommand implements Command {
     }
 
     // Create the specified number of NPCs
-    const npcTemplate = this.npcData.get(npcType)!;
+    const npcTemplate = npcData.get(npcType)!;
 
     for (let i = 0; i < count; i++) {
       // Generate a unique instance ID for this NPC
@@ -119,14 +127,16 @@ export class SpawnCommand implements Command {
   private showAvailableNPCs(client: ConnectedClient): void {
     writeToClient(client, colorize('Available NPCs to spawn:\r\n', 'cyan'));
 
-    if (this.npcData.size === 0) {
+    const npcData = this.getNpcData();
+
+    if (npcData.size === 0) {
       writeToClient(client, colorize('No NPCs defined in the system.\r\n', 'yellow'));
       return;
     }
 
     const npcList: string[] = [];
 
-    this.npcData.forEach((data, id) => {
+    npcData.forEach((data, id) => {
       const hostileTag = data.isHostile ? ' (hostile)' : '';
       npcList.push(`- ${id}${hostileTag}: ${data.description.substring(0, 50)}...`);
     });

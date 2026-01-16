@@ -101,6 +101,18 @@ jest.mock('../utils/socketWriter', () => ({
   writeMessageToClient: jest.fn(),
 }));
 
+// Mock ItemManager for resetRoom tests
+jest.mock('../utils/itemManager', () => ({
+  ItemManager: {
+    getInstance: jest.fn().mockReturnValue({
+      createItemInstance: jest.fn(),
+    }),
+  },
+}));
+
+// Import the mocked modules to access and configure mocks in tests
+import { ItemManager } from '../utils/itemManager';
+
 // Reset the singleton before each test
 const resetSingleton = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -885,6 +897,128 @@ describe('RoomManager World Builder Features', () => {
       await expect(roomManager.disconnectExit('non-existent', 'north')).rejects.toThrow(
         "Room 'non-existent' not found"
       );
+    });
+  });
+
+  describe('resetRoom', () => {
+    let mockCreateItemInstance: jest.Mock;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Get reference to the mocked createItemInstance
+      const itemManagerInstance = ItemManager.getInstance();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockCreateItemInstance = (itemManagerInstance as any).createItemInstance;
+      mockCreateItemInstance.mockImplementation((templateId: string, _createdBy: string) => ({
+        instanceId: `${templateId}-instance-123`,
+        templateId,
+      }));
+    });
+
+    it('should throw error when room does not exist', async () => {
+      await roomManager.ensureInitialized();
+
+      await expect(roomManager.resetRoom('non-existent')).rejects.toThrow(
+        "Room 'non-existent' not found"
+      );
+    });
+
+    it('should clear room items and currency when clearFirst is true', async () => {
+      await roomManager.ensureInitialized();
+
+      // Create a room with some items and currency
+      await roomManager.createRoom({
+        id: 'reset-test-room',
+        name: 'Reset Test Room',
+        description: 'A room to test reset',
+        exits: [],
+        currency: { gold: 50, silver: 25, copper: 10 },
+      });
+
+      const room = roomManager.getRoom('reset-test-room');
+      room!.addItemInstance('test-item-1', 'sword');
+
+      await roomManager.resetRoom('reset-test-room', true);
+
+      expect(room!.currency).toEqual({ gold: 0, silver: 0, copper: 0 });
+      expect(room!.getItemInstances().size).toBe(0);
+    });
+
+    it('should respawn currency from spawnCurrency', async () => {
+      await roomManager.ensureInitialized();
+
+      await roomManager.createRoom({
+        id: 'currency-spawn-room',
+        name: 'Currency Spawn Room',
+        description: 'A room with spawn currency',
+        exits: [],
+        currency: { gold: 0, silver: 0, copper: 0 },
+        spawnCurrency: { gold: 100, silver: 50, copper: 25 },
+      });
+
+      await roomManager.resetRoom('currency-spawn-room');
+
+      const room = roomManager.getRoom('currency-spawn-room');
+      expect(room!.currency).toEqual({ gold: 100, silver: 50, copper: 25 });
+    });
+
+    it('should respawn items from spawnItems', async () => {
+      await roomManager.ensureInitialized();
+
+      await roomManager.createRoom({
+        id: 'item-spawn-room',
+        name: 'Item Spawn Room',
+        description: 'A room with spawn items',
+        exits: [],
+        currency: { gold: 0, silver: 0, copper: 0 },
+        spawnItems: ['iron-sword', 'health-potion'],
+      });
+
+      await roomManager.resetRoom('item-spawn-room');
+
+      expect(mockCreateItemInstance).toHaveBeenCalledWith('iron-sword', 'room-reset');
+      expect(mockCreateItemInstance).toHaveBeenCalledWith('health-potion', 'room-reset');
+    });
+
+    it('should not clear room when clearFirst is false', async () => {
+      await roomManager.ensureInitialized();
+
+      await roomManager.createRoom({
+        id: 'no-clear-room',
+        name: 'No Clear Room',
+        description: 'A room that should not be cleared',
+        exits: [],
+        currency: { gold: 50, silver: 25, copper: 10 },
+        spawnCurrency: { gold: 100, silver: 50, copper: 25 },
+      });
+
+      const room = roomManager.getRoom('no-clear-room');
+      room!.addItemInstance('existing-item', 'existing-sword');
+
+      await roomManager.resetRoom('no-clear-room', false);
+
+      // Currency should be replaced by spawn currency, but existing items should remain
+      expect(room!.currency).toEqual({ gold: 100, silver: 50, copper: 25 });
+      expect(room!.getItemInstances().size).toBe(1);
+    });
+
+    it('should set hasChanged flag to true', async () => {
+      await roomManager.ensureInitialized();
+
+      await roomManager.createRoom({
+        id: 'flag-test-room',
+        name: 'Flag Test Room',
+        description: 'A room to test hasChanged flag',
+        exits: [],
+        currency: { gold: 0, silver: 0, copper: 0 },
+      });
+
+      const room = roomManager.getRoom('flag-test-room');
+      room!.hasChanged = false;
+
+      await roomManager.resetRoom('flag-test-room');
+
+      expect(room!.hasChanged).toBe(true);
     });
   });
 });
