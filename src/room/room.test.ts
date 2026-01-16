@@ -383,6 +383,40 @@ describe('Room', () => {
         expect(instances.size).toBe(2);
       });
     });
+
+    describe('clearItemInstances', () => {
+      it('should clear all item instances', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+        room.addItemInstance('sword-1', 'iron-sword');
+        room.addItemInstance('potion-1', 'health-potion');
+        room.addItemInstance('shield-1', 'wooden-shield');
+
+        room.clearItemInstances();
+
+        const instances = room.getItemInstances();
+        expect(instances.size).toBe(0);
+      });
+
+      it('should set hasChanged flag to true', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+        room.addItemInstance('sword-1', 'iron-sword');
+        room.hasChanged = false; // Reset flag after add
+
+        room.clearItemInstances();
+
+        expect(room.hasChanged).toBe(true);
+      });
+
+      it('should work on empty room', () => {
+        const room = new Room({ id: 'test', name: 'Test' });
+
+        room.clearItemInstances();
+
+        const instances = room.getItemInstances();
+        expect(instances.size).toBe(0);
+        expect(room.hasChanged).toBe(true);
+      });
+    });
   });
 
   describe('hasChanged flag', () => {
