@@ -20,21 +20,15 @@ This directory contains the database layer that provides an alternative to JSON 
 - **SQLite**: Database file at `data/game.db`
 - **PostgreSQL**: Configured via `DATABASE_URL` environment variable
 
-In `sqlite` or `postgres` storage-backend mode, the database is the primary data source for users, rooms, and items. In the default `auto` mode, JSON files remain the initial synchronous source of truth, with the database being loaded and synchronized asynchronously afterward.
+In `sqlite` or `postgres` storage-backend mode, the database is the primary data source for users, rooms, items, NPCs, and areas. In the default `auto` mode, JSON files remain the initial synchronous source of truth, with the database being loaded and synchronized asynchronously afterward.
 
 ## Data Migration
 
-Use the data migration tool to sync data between backends:
+The data migration CLI tool (via npm scripts) allows syncing data between storage backends. Available operations include checking backend status and data counts, exporting database contents to JSON files, importing JSON files into the database, and switching between SQLite and PostgreSQL backends.
 
-```bash
-npm run data:status     # Show current backend and data counts
-npm run data:export     # Export database → JSON files
-npm run data:import     # Import JSON files → database
-npm run data:switch sqlite   # Switch to SQLite
-npm run data:switch postgres # Switch to PostgreSQL
-```
+Auto-migration is supported: when the `STORAGE_BACKEND` environment variable changes from `json` to a database backend, data is automatically imported on server startup.
 
-**Auto-migration**: When `STORAGE_BACKEND` changes from `json` to a database backend, data is automatically imported on server startup.
+See [AGENTS.md](AGENTS.md) for specific commands and technical details.
 
 ## Related
 

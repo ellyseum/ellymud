@@ -97,10 +97,24 @@ export interface NpcTemplatesTable {
   stock_config: string | null; // JSON array of MerchantStockConfig
 }
 
+export interface AreasTable {
+  id: string;
+  name: string;
+  description: string;
+  level_range: string;
+  flags: string | null;
+  combat_config: string | null;
+  spawn_config: string;
+  default_room_flags: string | null;
+  created: string;
+  modified: string;
+}
+
 export interface Database {
   users: UsersTable;
   rooms: RoomsTable;
   item_templates: ItemTemplatesTable;
   item_instances: ItemInstancesTable;
   npc_templates: NpcTemplatesTable;
+  areas: AreasTable;
 }

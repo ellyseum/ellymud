@@ -10,6 +10,8 @@ Centralized conversion functions between database rows (snake_case) and domain o
 | `userMapper.ts` | User ↔ database row conversion |
 | `roomMapper.ts` | RoomData ↔ database row conversion |
 | `itemMapper.ts` | GameItem/ItemInstance ↔ database row conversion |
+| `npcMapper.ts` | NPCData ↔ database row conversion |
+| `areaMapper.ts` | Area ↔ database row conversion |
 
 ## Purpose
 
@@ -23,3 +25,5 @@ These mappers ensure consistent field naming conversion between:
 - [../KyselyUserRepository.ts](../KyselyUserRepository.ts) - Uses user mapper
 - [../KyselyRoomRepository.ts](../KyselyRoomRepository.ts) - Uses room mapper
 - [../KyselyItemRepository.ts](../KyselyItemRepository.ts) - Uses item mapper
+- [../KyselyNpcRepository.ts](../KyselyNpcRepository.ts) - Uses NPC mapper
+- [../KyselyAreaRepository.ts](../KyselyAreaRepository.ts) - Uses area mapper

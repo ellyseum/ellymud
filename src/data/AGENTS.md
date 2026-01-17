@@ -45,9 +45,23 @@ export interface RoomsTable {
   // ... all room fields
 }
 
+export interface AreasTable {
+  id: string;                 // Primary key
+  name: string;
+  description: string;
+  level_range: string;        // JSON stringified {min, max}
+  flags: string | null;       // JSON stringified array
+  combat_config: string | null;  // JSON stringified AreaCombatConfig
+  spawn_config: string;       // JSON stringified AreaSpawnConfig[]
+  default_room_flags: string | null;  // JSON stringified array
+  created: string;            // ISO date string
+  modified: string;           // ISO date string
+}
+
 export interface Database {
   users: UsersTable;
   rooms: RoomsTable;
+  areas: AreasTable;
 }
 ```
 
