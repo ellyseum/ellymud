@@ -2,7 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { User, ConnectedClient, ClientStateType } from '../types';
+import { User, ConnectedClient, ClientStateType, SnakeScoreEntry } from '../types';
 import { writeToClient, stopBuffering, writeMessageToClient } from '../utils/socketWriter';
 import { colorize } from '../utils/colors';
 import { standardizeUsername } from '../utils/formatters';
@@ -12,35 +12,23 @@ import { systemLogger, getPlayerLogger } from '../utils/logger';
 import { parseAndValidateJson } from '../utils/jsonUtils';
 import config from '../config';
 
-const DATA_DIR = path.join(__dirname, '..', '..', 'data');
-const SNAKE_SCORES_FILE = path.join(DATA_DIR, 'snake-scores.json');
-
-// Interface for snake score entries
-interface SnakeScore {
-  username: string;
-  score: number;
-  date: Date;
-}
-
-// Interface for raw JSON snake score (before date conversion)
-interface RawSnakeScore {
-  username: string;
-  score: number;
-  date: string;
-}
-
-import { IAsyncUserRepository, IPasswordService } from '../persistence/interfaces';
-import { getUserRepository } from '../persistence/RepositoryFactory';
+import {
+  IAsyncUserRepository,
+  IPasswordService,
+  IAsyncSnakeScoreRepository,
+} from '../persistence/interfaces';
+import { getUserRepository, getSnakeScoreRepository } from '../persistence/RepositoryFactory';
 import { getPasswordService } from '../persistence/passwordService';
 
 export class UserManager {
   private users: User[] = [];
   private activeUserSessions: Map<string, ConnectedClient> = new Map();
   private pendingTransfers: Map<string, ConnectedClient> = new Map();
-  private snakeScores: SnakeScore[] = [];
+  private snakeScores: SnakeScoreEntry[] = [];
   private testMode: boolean = false;
   private repository: IAsyncUserRepository;
   private passwordService: IPasswordService;
+  private snakeScoreRepository: IAsyncSnakeScoreRepository;
   private initialized: boolean = false;
   private initPromise: Promise<void> | null = null;
 
@@ -77,6 +65,7 @@ export class UserManager {
   private constructor(repository?: IAsyncUserRepository, passwordService?: IPasswordService) {
     this.repository = repository ?? getUserRepository();
     this.passwordService = passwordService ?? getPasswordService();
+    this.snakeScoreRepository = getSnakeScoreRepository();
     // Start async initialization
     this.initPromise = this.initialize();
   }
@@ -88,7 +77,7 @@ export class UserManager {
   private async initialize(): Promise<void> {
     if (this.initialized) return;
     await this.loadUsers();
-    this.loadSnakeScores();
+    await this.loadSnakeScores();
     this.migrateSnakeScores();
     this.initialized = true;
     this.initPromise = null;
@@ -352,45 +341,23 @@ export class UserManager {
     }
   }
 
-  // Load snake scores from the dedicated file
-  private loadSnakeScores(): void {
+  // Load snake scores from the repository
+  private async loadSnakeScores(): Promise<void> {
     try {
-      // Create snake scores file if it doesn't exist
-      if (!fs.existsSync(SNAKE_SCORES_FILE)) {
-        fs.writeFileSync(SNAKE_SCORES_FILE, JSON.stringify({ scores: [] }, null, 2));
-        return;
-      }
-
-      const data = fs.readFileSync(SNAKE_SCORES_FILE, 'utf8');
-      const parsed = JSON.parse(data);
-
-      // Ensure scores is an array
-      if (!Array.isArray(parsed.scores)) {
-        this.snakeScores = [];
-        return;
-      }
-
-      // Convert date strings back to Date objects
-      this.snakeScores = parsed.scores.map((score: RawSnakeScore) => ({
-        username: score.username,
-        score: score.score,
-        date: new Date(score.date),
-      }));
-
-      systemLogger.info(`[UserManager] Loaded ${this.snakeScores.length} snake scores from file`);
+      this.snakeScores = await this.snakeScoreRepository.findAll();
+      systemLogger.info(
+        `[UserManager] Loaded ${this.snakeScores.length} snake scores from repository`
+      );
     } catch (error) {
       systemLogger.error('Error loading snake scores:', error);
       this.snakeScores = [];
     }
   }
 
-  // Save snake scores to the dedicated file
-  private saveSnakeScores(): void {
+  // Save snake scores to the repository
+  private async saveSnakeScores(): Promise<void> {
     try {
-      const data = {
-        scores: this.snakeScores,
-      };
-      fs.writeFileSync(SNAKE_SCORES_FILE, JSON.stringify(data, null, 2));
+      await this.snakeScoreRepository.saveAll(this.snakeScores);
     } catch (error) {
       systemLogger.error('Error saving snake scores:', error);
     }
@@ -414,7 +381,7 @@ export class UserManager {
           this.snakeScores.push({
             username,
             score,
-            date: new Date(), // We don't know the original date, so use current
+            date: new Date().toISOString(), // ISO string for repository
           });
           migrationCount++;
         } else if (score > this.snakeScores[existingScoreIndex].score) {
@@ -432,9 +399,9 @@ export class UserManager {
       systemLogger.info(
         `[UserManager] Migrated ${migrationCount} snake scores from users.json to snake-scores.json`
       );
-      // Save both files
+      // Save both - fire and forget since we're in sync init context
       this.saveUsers();
-      this.saveSnakeScores();
+      void this.saveSnakeScores();
     }
   }
 
@@ -913,11 +880,11 @@ export class UserManager {
         this.snakeScores[existingScoreIndex] = {
           username,
           score: scoreData.score,
-          date: new Date(),
+          date: new Date().toISOString(),
         };
 
-        // Save to file
-        this.saveSnakeScores();
+        // Save to repository
+        void this.saveSnakeScores();
         systemLogger.info(
           `[UserManager] Updated snake high score for ${username}: ${scoreData.score}`
         );
@@ -927,11 +894,11 @@ export class UserManager {
       this.snakeScores.push({
         username,
         score: scoreData.score,
-        date: new Date(),
+        date: new Date().toISOString(),
       });
 
-      // Save to file
-      this.saveSnakeScores();
+      // Save to repository
+      void this.saveSnakeScores();
       systemLogger.info(
         `[UserManager] Added new snake high score for ${username}: ${scoreData.score}`
       );

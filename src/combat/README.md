@@ -10,6 +10,7 @@ Event-driven combat system handling player vs NPC battles, damage calculations, 
 | `combat.ts`                 | Individual combat instance between two entities   |
 | `combatEntity.interface.ts` | Interface for anything that can fight             |
 | `npc.ts`                    | NPC class with stats, AI, and combat capabilities |
+| `merchantStateManager.ts`   | Singleton managing merchant inventory persistence |
 | `components/`               | Modular combat subsystems                         |
 
 ## How Combat Works
