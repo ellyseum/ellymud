@@ -51,6 +51,7 @@ jest.mock('fs', () => ({
     })
   ),
   writeFileSync: jest.fn(),
+  mkdirSync: jest.fn(),
 }));
 
 jest.mock('path', () => ({
@@ -89,6 +90,26 @@ jest.mock('../../room/roomManager', () => ({
   },
 }));
 
+// Mock RepositoryFactory to avoid config import issues
+// CRITICAL: Use mockImplementation instead of mockResolvedValue to return a fresh array each time
+// mockResolvedValue returns the SAME array instance, and the code mutates it!
+jest.mock('../../persistence/RepositoryFactory', () => ({
+  getAdminRepository: jest.fn().mockReturnValue({
+    storageExists: jest.fn().mockResolvedValue(true),
+    findAll: jest.fn().mockImplementation(() =>
+      Promise.resolve([
+        { username: 'admin', level: 'super', addedBy: 'system', addedOn: '2023-01-01' },
+        { username: 'superadmin', level: 'super', addedBy: 'admin', addedOn: '2023-01-01' },
+        { username: 'testadmin', level: 'admin', addedBy: 'admin', addedOn: '2023-01-01' },
+        { username: 'testmod', level: 'mod', addedBy: 'admin', addedOn: '2023-01-01' },
+      ])
+    ),
+    save: jest.fn().mockResolvedValue(undefined),
+    saveAll: jest.fn().mockResolvedValue(undefined),
+    delete: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 import { AdminManageCommand, AdminLevel } from './adminmanage.command';
 import { SudoCommand } from './sudo.command';
 import { writeToClient } from '../../utils/socketWriter';
@@ -96,9 +117,15 @@ import { ItemManager } from '../../utils/itemManager';
 import { RoomManager } from '../../room/roomManager';
 import { UserManager } from '../../user/userManager';
 import fs from 'fs';
+import { getAdminRepository } from '../../persistence/RepositoryFactory';
 
 const mockWriteToClient = writeToClient as jest.MockedFunction<typeof writeToClient>;
 const mockFs = fs as jest.Mocked<typeof fs>;
+const mockGetAdminRepository = getAdminRepository as jest.MockedFunction<typeof getAdminRepository>;
+
+// Helper to wait for async operations inside execute() to complete
+// AdminManageCommand.execute() fires async methods without awaiting them
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 10));
 
 describe('AdminManageCommand', () => {
   let adminManageCommand: AdminManageCommand;
@@ -106,9 +133,13 @@ describe('AdminManageCommand', () => {
   let mockItemManager: jest.Mocked<ItemManager>;
   let mockRoomManager: jest.Mocked<RoomManager>;
   let mockSudoCommand: jest.Mocked<SudoCommand>;
+  let mockRepository: ReturnType<typeof mockGetAdminRepository>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
+
+    // Get reference to the mock repository
+    mockRepository = mockGetAdminRepository();
 
     // Create mock managers
     mockUserManager = createMockUserManager();
@@ -133,6 +164,7 @@ describe('AdminManageCommand', () => {
 
     // Create the command with mock user manager
     adminManageCommand = new AdminManageCommand(mockUserManager);
+    await adminManageCommand.ensureInitialized();
     adminManageCommand.setSudoCommand(mockSudoCommand);
   });
 
@@ -162,17 +194,19 @@ describe('AdminManageCommand', () => {
   });
 
   describe('constructor', () => {
-    it('should load admins from file on construction', () => {
-      expect(mockFs.existsSync).toHaveBeenCalled();
-      expect(mockFs.readFileSync).toHaveBeenCalled();
+    it('should load admins from repository on construction', async () => {
+      // Repository findAll should have been called during beforeEach initialization
+      expect(mockRepository.findAll).toHaveBeenCalled();
     });
 
-    it('should create default admin file if it does not exist', () => {
-      (mockFs.existsSync as jest.Mock).mockReturnValueOnce(false);
+    it('should handle repository errors gracefully', async () => {
+      // Make repository.findAll throw an error
+      (mockRepository.findAll as jest.Mock).mockRejectedValueOnce(new Error('Repository error'));
 
       const newCommand = new AdminManageCommand(mockUserManager);
+      await newCommand.ensureInitialized();
 
-      expect(mockFs.writeFileSync).toHaveBeenCalled();
+      // Command should still be created (with default admin)
       expect(newCommand).toBeDefined();
     });
 
@@ -411,7 +445,7 @@ describe('AdminManageCommand', () => {
       );
     });
 
-    it('should add new admin with default mod level', () => {
+    it('should add new admin with default mod level', async () => {
       const client = createMockClient({
         user: createMockUser({ username: 'admin' }),
       });
@@ -420,12 +454,13 @@ describe('AdminManageCommand', () => {
       mockUserManager.getActiveUserSession.mockReturnValue(undefined);
 
       adminManageCommand.execute(client, 'add newuser');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         client,
         expect.stringContaining('has been granted')
       );
-      expect(mockFs.writeFileSync).toHaveBeenCalled();
+      expect(mockRepository.saveAll).toHaveBeenCalled();
     });
 
     it('should add new admin with specified level', () => {
@@ -463,27 +498,28 @@ describe('AdminManageCommand', () => {
       );
     });
 
-    it('should prevent non-super admin from adding super admins', () => {
-      // Create a fresh command with a non-admin super user
-      (mockFs.readFileSync as jest.Mock).mockReturnValueOnce(
-        JSON.stringify({
-          admins: [
-            { username: 'admin', level: 'super', addedBy: 'system', addedOn: '2023-01-01' },
-            { username: 'regularadmin', level: 'admin', addedBy: 'admin', addedOn: '2023-01-01' },
-          ],
-        })
-      );
+    it('should prevent non-super admin from adding super admins', async () => {
+      // Make repository return admin list where 'regularadmin' is only an 'admin' level user
+      (mockRepository.findAll as jest.Mock).mockResolvedValueOnce([
+        { username: 'admin', level: 'super', addedBy: 'system', addedOn: '2023-01-01' },
+        { username: 'regularadmin', level: 'admin', addedBy: 'admin', addedOn: '2023-01-01' },
+      ]);
 
       const newCommand = new AdminManageCommand(mockUserManager);
+      await newCommand.ensureInitialized();
       newCommand.setSudoCommand(mockSudoCommand);
 
       const client = createMockClient({
         user: createMockUser({ username: 'regularadmin' }),
       });
-      mockSudoCommand.isSuperAdmin.mockReturnValue(true); // Passes super admin check for adding
+      // regularadmin is an admin, so isAuthorized passes, but isSuperAdmin returns true for the test
+      // However, the command's own isUserSuperAdmin check should fail because regularadmin is level 'admin' not 'super'
+      mockSudoCommand.isAuthorized.mockReturnValue(true);
+      mockSudoCommand.isSuperAdmin.mockReturnValue(true); // Passes initial check
       mockUserManager.getUser.mockReturnValue(createMockUser({ username: 'newuser' }));
 
       newCommand.execute(client, 'add newuser super');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         client,
@@ -550,7 +586,7 @@ describe('AdminManageCommand', () => {
       );
     });
 
-    it('should remove admin successfully', () => {
+    it('should remove admin successfully', async () => {
       const client = createMockClient({
         user: createMockUser({ username: 'admin' }),
       });
@@ -558,12 +594,13 @@ describe('AdminManageCommand', () => {
       mockUserManager.getActiveUserSession.mockReturnValue(undefined);
 
       adminManageCommand.execute(client, 'remove testmod');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         client,
         expect.stringContaining('privileges have been revoked')
       );
-      expect(mockFs.writeFileSync).toHaveBeenCalled();
+      expect(mockRepository.saveAll).toHaveBeenCalled();
     });
 
     it('should notify target user if they are online', () => {
@@ -685,7 +722,7 @@ describe('AdminManageCommand', () => {
       );
     });
 
-    it('should modify admin level successfully', () => {
+    it('should modify admin level successfully', async () => {
       const client = createMockClient({
         user: createMockUser({ username: 'admin' }),
       });
@@ -693,12 +730,13 @@ describe('AdminManageCommand', () => {
       mockUserManager.getActiveUserSession.mockReturnValue(undefined);
 
       adminManageCommand.execute(client, 'modify testmod admin');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         client,
         expect.stringContaining('admin level has been changed')
       );
-      expect(mockFs.writeFileSync).toHaveBeenCalled();
+      expect(mockRepository.saveAll).toHaveBeenCalled();
     });
 
     it('should notify target user if they are online', () => {
@@ -719,27 +757,26 @@ describe('AdminManageCommand', () => {
       );
     });
 
-    it('should require super admin level to modify other admins', () => {
+    it('should require super admin level to modify other admins', async () => {
       // Setup: regularadmin (admin level) tries to modify testmod
-      (mockFs.readFileSync as jest.Mock).mockReturnValueOnce(
-        JSON.stringify({
-          admins: [
-            { username: 'admin', level: 'super', addedBy: 'system', addedOn: '2023-01-01' },
-            { username: 'regularadmin', level: 'admin', addedBy: 'admin', addedOn: '2023-01-01' },
-            { username: 'testmod', level: 'mod', addedBy: 'admin', addedOn: '2023-01-01' },
-          ],
-        })
-      );
+      (mockRepository.findAll as jest.Mock).mockResolvedValueOnce([
+        { username: 'admin', level: 'super', addedBy: 'system', addedOn: '2023-01-01' },
+        { username: 'regularadmin', level: 'admin', addedBy: 'admin', addedOn: '2023-01-01' },
+        { username: 'testmod', level: 'mod', addedBy: 'admin', addedOn: '2023-01-01' },
+      ]);
 
       const newCommand = new AdminManageCommand(mockUserManager);
+      await newCommand.ensureInitialized();
       newCommand.setSudoCommand(mockSudoCommand);
 
       const client = createMockClient({
         user: createMockUser({ username: 'regularadmin' }),
       });
+      mockSudoCommand.isAuthorized.mockReturnValue(true);
       mockSudoCommand.isSuperAdmin.mockReturnValue(true);
 
       newCommand.execute(client, 'modify testmod super');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         client,
