@@ -4,6 +4,21 @@
 
 Centralized conversion functions between database rows (snake_case) and domain objects (camelCase). Used by Kysely repositories to transform data.
 
+## Available Mappers
+
+| File | Domain Type | Key Conversions |
+|------|-------------|-----------------|
+| `userMapper.ts` | `User` | `password_hash` ↔ `passwordHash`, JSON fields |
+| `roomMapper.ts` | `RoomData` | `exits` JSON, `currency_*` fields |
+| `roomStateMapper.ts` | `RoomState` | `room_id` ↔ `roomId`, JSON arrays |
+| `itemMapper.ts` | `GameItem`, `ItemInstance` | `template_id`, JSON stats |
+| `npcMapper.ts` | `NPCData` | `damage_min/max` ↔ `damage` tuple |
+| `adminMapper.ts` | `AdminUser` | `added_by` ↔ `addedBy`, `added_on` ↔ `addedOn` |
+| `bugReportMapper.ts` | `BugReport` | Nested `logs` object, `solved_*` fields |
+| `merchantStateMapper.ts` | `MerchantInventoryState` | `template_id`, `inventory` JSON |
+| `abilityMapper.ts` | `AbilityTemplate` | `cooldown_ms`, `effects` JSON |
+| `snakeScoreMapper.ts` | `SnakeScoreEntry` | Simple field mapping |
+
 ## Key Functions
 
 ### User Mapper (`userMapper.ts`)
@@ -83,7 +98,7 @@ const row = areaToDbRow(area);
 ```typescript
 import { dbRowToNPCData, npcDataToDbRow } from '../persistence/mappers';
 
-const npc: NPCData = dbRowToNPCData(dbRow);
+const npc: NPCData = dbRowToNPCData(npcRow);
 const row = npcDataToDbRow(npc);
 ```
 
@@ -98,6 +113,78 @@ const row = npcDataToDbRow(npc);
 - `merchant` (null/0/1) ↔ `merchant` (undefined/false/true)
 - `inventory` (JSON string) ↔ `inventory` (object | undefined)
 - `stock_config` (JSON string) ↔ `stockConfig` (object | undefined)
+
+### Admin Mapper (`adminMapper.ts`)
+
+```typescript
+import { dbRowToAdminUser, adminUserToDbRow } from '../persistence/mappers';
+
+const admin: AdminUser = dbRowToAdminUser(adminRow);
+const row = adminUserToDbRow(admin);
+```
+
+**Field mappings:**
+- `added_by` ↔ `addedBy`
+- `added_on` ↔ `addedOn`
+- `level` (unchanged - 'super' | 'admin' | 'mod')
+
+### Bug Report Mapper (`bugReportMapper.ts`)
+
+```typescript
+import { dbRowToBugReport, bugReportToDbRow } from '../persistence/mappers';
+
+const report: BugReport = dbRowToBugReport(reportRow);
+const row = bugReportToDbRow(report);
+```
+
+**Handles nested logs object:**
+- DB stores `logs_raw` and `logs_user` as separate columns
+- Domain uses `logs: { raw: string | null, user: string | null }`
+
+**Solved fields:**
+- `solved_on` ↔ `solvedOn`
+- `solved_by` ↔ `solvedBy`
+- `solved_reason` ↔ `solvedReason`
+
+### Merchant State Mapper (`merchantStateMapper.ts`)
+
+```typescript
+import { dbRowToMerchantState, merchantStateToDbRow } from '../persistence/mappers';
+
+const state: MerchantInventoryState = dbRowToMerchantState(row);
+const row = merchantStateToDbRow(state);
+```
+
+**Field mappings:**
+- `template_id` ↔ `templateId`
+- `inventory` (JSON string) ↔ `inventory` (array)
+- `last_restock` ↔ `lastRestock`
+
+### Ability Mapper (`abilityMapper.ts`)
+
+```typescript
+import { dbRowToAbility, abilityToDbRow } from '../persistence/mappers';
+
+const ability: AbilityTemplate = dbRowToAbility(row);
+const row = abilityToDbRow(ability);
+```
+
+**Field mappings:**
+- `cooldown_ms` ↔ `cooldownMs`
+- `mana_cost` ↔ `manaCost`
+- `effects` (JSON string) ↔ `effects` (array)
+- `requirements` (JSON string) ↔ `requirements` (object)
+
+### Snake Score Mapper (`snakeScoreMapper.ts`)
+
+```typescript
+import { dbRowToSnakeScore, snakeScoreToDbRow } from '../persistence/mappers';
+
+const score: SnakeScoreEntry = dbRowToSnakeScore(row);
+const row = snakeScoreToDbRow(score);
+```
+
+**Simple mappings - mostly 1:1 field names.**
 
 ## JSON Field Handling
 
@@ -138,4 +225,9 @@ const user = { joinDate: new Date(row.join_date) };
 - [`../KyselyItemRepository.ts`](../KyselyItemRepository.ts) - Uses item mapper
 - [`../KyselyNpcRepository.ts`](../KyselyNpcRepository.ts) - Uses NPC mapper
 - [`../KyselyAreaRepository.ts`](../KyselyAreaRepository.ts) - Uses area mapper
+- [`../KyselyAdminRepository.ts`](../KyselyAdminRepository.ts) - Uses admin mapper
+- [`../KyselyBugReportRepository.ts`](../KyselyBugReportRepository.ts) - Uses bug report mapper
+- [`../KyselyMerchantStateRepository.ts`](../KyselyMerchantStateRepository.ts) - Uses merchant state mapper
+- [`../KyselyAbilityRepository.ts`](../KyselyAbilityRepository.ts) - Uses ability mapper
+- [`../KyselySnakeScoreRepository.ts`](../KyselySnakeScoreRepository.ts) - Uses snake score mapper
 - [`../../data/schema.ts`](../../data/schema.ts) - Database table definitions

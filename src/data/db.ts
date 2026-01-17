@@ -177,6 +177,65 @@ export async function initializeDatabase(): Promise<void> {
     .addColumn('modified', 'text', (col) => col.notNull())
     .execute();
 
+  await database.schema.createTable('room_states').ifNotExists()
+    .addColumn('room_id', 'text', (col) => col.primaryKey())
+    .addColumn('item_instances', 'text', (col) => col.notNull().defaultTo('[]'))
+    .addColumn('npc_template_ids', 'text', (col) => col.notNull().defaultTo('[]'))
+    .addColumn('currency_gold', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('currency_silver', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('currency_copper', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('items', 'text')
+    .execute();
+
+  await database.schema.createTable('admins').ifNotExists()
+    .addColumn('username', 'text', (col) => col.primaryKey())
+    .addColumn('level', 'text', (col) => col.notNull())
+    .addColumn('added_by', 'text', (col) => col.notNull())
+    .addColumn('added_on', 'text', (col) => col.notNull())
+    .execute();
+
+  await database.schema.createTable('bug_reports').ifNotExists()
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .addColumn('user', 'text', (col) => col.notNull())
+    .addColumn('datetime', 'text', (col) => col.notNull())
+    .addColumn('report', 'text', (col) => col.notNull())
+    .addColumn('logs_raw', 'text')
+    .addColumn('logs_user', 'text')
+    .addColumn('solved', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('solved_on', 'text')
+    .addColumn('solved_by', 'text')
+    .addColumn('solved_reason', 'text')
+    .execute();
+
+  await database.schema.createTable('merchant_states').ifNotExists()
+    .addColumn('npc_template_id', 'text', (col) => col.primaryKey())
+    .addColumn('npc_instance_id', 'text', (col) => col.notNull())
+    .addColumn('actual_inventory', 'text', (col) => col.notNull().defaultTo('[]'))
+    .addColumn('stock_config', 'text', (col) => col.notNull().defaultTo('[]'))
+    .execute();
+
+  await database.schema.createTable('abilities').ifNotExists()
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('description', 'text', (col) => col.notNull())
+    .addColumn('type', 'text', (col) => col.notNull())
+    .addColumn('mp_cost', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('cooldown_type', 'text', (col) => col.notNull())
+    .addColumn('cooldown_value', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('target_type', 'text', (col) => col.notNull())
+    .addColumn('effects', 'text', (col) => col.notNull().defaultTo('[]'))
+    .addColumn('requirements', 'text')
+    .addColumn('proc_chance', 'real')
+    .addColumn('consumes_item', 'integer')
+    .execute();
+
+  await database.schema.createTable('snake_scores').ifNotExists()
+    .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
+    .addColumn('username', 'text', (col) => col.notNull())
+    .addColumn('score', 'integer', (col) => col.notNull())
+    .addColumn('date', 'text', (col) => col.notNull())
+    .execute();
+
   systemLogger.info('[Database] Tables initialized');
 }
 

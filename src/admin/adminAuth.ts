@@ -1,27 +1,13 @@
-import fs from 'fs';
-import path from 'path';
 import { UserManager } from '../user/userManager';
 import { systemLogger } from '../utils/logger';
-
-// Path to the main admin.json file that contains user admin privileges
-const ADMIN_FILE = path.join(__dirname, '..', '..', 'data', 'admin.json');
-
-// Interface for the admin.json file structure
-interface AdminData {
-  admins: AdminUser[];
-}
-
-// Interface for admin users in admin.json
-interface AdminUser {
-  username: string;
-  level: string;
-  addedBy: string;
-  addedOn: string;
-}
+import { getAdminRepository } from '../persistence/RepositoryFactory';
+import { AdminUser, IAsyncAdminRepository } from '../persistence/interfaces';
 
 export class AdminAuth {
   private admins: AdminUser[] = [];
   private userManager: UserManager;
+  private adminRepository: IAsyncAdminRepository;
+  private initPromise: Promise<void> | null = null;
   // Flag to track if we've already logged the missing file warning
   private static fileWarningLogged: boolean = false;
   // Timestamp when the warning was last logged
@@ -31,21 +17,31 @@ export class AdminAuth {
 
   constructor() {
     this.userManager = UserManager.getInstance();
-    this.loadAdmins();
+    this.adminRepository = getAdminRepository();
+    this.initPromise = this.loadAdmins();
   }
 
-  private loadAdmins(): void {
+  /**
+   * Ensure admin data is loaded before operations
+   */
+  public async ensureInitialized(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+      this.initPromise = null;
+    }
+  }
+
+  private async loadAdmins(): Promise<void> {
     try {
-      // Check if the admin.json file exists
-      if (!fs.existsSync(ADMIN_FILE)) {
+      const exists = await this.adminRepository.storageExists();
+      if (!exists) {
         const currentTime = Date.now();
 
-        // Only log the warning if the cooldown period has passed
         if (
           !AdminAuth.fileWarningLogged ||
           currentTime - AdminAuth.warningTimestamp > AdminAuth.WARNING_COOLDOWN_MS
         ) {
-          systemLogger.warn(`Admin file not found: ${ADMIN_FILE}`);
+          systemLogger.warn(`Admin storage not found`);
           AdminAuth.fileWarningLogged = true;
           AdminAuth.warningTimestamp = currentTime;
         }
@@ -53,9 +49,7 @@ export class AdminAuth {
         return;
       }
 
-      const data = fs.readFileSync(ADMIN_FILE, 'utf8');
-      const adminData: AdminData = JSON.parse(data);
-      this.admins = adminData.admins || [];
+      this.admins = await this.adminRepository.findAll();
       systemLogger.debug(
         `[AdminAuth] Loaded ${this.admins.length} admins: ${JSON.stringify(this.admins.map((a) => a.username))}`
       );
@@ -63,6 +57,13 @@ export class AdminAuth {
       systemLogger.error(`Error loading admins: ${error}`);
       this.admins = [];
     }
+  }
+
+  /**
+   * Reload admins from storage (call after external changes)
+   */
+  public async reloadAdmins(): Promise<void> {
+    await this.loadAdmins();
   }
 
   // Method to clear the warning flag if needed

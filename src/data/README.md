@@ -11,6 +11,22 @@ Database schema and connection utilities for the Kysely persistence layer with s
 | `autoMigrate.ts`| Auto-sync data when storage backend changes       |
 | `__mocks__/`    | Jest mocks for database testing                   |
 
+## Database Tables
+
+| Table | JSON File | Purpose |
+|-------|-----------|---------|
+| `users` | `users.json` | Player accounts and stats |
+| `rooms` | `rooms.json` | Room templates |
+| `room_states` | `room_state.json` | Mutable room data |
+| `items` | `items.json` | Item templates |
+| `item_instances` | `itemInstances.json` | Item instances |
+| `npcs` | `npcs.json` | NPC templates |
+| `admins` | `admin.json` | Admin user privileges |
+| `bug_reports` | `bug-reports.json` | Player bug reports |
+| `merchant_states` | `merchant-state.json` | Merchant inventory |
+| `abilities` | `abilities.json` | Ability templates |
+| `snake_scores` | `snake-scores.json` | Snake game leaderboard |
+
 ## Overview
 
 This directory contains the database layer that provides an alternative to JSON file storage. The system uses Kysely as a type-safe query builder with support for both SQLite (local) and PostgreSQL (remote) backends. The SQLite database file (`game.db`) is stored in the root `data/` directory.
