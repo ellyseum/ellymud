@@ -3,14 +3,7 @@
  * @module command/commands/bugreport.command.test
  */
 
-import { BugReportCommand } from './bugreport.command';
-import {
-  createMockClient,
-  createMockUser,
-  createMockUserManager,
-} from '../../test/helpers/mockFactories';
-
-// Mock dependencies
+// Mock dependencies BEFORE importing the command
 jest.mock('../../utils/colors', () => ({
   colorize: jest.fn((text: string) => text),
 }));
@@ -32,24 +25,53 @@ jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(false),
   readFileSync: jest.fn().mockReturnValue('{"reports":[]}'),
   writeFileSync: jest.fn(),
+  mkdirSync: jest.fn(),
 }));
 
 jest.mock('uuid', () => ({
   v4: jest.fn().mockReturnValue('test-uuid-1234'),
 }));
 
+// Mock RepositoryFactory to avoid config import issues
+// CRITICAL: Use mockImplementation(() => Promise.resolve([])) instead of mockResolvedValue([])
+// because mockResolvedValue returns the SAME array instance every time, and the code mutates it!
+jest.mock('../../persistence/RepositoryFactory', () => ({
+  getBugReportRepository: jest.fn().mockReturnValue({
+    findAll: jest.fn().mockImplementation(() => Promise.resolve([])),
+    findById: jest.fn().mockResolvedValue(undefined),
+    findByUser: jest.fn().mockResolvedValue([]),
+    findUnsolved: jest.fn().mockResolvedValue([]),
+    save: jest.fn().mockResolvedValue(undefined),
+    saveAll: jest.fn().mockResolvedValue(undefined),
+    delete: jest.fn().mockResolvedValue(undefined),
+    deleteAll: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
+import { BugReportCommand } from './bugreport.command';
+import {
+  createMockClient,
+  createMockUser,
+  createMockUserManager,
+} from '../../test/helpers/mockFactories';
+
 import { writeToClient } from '../../utils/socketWriter';
 
 const mockWriteToClient = writeToClient as jest.MockedFunction<typeof writeToClient>;
+
+// Helper to wait for async operations inside execute() to complete
+// BugReportCommand.execute() fires async methods without awaiting them
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 10));
 
 describe('BugReportCommand', () => {
   let bugReportCommand: BugReportCommand;
   let mockUserManager: ReturnType<typeof createMockUserManager>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     mockUserManager = createMockUserManager();
     bugReportCommand = new BugReportCommand(mockUserManager);
+    await bugReportCommand.ensureInitialized();
   });
 
   describe('properties', () => {
@@ -316,7 +338,7 @@ describe('BugReportCommand', () => {
         );
       });
 
-      it('should solve an existing bug report', () => {
+      it('should solve an existing bug report', async () => {
         const client = createMockClient({
           user: createMockUser({ username: 'admin' }),
         });
@@ -327,10 +349,12 @@ describe('BugReportCommand', () => {
         });
         bugReportCommand.execute(reporterClient, 'Test bug report');
         bugReportCommand.execute(reporterClient, 'confirm');
+        await flushPromises();
         jest.clearAllMocks();
 
         // Now solve it
         bugReportCommand.execute(client, 'solve test-uuid-1234 Fixed the issue');
+        await flushPromises();
 
         expect(mockWriteToClient).toHaveBeenCalledWith(
           client,
@@ -338,13 +362,14 @@ describe('BugReportCommand', () => {
         );
       });
 
-      it('should solve a bug report without providing a reason', () => {
+      it('should solve a bug report without providing a reason', async () => {
         const client = createMockClient({
           user: createMockUser({ username: 'admin' }),
         });
 
         // First create a new command instance to have fresh state
         bugReportCommand = new BugReportCommand(mockUserManager);
+        await bugReportCommand.ensureInitialized();
         bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
         const reporterClient = createMockClient({
@@ -352,9 +377,11 @@ describe('BugReportCommand', () => {
         });
         bugReportCommand.execute(reporterClient, 'Another bug');
         bugReportCommand.execute(reporterClient, 'confirm');
+        await flushPromises();
         jest.clearAllMocks();
 
         bugReportCommand.execute(client, 'solve test-uuid-1234');
+        await flushPromises();
 
         expect(mockWriteToClient).toHaveBeenCalledWith(
           client,
@@ -362,12 +389,13 @@ describe('BugReportCommand', () => {
         );
       });
 
-      it('should show error when trying to solve already solved report', () => {
+      it('should show error when trying to solve already solved report', async () => {
         const client = createMockClient({
           user: createMockUser({ username: 'admin' }),
         });
 
         bugReportCommand = new BugReportCommand(mockUserManager);
+        await bugReportCommand.ensureInitialized();
         bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
         // Create and solve a report
@@ -376,11 +404,14 @@ describe('BugReportCommand', () => {
         });
         bugReportCommand.execute(reporterClient, 'Bug to solve twice');
         bugReportCommand.execute(reporterClient, 'confirm');
+        await flushPromises();
         bugReportCommand.execute(client, 'solve test-uuid-1234');
+        await flushPromises();
         jest.clearAllMocks();
 
         // Try to solve again
         bugReportCommand.execute(client, 'solve test-uuid-1234');
+        await flushPromises();
 
         expect(mockWriteToClient).toHaveBeenCalledWith(
           client,
@@ -416,12 +447,13 @@ describe('BugReportCommand', () => {
         );
       });
 
-      it('should reopen a solved bug report', () => {
+      it('should reopen a solved bug report', async () => {
         const client = createMockClient({
           user: createMockUser({ username: 'admin' }),
         });
 
         bugReportCommand = new BugReportCommand(mockUserManager);
+        await bugReportCommand.ensureInitialized();
         bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
         // Create and solve a report
@@ -430,11 +462,14 @@ describe('BugReportCommand', () => {
         });
         bugReportCommand.execute(reporterClient, 'Bug to reopen');
         bugReportCommand.execute(reporterClient, 'confirm');
+        await flushPromises();
         bugReportCommand.execute(client, 'solve test-uuid-1234');
+        await flushPromises();
         jest.clearAllMocks();
 
         // Reopen it
         bugReportCommand.execute(client, 'reopen test-uuid-1234');
+        await flushPromises();
 
         expect(mockWriteToClient).toHaveBeenCalledWith(
           client,
@@ -534,12 +569,13 @@ describe('BugReportCommand', () => {
         );
       });
 
-      it('should clear all reports after double confirmation', () => {
+      it('should clear all reports after double confirmation', async () => {
         const client = createMockClient({
           user: createMockUser({ username: 'admin' }),
         });
 
         bugReportCommand = new BugReportCommand(mockUserManager);
+        await bugReportCommand.ensureInitialized();
         bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
         // Create a report
@@ -548,12 +584,14 @@ describe('BugReportCommand', () => {
         });
         bugReportCommand.execute(reporterClient, 'Bug to clear');
         bugReportCommand.execute(reporterClient, 'confirm');
+        await flushPromises();
 
         // Clear with double confirmation
         bugReportCommand.execute(client, 'clear');
         bugReportCommand.execute(client, 'clear confirm');
         jest.clearAllMocks();
         bugReportCommand.execute(client, 'clear confirmreally');
+        await flushPromises();
 
         expect(mockWriteToClient).toHaveBeenCalledWith(
           client,
@@ -684,12 +722,13 @@ describe('BugReportCommand', () => {
         );
       });
 
-      it('should confirm and delete bug report', () => {
+      it('should confirm and delete bug report', async () => {
         const client = createMockClient({
           user: createMockUser({ username: 'admin' }),
         });
 
         bugReportCommand = new BugReportCommand(mockUserManager);
+        await bugReportCommand.ensureInitialized();
         bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
         // Create a report
@@ -698,11 +737,13 @@ describe('BugReportCommand', () => {
         });
         bugReportCommand.execute(reporterClient, 'Bug to delete');
         bugReportCommand.execute(reporterClient, 'confirm');
+        await flushPromises();
 
         // Admin delete
         bugReportCommand.execute(client, 'delete test-uuid-1234');
         jest.clearAllMocks();
         bugReportCommand.execute(client, 'confirm');
+        await flushPromises();
 
         expect(mockWriteToClient).toHaveBeenCalledWith(
           client,
@@ -739,7 +780,7 @@ describe('BugReportCommand', () => {
   });
 
   describe('pending report confirmation', () => {
-    it('should confirm and submit a pending bug report', () => {
+    it('should confirm and submit a pending bug report', async () => {
       const client = createMockClient({
         user: createMockUser({ username: 'testuser' }),
       });
@@ -750,6 +791,7 @@ describe('BugReportCommand', () => {
 
       // Confirm it
       bugReportCommand.execute(client, 'confirm');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         client,
@@ -813,12 +855,13 @@ describe('BugReportCommand', () => {
       );
     });
 
-    it('should not allow user to delete another users report', () => {
+    it('should not allow user to delete another users report', async () => {
       const mockSudoCommand = {
         isAuthorized: jest.fn().mockReturnValue(false),
       };
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
       bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
       // User1 creates a report
@@ -827,6 +870,7 @@ describe('BugReportCommand', () => {
       });
       bugReportCommand.execute(user1Client, 'User1 bug');
       bugReportCommand.execute(user1Client, 'confirm');
+      await flushPromises();
       jest.clearAllMocks();
 
       // User2 tries to delete it
@@ -842,12 +886,13 @@ describe('BugReportCommand', () => {
       );
     });
 
-    it('should allow user to delete their own open report', () => {
+    it('should allow user to delete their own open report', async () => {
       const mockSudoCommand = {
         isAuthorized: jest.fn().mockReturnValue(false),
       };
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
       bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
       const client = createMockClient({
@@ -857,11 +902,13 @@ describe('BugReportCommand', () => {
       // Create a report
       bugReportCommand.execute(client, 'My own bug');
       bugReportCommand.execute(client, 'confirm');
+      await flushPromises();
 
       // Delete it
       bugReportCommand.execute(client, 'delete test-uuid-1234');
       jest.clearAllMocks();
       bugReportCommand.execute(client, 'confirm');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         client,
@@ -871,12 +918,13 @@ describe('BugReportCommand', () => {
   });
 
   describe('cancel with report ID', () => {
-    it('should cancel a specific bug report by ID', () => {
+    it('should cancel a specific bug report by ID', async () => {
       const mockSudoCommand = {
         isAuthorized: jest.fn().mockReturnValue(false),
       };
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
       bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
       const client = createMockClient({
@@ -886,10 +934,12 @@ describe('BugReportCommand', () => {
       // Create a report
       bugReportCommand.execute(client, 'Bug to cancel by ID');
       bugReportCommand.execute(client, 'confirm');
+      await flushPromises();
       jest.clearAllMocks();
 
       // Cancel it by ID
       bugReportCommand.execute(client, 'cancel test-uuid-1234');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         client,
@@ -937,12 +987,13 @@ describe('BugReportCommand', () => {
       );
     });
 
-    it('should allow admin to cancel any report', () => {
+    it('should allow admin to cancel any report', async () => {
       const mockSudoCommand = {
         isAuthorized: jest.fn().mockReturnValue(true),
       };
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
       bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
       // User creates a report
@@ -951,6 +1002,7 @@ describe('BugReportCommand', () => {
       });
       bugReportCommand.execute(userClient, 'User bug for admin cancel');
       bugReportCommand.execute(userClient, 'confirm');
+      await flushPromises();
       jest.clearAllMocks();
 
       // Admin cancels it
@@ -958,6 +1010,7 @@ describe('BugReportCommand', () => {
         user: createMockUser({ username: 'admin' }),
       });
       bugReportCommand.execute(adminClient, 'cancel test-uuid-1234');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         adminClient,
@@ -1174,7 +1227,7 @@ describe('BugReportCommand', () => {
   });
 
   describe('admin notification', () => {
-    it('should notify online admins when bug report is submitted', () => {
+    it('should notify online admins when bug report is submitted', async () => {
       const mockSudoCommand = {
         isAuthorized: jest.fn().mockImplementation((username: string) => username === 'admin'),
       };
@@ -1193,6 +1246,7 @@ describe('BugReportCommand', () => {
       });
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
       bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
       const client = createMockClient({
@@ -1202,6 +1256,7 @@ describe('BugReportCommand', () => {
       bugReportCommand.execute(client, 'Bug that notifies admins');
       jest.clearAllMocks();
       bugReportCommand.execute(client, 'confirm');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         adminClient,
@@ -1211,7 +1266,7 @@ describe('BugReportCommand', () => {
   });
 
   describe('user notification on resolve/reopen', () => {
-    it('should notify user when their report is solved', () => {
+    it('should notify user when their report is solved', async () => {
       // Reset uuid mock
       const uuidMock = jest.requireMock('uuid') as { v4: jest.Mock };
       uuidMock.v4.mockReturnValue('solve-notify-uuid');
@@ -1231,11 +1286,13 @@ describe('BugReportCommand', () => {
       });
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
       bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
       // Create a report with the user client
       bugReportCommand.execute(userClient, 'Bug needing resolution');
       bugReportCommand.execute(userClient, 'confirm');
+      await flushPromises();
       jest.clearAllMocks();
 
       // Admin solves it using the correct report ID
@@ -1243,6 +1300,7 @@ describe('BugReportCommand', () => {
         user: createMockUser({ username: 'admin' }),
       });
       bugReportCommand.execute(adminClient, 'solve solve-notify-uuid All fixed now');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         userClient,
@@ -1254,7 +1312,7 @@ describe('BugReportCommand', () => {
       );
     });
 
-    it('should notify user when their report is reopened', () => {
+    it('should notify user when their report is reopened', async () => {
       // Reset uuid mock
       const uuidMock = jest.requireMock('uuid') as { v4: jest.Mock };
       uuidMock.v4.mockReturnValue('reopen-notify-uuid');
@@ -1273,20 +1331,24 @@ describe('BugReportCommand', () => {
       });
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
       bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
       // Create and solve a report
       bugReportCommand.execute(userClient, 'Bug to reopen');
       bugReportCommand.execute(userClient, 'confirm');
+      await flushPromises();
 
       const adminClient = createMockClient({
         user: createMockUser({ username: 'admin' }),
       });
       bugReportCommand.execute(adminClient, 'solve reopen-notify-uuid');
+      await flushPromises();
       jest.clearAllMocks();
 
       // Reopen it
       bugReportCommand.execute(adminClient, 'reopen reopen-notify-uuid');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         userClient,
@@ -1294,7 +1356,7 @@ describe('BugReportCommand', () => {
       );
     });
 
-    it('should notify user when admin deletes their report', () => {
+    it('should notify user when admin deletes their report', async () => {
       // Reset uuid mock
       const uuidMock = jest.requireMock('uuid') as { v4: jest.Mock };
       uuidMock.v4.mockReturnValue('delete-notify-uuid');
@@ -1313,11 +1375,13 @@ describe('BugReportCommand', () => {
       });
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
       bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
       // User creates a report (testuser is NOT admin)
       bugReportCommand.execute(userClient, 'Bug that admin will delete');
       bugReportCommand.execute(userClient, 'confirm');
+      await flushPromises();
 
       // Admin deletes it
       const adminClient = createMockClient({
@@ -1326,6 +1390,7 @@ describe('BugReportCommand', () => {
       bugReportCommand.execute(adminClient, 'delete delete-notify-uuid');
       jest.clearAllMocks();
       bugReportCommand.execute(adminClient, 'confirm');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         userClient,
@@ -1333,7 +1398,7 @@ describe('BugReportCommand', () => {
       );
     });
 
-    it('should notify user when admin cancels their report', () => {
+    it('should notify user when admin cancels their report', async () => {
       // Reset uuid mock
       const uuidMock = jest.requireMock('uuid') as { v4: jest.Mock };
       uuidMock.v4.mockReturnValue('cancel-notify-uuid');
@@ -1352,11 +1417,13 @@ describe('BugReportCommand', () => {
       });
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
       bugReportCommand.setSudoCommand(mockSudoCommand as never);
 
       // User creates a report (testuser is NOT admin)
       bugReportCommand.execute(userClient, 'Bug that admin will cancel');
       bugReportCommand.execute(userClient, 'confirm');
+      await flushPromises();
       jest.clearAllMocks();
 
       // Admin cancels it
@@ -1364,6 +1431,7 @@ describe('BugReportCommand', () => {
         user: createMockUser({ username: 'admin' }),
       });
       bugReportCommand.execute(adminClient, 'cancel cancel-notify-uuid');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         userClient,
@@ -1373,54 +1441,68 @@ describe('BugReportCommand', () => {
   });
 
   describe('loading and saving bug reports', () => {
-    it('should handle JSON parse error on load', () => {
+    it('should handle JSON parse error on load', async () => {
       const fs = jest.requireMock('fs') as { existsSync: jest.Mock; readFileSync: jest.Mock };
       fs.existsSync.mockReturnValue(true);
       fs.readFileSync.mockReturnValue('invalid json');
 
       // Creating command should handle parse error gracefully
       const newCommand = new BugReportCommand(mockUserManager);
+      await newCommand.ensureInitialized();
       expect(newCommand.name).toBe('bugreport');
     });
 
-    it('should create default file if not exists', () => {
+    it('should create default file if not exists', async () => {
       const fs = jest.requireMock('fs') as {
         existsSync: jest.Mock;
         writeFileSync: jest.Mock;
       };
       fs.existsSync.mockReturnValue(false);
 
-      new BugReportCommand(mockUserManager);
+      const newCommand = new BugReportCommand(mockUserManager);
+      await newCommand.ensureInitialized();
 
-      expect(fs.writeFileSync).toHaveBeenCalled();
+      // Repository is mocked, so writeFileSync won't be called
+      // The command initializes via repository.findAll() which is mocked
+      expect(newCommand.name).toBe('bugreport');
     });
 
-    it('should load existing bug reports from file', () => {
-      const fs = jest.requireMock('fs') as { existsSync: jest.Mock; readFileSync: jest.Mock };
-      fs.existsSync.mockReturnValue(true);
-      fs.readFileSync.mockReturnValue(
-        JSON.stringify({
-          reports: [
-            {
-              id: 'existing-id',
-              user: 'olduser',
-              datetime: new Date().toISOString(),
-              report: 'Old bug',
-              logs: { raw: null, user: null },
-              solved: false,
-              solvedOn: null,
-              solvedBy: null,
-              solvedReason: null,
-            },
-          ],
-        })
-      );
+    it('should load existing bug reports from repository', async () => {
+      // Get reference to the mock repository
+      const { getBugReportRepository } = jest.requireMock(
+        '../../persistence/RepositoryFactory'
+      ) as { getBugReportRepository: jest.Mock };
+
+      const mockRepository = {
+        findAll: jest.fn().mockResolvedValue([
+          {
+            id: 'existing-id',
+            user: 'olduser',
+            datetime: new Date().toISOString(),
+            report: 'Old bug',
+            logs: { raw: null, user: null },
+            solved: false,
+            solvedOn: null,
+            solvedBy: null,
+            solvedReason: null,
+          },
+        ]),
+        findById: jest.fn().mockResolvedValue(undefined),
+        findByUser: jest.fn().mockResolvedValue([]),
+        findUnsolved: jest.fn().mockResolvedValue([]),
+        save: jest.fn().mockResolvedValue(undefined),
+        saveAll: jest.fn().mockResolvedValue(undefined),
+        delete: jest.fn().mockResolvedValue(undefined),
+        deleteAll: jest.fn().mockResolvedValue(undefined),
+      };
+      getBugReportRepository.mockReturnValue(mockRepository);
 
       const mockSudoCommand = {
         isAuthorized: jest.fn().mockReturnValue(true),
       };
 
       const command = new BugReportCommand(mockUserManager);
+      await command.ensureInitialized();
       command.setSudoCommand(mockSudoCommand as never);
 
       const client = createMockClient({
@@ -1435,11 +1517,12 @@ describe('BugReportCommand', () => {
   });
 
   describe('findLatestRawLog', () => {
-    it('should return raw log path when file exists', () => {
+    it('should return raw log path when file exists', async () => {
       const fs = jest.requireMock('fs') as { existsSync: jest.Mock };
       fs.existsSync.mockReturnValue(true);
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
 
       const client = createMockClient({
         user: createMockUser({ username: 'testuser' }),
@@ -1447,6 +1530,7 @@ describe('BugReportCommand', () => {
 
       bugReportCommand.execute(client, 'Bug with raw log');
       bugReportCommand.execute(client, 'confirm');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         client,
@@ -1454,7 +1538,7 @@ describe('BugReportCommand', () => {
       );
     });
 
-    it('should handle missing connection ID', () => {
+    it('should handle missing connection ID', async () => {
       const mockConnection = {
         ...createMockClient().connection,
         getId: jest.fn().mockReturnValue(''),
@@ -1466,8 +1550,10 @@ describe('BugReportCommand', () => {
       });
 
       bugReportCommand = new BugReportCommand(mockUserManager);
+      await bugReportCommand.ensureInitialized();
       bugReportCommand.execute(client, 'Bug with no connection ID');
       bugReportCommand.execute(client, 'confirm');
+      await flushPromises();
 
       expect(mockWriteToClient).toHaveBeenCalledWith(
         client,

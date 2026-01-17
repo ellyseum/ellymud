@@ -10,6 +10,36 @@ This directory contains the database abstraction layer for EllyMUD. It provides 
 - **Auto-migration** - Automatic data sync when backend changes
 - **Jest mocks** - Prevents native module loading during tests
 
+## Auto-Migration Coverage
+
+The migration script (`scripts/migrate-json-to-sqlite.ts`) provides full coverage for all EllyMUD entities:
+
+| Entity | JSON→DB | DB→JSON | Auto-Migrate | Notes |
+|--------|---------|---------|--------------|-------|
+| Users | ✅ | ✅ | ✅ | Full support |
+| Rooms | ✅ | ✅ | ✅ | Full support |
+| NPCs | ✅ | ✅ | ✅ | Full support |
+| Items (templates) | ✅ | ✅ | ✅ | Full support |
+| Item Instances | ✅ | ✅ | ✅ | Full support |
+| Areas | ✅ | ✅ | ✅ | Full support |
+| Abilities | ✅ | ✅ | ✅ | Full support |
+| Room States | ✅ | ✅ | ✅ | Full support |
+| Merchant States | ✅ | ✅ | ✅ | Full support |
+| Admin Auth | ✅ | ✅ | ✅ | Full support |
+| MUD Config | ✅ | ✅ | ✅ | Singleton pattern |
+| Game Timer Config | ✅ | ✅ | ✅ | Singleton pattern |
+| Bug Reports | ✅ | ✅ | ✅ | Low priority data |
+| Snake Scores | ✅ | ✅ | ✅ | Mini-game data |
+
+**Run migration**:
+```bash
+# Delete existing database and run fresh migration
+rm -f data/game.db && npx ts-node scripts/migrate-json-to-sqlite.ts
+
+# Or use npm script
+npm run data:import
+```
+
 ## Architecture
 
 ```
