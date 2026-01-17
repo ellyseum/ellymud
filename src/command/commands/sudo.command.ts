@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { ConnectedClient } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
@@ -9,6 +7,8 @@ import { AdminLevel, AdminUser } from './adminmanage.command';
 import { drawCommandPrompt } from '../../utils/promptFormatter';
 import { CommandRegistry } from '../commandRegistry';
 import { createContextLogger } from '../../utils/logger';
+import { getAdminRepository } from '../../persistence/RepositoryFactory';
+import { AdminUser as RepoAdminUser, IAsyncAdminRepository } from '../../persistence/interfaces';
 
 // Create a context-specific logger for SudoCommand
 const sudoLogger = createContextLogger('SudoCommand');
@@ -20,8 +20,9 @@ export class SudoCommand implements Command {
   description = 'Toggle admin access for authorized users';
   private adminUsers: AdminUser[] = [];
   private static activeAdmins: Set<string> = new Set(); // Track users with active admin privileges
-  private adminFilePath: string;
+  private adminRepository: IAsyncAdminRepository;
   private static commandRegistry: CommandRegistry | null = null;
+  private initPromise: Promise<void> | null = null;
 
   // Singleton instance
   private static instance: SudoCommand | null = null;
@@ -44,8 +45,18 @@ export class SudoCommand implements Command {
   }
 
   private constructor() {
-    this.adminFilePath = path.join(__dirname, '../../../data/admin.json');
-    this.loadAdminUsers();
+    this.adminRepository = getAdminRepository();
+    this.initPromise = this.loadAdminUsers();
+  }
+
+  /**
+   * Ensure admin data is loaded before operations
+   */
+  public async ensureInitialized(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+      this.initPromise = null;
+    }
   }
 
   // Add static helper methods for external admin status checking
@@ -94,26 +105,17 @@ export class SudoCommand implements Command {
   }
 
   /**
-   * Load admin users from JSON file
+   * Load admin users from repository
    */
-  private loadAdminUsers(): void {
+  private async loadAdminUsers(): Promise<void> {
     try {
-      if (fs.existsSync(this.adminFilePath)) {
-        const data = fs.readFileSync(this.adminFilePath, 'utf8');
-        const adminData = JSON.parse(data);
-        this.adminUsers = adminData.admins || [];
-      } else {
-        // Create default admin file if it doesn't exist
-        this.adminUsers = [
-          {
-            username: 'admin',
-            level: AdminLevel.SUPER,
-            addedBy: 'system',
-            addedOn: new Date().toISOString(),
-          },
-        ];
-        this.saveAdmins();
-      }
+      const repoAdmins = await this.adminRepository.findAll();
+      this.adminUsers = repoAdmins.map((a) => ({
+        username: a.username,
+        level: a.level as AdminLevel,
+        addedBy: a.addedBy,
+        addedOn: a.addedOn,
+      }));
       sudoLogger.info(`Loaded ${this.adminUsers.length} admin users`);
     } catch (error) {
       sudoLogger.error('Error loading admin users:', error);
@@ -130,12 +132,17 @@ export class SudoCommand implements Command {
   }
 
   /**
-   * Save admin users to JSON file
+   * Save admin users to repository
    */
-  private saveAdmins(): void {
+  private async saveAdmins(): Promise<void> {
     try {
-      const adminData = { admins: this.adminUsers };
-      fs.writeFileSync(this.adminFilePath, JSON.stringify(adminData, null, 2), 'utf8');
+      const repoAdmins: RepoAdminUser[] = this.adminUsers.map((a) => ({
+        username: a.username,
+        level: a.level,
+        addedBy: a.addedBy,
+        addedOn: a.addedOn,
+      }));
+      await this.adminRepository.saveAll(repoAdmins);
       sudoLogger.info('Saved admin users');
     } catch (error) {
       sudoLogger.error('Error saving admin users:', error);

@@ -1,9 +1,10 @@
 /**
  * Kysely database schema definitions for EllyMUD
  * 
- * Note: The 'Generated' type from Kysely is available for auto-increment columns
- * if needed in the future. Import it with: import { Generated } from 'kysely';
+ * Note: The 'Generated' type from Kysely is used for auto-increment columns.
  */
+
+import { Generated } from 'kysely';
 
 export interface UsersTable {
   username: string;
@@ -110,6 +111,65 @@ export interface AreasTable {
   modified: string;
 }
 
+export interface RoomStatesTable {
+  room_id: string;
+  item_instances: string; // JSON array of SerializedItemInstance
+  npc_template_ids: string; // JSON array
+  currency_gold: number;
+  currency_silver: number;
+  currency_copper: number;
+  items: string | null; // Legacy field
+}
+
+export interface AdminsTable {
+  username: string;
+  level: string;
+  added_by: string;
+  added_on: string;
+}
+
+export interface BugReportsTable {
+  id: string;
+  user: string;
+  datetime: string;
+  report: string;
+  logs_raw: string | null;
+  logs_user: string | null;
+  solved: number; // SQLite boolean
+  solved_on: string | null;
+  solved_by: string | null;
+  solved_reason: string | null;
+}
+
+export interface MerchantStatesTable {
+  npc_template_id: string;
+  npc_instance_id: string;
+  actual_inventory: string; // JSON array
+  stock_config: string; // JSON array
+}
+
+export interface AbilitiesTable {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  mp_cost: number;
+  cooldown_type: string;
+  cooldown_value: number;
+  target_type: string;
+  effects: string; // JSON
+  requirements: string | null;
+  proc_chance: number | null;
+  consumes_item: number | null;
+}
+
+export interface SnakeScoresTable {
+  id: Generated<number>; // Auto-increment
+  username: string;
+  score: number;
+  date: string;
+}
+
 export interface Database {
   users: UsersTable;
   rooms: RoomsTable;
@@ -117,4 +177,10 @@ export interface Database {
   item_instances: ItemInstancesTable;
   npc_templates: NpcTemplatesTable;
   areas: AreasTable;
+  room_states: RoomStatesTable;
+  admins: AdminsTable;
+  bug_reports: BugReportsTable;
+  merchant_states: MerchantStatesTable;
+  abilities: AbilitiesTable;
+  snake_scores: SnakeScoresTable;
 }

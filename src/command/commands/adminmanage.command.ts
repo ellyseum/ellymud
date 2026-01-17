@@ -1,6 +1,4 @@
 // Admin manage command uses dynamic typing for NPC/item management
-import fs from 'fs';
-import path from 'path';
 import { ConnectedClient, Item, ItemInstance } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
@@ -10,6 +8,8 @@ import { SudoCommand } from './sudo.command';
 import { ItemManager } from '../../utils/itemManager';
 import { RoomManager } from '../../room/roomManager';
 import { createContextLogger } from '../../utils/logger';
+import { getAdminRepository } from '../../persistence/RepositoryFactory';
+import { AdminUser as RepoAdminUser, IAsyncAdminRepository } from '../../persistence/interfaces';
 
 // Create a context-specific logger for AdminManage command
 const adminLogger = createContextLogger('AdminManage');
@@ -37,8 +37,9 @@ export class AdminManageCommand implements Command {
   private itemManager: ItemManager;
   private roomManager: RoomManager;
   private sudoCommand: SudoCommand | undefined;
-  private adminFilePath: string;
+  private adminRepository: IAsyncAdminRepository;
   private admins: AdminUser[] = [];
+  private initPromise: Promise<void> | null = null;
 
   constructor(userManager: UserManager) {
     this.userManager = userManager;
@@ -48,31 +49,32 @@ export class AdminManageCommand implements Command {
     // Pass an empty Map as a temporary solution or get the clients from somewhere else
     this.roomManager = RoomManager.getInstance(new Map<string, ConnectedClient>());
 
-    this.adminFilePath = path.join(__dirname, '../../../data/admin.json');
-    this.loadAdmins();
+    this.adminRepository = getAdminRepository();
+    this.initPromise = this.loadAdmins();
   }
 
   /**
-   * Load admin users from the JSON file
+   * Ensure admin data is loaded before operations
    */
-  private loadAdmins(): void {
+  public async ensureInitialized(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+      this.initPromise = null;
+    }
+  }
+
+  /**
+   * Load admin users from the repository
+   */
+  private async loadAdmins(): Promise<void> {
     try {
-      if (fs.existsSync(this.adminFilePath)) {
-        const data = fs.readFileSync(this.adminFilePath, 'utf8');
-        const adminData = JSON.parse(data);
-        this.admins = adminData.admins || [];
-      } else {
-        // Create default admin file if it doesn't exist
-        this.admins = [
-          {
-            username: 'admin',
-            level: AdminLevel.SUPER,
-            addedBy: 'system',
-            addedOn: new Date().toISOString(),
-          },
-        ];
-        this.saveAdmins();
-      }
+      const repoAdmins = await this.adminRepository.findAll();
+      this.admins = repoAdmins.map((a) => ({
+        username: a.username,
+        level: a.level as AdminLevel,
+        addedBy: a.addedBy,
+        addedOn: a.addedOn,
+      }));
       adminLogger.info(`Loaded ${this.admins.length} admin users`);
     } catch (error) {
       adminLogger.error('Error loading admin users:', error);
@@ -94,12 +96,17 @@ export class AdminManageCommand implements Command {
   }
 
   /**
-   * Save admin users to the JSON file
+   * Save admin users to the repository
    */
-  private saveAdmins(): void {
+  private async saveAdmins(): Promise<void> {
     try {
-      const adminData = { admins: this.admins };
-      fs.writeFileSync(this.adminFilePath, JSON.stringify(adminData, null, 2), 'utf8');
+      const repoAdmins: RepoAdminUser[] = this.admins.map((a) => ({
+        username: a.username,
+        level: a.level,
+        addedBy: a.addedBy,
+        addedOn: a.addedOn,
+      }));
+      await this.adminRepository.saveAll(repoAdmins);
       adminLogger.info('Saved admin users');
 
       // Ensure the SudoCommand is aware of the updated admin list
@@ -395,7 +402,7 @@ export class AdminManageCommand implements Command {
     };
 
     this.admins.push(newAdmin);
-    this.saveAdmins();
+    void this.saveAdmins();
 
     adminLogger.info(
       `Admin ${client.user.username} added new admin ${username} with level ${level}`
@@ -459,7 +466,7 @@ export class AdminManageCommand implements Command {
     this.admins = this.admins.filter(
       (admin) => admin.username.toLowerCase() !== username.toLowerCase()
     );
-    this.saveAdmins();
+    void this.saveAdmins();
 
     adminLogger.info(`Admin ${client.user.username} removed admin ${username}`);
     writeToClient(
@@ -508,7 +515,7 @@ export class AdminManageCommand implements Command {
     );
     if (adminIndex !== -1) {
       this.admins[adminIndex].level = newLevel;
-      this.saveAdmins();
+      void this.saveAdmins();
 
       adminLogger.info(
         `Admin ${client.user.username} modified admin ${username}'s level to ${newLevel}`

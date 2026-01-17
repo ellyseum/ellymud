@@ -29,6 +29,7 @@ src/data/
 
 **Key Exports**:
 ```typescript
+// Core tables
 export interface UsersTable {
   username: string;           // Primary key
   password_hash: string;
@@ -58,10 +59,73 @@ export interface AreasTable {
   modified: string;           // ISO date string
 }
 
+export interface RoomStatesTable {
+  room_id: string;            // Primary key
+  item_instances: string;     // JSON stringified
+  npc_template_ids: string;   // JSON stringified
+  currency_gold: number;
+  currency_silver: number;
+  currency_copper: number;
+}
+
+// New tables (Phase 2-5)
+export interface AdminsTable {
+  username: string;           // Primary key
+  level: string;              // 'super' | 'admin' | 'mod'
+  added_by: string;
+  added_on: string;
+}
+
+export interface BugReportsTable {
+  id: string;                 // Primary key
+  user: string;
+  datetime: string;
+  report: string;
+  logs_raw: string | null;
+  logs_user: string | null;
+  solved: number;             // 0 or 1
+  solved_on: string | null;
+  solved_by: string | null;
+  solved_reason: string | null;
+}
+
+export interface MerchantStatesTable {
+  template_id: string;        // Primary key
+  inventory: string;          // JSON stringified
+  last_restock: string | null;
+}
+
+export interface AbilitiesTable {
+  id: string;                 // Primary key
+  name: string;
+  description: string;
+  type: string;
+  cooldown_ms: number;
+  mana_cost: number;
+  effects: string;            // JSON stringified
+  requirements: string | null; // JSON stringified
+}
+
+export interface SnakeScoresTable {
+  id: number;                 // Auto-increment primary key
+  username: string;
+  score: number;
+  date: string;
+}
+
 export interface Database {
   users: UsersTable;
   rooms: RoomsTable;
   areas: AreasTable;
+  room_states: RoomStatesTable;
+  items: ItemsTable;
+  item_instances: ItemInstancesTable;
+  npcs: NpcsTable;
+  admins: AdminsTable;
+  bug_reports: BugReportsTable;
+  merchant_states: MerchantStatesTable;
+  abilities: AbilitiesTable;
+  snake_scores: SnakeScoresTable;
 }
 ```
 

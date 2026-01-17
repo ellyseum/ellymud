@@ -2,11 +2,44 @@ import path from 'path';
 import fs from 'fs';
 import { UserManager } from '../user/userManager';
 import { readPasswordFromConsole } from '../utils/consoleUtils';
-import { AdminLevel } from '../command/commands/adminmanage.command';
 import { systemLogger } from '../utils/logger';
 import config from '../config';
+import { getAdminRepository } from '../persistence/RepositoryFactory';
+import { AdminUser } from '../persistence/interfaces';
 
 export class AdminSetup {
+  /**
+   * Create admin entry in the admin repository
+   */
+  private static async createAdminEntry(): Promise<boolean> {
+    const adminRepository = getAdminRepository();
+    const adminUser: AdminUser = {
+      username: 'admin',
+      level: 'super',
+      addedBy: 'system',
+      addedOn: new Date().toISOString(),
+    };
+
+    try {
+      await adminRepository.save(adminUser);
+      console.log('Admin privileges configured.');
+      systemLogger.info('Admin privileges configured.');
+      return true;
+    } catch (error) {
+      console.log('Error creating admin configuration:', error);
+      systemLogger.error('Error creating admin configuration:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if admin storage exists
+   */
+  private static async adminStorageExists(): Promise<boolean> {
+    const adminRepository = getAdminRepository();
+    return adminRepository.storageExists();
+  }
+
   public static async checkAndCreateAdminUser(userManager: UserManager): Promise<boolean> {
     systemLogger.info('Checking for admin user...');
 
@@ -28,31 +61,14 @@ export class AdminSetup {
             fs.mkdirSync(adminDir, { recursive: true });
           }
 
-          // Create admin.json file with admin user as super admin
-          const adminFilePath = path.join(config.DATA_DIR, 'admin.json');
-          const adminData = {
-            admins: [
-              {
-                username: 'admin',
-                level: AdminLevel.SUPER,
-                addedBy: 'system',
-                addedOn: new Date().toISOString(),
-              },
-            ],
-          };
-
-          try {
-            fs.writeFileSync(adminFilePath, JSON.stringify(adminData, null, 2), 'utf8');
-            console.log('Admin privileges configured.');
-            systemLogger.info('Admin privileges configured.');
-            return true;
-          } catch (error) {
-            console.log('Error creating admin.json file:', error);
+          // Create admin entry via repository
+          const adminSuccess = await AdminSetup.createAdminEntry();
+          if (!adminSuccess) {
             console.log('Failed to create admin configuration. Please try again.');
-            systemLogger.error('Error creating admin.json file:', error);
             systemLogger.warn('Failed to create admin configuration. Please try again.');
             return false;
           }
+          return true;
         } else {
           console.log('Error creating admin user. Please try again.');
           systemLogger.warn('Error creating admin user. Please try again.');
@@ -100,28 +116,12 @@ export class AdminSetup {
                 fs.mkdirSync(adminDir, { recursive: true });
               }
 
-              // Create admin.json file with admin user as super admin
-              const adminFilePath = path.join(config.DATA_DIR, 'admin.json');
-              const adminData = {
-                admins: [
-                  {
-                    username: 'admin',
-                    level: AdminLevel.SUPER,
-                    addedBy: 'system',
-                    addedOn: new Date().toISOString(),
-                  },
-                ],
-              };
-
-              try {
-                fs.writeFileSync(adminFilePath, JSON.stringify(adminData, null, 2), 'utf8');
-                console.log('Admin privileges configured.');
-                systemLogger.info('Admin privileges configured.');
+              // Create admin entry via repository
+              const adminSuccess = await AdminSetup.createAdminEntry();
+              if (adminSuccess) {
                 adminCreated = true; // Mark as successfully created so we exit the loop
-              } catch (error) {
-                console.log('Error creating admin.json file:', error);
+              } else {
                 console.log('Failed to create admin configuration. Please try again.');
-                systemLogger.error('Error creating admin.json file:', error);
                 systemLogger.warn('Failed to create admin configuration. Please try again.');
                 // Continue the loop to try again
               }
@@ -144,10 +144,10 @@ export class AdminSetup {
     } else {
       systemLogger.info('Admin user already exists.');
 
-      // Ensure admin.json exists with the admin user
-      const adminFilePath = path.join(config.DATA_DIR, 'admin.json');
-      if (!fs.existsSync(adminFilePath)) {
-        systemLogger.warn('Creating admin.json file...');
+      // Ensure admin storage exists with the admin user
+      const adminExists = await AdminSetup.adminStorageExists();
+      if (!adminExists) {
+        systemLogger.warn('Creating admin entry...');
 
         // Create admin directory if it doesn't exist
         const adminDir = path.join(config.DATA_DIR, 'admin');
@@ -155,23 +155,9 @@ export class AdminSetup {
           fs.mkdirSync(adminDir, { recursive: true });
         }
 
-        // Create admin.json with admin user as super admin
-        const adminData = {
-          admins: [
-            {
-              username: 'admin',
-              level: AdminLevel.SUPER,
-              addedBy: 'system',
-              addedOn: new Date().toISOString(),
-            },
-          ],
-        };
-
-        try {
-          fs.writeFileSync(adminFilePath, JSON.stringify(adminData, null, 2), 'utf8');
-          systemLogger.info('Admin privileges configured.');
-        } catch (error) {
-          systemLogger.error('Error creating admin.json file:', error);
+        // Create admin entry via repository
+        const success = await AdminSetup.createAdminEntry();
+        if (!success) {
           return false;
         }
       }

@@ -15,19 +15,35 @@ import {
   IAsyncItemRepository,
   IAsyncNpcRepository,
   IAsyncAreaRepository,
+  IAsyncAdminRepository,
+  IAsyncBugReportRepository,
+  IAsyncMerchantStateRepository,
+  IAsyncAbilityRepository,
+  IAsyncSnakeScoreRepository,
   RepositoryConfig,
 } from './interfaces';
 import { KyselyUserRepository } from './KyselyUserRepository';
 import { KyselyRoomRepository } from './KyselyRoomRepository';
+import { KyselyRoomStateRepository } from './KyselyRoomStateRepository';
 import { KyselyItemRepository } from './KyselyItemRepository';
 import { KyselyNpcRepository } from './KyselyNpcRepository';
 import { KyselyAreaRepository } from './KyselyAreaRepository';
+import { KyselyAdminRepository } from './KyselyAdminRepository';
+import { KyselyBugReportRepository } from './KyselyBugReportRepository';
+import { KyselyMerchantStateRepository } from './KyselyMerchantStateRepository';
+import { KyselyAbilityRepository } from './KyselyAbilityRepository';
+import { KyselySnakeScoreRepository } from './KyselySnakeScoreRepository';
 import { AsyncFileUserRepository } from './AsyncFileUserRepository';
 import { AsyncFileRoomRepository } from './AsyncFileRoomRepository';
 import { AsyncFileRoomStateRepository } from './AsyncFileRoomStateRepository';
 import { AsyncFileItemRepository } from './AsyncFileItemRepository';
 import { AsyncFileNpcRepository } from './AsyncFileNpcRepository';
 import { AsyncFileAreaRepository } from './AsyncFileAreaRepository';
+import { AsyncFileAdminRepository } from './AsyncFileAdminRepository';
+import { AsyncFileBugReportRepository } from './AsyncFileBugReportRepository';
+import { AsyncFileMerchantStateRepository } from './AsyncFileMerchantStateRepository';
+import { AsyncFileAbilityRepository } from './AsyncFileAbilityRepository';
+import { AsyncFileSnakeScoreRepository } from './AsyncFileSnakeScoreRepository';
 
 /**
  * Check if we should use database (Kysely) storage
@@ -58,12 +74,13 @@ export function getRoomRepository(config?: RepositoryConfig): IAsyncRoomReposito
 
 /**
  * Get the appropriate RoomStateRepository based on STORAGE_BACKEND
- * Note: Database backend uses the same repository (state is in room table)
- * File backend uses separate file for state
+ * Database backends store state in dedicated room_states table
+ * File backend uses separate room_state.json file
  */
 export function getRoomStateRepository(config?: RepositoryConfig): IAsyncRoomStateRepository {
-  // For now, only file backend is supported for state
-  // Database backends will need a KyselyRoomStateRepository in the future
+  if (isDatabaseBackend()) {
+    return new KyselyRoomStateRepository();
+  }
   return new AsyncFileRoomStateRepository(config);
 }
 
@@ -95,4 +112,56 @@ export function getAreaRepository(config?: RepositoryConfig): IAsyncAreaReposito
     return new KyselyAreaRepository();
   }
   return new AsyncFileAreaRepository(config);
+}
+
+/**
+ * Get the appropriate AdminRepository based on STORAGE_BACKEND
+ */
+export function getAdminRepository(config?: RepositoryConfig): IAsyncAdminRepository {
+  if (isDatabaseBackend()) {
+    return new KyselyAdminRepository();
+  }
+  return new AsyncFileAdminRepository(config);
+}
+
+/**
+ * Get the appropriate BugReportRepository based on STORAGE_BACKEND
+ */
+export function getBugReportRepository(config?: RepositoryConfig): IAsyncBugReportRepository {
+  if (isDatabaseBackend()) {
+    return new KyselyBugReportRepository();
+  }
+  return new AsyncFileBugReportRepository(config);
+}
+
+/**
+ * Get the appropriate MerchantStateRepository based on STORAGE_BACKEND
+ */
+export function getMerchantStateRepository(
+  config?: RepositoryConfig
+): IAsyncMerchantStateRepository {
+  if (isDatabaseBackend()) {
+    return new KyselyMerchantStateRepository();
+  }
+  return new AsyncFileMerchantStateRepository(config);
+}
+
+/**
+ * Get the appropriate AbilityRepository based on STORAGE_BACKEND
+ */
+export function getAbilityRepository(config?: RepositoryConfig): IAsyncAbilityRepository {
+  if (isDatabaseBackend()) {
+    return new KyselyAbilityRepository();
+  }
+  return new AsyncFileAbilityRepository(config);
+}
+
+/**
+ * Get the appropriate SnakeScoreRepository based on STORAGE_BACKEND
+ */
+export function getSnakeScoreRepository(config?: RepositoryConfig): IAsyncSnakeScoreRepository {
+  if (isDatabaseBackend()) {
+    return new KyselySnakeScoreRepository();
+  }
+  return new AsyncFileSnakeScoreRepository(config);
 }

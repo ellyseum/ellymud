@@ -14,10 +14,16 @@ RepositoryFactory.ts             # Backend selection based on STORAGE_BACKEND
     └── Kysely*Repository.ts     # SQLite/PostgreSQL (production)
 
 mappers/                         # Field conversion (snake_case ↔ camelCase)
-    ├── userMapper.ts
-    ├── roomMapper.ts
-    ├── itemMapper.ts
-    └── npcMapper.ts
+    ├── userMapper.ts            # User ↔ database
+    ├── roomMapper.ts            # Room template ↔ database
+    ├── roomStateMapper.ts       # Room state ↔ database
+    ├── itemMapper.ts            # Item/instance ↔ database
+    ├── npcMapper.ts             # NPC template ↔ database
+    ├── adminMapper.ts           # Admin user ↔ database
+    ├── bugReportMapper.ts       # Bug report ↔ database
+    ├── merchantStateMapper.ts   # Merchant state ↔ database
+    ├── abilityMapper.ts         # Ability template ↔ database
+    └── snakeScoreMapper.ts      # Snake score ↔ database
 ```
 
 ## Repository Factory (Recommended)
@@ -25,7 +31,19 @@ mappers/                         # Field conversion (snake_case ↔ camelCase)
 **The factory is the single source of truth for storage backend selection.**
 
 ```typescript
-import { getUserRepository, getRoomRepository, getItemRepository, getNpcRepository, getAreaRepository, getRoomStateRepository } from '../persistence';
+import { 
+  getUserRepository, 
+  getRoomRepository, 
+  getItemRepository, 
+  getNpcRepository, 
+  getAreaRepository, 
+  getRoomStateRepository,
+  getAdminRepository,
+  getBugReportRepository,
+  getMerchantStateRepository,
+  getAbilityRepository,
+  getSnakeScoreRepository
+} from '../persistence';
 
 // Returns appropriate implementation based on STORAGE_BACKEND env var
 const userRepo = getUserRepository();
@@ -34,6 +52,11 @@ const itemRepo = getItemRepository();
 const npcRepo = getNpcRepository();
 const areaRepo = getAreaRepository();
 const roomStateRepo = getRoomStateRepository();  // Room state persistence
+const adminRepo = getAdminRepository();          // Admin users
+const bugReportRepo = getBugReportRepository();  // Bug reports
+const merchantRepo = getMerchantStateRepository(); // Merchant inventory state
+const abilityRepo = getAbilityRepository();      // Ability templates
+const snakeScoreRepo = getSnakeScoreRepository(); // Snake game scores
 
 // All repositories implement async interfaces
 const users = await userRepo.findAll();
@@ -41,6 +64,8 @@ const user = await userRepo.findByUsername('admin');
 const npcs = await npcRepo.findAll();
 const hostileNpcs = await npcRepo.findHostile();
 const roomStates = await roomStateRepo.findAll();
+const admins = await adminRepo.findAll();
+const bugs = await bugReportRepo.findUnsolved();
 ```
 
 ## Key Files
@@ -122,40 +147,107 @@ export interface IAsyncAreaRepository {
   saveAll(areas: Area[]): Promise<void>;
   delete(id: string): Promise<void>;
 }
+
+export interface IAsyncAdminRepository {
+  findAll(): Promise<AdminUser[]>;
+  findByUsername(username: string): Promise<AdminUser | undefined>;
+  exists(username: string): Promise<boolean>;
+  save(admin: AdminUser): Promise<void>;
+  saveAll(admins: AdminUser[]): Promise<void>;
+  delete(username: string): Promise<void>;
+  storageExists(): Promise<boolean>;
+}
+
+export interface IAsyncBugReportRepository {
+  findAll(): Promise<BugReport[]>;
+  findById(id: string): Promise<BugReport | undefined>;
+  findByUser(username: string): Promise<BugReport[]>;
+  findUnsolved(): Promise<BugReport[]>;
+  save(report: BugReport): Promise<void>;
+  saveAll(reports: BugReport[]): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+export interface IAsyncMerchantStateRepository {
+  findAll(): Promise<MerchantInventoryState[]>;
+  findByTemplateId(templateId: string): Promise<MerchantInventoryState | undefined>;
+  exists(templateId: string): Promise<boolean>;
+  save(state: MerchantInventoryState): Promise<void>;
+  saveAll(states: MerchantInventoryState[]): Promise<void>;
+  delete(templateId: string): Promise<void>;
+}
+
+export interface IAsyncAbilityRepository {
+  findAll(): Promise<AbilityTemplate[]>;
+  findById(id: string): Promise<AbilityTemplate | undefined>;
+  findByType(type: string): Promise<AbilityTemplate[]>;
+  save(ability: AbilityTemplate): Promise<void>;
+  saveAll(abilities: AbilityTemplate[]): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+export interface IAsyncSnakeScoreRepository {
+  findAll(): Promise<SnakeScoreEntry[]>;
+  findByUsername(username: string): Promise<SnakeScoreEntry[]>;
+  findTopScores(limit: number): Promise<SnakeScoreEntry[]>;
+  save(score: SnakeScoreEntry): Promise<void>;
+  saveAll(scores: SnakeScoreEntry[]): Promise<void>;
+  deleteByUsername(username: string): Promise<void>;
+}
 ```
 
 ### `Kysely*Repository.ts` files
 
 **Purpose**: Database implementations using Kysely ORM.
 
+**Core Repositories**:
 - `KyselyUserRepository` - SQLite/PostgreSQL user storage
 - `KyselyRoomRepository` - SQLite/PostgreSQL room storage
+- `KyselyRoomStateRepository` - SQLite/PostgreSQL room state storage
 - `KyselyItemRepository` - SQLite/PostgreSQL item storage
 - `KyselyNpcRepository` - SQLite/PostgreSQL NPC template storage
 - `KyselyAreaRepository` - SQLite/PostgreSQL area/zone storage
+
+**New Repositories (Phase 2-5)**:
+- `KyselyAdminRepository` - Admin user management
+- `KyselyBugReportRepository` - Bug report storage
+- `KyselyMerchantStateRepository` - Merchant inventory state
+- `KyselyAbilityRepository` - Ability templates
+- `KyselySnakeScoreRepository` - Snake game leaderboard
 
 **Usage**:
 ```typescript
 import { KyselyUserRepository } from '../persistence/KyselyUserRepository';
 import { KyselyNpcRepository } from '../persistence/KyselyNpcRepository';
+import { KyselyAdminRepository } from '../persistence/KyselyAdminRepository';
 import { getDb } from '../data/db';
 
 const userRepo = new KyselyUserRepository(getDb());
 const npcRepo = new KyselyNpcRepository(getDb());
+const adminRepo = new KyselyAdminRepository(getDb());
 const users = await userRepo.findAll();
 const hostileNpcs = await npcRepo.findHostile();
+const admins = await adminRepo.findAll();
 ```
 
 ### `AsyncFile*Repository.ts` files
 
 **Purpose**: JSON file implementations with async interface.
 
+**Core Repositories**:
 - `AsyncFileUserRepository` - JSON file user storage
 - `AsyncFileRoomRepository` - JSON file room template storage
 - `AsyncFileRoomStateRepository` - JSON file room state storage (items, NPCs, currency)
 - `AsyncFileItemRepository` - JSON file item storage
 - `AsyncFileNpcRepository` - JSON file NPC template storage
 - `AsyncFileAreaRepository` - JSON file area storage (data/areas.json)
+
+**New Repositories (Phase 2-5)**:
+- `AsyncFileAdminRepository` - Admin users (data/admin.json)
+- `AsyncFileBugReportRepository` - Bug reports (data/bug-reports.json)
+- `AsyncFileMerchantStateRepository` - Merchant state (data/merchant-state.json)
+- `AsyncFileAbilityRepository` - Abilities (data/abilities.json)
+- `AsyncFileSnakeScoreRepository` - Snake scores (data/snake-scores.json)
 
 ### `AsyncFileRoomStateRepository.ts`
 
@@ -192,6 +284,8 @@ await repo.save({
 import { dbRowToUser, userToDbRow } from '../persistence/mappers';
 import { dbRowToNPCData, npcDataToDbRow } from '../persistence/mappers';
 import { dbRowToArea, areaToDbRow } from '../persistence/mappers';
+import { dbRowToAdminUser, adminUserToDbRow } from '../persistence/mappers';
+import { dbRowToBugReport, bugReportToDbRow } from '../persistence/mappers';
 
 // Convert database row to User object
 const user = dbRowToUser(dbRow);
@@ -206,7 +300,29 @@ const npcRow = npcDataToDbRow(npc);  // damage tuple split into damage_min/damag
 // Convert Area database row (JSON parsing for complex fields)
 const area = dbRowToArea(areaRow);   // levelRange, flags, configs parsed from JSON
 const areaRow = areaToDbRow(area);   // Complex fields serialized to JSON
+
+// Convert admin user
+const admin = dbRowToAdminUser(adminRow);
+const adminRow = adminUserToDbRow(admin);
+
+// Convert bug report (handles nested logs object)
+const report = dbRowToBugReport(reportRow);
+const reportRow = bugReportToDbRow(report);
 ```
+
+**Available Mappers**:
+| Mapper | Domain Type | DB Columns |
+|--------|-------------|------------|
+| `userMapper` | `User` | `password_hash`, `max_health`, etc. |
+| `roomMapper` | `RoomData` | `exits` (JSON), `currency_*`, etc. |
+| `roomStateMapper` | `RoomState` | `room_id`, `item_instances` (JSON), etc. |
+| `itemMapper` | `GameItem`, `ItemInstance` | `stats` (JSON), `template_id`, etc. |
+| `npcMapper` | `NPCData` | `damage_min`, `damage_max`, etc. |
+| `adminMapper` | `AdminUser` | `added_by`, `added_on` |
+| `bugReportMapper` | `BugReport` | `logs_raw`, `logs_user`, `solved_*` |
+| `merchantStateMapper` | `MerchantInventoryState` | `template_id`, `inventory` (JSON) |
+| `abilityMapper` | `AbilityTemplate` | `cooldown_ms`, `effects` (JSON) |
+| `snakeScoreMapper` | `SnakeScoreEntry` | `username`, `score`, `date` |
 
 ## Testing
 
