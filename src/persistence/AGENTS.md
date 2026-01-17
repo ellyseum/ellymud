@@ -132,6 +132,7 @@ export interface IAsyncAreaRepository {
 - `KyselyRoomRepository` - SQLite/PostgreSQL room storage
 - `KyselyItemRepository` - SQLite/PostgreSQL item storage
 - `KyselyNpcRepository` - SQLite/PostgreSQL NPC template storage
+- `KyselyAreaRepository` - SQLite/PostgreSQL area/zone storage
 
 **Usage**:
 ```typescript
@@ -190,6 +191,7 @@ await repo.save({
 ```typescript
 import { dbRowToUser, userToDbRow } from '../persistence/mappers';
 import { dbRowToNPCData, npcDataToDbRow } from '../persistence/mappers';
+import { dbRowToArea, areaToDbRow } from '../persistence/mappers';
 
 // Convert database row to User object
 const user = dbRowToUser(dbRow);
@@ -200,6 +202,10 @@ const row = userToDbRow(user);
 // Convert NPC database row (splits damage into damage_min/damage_max)
 const npc = dbRowToNPCData(npcRow);  // damage field reconstructed as [min, max] tuple
 const npcRow = npcDataToDbRow(npc);  // damage tuple split into damage_min/damage_max
+
+// Convert Area database row (JSON parsing for complex fields)
+const area = dbRowToArea(areaRow);   // levelRange, flags, configs parsed from JSON
+const areaRow = areaToDbRow(area);   // Complex fields serialized to JSON
 ```
 
 ## Testing
@@ -271,6 +277,7 @@ await repo.findAll();
 - [`../room/roomManager.ts`](../room/roomManager.ts) - Uses IAsyncRoomRepository via getRoomRepository()
 - [`../utils/itemManager.ts`](../utils/itemManager.ts) - Uses IAsyncItemRepository via getItemRepository()
 - [`../combat/npc.ts`](../combat/npc.ts) - Uses IAsyncNpcRepository via getNpcRepository()
+- [`../area/areaManager.ts`](../area/areaManager.ts) - Uses IAsyncAreaRepository via getAreaRepository()
 - [`../data/db.ts`](../data/db.ts) - Kysely database connection
 - [`../data/schema.ts`](../data/schema.ts) - Database table definitions
 - [`../testing/testDb.ts`](../testing/testDb.ts) - In-memory SQLite for tests

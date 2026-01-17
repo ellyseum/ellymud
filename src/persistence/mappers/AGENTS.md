@@ -60,6 +60,45 @@ import {
 - `properties` (JSON string) ↔ `properties` (object)
 - `history` (JSON string) ↔ `history` (array)
 
+### Area Mapper (`areaMapper.ts`)
+
+```typescript
+import { dbRowToArea, areaToDbRow } from '../persistence/mappers';
+
+const area: Area = dbRowToArea(dbRow);
+const row = areaToDbRow(area);
+```
+
+**Field mappings:**
+- `level_range` (JSON string) ↔ `levelRange` ({ min: number, max: number })
+- `flags` (JSON string) ↔ `flags` (string[])
+- `combat_config` (JSON string) ↔ `combatConfig` (AreaCombatConfig | undefined)
+- `spawn_config` (JSON string) ↔ `spawnConfig` (AreaSpawnConfig[])
+- `default_room_flags` (JSON string) ↔ `defaultRoomFlags` (string[] | undefined)
+- `created` ↔ `created` (ISO date string)
+- `modified` ↔ `modified` (ISO date string)
+
+### NPC Mapper (`npcMapper.ts`)
+
+```typescript
+import { dbRowToNPCData, npcDataToDbRow } from '../persistence/mappers';
+
+const npc: NPCData = dbRowToNPCData(dbRow);
+const row = npcDataToDbRow(npc);
+```
+
+**Field mappings:**
+- `max_health` ↔ `maxHealth`
+- `damage_min` / `damage_max` ↔ `damage` ([min, max] tuple)
+- `is_hostile` (0/1) ↔ `isHostile` (boolean)
+- `is_passive` (0/1) ↔ `isPassive` (boolean)
+- `experience_value` ↔ `experienceValue`
+- `attack_texts` (JSON string) ↔ `attackTexts` (string[])
+- `death_messages` (JSON string) ↔ `deathMessages` (string[])
+- `merchant` (null/0/1) ↔ `merchant` (undefined/false/true)
+- `inventory` (JSON string) ↔ `inventory` (object | undefined)
+- `stock_config` (JSON string) ↔ `stockConfig` (object | undefined)
+
 ## JSON Field Handling
 
 Complex fields are stored as JSON strings in the database:
@@ -97,4 +136,6 @@ const user = { joinDate: new Date(row.join_date) };
 - [`../KyselyUserRepository.ts`](../KyselyUserRepository.ts) - Uses user mapper
 - [`../KyselyRoomRepository.ts`](../KyselyRoomRepository.ts) - Uses room mapper
 - [`../KyselyItemRepository.ts`](../KyselyItemRepository.ts) - Uses item mapper
+- [`../KyselyNpcRepository.ts`](../KyselyNpcRepository.ts) - Uses NPC mapper
+- [`../KyselyAreaRepository.ts`](../KyselyAreaRepository.ts) - Uses area mapper
 - [`../../data/schema.ts`](../../data/schema.ts) - Database table definitions

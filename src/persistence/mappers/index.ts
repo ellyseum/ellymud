@@ -12,3 +12,4 @@ export {
   itemInstanceToDbRow,
 } from './itemMapper';
 export { dbRowToNPCData, npcDataToDbRow } from './npcMapper';
+export { dbRowToArea, areaToDbRow } from './areaMapper';

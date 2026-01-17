@@ -9,6 +9,7 @@ Repository pattern abstractions for data storage, supporting multiple backends (
 | `RepositoryFactory.ts` | Factory for creating repositories based on storage backend |
 | `interfaces.ts` | Repository and service interfaces (sync and async) |
 | `Kysely*Repository.ts` | Database implementations (SQLite/PostgreSQL) |
+| `KyselyAreaRepository.ts` | Kysely area repository (zone metadata) |
 | `AsyncFile*Repository.ts` | JSON file implementations with async interface |
 | `AsyncFileRoomStateRepository.ts` | Room state persistence (items, NPCs, currency) |
 | `fileRepository.ts` | Legacy file-based (JSON) repository implementations |

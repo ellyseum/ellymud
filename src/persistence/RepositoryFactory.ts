@@ -21,6 +21,7 @@ import { KyselyUserRepository } from './KyselyUserRepository';
 import { KyselyRoomRepository } from './KyselyRoomRepository';
 import { KyselyItemRepository } from './KyselyItemRepository';
 import { KyselyNpcRepository } from './KyselyNpcRepository';
+import { KyselyAreaRepository } from './KyselyAreaRepository';
 import { AsyncFileUserRepository } from './AsyncFileUserRepository';
 import { AsyncFileRoomRepository } from './AsyncFileRoomRepository';
 import { AsyncFileRoomStateRepository } from './AsyncFileRoomStateRepository';
@@ -91,8 +92,7 @@ export function getNpcRepository(config?: RepositoryConfig): IAsyncNpcRepository
  */
 export function getAreaRepository(config?: RepositoryConfig): IAsyncAreaRepository {
   if (isDatabaseBackend()) {
-    // TODO: Implement KyselyAreaRepository when database support is needed
-    throw new Error('Database backend not yet implemented for AreaRepository');
+    return new KyselyAreaRepository();
   }
   return new AsyncFileAreaRepository(config);
 }

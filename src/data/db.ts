@@ -164,6 +164,19 @@ export async function initializeDatabase(): Promise<void> {
     .addColumn('stock_config', 'text')
     .execute();
 
+  await database.schema.createTable('areas').ifNotExists()
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .addColumn('name', 'text', (col) => col.notNull())
+    .addColumn('description', 'text', (col) => col.notNull())
+    .addColumn('level_range', 'text', (col) => col.notNull())
+    .addColumn('flags', 'text')
+    .addColumn('combat_config', 'text')
+    .addColumn('spawn_config', 'text', (col) => col.notNull())
+    .addColumn('default_room_flags', 'text')
+    .addColumn('created', 'text', (col) => col.notNull())
+    .addColumn('modified', 'text', (col) => col.notNull())
+    .execute();
+
   systemLogger.info('[Database] Tables initialized');
 }
 
