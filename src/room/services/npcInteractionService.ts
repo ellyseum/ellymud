@@ -50,7 +50,8 @@ export class NPCInteractionService implements INPCInteractionService {
         // Save the initial state so it persists
         const inventoryState = merchant.getInventoryState();
         stateManager.updateMerchantState(inventoryState);
-        stateManager.saveState();
+        // Note: saveState() is now async, but we don't await here to avoid blocking NPC instantiation
+        void stateManager.saveState();
         systemLogger.info(`[Merchant] Saved initial inventory state for ${merchant.name}`);
       }
 

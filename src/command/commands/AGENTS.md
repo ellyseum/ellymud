@@ -88,13 +88,13 @@ This directory contains 40+ command implementations. Each command is a single Ty
 
 ### Utility Commands
 
-| File                        | Purpose              |
-| --------------------------- | -------------------- |
-| `history.command.ts`        | View command history |
-| `time.command.ts`           | Show server time     |
-| `played.command.ts`         | Show play time       |
-| `bugreport.command.ts`      | Submit bug report    |
-| `changePassword.command.ts` | Change password      |
+| File                        | Purpose                              |
+| --------------------------- | ------------------------------------ |
+| `history.command.ts`        | View command history                 |
+| `time.command.ts`           | Show server time                     |
+| `played.command.ts`         | Show play time                       |
+| `bugreport.command.ts`      | Submit bug report (async repository) |
+| `changePassword.command.ts` | Change password                      |
 
 ### Mini-Games
 
@@ -177,6 +177,47 @@ writeMessageToClient(client, colorize('red', 'Error: Target not found.\r\n'));
 // Show success in green or white
 writeMessageToClient(client, colorize('green', 'Item picked up.\r\n'));
 ```
+
+### Async Commands with Repository Pattern
+
+Some commands use async repository access (e.g., `bugreport.command.ts`):
+
+```typescript
+export class BugReportCommand implements Command {
+  name = 'bugreport';
+  
+  // Repository + async init pattern
+  private repository = getBugReportRepository();
+  private initialized = false;
+  private initPromise: Promise<void> | null = null;
+  
+  constructor() {
+    this.initPromise = this.initialize();
+  }
+  
+  private async initialize(): Promise<void> {
+    if (this.initialized) return;
+    await this.repository.findAll(); // Warm up repository
+    this.initialized = true;
+    this.initPromise = null;
+  }
+  
+  public async ensureInitialized(): Promise<void> {
+    if (this.initPromise) await this.initPromise;
+  }
+  
+  async execute(client: ConnectedClient, args: string[], services: CommandServices): Promise<void> {
+    await this.ensureInitialized();
+    // ... command logic using this.repository
+  }
+}
+```
+
+**Key Points:**
+- Initialize repository in constructor
+- Call `ensureInitialized()` at start of `execute()`
+- Mark `execute()` as async
+- Repository methods are all async
 
 ## Common Tasks
 

@@ -84,7 +84,7 @@ export class BuyCommand implements Command {
     // Save merchant state for persistence across restarts
     const stateManager = MerchantStateManager.getInstance();
     stateManager.updateMerchantState(merchant.getInventoryState());
-    stateManager.saveState();
+    await stateManager.saveState();
 
     // Add history entry to the item
     const instance = itemManager.getItemInstance(foundInstanceId);
