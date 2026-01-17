@@ -91,6 +91,33 @@ export interface AbilityEffect {
 
 **Purpose**: Singleton manager for all ability operations
 
+**Async Initialization Pattern**:
+
+AbilityManager uses the repository pattern with async initialization:
+
+```typescript
+// Repository + async init pattern
+private repository = getAbilityRepository();
+private initialized = false;
+private initPromise: Promise<void> | null = null;
+
+constructor() {
+  this.initPromise = this.initialize();
+}
+
+private async initialize(): Promise<void> {
+  if (this.initialized) return;
+  const abilities = await this.repository.findAll();
+  abilities.forEach(ability => this.abilities.set(ability.id, ability));
+  this.initialized = true;
+  this.initPromise = null;
+}
+
+public async ensureInitialized(): Promise<void> {
+  if (this.initPromise) await this.initPromise;
+}
+```
+
 **Key Exports**:
 
 ```typescript
@@ -156,6 +183,9 @@ export class AbilityManager extends EventEmitter {
 ```typescript
 // Get instance (singleton)
 const abilityManager = AbilityManager.getInstance(userManager, roomManager, effectManager);
+
+// ✅ Correct - await ensureInitialized before use
+await abilityManager.ensureInitialized();
 
 // Cast a spell
 abilityManager.executeAbility(client, 'fireball', 'goblin');
@@ -328,6 +358,7 @@ You cast Ice Bolt!
 ## Gotchas & Warnings
 
 - ⚠️ **Singleton Pattern**: Always use `getInstance()`, never `new AbilityManager()`
+- ⚠️ **Async Init Required**: Call `await ensureInitialized()` before accessing abilities
 - ⚠️ **Effect Types**: `effectType` must match handlers in `EffectManager`
 - ⚠️ **Mana Check**: Always verify mana before calling `executeAbility()`
 - ⚠️ **Round Sync**: Call `setCurrentRound()` from combat tick to sync cooldowns

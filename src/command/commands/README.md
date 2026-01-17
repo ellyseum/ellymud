@@ -85,12 +85,12 @@ Individual command classes that handle specific player actions. Each file export
 
 ### Misc
 
-| File               | Command    | Description          |
-| ------------------ | ---------- | -------------------- |
-| `help.command.ts`  | help, ?    | Show command help    |
-| `quit.command.ts`  | quit, exit | Disconnect from game |
-| `snake.command.ts` | snake      | Play Snake mini-game |
-| `bug.command.ts`   | bug        | Report a bug         |
+| File               | Command    | Description                        |
+| ------------------ | ---------- | ---------------------------------- |
+| `help.command.ts`  | help, ?    | Show command help                  |
+| `quit.command.ts`  | quit, exit | Disconnect from game               |
+| `snake.command.ts` | snake      | Play Snake mini-game               |
+| `bug.command.ts`   | bug        | Report a bug (uses async repository) |
 
 ## Adding New Commands
 

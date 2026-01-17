@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+import fs from 'fs';
 import { ConnectedClient } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
@@ -8,6 +8,8 @@ import { Command } from '../command.interface';
 import { UserManager } from '../../user/userManager';
 import { SudoCommand } from './sudo.command';
 import { createContextLogger } from '../../utils/logger';
+import { getBugReportRepository } from '../../persistence/RepositoryFactory';
+import { IAsyncBugReportRepository } from '../../persistence/interfaces';
 
 // Create a context-specific logger for BugReport command
 const bugReportLogger = createContextLogger('BugReport');
@@ -58,8 +60,10 @@ export class BugReportCommand implements Command {
     'Report a bug or issue to the admins. Use "bugreport <your message>" to submit a report.';
   private userManager: UserManager;
   private sudoCommand: SudoCommand | undefined;
-  private bugReportsFilePath: string;
   private bugReports: BugReport[] = [];
+  private repository: IAsyncBugReportRepository;
+  private initialized: boolean = false;
+  private initPromise: Promise<void> | null = null;
 
   // Map to store pending reports by username
   private pendingReports: Map<string, PendingBugReport> = new Map();
@@ -76,39 +80,40 @@ export class BugReportCommand implements Command {
 
   constructor(userManager: UserManager) {
     this.userManager = userManager;
-    this.bugReportsFilePath = path.join(__dirname, '../../../data/bug-reports.json');
-    this.loadBugReports();
+    this.repository = getBugReportRepository();
+    this.initPromise = this.initialize();
+  }
+
+  private async initialize(): Promise<void> {
+    if (this.initialized) return;
+    await this.loadBugReports();
+    this.initialized = true;
+    this.initPromise = null;
+  }
+
+  public async ensureInitialized(): Promise<void> {
+    if (this.initPromise) await this.initPromise;
   }
 
   /**
-   * Load bug reports from the JSON file
+   * Load bug reports from the repository
    */
-  private loadBugReports(): void {
+  private async loadBugReports(): Promise<void> {
     try {
-      if (fs.existsSync(this.bugReportsFilePath)) {
-        const data = fs.readFileSync(this.bugReportsFilePath, 'utf8');
-        const bugReportData = JSON.parse(data);
-        this.bugReports = bugReportData.reports || [];
-      } else {
-        // Create default empty bug reports file if it doesn't exist
-        this.bugReports = [];
-        this.saveBugReports();
-      }
+      this.bugReports = await this.repository.findAll();
       bugReportLogger.info(`Loaded ${this.bugReports.length} bug reports`);
     } catch (error) {
       bugReportLogger.error('Error loading bug reports:', error);
-      // Default to empty array if file can't be loaded
       this.bugReports = [];
     }
   }
 
   /**
-   * Save bug reports to the JSON file
+   * Save bug reports to the repository
    */
-  private saveBugReports(): void {
+  private async saveBugReports(): Promise<void> {
     try {
-      const bugReportData = { reports: this.bugReports };
-      fs.writeFileSync(this.bugReportsFilePath, JSON.stringify(bugReportData, null, 2), 'utf8');
+      await this.repository.saveAll(this.bugReports);
       bugReportLogger.info('Saved bug reports');
     } catch (error) {
       bugReportLogger.error('Error saving bug reports:', error);
@@ -373,7 +378,7 @@ export class BugReportCommand implements Command {
     writeToClient(client, colorize('===============================\r\n', 'magenta'));
   }
 
-  private createBugReport(client: ConnectedClient, message: string): void {
+  private async createBugReport(client: ConnectedClient, message: string): Promise<void> {
     if (!client.user) return;
 
     // Get log paths
@@ -400,7 +405,7 @@ export class BugReportCommand implements Command {
 
     // Add the report
     this.bugReports.push(newReport);
-    this.saveBugReports();
+    await this.saveBugReports();
 
     bugReportLogger.info(
       `New bug report from ${client.user.username}: ${message.substring(
@@ -628,7 +633,7 @@ export class BugReportCommand implements Command {
     writeToClient(client, colorize('=======================\r\n', 'magenta'));
   }
 
-  private cancelBugReport(client: ConnectedClient, reportId: string): void {
+  private async cancelBugReport(client: ConnectedClient, reportId: string): Promise<void> {
     if (!client.user) return;
 
     const username = client.user.username;
@@ -669,7 +674,7 @@ export class BugReportCommand implements Command {
 
     // Remove the report
     this.bugReports.splice(reportIndex, 1);
-    this.saveBugReports();
+    await this.saveBugReports();
 
     bugReportLogger.info(
       `${isAdmin ? 'Admin' : 'User'} ${username} canceled bug report ${reportId}${
@@ -697,11 +702,11 @@ export class BugReportCommand implements Command {
     }
   }
 
-  private solveBugReport(
+  private async solveBugReport(
     client: ConnectedClient,
     reportId: string,
     reason: string | null = null
-  ): void {
+  ): Promise<void> {
     if (!client.user) return;
 
     const reportIndex = this.bugReports.findIndex((report) => report.id === reportId);
@@ -727,7 +732,7 @@ export class BugReportCommand implements Command {
     this.bugReports[reportIndex].solvedBy = client.user.username;
     this.bugReports[reportIndex].solvedReason = reason;
 
-    this.saveBugReports();
+    await this.saveBugReports();
 
     bugReportLogger.info(
       `Admin ${client.user.username} marked bug report ${reportId} as solved${
@@ -763,7 +768,7 @@ export class BugReportCommand implements Command {
     }
   }
 
-  private reopenBugReport(client: ConnectedClient, reportId: string): void {
+  private async reopenBugReport(client: ConnectedClient, reportId: string): Promise<void> {
     if (!client.user) return;
 
     const reportIndex = this.bugReports.findIndex((report) => report.id === reportId);
@@ -788,7 +793,7 @@ export class BugReportCommand implements Command {
     this.bugReports[reportIndex].solvedOn = null;
     // Keep the solvedBy and solvedReason fields for history purposes
 
-    this.saveBugReports();
+    await this.saveBugReports();
 
     bugReportLogger.info(`Admin ${client.user.username} reopened bug report ${reportId}`);
     writeToClient(client, colorize(`Bug report "${reportId}" has been reopened.\r\n`, 'green'));
@@ -869,7 +874,7 @@ export class BugReportCommand implements Command {
   /**
    * Delete a bug report
    */
-  private deleteBugReport(client: ConnectedClient, reportId: string): void {
+  private async deleteBugReport(client: ConnectedClient, reportId: string): Promise<void> {
     if (!client.user) return;
 
     const username = client.user.username;
@@ -899,7 +904,7 @@ export class BugReportCommand implements Command {
 
     // Remove the report
     this.bugReports.splice(reportIndex, 1);
-    this.saveBugReports();
+    await this.saveBugReports();
 
     bugReportLogger.info(
       `${isAdmin ? 'Admin' : 'User'} ${username} deleted bug report ${reportId}${
@@ -1067,7 +1072,7 @@ export class BugReportCommand implements Command {
     writeToClient(client, colorize('===============================\r\n', 'magenta'));
   }
 
-  private handleClearConfirmReally(client: ConnectedClient): void {
+  private async handleClearConfirmReally(client: ConnectedClient): Promise<void> {
     if (!client.user) return;
 
     const pendingOperation = this.pendingClearOperations.get(client.user.username);
@@ -1077,7 +1082,7 @@ export class BugReportCommand implements Command {
     }
 
     this.bugReports = [];
-    this.saveBugReports();
+    await this.saveBugReports();
     this.pendingClearOperations.delete(client.user.username);
 
     bugReportLogger.info(`Admin ${client.user.username} cleared all bug reports.`);

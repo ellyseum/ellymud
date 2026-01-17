@@ -1,21 +1,18 @@
-import fs from 'fs';
-import path from 'path';
 import { EventEmitter } from 'events';
 import { RoomManager } from '../room/roomManager';
 import { UserManager } from '../user/userManager';
 import { CombatSystem } from '../combat/combatSystem';
 import { EffectManager } from '../effects/effectManager';
-import { systemLogger, createContextLogger } from '../utils/logger';
+import { createContextLogger } from '../utils/logger';
 import { drawCommandPrompt } from '../utils/socketWriter';
+import { IAsyncGameTimerConfigRepository, GameTimerConfig } from '../persistence/interfaces';
+import { getGameTimerConfigRepository } from '../persistence/RepositoryFactory';
 
 // Create a context-specific logger for GameTimerManager
 const timerLogger = createContextLogger('GameTimerManager');
 
-// Configuration interface for the game timer system
-export interface GameTimerConfig {
-  tickInterval: number; // Time between ticks in milliseconds
-  saveInterval: number; // Number of ticks between data saves
-}
+// Re-export the interface for consumers that import from this module
+export type { GameTimerConfig };
 
 // Default configuration
 const DEFAULT_CONFIG: GameTimerConfig = {
@@ -23,47 +20,10 @@ const DEFAULT_CONFIG: GameTimerConfig = {
   saveInterval: 10, // Save every 10 ticks (1 minute)
 };
 
-// Load config from file or use defaults
-function loadGameTimerConfig(): GameTimerConfig {
-  const configPath = path.join(__dirname, '..', '..', 'data', 'gametimer-config.json');
-
-  try {
-    if (fs.existsSync(configPath)) {
-      const data = fs.readFileSync(configPath, 'utf8');
-      const config = JSON.parse(data);
-      return {
-        tickInterval: config.tickInterval || DEFAULT_CONFIG.tickInterval,
-        saveInterval: config.saveInterval || DEFAULT_CONFIG.saveInterval,
-      };
-    }
-  } catch (error) {
-    systemLogger.error('Error loading game timer configuration:', error);
-  }
-
-  // If file doesn't exist or there's an error, use defaults
-  return DEFAULT_CONFIG;
-}
-
-// Save config to file
-function saveGameTimerConfig(config: GameTimerConfig): void {
-  const configPath = path.join(__dirname, '..', '..', 'data', 'gametimer-config.json');
-  const dataDir = path.join(__dirname, '..', '..', 'data');
-
-  try {
-    // Ensure data directory exists
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-  } catch (error) {
-    systemLogger.error('Error saving game timer configuration:', error);
-  }
-}
-
 export class GameTimerManager extends EventEmitter {
   private static instance: GameTimerManager | null = null;
   private config: GameTimerConfig;
+  private configRepository: IAsyncGameTimerConfigRepository;
   private tickCount: number = 0;
   private intervalId: NodeJS.Timeout | null = null;
   private running: boolean = false;
@@ -72,17 +32,45 @@ export class GameTimerManager extends EventEmitter {
   private roomManager: RoomManager;
   private combatSystem: CombatSystem;
   private effectManager: EffectManager;
+  private initPromise: Promise<void> | null = null;
 
   private constructor(userManager: UserManager, roomManager: RoomManager) {
     super();
     timerLogger.info('Creating GameTimerManager instance');
-    this.config = loadGameTimerConfig();
+    this.configRepository = getGameTimerConfigRepository();
+    // Start with defaults, will be overwritten by async init
+    this.config = { ...DEFAULT_CONFIG };
     this.userManager = userManager;
     this.roomManager = roomManager;
     // Get the singleton instance instead of creating a new one
     this.combatSystem = CombatSystem.getInstance(userManager, roomManager);
     // Get the EffectManager instance
     this.effectManager = EffectManager.getInstance(userManager, roomManager);
+    // Start async initialization
+    this.initPromise = this.loadConfigFromRepository();
+  }
+
+  /**
+   * Load config from repository asynchronously
+   */
+  private async loadConfigFromRepository(): Promise<void> {
+    try {
+      this.config = await this.configRepository.get();
+      timerLogger.debug('Loaded GameTimer config from repository');
+    } catch (error) {
+      timerLogger.error('Error loading GameTimer config from repository:', error);
+      // Keep default config
+    }
+    this.initPromise = null;
+  }
+
+  /**
+   * Ensure initialization is complete before proceeding
+   */
+  public async ensureInitialized(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+    }
   }
 
   /**
@@ -121,9 +109,13 @@ export class GameTimerManager extends EventEmitter {
   /**
    * Update the game timer configuration
    */
-  public updateConfig(newConfig: Partial<GameTimerConfig>): void {
+  public async updateConfig(newConfig: Partial<GameTimerConfig>): Promise<void> {
     this.config = { ...this.config, ...newConfig };
-    saveGameTimerConfig(this.config);
+    try {
+      await this.configRepository.save(this.config);
+    } catch (error) {
+      timerLogger.error('Error saving GameTimer config:', error);
+    }
 
     // If running, restart with new config
     if (this.running) {

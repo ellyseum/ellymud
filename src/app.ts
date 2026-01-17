@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  * Commercial licensing available via https://github.com/ellyseum
  */
-import fs from 'fs';
-import path from 'path';
 import { ClientManager } from './client/clientManager';
 import { CommandHandler } from './command/commandHandler';
 import config, { applyTestModeOverrides, clearTestModeOverrides } from './config';
@@ -24,7 +22,7 @@ import { StateMachine } from './state/stateMachine';
 import { SnakeGameState } from './states/snake-game.state';
 import { EditorState } from './states/editor.state';
 import { GameTimerManager } from './timer/gameTimerManager';
-import { ConnectedClient, GlobalWithSkipMCP, MUDConfig, ServerStats } from './types';
+import { ConnectedClient, GlobalWithSkipMCP, ServerStats } from './types';
 import { EffectManager } from './effects/effectManager';
 import { UserManager } from './user/userManager';
 import { ItemManager } from './utils/itemManager';
@@ -40,6 +38,8 @@ import { TestModeOptions, getDefaultTestModeOptions } from './testing/testMode';
 import { StateLoader } from './testing/stateLoader';
 import { checkAndAutoMigrate } from './data/autoMigrate';
 import { AreaManager } from './area/areaManager';
+import { IAsyncMUDConfigRepository, MUDConfig } from './persistence/interfaces';
+import { getMUDConfigRepository } from './persistence/RepositoryFactory';
 
 /**
  * Port configuration for GameServer
@@ -72,6 +72,7 @@ export class GameServer {
   private mcpServer: MCPServer;
   private isTestMode: boolean = false;
   private statsUpdateInterval: NodeJS.Timeout;
+  private mudConfigRepository: IAsyncMUDConfigRepository;
 
   constructor(portConfig?: ServerPortConfig) {
     try {
@@ -90,6 +91,9 @@ export class GameServer {
           external: 0,
         },
       };
+
+      // Initialize MUD config repository
+      this.mudConfigRepository = getMUDConfigRepository();
 
       // Set up update interval for server stats
       this.statsUpdateInterval = setInterval(() => {
@@ -203,10 +207,10 @@ export class GameServer {
         () => this.consoleManager.setupKeyListener()
       );
 
-      // Set up idle client check interval
-      this.idleCheckInterval = setInterval(() => {
-        const config = this.loadMUDConfig();
-        const idleTimeoutMinutes = config.game.idleTimeout;
+      // Set up idle client check interval (uses async config loading)
+      this.idleCheckInterval = setInterval(async () => {
+        const mudConfig = await this.loadMUDConfig();
+        const idleTimeoutMinutes = mudConfig.game.idleTimeout;
         this.clientManager.checkForIdleClients(idleTimeoutMinutes);
       }, config.IDLE_CHECK_INTERVAL);
 
@@ -275,35 +279,32 @@ export class GameServer {
     }
   }
 
-  private loadMUDConfig(): MUDConfig {
-    const configPath = path.join(config.DATA_DIR, 'mud-config.json');
-    if (fs.existsSync(configPath)) {
-      try {
-        const configData = fs.readFileSync(configPath, 'utf8');
-        return JSON.parse(configData);
-      } catch (error) {
-        systemLogger.error(`Error loading MUD config: ${error}`);
-        return {
-          game: {
-            idleTimeout: 30, // Default idle timeout in minutes
-          },
-        };
-      }
-    } else {
-      // Create default config
-      const defaultConfig = {
+  private async loadMUDConfig(): Promise<MUDConfig> {
+    try {
+      return await this.mudConfigRepository.get();
+    } catch (error) {
+      systemLogger.error(`Error loading MUD config: ${error}`);
+      // Return minimal default config on error
+      return {
+        dataFiles: {
+          players: './data/players.json',
+          rooms: './data/rooms.json',
+          items: './data/items.json',
+          npcs: './data/npcs.json',
+        },
         game: {
-          idleTimeout: 30, // Default idle timeout in minutes
+          startingRoom: 'town-square',
+          maxPlayers: 100,
+          idleTimeout: 30,
+          maxPasswordAttempts: 5,
+        },
+        advanced: {
+          debugMode: false,
+          allowRegistration: true,
+          backupInterval: 6,
+          logLevel: 'info',
         },
       };
-
-      try {
-        fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2), 'utf8');
-      } catch (error) {
-        systemLogger.error(`Error creating default MUD config: ${error}`);
-      }
-
-      return defaultConfig;
     }
   }
 

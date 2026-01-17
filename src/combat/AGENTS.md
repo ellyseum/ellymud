@@ -119,6 +119,68 @@ export class NPC implements CombatEntity {
 }
 ```
 
+### `merchantStateManager.ts`
+
+**Purpose**: Singleton managing merchant inventory state persistence
+
+**Key Exports**:
+
+```typescript
+export class MerchantStateManager {
+  static getInstance(): MerchantStateManager;
+  
+  // Async initialization (REQUIRED before use)
+  async ensureInitialized(): Promise<void>;
+  
+  // Get merchant state by NPC template ID
+  getState(templateId: string): MerchantInventoryState | undefined;
+  
+  // Save merchant state (async)
+  async saveState(templateId: string, state: MerchantInventoryState): Promise<void>;
+}
+```
+
+**Async Initialization Pattern**:
+
+```typescript
+// MerchantStateManager uses repository pattern with async init
+private repository = getMerchantStateRepository();
+private initialized = false;
+private initPromise: Promise<void> | null = null;
+
+constructor() {
+  this.initPromise = this.initialize();
+}
+
+private async initialize(): Promise<void> {
+  if (this.initialized) return;
+  const states = await this.repository.findAll();
+  // ... populate in-memory map
+  this.initialized = true;
+  this.initPromise = null;
+}
+
+public async ensureInitialized(): Promise<void> {
+  if (this.initPromise) await this.initPromise;
+}
+```
+
+**Usage**:
+
+```typescript
+// ✅ Correct - await ensureInitialized before use
+const manager = MerchantStateManager.getInstance();
+await manager.ensureInitialized();
+const state = manager.getState('merchant-bob');
+
+// ✅ Correct - saveState is now async
+await manager.saveState('merchant-bob', updatedState);
+
+// ❌ Incorrect - may access before data loaded
+const manager = MerchantStateManager.getInstance();
+const state = manager.getState('merchant-bob'); // May return undefined!
+```
+
 ### `components/` Directory
 
 Modular combat subsystems:
@@ -251,6 +313,8 @@ calculateDamage(attacker: CombatEntity, defender: CombatEntity): number {
 - ⚠️ **Tick Dependency**: Combat requires `GameTimerManager` to be running
 - ⚠️ **Death Handling**: Player death teleports to start room, resets stats
 - ⚠️ **Ability Manager**: Must call `setAbilityManager()` for spell/proc support
+- ⚠️ **Merchant State Async**: `MerchantStateManager.ensureInitialized()` MUST be awaited before accessing merchant states
+- ⚠️ **Merchant Save Async**: `saveState()` is now async—must be awaited
 
 ## Ability Integration
 

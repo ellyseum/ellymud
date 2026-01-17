@@ -43,6 +43,8 @@ Each user record contains:
 - `updateUser(username, updates)` - Modify user data
 - `saveUsers()` - Persist all user data to disk
 - `isOnline(username)` - Check if user is connected
+- `saveSnakeScore(entry)` - Save snake score (async)
+- `getTopSnakeScores(limit)` - Get leaderboard
 
 ## Password Security
 

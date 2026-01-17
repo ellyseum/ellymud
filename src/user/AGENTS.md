@@ -42,6 +42,12 @@ export class UserManager {
   initiateTranfer(username: string, newClient: ConnectedClient): void;
   completeTransfer(username: string): void;
   cancelTransfer(username: string): void;
+
+  // Snake Scores (async - uses repository)
+  async loadSnakeScores(): Promise<void>;
+  async saveSnakeScore(entry: SnakeScoreEntry): Promise<void>;
+  getSnakeScores(): SnakeScoreEntry[];
+  getTopSnakeScores(limit: number): SnakeScoreEntry[];
 }
 ```
 
@@ -170,6 +176,25 @@ const session = userManager.getActiveSession(username);
 userManager.removeActiveSession(username);
 ```
 
+### Snake Score Management
+
+Snake scores use the repository pattern with async methods:
+
+```typescript
+// Snake score repository (async)
+private snakeScoreRepository = getSnakeScoreRepository();
+private snakeScores: SnakeScoreEntry[] = [];
+
+// Loading scores (called during init)
+await userManager.loadSnakeScores();
+
+// Saving a new score (async)
+await userManager.saveSnakeScore({ username, score, date: new Date() });
+
+// Getting scores (sync - uses cached data)
+const topScores = userManager.getTopSnakeScores(10);
+```
+
 ## Common Tasks
 
 ### Getting a User
@@ -204,6 +229,8 @@ userManager.addItemToInventory(username, newItem);
 - ⚠️ **Session Conflicts**: Same user can't have two sessions
 - ⚠️ **Case Sensitivity**: Usernames are normalized to lowercase
 - ⚠️ **Password Migration**: Old plaintext passwords auto-migrate on first login
+- ⚠️ **Snake Score Async**: `saveSnakeScore()` is async—must be awaited
+- ⚠️ **Snake Score Init**: Call `loadSnakeScores()` before accessing scores
 
 ## Related Context
 

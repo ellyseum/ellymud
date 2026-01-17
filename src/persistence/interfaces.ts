@@ -4,11 +4,13 @@
  * @module persistence/interfaces
  */
 
-import { GameItem, ItemInstance, User } from '../types';
+import { GameItem, ItemInstance, User, SnakeScoreEntry } from '../types';
 import { Room } from '../room/room';
 import { RoomData, RoomState } from '../room/roomData';
 import { NPCData } from '../combat/npc';
 import { Area } from '../area/area';
+import { MerchantInventoryState } from '../combat/merchant';
+import { AbilityTemplate } from '../abilities/types';
 
 /**
  * Async repository interface for Item data persistence
@@ -200,4 +202,179 @@ export interface IAsyncAreaRepository {
   save(area: Area): Promise<void>;
   saveAll(areas: Area[]): Promise<void>;
   delete(id: string): Promise<void>;
+}
+
+/**
+ * Admin user structure for repository operations
+ */
+export interface AdminUser {
+  username: string;
+  level: 'super' | 'admin' | 'mod';
+  addedBy: string;
+  addedOn: string;
+}
+
+/**
+ * Bug report structure for repository operations
+ */
+export interface BugReport {
+  id: string;
+  user: string;
+  datetime: string;
+  report: string;
+  logs: {
+    raw: string | null;
+    user: string | null;
+  };
+  solved: boolean;
+  solvedOn: string | null;
+  solvedBy: string | null;
+  solvedReason: string | null;
+}
+
+/**
+ * Async repository interface for Admin data persistence
+ * Handles admin users with privilege levels
+ */
+export interface IAsyncAdminRepository {
+  // Read operations
+  findAll(): Promise<AdminUser[]>;
+  findByUsername(username: string): Promise<AdminUser | undefined>;
+  exists(username: string): Promise<boolean>;
+
+  // Write operations
+  save(admin: AdminUser): Promise<void>;
+  saveAll(admins: AdminUser[]): Promise<void>;
+  delete(username: string): Promise<void>;
+
+  // Storage check
+  storageExists(): Promise<boolean>;
+}
+
+/**
+ * Async repository interface for BugReport data persistence
+ */
+export interface IAsyncBugReportRepository {
+  // Read operations
+  findAll(): Promise<BugReport[]>;
+  findById(id: string): Promise<BugReport | undefined>;
+  findByUser(username: string): Promise<BugReport[]>;
+  findUnsolved(): Promise<BugReport[]>;
+
+  // Write operations
+  save(report: BugReport): Promise<void>;
+  saveAll(reports: BugReport[]): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+/**
+ * Async repository interface for MerchantState data persistence
+ */
+export interface IAsyncMerchantStateRepository {
+  // Read operations
+  findAll(): Promise<MerchantInventoryState[]>;
+  findByTemplateId(templateId: string): Promise<MerchantInventoryState | undefined>;
+  exists(templateId: string): Promise<boolean>;
+
+  // Write operations
+  save(state: MerchantInventoryState): Promise<void>;
+  saveAll(states: MerchantInventoryState[]): Promise<void>;
+  delete(templateId: string): Promise<void>;
+}
+
+/**
+ * Async repository interface for Ability data persistence
+ * Read-only in typical usage (abilities loaded from JSON)
+ */
+export interface IAsyncAbilityRepository {
+  // Read operations
+  findAll(): Promise<AbilityTemplate[]>;
+  findById(id: string): Promise<AbilityTemplate | undefined>;
+  findByType(type: string): Promise<AbilityTemplate[]>;
+
+  // Write operations (for admin tools)
+  save(ability: AbilityTemplate): Promise<void>;
+  saveAll(abilities: AbilityTemplate[]): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+/**
+ * Async repository interface for SnakeScore data persistence
+ */
+export interface IAsyncSnakeScoreRepository {
+  // Read operations
+  findAll(): Promise<SnakeScoreEntry[]>;
+  findByUsername(username: string): Promise<SnakeScoreEntry[]>;
+  findTopScores(limit: number): Promise<SnakeScoreEntry[]>;
+
+  // Write operations
+  save(score: SnakeScoreEntry): Promise<void>;
+  saveAll(scores: SnakeScoreEntry[]): Promise<void>;
+  deleteByUsername(username: string): Promise<void>;
+}
+
+/**
+ * MUD configuration data structure
+ */
+export interface MUDConfig {
+  dataFiles: {
+    players: string;
+    rooms: string;
+    items: string;
+    npcs: string;
+  };
+  game: {
+    startingRoom: string;
+    maxPlayers: number;
+    idleTimeout: number;
+    maxPasswordAttempts: number;
+  };
+  advanced: {
+    debugMode: boolean;
+    allowRegistration: boolean;
+    backupInterval: number;
+    logLevel: string;
+  };
+}
+
+/**
+ * Async repository interface for MUD configuration persistence
+ * Singleton configuration - there's only one config record
+ */
+export interface IAsyncMUDConfigRepository {
+  // Read operations
+  get(): Promise<MUDConfig>;
+
+  // Write operations
+  save(config: MUDConfig): Promise<void>;
+
+  // Partial updates
+  updateGame(game: Partial<MUDConfig['game']>): Promise<void>;
+  updateAdvanced(advanced: Partial<MUDConfig['advanced']>): Promise<void>;
+
+  // Storage check
+  exists(): Promise<boolean>;
+}
+
+/**
+ * Game timer configuration data structure
+ */
+export interface GameTimerConfig {
+  tickInterval: number; // Time between ticks in milliseconds
+  saveInterval: number; // Number of ticks between data saves
+}
+
+/**
+ * Async repository interface for GameTimer configuration persistence
+ * Singleton configuration - there's only one config record
+ */
+export interface IAsyncGameTimerConfigRepository {
+  // Read operations
+  get(): Promise<GameTimerConfig>;
+
+  // Write operations
+  save(config: GameTimerConfig): Promise<void>;
+
+  // Storage check
+  exists(): Promise<boolean>;
 }

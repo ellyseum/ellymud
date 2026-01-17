@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import { EventEmitter } from 'events';
 import {
   AbilityTemplate,
@@ -18,6 +16,8 @@ import { writeFormattedMessageToClient } from '../utils/socketWriter';
 import { colorize } from '../utils/colors';
 import { ItemManager } from '../utils/itemManager';
 import { clearRestingMeditating } from '../utils/stateInterruption';
+import { getAbilityRepository } from '../persistence/RepositoryFactory';
+import { IAsyncAbilityRepository } from '../persistence/interfaces';
 
 const abilityLogger = createMechanicsLogger('AbilityManager');
 
@@ -38,6 +38,9 @@ export class AbilityManager extends EventEmitter {
   private userManager: UserManager;
   private roomManager: RoomManager;
   private effectManager: EffectManager;
+  private repository: IAsyncAbilityRepository;
+  private initialized: boolean = false;
+  private initPromise: Promise<void> | null = null;
 
   private constructor(
     userManager: UserManager,
@@ -48,8 +51,20 @@ export class AbilityManager extends EventEmitter {
     this.userManager = userManager;
     this.roomManager = roomManager;
     this.effectManager = effectManager;
-    this.loadAbilities();
+    this.repository = getAbilityRepository();
+    this.initPromise = this.initialize();
     abilityLogger.info('AbilityManager initialized');
+  }
+
+  private async initialize(): Promise<void> {
+    if (this.initialized) return;
+    await this.loadAbilities();
+    this.initialized = true;
+    this.initPromise = null;
+  }
+
+  public async ensureInitialized(): Promise<void> {
+    if (this.initPromise) await this.initPromise;
   }
 
   public static getInstance(
@@ -71,17 +86,13 @@ export class AbilityManager extends EventEmitter {
     AbilityManager.instance = null;
   }
 
-  private loadAbilities(): void {
+  private async loadAbilities(): Promise<void> {
     try {
-      const filePath = path.join(process.cwd(), 'data', 'abilities.json');
-      const data = fs.readFileSync(filePath, 'utf-8');
-      const abilities: AbilityTemplate[] = JSON.parse(data);
-
+      const abilities = await this.repository.findAll();
       abilities.forEach((ability) => {
         this.abilities.set(ability.id, ability);
         abilityLogger.debug(`Loaded ability: ${ability.id}`);
       });
-
       abilityLogger.info(`Loaded ${this.abilities.size} abilities`);
     } catch (error) {
       abilityLogger.error('Failed to load abilities:', error);

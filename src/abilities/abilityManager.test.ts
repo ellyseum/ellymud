@@ -3,20 +3,69 @@
  * @module abilities/abilityManager.test
  */
 
-import { AbilityManager } from './abilityManager';
-import { AbilityType } from './types';
-import {
-  createMockUserManager,
-  createMockRoomManager,
-  createMockUser,
-  createMockClientWithUser,
-  createMockRoom,
-} from '../test/helpers/mockFactories';
-import { UserManager } from '../user/userManager';
-import { RoomManager } from '../room/roomManager';
-import { EffectManager } from '../effects/effectManager';
+// Ability data for tests
+const mockAbilitiesData = [
+  {
+    id: 'fireball',
+    name: 'Fireball',
+    description: 'A ball of fire',
+    type: 'standard',
+    mpCost: 10,
+    cooldownType: 'rounds',
+    cooldownValue: 3,
+    targetType: 'enemy',
+    effects: [
+      {
+        effectType: 'damage_over_time',
+        payload: { damagePerTick: 5 },
+        durationTicks: 3,
+        tickInterval: 1,
+      },
+    ],
+    requirements: {
+      level: 1,
+      stats: { intelligence: 5 },
+    },
+  },
+  {
+    id: 'heal',
+    name: 'Heal',
+    description: 'Heals target',
+    type: 'standard',
+    mpCost: 5,
+    cooldownType: 'seconds',
+    cooldownValue: 10,
+    targetType: 'self',
+    effects: [
+      {
+        effectType: 'heal',
+        payload: { healAmount: 20 },
+        durationTicks: 1,
+        tickInterval: 0,
+      },
+    ],
+  },
+  {
+    id: 'power-attack',
+    name: 'Power Attack',
+    description: 'A powerful attack',
+    type: 'combat',
+    mpCost: 15,
+    cooldownType: 'uses',
+    cooldownValue: 3,
+    targetType: 'enemy',
+    effects: [
+      {
+        effectType: 'damage',
+        payload: { damageAmount: 25 },
+        durationTicks: 1,
+        tickInterval: 0,
+      },
+    ],
+  },
+];
 
-// Mock dependencies
+// Mock dependencies BEFORE imports
 jest.mock('../utils/logger', () => ({
   createContextLogger: jest.fn(() => ({
     info: jest.fn(),
@@ -50,71 +99,19 @@ jest.mock('../utils/stateInterruption', () => ({
   clearRestingMeditating: jest.fn(),
 }));
 
-jest.mock('fs', () => ({
-  existsSync: jest.fn().mockReturnValue(true),
-  mkdirSync: jest.fn(),
-  readFileSync: jest.fn(() =>
-    JSON.stringify([
-      {
-        id: 'fireball',
-        name: 'Fireball',
-        description: 'A ball of fire',
-        type: 'standard',
-        mpCost: 10,
-        cooldownType: 'rounds',
-        cooldownValue: 3,
-        targetType: 'enemy',
-        effects: [
-          {
-            effectType: 'damage_over_time',
-            payload: { damagePerTick: 5 },
-            durationTicks: 3,
-            tickInterval: 1,
-          },
-        ],
-        requirements: {
-          level: 1,
-          stats: { intelligence: 5 },
-        },
-      },
-      {
-        id: 'heal',
-        name: 'Heal',
-        description: 'Heals target',
-        type: 'standard',
-        mpCost: 5,
-        cooldownType: 'seconds',
-        cooldownValue: 10,
-        targetType: 'self',
-        effects: [
-          {
-            effectType: 'heal',
-            payload: { healAmount: 20 },
-            durationTicks: 1,
-            tickInterval: 0,
-          },
-        ],
-      },
-      {
-        id: 'power-attack',
-        name: 'Power Attack',
-        description: 'A powerful attack',
-        type: 'combat',
-        mpCost: 15,
-        cooldownType: 'uses',
-        cooldownValue: 3,
-        targetType: 'enemy',
-        effects: [
-          {
-            effectType: 'damage',
-            payload: { damageAmount: 25 },
-            durationTicks: 1,
-            tickInterval: 0,
-          },
-        ],
-      },
-    ])
-  ),
+// Mock RepositoryFactory to provide abilities
+jest.mock('../persistence/RepositoryFactory', () => ({
+  getAbilityRepository: jest.fn().mockReturnValue({
+    findAll: jest.fn().mockResolvedValue(mockAbilitiesData),
+    findById: jest
+      .fn()
+      .mockImplementation((id: string) =>
+        Promise.resolve(mockAbilitiesData.find((a) => a.id === id))
+      ),
+    save: jest.fn().mockResolvedValue(undefined),
+    saveAll: jest.fn().mockResolvedValue(undefined),
+    delete: jest.fn().mockResolvedValue(undefined),
+  }),
 }));
 
 // Mock EffectManager
@@ -127,13 +124,26 @@ jest.mock('../effects/effectManager', () => ({
   },
 }));
 
+import { AbilityManager } from './abilityManager';
+import { AbilityType } from './types';
+import {
+  createMockUserManager,
+  createMockRoomManager,
+  createMockUser,
+  createMockClientWithUser,
+  createMockRoom,
+} from '../test/helpers/mockFactories';
+import { UserManager } from '../user/userManager';
+import { RoomManager } from '../room/roomManager';
+import { EffectManager } from '../effects/effectManager';
+
 describe('AbilityManager', () => {
   let abilityManager: AbilityManager;
   let mockUserManager: jest.Mocked<UserManager>;
   let mockRoomManager: jest.Mocked<RoomManager>;
   let mockEffectManager: { addEffect: jest.Mock };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     AbilityManager.resetInstance();
 
@@ -148,6 +158,9 @@ describe('AbilityManager', () => {
       mockRoomManager,
       mockEffectManager as unknown as EffectManager
     );
+
+    // Wait for async initialization to complete
+    await abilityManager.ensureInitialized();
   });
 
   afterEach(() => {

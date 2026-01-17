@@ -10,6 +10,36 @@ This directory contains the database abstraction layer for EllyMUD. It provides 
 - **Auto-migration** - Automatic data sync when backend changes
 - **Jest mocks** - Prevents native module loading during tests
 
+## Auto-Migration Coverage
+
+The migration script (`scripts/migrate-json-to-sqlite.ts`) provides full coverage for all EllyMUD entities:
+
+| Entity | JSON→DB | DB→JSON | Auto-Migrate | Notes |
+|--------|---------|---------|--------------|-------|
+| Users | ✅ | ✅ | ✅ | Full support |
+| Rooms | ✅ | ✅ | ✅ | Full support |
+| NPCs | ✅ | ✅ | ✅ | Full support |
+| Items (templates) | ✅ | ✅ | ✅ | Full support |
+| Item Instances | ✅ | ✅ | ✅ | Full support |
+| Areas | ✅ | ✅ | ✅ | Full support |
+| Abilities | ✅ | ✅ | ✅ | Full support |
+| Room States | ✅ | ✅ | ✅ | Full support |
+| Merchant States | ✅ | ✅ | ✅ | Full support |
+| Admin Auth | ✅ | ✅ | ✅ | Full support |
+| MUD Config | ✅ | ✅ | ✅ | Singleton pattern |
+| Game Timer Config | ✅ | ✅ | ✅ | Singleton pattern |
+| Bug Reports | ✅ | ✅ | ✅ | Low priority data |
+| Snake Scores | ✅ | ✅ | ✅ | Mini-game data |
+
+**Run migration**:
+```bash
+# Delete existing database and run fresh migration
+rm -f data/game.db && npx ts-node scripts/migrate-json-to-sqlite.ts
+
+# Or use npm script
+npm run data:import
+```
+
 ## Architecture
 
 ```
@@ -29,6 +59,7 @@ src/data/
 
 **Key Exports**:
 ```typescript
+// Core tables
 export interface UsersTable {
   username: string;           // Primary key
   password_hash: string;
@@ -45,9 +76,86 @@ export interface RoomsTable {
   // ... all room fields
 }
 
+export interface AreasTable {
+  id: string;                 // Primary key
+  name: string;
+  description: string;
+  level_range: string;        // JSON stringified {min, max}
+  flags: string | null;       // JSON stringified array
+  combat_config: string | null;  // JSON stringified AreaCombatConfig
+  spawn_config: string;       // JSON stringified AreaSpawnConfig[]
+  default_room_flags: string | null;  // JSON stringified array
+  created: string;            // ISO date string
+  modified: string;           // ISO date string
+}
+
+export interface RoomStatesTable {
+  room_id: string;            // Primary key
+  item_instances: string;     // JSON stringified
+  npc_template_ids: string;   // JSON stringified
+  currency_gold: number;
+  currency_silver: number;
+  currency_copper: number;
+}
+
+// New tables (Phase 2-5)
+export interface AdminsTable {
+  username: string;           // Primary key
+  level: string;              // 'super' | 'admin' | 'mod'
+  added_by: string;
+  added_on: string;
+}
+
+export interface BugReportsTable {
+  id: string;                 // Primary key
+  user: string;
+  datetime: string;
+  report: string;
+  logs_raw: string | null;
+  logs_user: string | null;
+  solved: number;             // 0 or 1
+  solved_on: string | null;
+  solved_by: string | null;
+  solved_reason: string | null;
+}
+
+export interface MerchantStatesTable {
+  template_id: string;        // Primary key
+  inventory: string;          // JSON stringified
+  last_restock: string | null;
+}
+
+export interface AbilitiesTable {
+  id: string;                 // Primary key
+  name: string;
+  description: string;
+  type: string;
+  cooldown_ms: number;
+  mana_cost: number;
+  effects: string;            // JSON stringified
+  requirements: string | null; // JSON stringified
+}
+
+export interface SnakeScoresTable {
+  id: number;                 // Auto-increment primary key
+  username: string;
+  score: number;
+  date: string;
+}
+
 export interface Database {
   users: UsersTable;
   rooms: RoomsTable;
+  areas: AreasTable;
+  room_states: RoomStatesTable;
+  items: ItemsTable;
+  item_instances: ItemInstancesTable;
+  npcs: NpcsTable;
+  admins: AdminsTable;
+  bug_reports: BugReportsTable;
+  merchant_states: MerchantStatesTable;
+  abilities: AbilitiesTable;
+  snake_scores: SnakeScoresTable;
 }
 ```
 

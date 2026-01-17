@@ -1,9 +1,10 @@
 /**
  * Kysely database schema definitions for EllyMUD
  * 
- * Note: The 'Generated' type from Kysely is available for auto-increment columns
- * if needed in the future. Import it with: import { Generated } from 'kysely';
+ * Note: The 'Generated' type from Kysely is used for auto-increment columns.
  */
+
+import { Generated } from 'kysely';
 
 export interface UsersTable {
   username: string;
@@ -97,10 +98,118 @@ export interface NpcTemplatesTable {
   stock_config: string | null; // JSON array of MerchantStockConfig
 }
 
+export interface AreasTable {
+  id: string;
+  name: string;
+  description: string;
+  level_range: string;
+  flags: string | null;
+  combat_config: string | null;
+  spawn_config: string;
+  default_room_flags: string | null;
+  created: string;
+  modified: string;
+}
+
+export interface RoomStatesTable {
+  room_id: string;
+  item_instances: string; // JSON array of SerializedItemInstance
+  npc_template_ids: string; // JSON array
+  currency_gold: number;
+  currency_silver: number;
+  currency_copper: number;
+  items: string | null; // Legacy field
+}
+
+export interface AdminsTable {
+  username: string;
+  level: string;
+  added_by: string;
+  added_on: string;
+}
+
+export interface BugReportsTable {
+  id: string;
+  user: string;
+  datetime: string;
+  report: string;
+  logs_raw: string | null;
+  logs_user: string | null;
+  solved: number; // SQLite boolean
+  solved_on: string | null;
+  solved_by: string | null;
+  solved_reason: string | null;
+}
+
+export interface MerchantStatesTable {
+  npc_template_id: string;
+  npc_instance_id: string;
+  actual_inventory: string; // JSON array
+  stock_config: string; // JSON array
+}
+
+export interface AbilitiesTable {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  mp_cost: number;
+  cooldown_type: string;
+  cooldown_value: number;
+  target_type: string;
+  effects: string; // JSON
+  requirements: string | null;
+  proc_chance: number | null;
+  consumes_item: number | null;
+}
+
+export interface SnakeScoresTable {
+  id: Generated<number>; // Auto-increment
+  username: string;
+  score: number;
+  date: string;
+}
+
+/**
+ * MUD configuration table - stores singleton configuration
+ * Uses 'singleton' as a fixed key for the single row
+ */
+export interface MUDConfigTable {
+  key: string; // Always 'singleton'
+  data_files: string; // JSON: { players, rooms, items, npcs }
+  game_starting_room: string;
+  game_max_players: number;
+  game_idle_timeout: number;
+  game_max_password_attempts: number;
+  advanced_debug_mode: number; // SQLite boolean (0/1)
+  advanced_allow_registration: number; // SQLite boolean (0/1)
+  advanced_backup_interval: number;
+  advanced_log_level: string;
+}
+
+/**
+ * GameTimer configuration table - stores singleton configuration
+ * Uses 'singleton' as a fixed key for the single row
+ */
+export interface GameTimerConfigTable {
+  key: string; // Always 'singleton'
+  tick_interval: number;
+  save_interval: number;
+}
+
 export interface Database {
   users: UsersTable;
   rooms: RoomsTable;
   item_templates: ItemTemplatesTable;
   item_instances: ItemInstancesTable;
   npc_templates: NpcTemplatesTable;
+  areas: AreasTable;
+  room_states: RoomStatesTable;
+  admins: AdminsTable;
+  bug_reports: BugReportsTable;
+  merchant_states: MerchantStatesTable;
+  abilities: AbilitiesTable;
+  snake_scores: SnakeScoresTable;
+  mud_config: MUDConfigTable;
+  gametimer_config: GameTimerConfigTable;
 }

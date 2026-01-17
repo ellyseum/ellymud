@@ -4,6 +4,8 @@
 
 The `GameTimerManager` singleton runs the game loop. It triggers periodic processing of combat, effects, NPC AI, and other time-based events.
 
+**⚠️ Storage Backend**: Configuration is loaded asynchronously from the repository at initialization. The manager respects `STORAGE_BACKEND` environment variable via the Repository Factory pattern.
+
 ## File Reference
 
 ### `gameTimerManager.ts`
@@ -13,13 +15,29 @@ The `GameTimerManager` singleton runs the game loop. It triggers periodic proces
 ```typescript
 export class GameTimerManager {
   static getInstance(userManager: UserManager, roomManager: RoomManager): GameTimerManager;
-
+  
+  // Async initialization - loads config from repository
+  async initialize(): Promise<void>;
+  
   start(): void;
   stop(): void;
   getCombatSystem(): CombatSystem;
 
-  // Tick interval in milliseconds
+  // Tick interval in milliseconds (loaded from config)
   readonly tickInterval: number;
+}
+```
+
+**Configuration Loading**:
+
+```typescript
+// Uses repository factory for backend-agnostic config loading
+import { getGameTimerConfigRepository } from '../persistence';
+
+private async loadConfig(): Promise<void> {
+  const repo = getGameTimerConfigRepository();
+  this.config = await repo.get();
+  // config.tickInterval, config.saveInterval
 }
 ```
 
@@ -185,6 +203,8 @@ gameTimerManager.advanceTicks(12);  // Full regen cycle
 
 ## Gotchas & Warnings
 
+- ⚠️ **Async Initialization**: Config is loaded asynchronously at startup - `initialize()` must complete before `start()`
+- ⚠️ **Storage Backend**: Uses `getGameTimerConfigRepository()` - respects `STORAGE_BACKEND` env var
 - ⚠️ **Blocking Operations**: Don't do slow I/O in tick handlers
 - ⚠️ **Error Handling**: Errors in tick should not crash loop
 - ⚠️ **Singleton**: Use `getInstance()`, not constructor
@@ -201,4 +221,5 @@ gameTimerManager.advanceTicks(12);  // Full regen cycle
 - [`../user/userManager.ts`](../user/userManager.ts) - User session iteration
 - [`../testing/testMode.ts`](../testing/testMode.ts) - Test mode options interface
 - [`../mcp/mcpServer.ts`](../mcp/mcpServer.ts) - MCP tools for test mode control
-- [`../../data/gametimer-config.json`](../../data/gametimer-config.json) - Timer configuration
+- [`../../data/gametimer-config.json`](../../data/gametimer-config.json) - Timer configuration (JSON backend)
+- [`../persistence/RepositoryFactory.ts`](../persistence/RepositoryFactory.ts) - Config repository factory

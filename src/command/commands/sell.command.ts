@@ -83,7 +83,7 @@ export class SellCommand implements Command {
     // Save merchant state for persistence across restarts
     const stateManager = MerchantStateManager.getInstance();
     stateManager.updateMerchantState(merchant.getInventoryState());
-    stateManager.saveState();
+    await stateManager.saveState();
 
     // Save item instance changes
     itemManager.saveItemInstances();

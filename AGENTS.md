@@ -348,6 +348,11 @@ Managers that have been migrated:
 - **RoomManager** - Uses `getRoomRepository()` from RepositoryFactory
 - **ItemManager** - Uses `getItemRepository()` from RepositoryFactory
 - **NPC** (static methods) - Uses `getNpcRepository()` from RepositoryFactory
+- **GameTimerManager** - Uses `getGameTimerConfigRepository()` from RepositoryFactory
+
+Configuration files also use the Repository Factory pattern:
+- **MUDConfig** - Uses `getMUDConfigRepository()` (singleton pattern)
+- **GameTimerConfig** - Uses `getGameTimerConfigRepository()` (singleton pattern)
 
 ### Async Initialization Pattern
 
