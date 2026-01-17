@@ -170,6 +170,33 @@ export interface SnakeScoresTable {
   date: string;
 }
 
+/**
+ * MUD configuration table - stores singleton configuration
+ * Uses 'singleton' as a fixed key for the single row
+ */
+export interface MUDConfigTable {
+  key: string; // Always 'singleton'
+  data_files: string; // JSON: { players, rooms, items, npcs }
+  game_starting_room: string;
+  game_max_players: number;
+  game_idle_timeout: number;
+  game_max_password_attempts: number;
+  advanced_debug_mode: number; // SQLite boolean (0/1)
+  advanced_allow_registration: number; // SQLite boolean (0/1)
+  advanced_backup_interval: number;
+  advanced_log_level: string;
+}
+
+/**
+ * GameTimer configuration table - stores singleton configuration
+ * Uses 'singleton' as a fixed key for the single row
+ */
+export interface GameTimerConfigTable {
+  key: string; // Always 'singleton'
+  tick_interval: number;
+  save_interval: number;
+}
+
 export interface Database {
   users: UsersTable;
   rooms: RoomsTable;
@@ -183,4 +210,6 @@ export interface Database {
   merchant_states: MerchantStatesTable;
   abilities: AbilitiesTable;
   snake_scores: SnakeScoresTable;
+  mud_config: MUDConfigTable;
+  gametimer_config: GameTimerConfigTable;
 }

@@ -42,7 +42,9 @@ import {
   getBugReportRepository,
   getMerchantStateRepository,
   getAbilityRepository,
-  getSnakeScoreRepository
+  getSnakeScoreRepository,
+  getMUDConfigRepository,
+  getGameTimerConfigRepository
 } from '../persistence';
 
 // Returns appropriate implementation based on STORAGE_BACKEND env var
@@ -57,6 +59,8 @@ const bugReportRepo = getBugReportRepository();  // Bug reports
 const merchantRepo = getMerchantStateRepository(); // Merchant inventory state
 const abilityRepo = getAbilityRepository();      // Ability templates
 const snakeScoreRepo = getSnakeScoreRepository(); // Snake game scores
+const mudConfigRepo = getMUDConfigRepository();   // MUD server config (singleton)
+const timerConfigRepo = getGameTimerConfigRepository(); // Timer config (singleton)
 
 // All repositories implement async interfaces
 const users = await userRepo.findAll();
@@ -66,6 +70,10 @@ const hostileNpcs = await npcRepo.findHostile();
 const roomStates = await roomStateRepo.findAll();
 const admins = await adminRepo.findAll();
 const bugs = await bugReportRepo.findUnsolved();
+
+// Config repositories use singleton pattern (single config record)
+const mudConfig = await mudConfigRepo.get();
+const timerConfig = await timerConfigRepo.get();
 ```
 
 ## Key Files
@@ -194,6 +202,35 @@ export interface IAsyncSnakeScoreRepository {
   saveAll(scores: SnakeScoreEntry[]): Promise<void>;
   deleteByUsername(username: string): Promise<void>;
 }
+
+// Configuration repositories - singleton pattern (only one record)
+
+export interface IAsyncMUDConfigRepository {
+  get(): Promise<MUDConfig>;
+  save(config: MUDConfig): Promise<void>;
+  updateGame(game: Partial<MUDConfig['game']>): Promise<void>;
+  updateAdvanced(advanced: Partial<MUDConfig['advanced']>): Promise<void>;
+  exists(): Promise<boolean>;
+}
+
+export interface IAsyncGameTimerConfigRepository {
+  get(): Promise<GameTimerConfig>;
+  save(config: GameTimerConfig): Promise<void>;
+  exists(): Promise<boolean>;
+}
+```
+
+### Config Repository Singleton Pattern
+
+**⚠️ Important**: Configuration repositories use a singleton pattern where there's only one record in the database table, identified by `key='singleton'`. This differs from entity repositories that store multiple records.
+
+```typescript
+// Config repos return a single config object, not an array
+const mudConfig = await getMUDConfigRepository().get();
+const timerConfig = await getGameTimerConfigRepository().get();
+
+// Save replaces the entire config (upsert with key='singleton')
+await getMUDConfigRepository().save(updatedConfig);
 ```
 
 ### `Kysely*Repository.ts` files
@@ -214,6 +251,10 @@ export interface IAsyncSnakeScoreRepository {
 - `KyselyMerchantStateRepository` - Merchant inventory state
 - `KyselyAbilityRepository` - Ability templates
 - `KyselySnakeScoreRepository` - Snake game leaderboard
+
+**Config Repositories (Singleton Pattern)**:
+- `KyselyMUDConfigRepository` - MUD server configuration (key='singleton')
+- `KyselyGameTimerConfigRepository` - Game timer configuration (key='singleton')
 
 **Usage**:
 ```typescript
@@ -248,6 +289,10 @@ const admins = await adminRepo.findAll();
 - `AsyncFileMerchantStateRepository` - Merchant state (data/merchant-state.json)
 - `AsyncFileAbilityRepository` - Abilities (data/abilities.json)
 - `AsyncFileSnakeScoreRepository` - Snake scores (data/snake-scores.json)
+
+**Config Repositories**:
+- `AsyncFileMUDConfigRepository` - MUD config (data/mud-config.json)
+- `AsyncFileGameTimerConfigRepository` - Timer config (data/gametimer-config.json)
 
 ### `AsyncFileRoomStateRepository.ts`
 

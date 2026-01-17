@@ -20,6 +20,8 @@ import {
   IAsyncMerchantStateRepository,
   IAsyncAbilityRepository,
   IAsyncSnakeScoreRepository,
+  IAsyncMUDConfigRepository,
+  IAsyncGameTimerConfigRepository,
   RepositoryConfig,
 } from './interfaces';
 import { KyselyUserRepository } from './KyselyUserRepository';
@@ -33,6 +35,8 @@ import { KyselyBugReportRepository } from './KyselyBugReportRepository';
 import { KyselyMerchantStateRepository } from './KyselyMerchantStateRepository';
 import { KyselyAbilityRepository } from './KyselyAbilityRepository';
 import { KyselySnakeScoreRepository } from './KyselySnakeScoreRepository';
+import { KyselyMUDConfigRepository } from './KyselyMUDConfigRepository';
+import { KyselyGameTimerConfigRepository } from './KyselyGameTimerConfigRepository';
 import { AsyncFileUserRepository } from './AsyncFileUserRepository';
 import { AsyncFileRoomRepository } from './AsyncFileRoomRepository';
 import { AsyncFileRoomStateRepository } from './AsyncFileRoomStateRepository';
@@ -44,6 +48,8 @@ import { AsyncFileBugReportRepository } from './AsyncFileBugReportRepository';
 import { AsyncFileMerchantStateRepository } from './AsyncFileMerchantStateRepository';
 import { AsyncFileAbilityRepository } from './AsyncFileAbilityRepository';
 import { AsyncFileSnakeScoreRepository } from './AsyncFileSnakeScoreRepository';
+import { AsyncFileMUDConfigRepository } from './AsyncFileMUDConfigRepository';
+import { AsyncFileGameTimerConfigRepository } from './AsyncFileGameTimerConfigRepository';
 
 /**
  * Check if we should use database (Kysely) storage
@@ -164,4 +170,26 @@ export function getSnakeScoreRepository(config?: RepositoryConfig): IAsyncSnakeS
     return new KyselySnakeScoreRepository();
   }
   return new AsyncFileSnakeScoreRepository(config);
+}
+
+/**
+ * Get the appropriate MUDConfigRepository based on STORAGE_BACKEND
+ */
+export function getMUDConfigRepository(config?: RepositoryConfig): IAsyncMUDConfigRepository {
+  if (isDatabaseBackend()) {
+    return new KyselyMUDConfigRepository();
+  }
+  return new AsyncFileMUDConfigRepository(config);
+}
+
+/**
+ * Get the appropriate GameTimerConfigRepository based on STORAGE_BACKEND
+ */
+export function getGameTimerConfigRepository(
+  config?: RepositoryConfig
+): IAsyncGameTimerConfigRepository {
+  if (isDatabaseBackend()) {
+    return new KyselyGameTimerConfigRepository();
+  }
+  return new AsyncFileGameTimerConfigRepository(config);
 }
