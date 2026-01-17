@@ -22,12 +22,14 @@ The `GameTimerManager` runs the game's heartbeat - periodic ticks that drive:
 
 ## Tick Configuration
 
-Tick intervals are configured in `data/gametimer-config.json`:
+Tick intervals are loaded from configuration storage (JSON file or database depending on `STORAGE_BACKEND`):
 
-- **Combat Tick**: How often combat rounds process (default: 2000ms)
-- **Effect Tick**: How often effects are processed
-- **Regen Tick**: How often HP/MP regenerates
-- **Save Tick**: How often data auto-saves
+- **JSON backend**: `data/gametimer-config.json`
+- **Database backend**: `gametimer_configs` table (singleton record)
+
+Configuration options:
+- **tickInterval**: Time between ticks in milliseconds (default: 6000ms)
+- **saveInterval**: Number of ticks between auto-saves (default: 10)
 
 ## Timer Architecture
 

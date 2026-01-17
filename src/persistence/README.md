@@ -10,7 +10,11 @@ Repository pattern abstractions for data storage, supporting multiple backends (
 | `interfaces.ts` | Repository and service interfaces (sync and async) |
 | `Kysely*Repository.ts` | Database implementations (SQLite/PostgreSQL) |
 | `KyselyAreaRepository.ts` | Kysely area repository (zone metadata) |
+| `KyselyMUDConfigRepository.ts` | Database MUD config storage (singleton pattern) |
+| `KyselyGameTimerConfigRepository.ts` | Database game timer config storage (singleton pattern) |
 | `AsyncFile*Repository.ts` | JSON file implementations with async interface |
+| `AsyncFileMUDConfigRepository.ts` | JSON MUD config storage |
+| `AsyncFileGameTimerConfigRepository.ts` | JSON game timer config storage |
 | `fileRepository.ts` | Legacy file-based (JSON) repository implementations |
 | `inMemoryRepository.ts` | In-memory repository for testing |
 | `mappers/` | Field conversion between database and domain objects |
@@ -31,6 +35,8 @@ Repository pattern abstractions for data storage, supporting multiple backends (
 | MerchantState | `merchant-state.json` | `merchant_states` | Merchant inventory |
 | Ability | `abilities.json` | `abilities` | Ability templates |
 | SnakeScore | `snake-scores.json` | `snake_scores` | Snake game leaderboard |
+| MUDConfig | `mud-config.json` | `mud_configs` | Server configuration (singleton) |
+| GameTimerConfig | `gametimer-config.json` | `gametimer_configs` | Timer intervals (singleton) |
 
 ## Quick Start
 
@@ -48,7 +54,9 @@ import {
   getBugReportRepository,
   getMerchantStateRepository,
   getAbilityRepository,
-  getSnakeScoreRepository
+  getSnakeScoreRepository,
+  getMUDConfigRepository,
+  getGameTimerConfigRepository
 } from './persistence';
 
 const users = await getUserRepository().findAll();
@@ -57,6 +65,8 @@ const areas = await getAreaRepository().findAll();
 const roomState = await getRoomStateRepository().findAll();
 const admins = await getAdminRepository().findAll();
 const bugs = await getBugReportRepository().findUnsolved();
+const mudConfig = await getMUDConfigRepository().get();
+const timerConfig = await getGameTimerConfigRepository().get();
 ```
 
 ## Purpose

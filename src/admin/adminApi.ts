@@ -9,6 +9,8 @@ import fs from 'fs';
 import path from 'path';
 import config from '../config';
 import { createAdminMessageBox } from '../utils/messageFormatter';
+import { getMUDConfigRepository } from '../persistence/RepositoryFactory';
+import { MUDConfig } from '../persistence/interfaces';
 
 // Use the same JWT secret as the rest of the application
 const JWT_SECRET = config.JWT_SECRET;
@@ -30,79 +32,6 @@ interface PipelineExecution {
     }
   >;
   [key: string]: unknown;
-}
-
-// Configuration file path
-const CONFIG_FILE = path.join(__dirname, '..', '..', 'data', 'mud-config.json');
-
-// Default configuration
-const DEFAULT_CONFIG = {
-  dataFiles: {
-    players: './data/players.json',
-    rooms: './data/rooms.json',
-    items: './data/items.json',
-    npcs: './data/npcs.json',
-  },
-  game: {
-    startingRoom: 'town-square',
-    maxPlayers: 100,
-    idleTimeout: 30,
-    maxPasswordAttempts: 5,
-  },
-  advanced: {
-    debugMode: false,
-    allowRegistration: true,
-    backupInterval: 6,
-    logLevel: 'info',
-  },
-};
-
-// Define MUDConfig type matching DEFAULT_CONFIG structure
-export interface MUDConfig {
-  dataFiles: { players: string; rooms: string; items: string; npcs: string };
-  game: {
-    startingRoom: string;
-    maxPlayers: number;
-    idleTimeout: number;
-    maxPasswordAttempts: number;
-  };
-  advanced: {
-    debugMode: boolean;
-    allowRegistration: boolean;
-    backupInterval: number;
-    logLevel: string;
-  };
-}
-
-/**
- * Ensure a file or directory exists. If not, create it.
- * @returns true if target existed, false if created
- */
-async function ensureExists(
-  targetPath: string,
-  isDir: boolean,
-  defaultContent?: string
-): Promise<boolean> {
-  try {
-    const stat = await fs.promises.stat(targetPath);
-    if (isDir && !stat.isDirectory()) throw new Error(`${targetPath} is not a directory`);
-    if (!isDir && !stat.isFile()) throw new Error(`${targetPath} is not a file`);
-    return true;
-  } catch (error: unknown) {
-    if (
-      error instanceof Error &&
-      'code' in error &&
-      (error as NodeJS.ErrnoException).code === 'ENOENT'
-    ) {
-      if (isDir) {
-        await fs.promises.mkdir(targetPath, { recursive: true });
-      } else {
-        await fs.promises.writeFile(targetPath, defaultContent ?? '');
-      }
-      return false;
-    }
-    throw error;
-  }
 }
 
 /**
@@ -751,36 +680,17 @@ export function unbanPlayer(userManager: UserManager) {
  * @returns {Promise<MUDConfig>} A Promise that resolves to the MUD configuration object.
  */
 export async function loadMUDConfig(): Promise<MUDConfig> {
-  try {
-    // Ensure data directory exists
-    const dataDir = path.dirname(CONFIG_FILE);
-    await ensureExists(dataDir, true);
-
-    // Ensure config file exists
-    const configExists = await ensureExists(
-      CONFIG_FILE,
-      false,
-      JSON.stringify(DEFAULT_CONFIG, null, 2)
-    );
-    if (!configExists) {
-      return DEFAULT_CONFIG;
-    }
-
-    // Read and parse config
-    const configData = await fs.promises.readFile(CONFIG_FILE, 'utf8');
-    return JSON.parse(configData);
-  } catch (error) {
-    console.error('Error loading MUD configuration:', error);
-    return DEFAULT_CONFIG;
-  }
+  const repository = getMUDConfigRepository();
+  return repository.get();
 }
 
 /**
  * Save MUD configuration
  */
-export async function saveMUDConfig(config: Record<string, unknown>): Promise<boolean> {
+export async function saveMUDConfig(configData: MUDConfig): Promise<boolean> {
   try {
-    await fs.promises.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2));
+    const repository = getMUDConfigRepository();
+    await repository.save(configData);
     return true;
   } catch (error) {
     console.error('Error saving MUD configuration:', error);

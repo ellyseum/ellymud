@@ -312,3 +312,69 @@ export interface IAsyncSnakeScoreRepository {
   saveAll(scores: SnakeScoreEntry[]): Promise<void>;
   deleteByUsername(username: string): Promise<void>;
 }
+
+/**
+ * MUD configuration data structure
+ */
+export interface MUDConfig {
+  dataFiles: {
+    players: string;
+    rooms: string;
+    items: string;
+    npcs: string;
+  };
+  game: {
+    startingRoom: string;
+    maxPlayers: number;
+    idleTimeout: number;
+    maxPasswordAttempts: number;
+  };
+  advanced: {
+    debugMode: boolean;
+    allowRegistration: boolean;
+    backupInterval: number;
+    logLevel: string;
+  };
+}
+
+/**
+ * Async repository interface for MUD configuration persistence
+ * Singleton configuration - there's only one config record
+ */
+export interface IAsyncMUDConfigRepository {
+  // Read operations
+  get(): Promise<MUDConfig>;
+
+  // Write operations
+  save(config: MUDConfig): Promise<void>;
+
+  // Partial updates
+  updateGame(game: Partial<MUDConfig['game']>): Promise<void>;
+  updateAdvanced(advanced: Partial<MUDConfig['advanced']>): Promise<void>;
+
+  // Storage check
+  exists(): Promise<boolean>;
+}
+
+/**
+ * Game timer configuration data structure
+ */
+export interface GameTimerConfig {
+  tickInterval: number; // Time between ticks in milliseconds
+  saveInterval: number; // Number of ticks between data saves
+}
+
+/**
+ * Async repository interface for GameTimer configuration persistence
+ * Singleton configuration - there's only one config record
+ */
+export interface IAsyncGameTimerConfigRepository {
+  // Read operations
+  get(): Promise<GameTimerConfig>;
+
+  // Write operations
+  save(config: GameTimerConfig): Promise<void>;
+
+  // Storage check
+  exists(): Promise<boolean>;
+}

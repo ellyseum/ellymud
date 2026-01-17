@@ -11,6 +11,7 @@ import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { systemLogger, mcpLogger } from '../utils/logger';
 import { VirtualSessionManager } from './virtualSessionManager';
+import { getMUDConfigRepository } from '../persistence/RepositoryFactory';
 
 // MCP protocol types
 interface MCPToolCallParams {
@@ -1104,9 +1105,8 @@ export class MCPServer {
 
   private async getGameConfig() {
     try {
-      const configPath = join(process.cwd(), 'data', 'mud-config.json');
-      const configData = JSON.parse(readFileSync(configPath, 'utf-8'));
-      return configData;
+      const repository = getMUDConfigRepository();
+      return await repository.get();
     } catch (error) {
       throw new Error(`Failed to read game config: ${error}`);
     }

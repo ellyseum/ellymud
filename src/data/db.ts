@@ -236,6 +236,25 @@ export async function initializeDatabase(): Promise<void> {
     .addColumn('date', 'text', (col) => col.notNull())
     .execute();
 
+  await database.schema.createTable('mud_config').ifNotExists()
+    .addColumn('key', 'text', (col) => col.primaryKey())
+    .addColumn('data_files', 'text', (col) => col.notNull())
+    .addColumn('game_starting_room', 'text', (col) => col.notNull().defaultTo('town-square'))
+    .addColumn('game_max_players', 'integer', (col) => col.notNull().defaultTo(100))
+    .addColumn('game_idle_timeout', 'integer', (col) => col.notNull().defaultTo(30))
+    .addColumn('game_max_password_attempts', 'integer', (col) => col.notNull().defaultTo(5))
+    .addColumn('advanced_debug_mode', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn('advanced_allow_registration', 'integer', (col) => col.notNull().defaultTo(1))
+    .addColumn('advanced_backup_interval', 'integer', (col) => col.notNull().defaultTo(6))
+    .addColumn('advanced_log_level', 'text', (col) => col.notNull().defaultTo('info'))
+    .execute();
+
+  await database.schema.createTable('gametimer_config').ifNotExists()
+    .addColumn('key', 'text', (col) => col.primaryKey())
+    .addColumn('tick_interval', 'integer', (col) => col.notNull().defaultTo(6000))
+    .addColumn('save_interval', 'integer', (col) => col.notNull().defaultTo(10))
+    .execute();
+
   systemLogger.info('[Database] Tables initialized');
 }
 

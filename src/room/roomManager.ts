@@ -5,12 +5,21 @@ import { Room } from './room';
 import { RoomData } from './roomData';
 import { ConnectedClient, Exit } from '../types';
 import { Area } from '../area/area';
+import { AreaManager } from '../area/areaManager';
 import { systemLogger } from '../utils/logger';
 import { NPC } from '../combat/npc';
 import { IRoomManager } from './interfaces';
 import { parseAndValidateJson } from '../utils/jsonUtils';
-import { IAsyncRoomRepository, IAsyncRoomStateRepository } from '../persistence/interfaces';
-import { getRoomRepository, getRoomStateRepository } from '../persistence/RepositoryFactory';
+import {
+  IAsyncRoomRepository,
+  IAsyncRoomStateRepository,
+  IAsyncMUDConfigRepository,
+} from '../persistence/interfaces';
+import {
+  getRoomRepository,
+  getRoomStateRepository,
+  getMUDConfigRepository,
+} from '../persistence/RepositoryFactory';
 import { RoomState } from './roomData';
 import config from '../config';
 import { ItemManager } from '../utils/itemManager';
@@ -28,13 +37,6 @@ const DEFAULT_ROOM_ID = 'start'; // Hardcoded fallback ID for the starting room
 // Emergency room ID used when no rooms exist at all
 export const EMERGENCY_ROOM_ID = '__emergency_void__';
 
-// Local interface for MUD config starting room lookup
-interface MUDConfigStartingRoom {
-  game?: {
-    startingRoom?: string;
-  };
-}
-
 export class RoomManager implements IRoomManager {
   private rooms: Map<string, Room> = new Map();
   private clients: Map<string, ConnectedClient>;
@@ -49,6 +51,8 @@ export class RoomManager implements IRoomManager {
   private teleportationService!: TeleportationService;
   private repository: IAsyncRoomRepository;
   private stateRepository: IAsyncRoomStateRepository;
+  private mudConfigRepository: IAsyncMUDConfigRepository;
+  private cachedStartingRoom: string | null = null;
   private initialized: boolean = false;
   private initPromise: Promise<void> | null = null;
 
@@ -65,6 +69,7 @@ export class RoomManager implements IRoomManager {
     this.clients = clients;
     this.repository = repository ?? getRoomRepository();
     this.stateRepository = stateRepository ?? getRoomStateRepository();
+    this.mudConfigRepository = getMUDConfigRepository();
 
     // Initialize services
     this.initializeServices();
@@ -80,8 +85,23 @@ export class RoomManager implements IRoomManager {
     if (this.initialized) return;
     await this.loadRooms();
     await this.loadRoomState();
+    // Cache the starting room from config
+    await this.refreshCachedStartingRoom();
     this.initialized = true;
     this.initPromise = null;
+  }
+
+  /**
+   * Refresh the cached starting room from config repository
+   */
+  private async refreshCachedStartingRoom(): Promise<void> {
+    try {
+      const mudConfig = await this.mudConfigRepository.get();
+      this.cachedStartingRoom = mudConfig.game?.startingRoom || null;
+    } catch (error) {
+      systemLogger.error('Error loading MUD config for starting room cache:', error);
+      this.cachedStartingRoom = null;
+    }
   }
 
   /**
@@ -411,7 +431,7 @@ To create rooms and build your world, follow these steps:
   /**
    * Get the starting room ID for new players.
    * Priority:
-   * 1. MUD config startingRoom (if room exists)
+   * 1. MUD config startingRoom (if room exists) - uses cached value from initialization
    * 2. Fallback: First area's room at gridX=0, gridY=0
    * 3. Ultimate fallback: DEFAULT_ROOM_ID constant
    */
@@ -421,28 +441,19 @@ To create rooms and build your world, follow these steps:
       `[getStartingRoomId] Called. Rooms loaded: ${this.rooms.size}, initialized: ${this.initialized}`
     );
 
-    // Try to load from MUD config
-    const configPath = path.join(config.DATA_DIR, 'mud-config.json');
-    if (fs.existsSync(configPath)) {
-      try {
-        const configData = fs.readFileSync(configPath, 'utf8');
-        const mudConfig: MUDConfigStartingRoom = JSON.parse(configData);
-        const configuredRoom = mudConfig.game?.startingRoom;
+    // Use cached starting room from config (loaded during initialization)
+    const configuredRoom = this.cachedStartingRoom;
 
-        // Check if the configured room exists
-        if (configuredRoom && this.rooms.has(configuredRoom)) {
-          return configuredRoom;
-        }
+    // Check if the configured room exists
+    if (configuredRoom && this.rooms.has(configuredRoom)) {
+      return configuredRoom;
+    }
 
-        // Configured room doesn't exist, try fallback
-        if (configuredRoom) {
-          systemLogger.warn(
-            `Configured starting room '${configuredRoom}' not found (have ${this.rooms.size} rooms), using fallback`
-          );
-        }
-      } catch (error) {
-        systemLogger.error('Error reading MUD config for starting room:', error);
-      }
+    // Configured room doesn't exist, try fallback
+    if (configuredRoom) {
+      systemLogger.warn(
+        `Configured starting room '${configuredRoom}' not found (have ${this.rooms.size} rooms), using fallback`
+      );
     }
 
     // Fallback: Find first area's room at (0,0)
@@ -475,30 +486,28 @@ To create rooms and build your world, follow these steps:
 
   /**
    * Find a fallback starting room by looking for the room at (0,0) in the first area.
+   * Uses AreaManager.getInstance() to get areas via repository pattern.
    */
   private findFallbackStartingRoom(): string | null {
     try {
-      // Load areas to find the first one
-      const areasPath = path.join(config.DATA_DIR, 'areas.json');
-      if (fs.existsSync(areasPath)) {
-        const areasData = fs.readFileSync(areasPath, 'utf8');
-        const areas: Area[] = JSON.parse(areasData);
+      // Get areas from AreaManager (uses repository pattern)
+      const areaManager = AreaManager.getInstance();
+      const areas: Area[] = areaManager.getAll();
 
-        if (areas.length > 0) {
-          const firstArea = areas[0];
+      if (areas.length > 0) {
+        const firstArea = areas[0];
 
-          // Find a room in the first area at (0,0)
-          for (const room of this.rooms.values()) {
-            if (room.areaId === firstArea.id && room.gridX === 0 && room.gridY === 0) {
-              return room.id;
-            }
+        // Find a room in the first area at (0,0)
+        for (const room of this.rooms.values()) {
+          if (room.areaId === firstArea.id && room.gridX === 0 && room.gridY === 0) {
+            return room.id;
           }
+        }
 
-          // If no (0,0) room, just get any room from the first area
-          for (const room of this.rooms.values()) {
-            if (room.areaId === firstArea.id) {
-              return room.id;
-            }
+        // If no (0,0) room, just get any room from the first area
+        for (const room of this.rooms.values()) {
+          if (room.areaId === firstArea.id) {
+            return room.id;
           }
         }
       }
