@@ -99,6 +99,53 @@ $dir"
 }
 
 #=============================================================================
+# Build exclusion patterns from .gitignore
+#=============================================================================
+build_gitignore_patterns() {
+    local patterns=""
+    
+    # Always exclude these standard directories
+    patterns='^\./node_modules($|/)|^\./dist($|/)|^\./\.git($|/)|^\./logs($|/)|^\./backups($|/)|^\./coverage($|/)|^\./\.husky/_|/results($|/)'
+    
+    # Read additional patterns from .gitignore if it exists
+    if [ -f ".gitignore" ]; then
+        while IFS= read -r line || [ -n "$line" ]; do
+            # Skip empty lines and comments
+            [[ -z "$line" || "$line" =~ ^# ]] && continue
+            
+            # Remove leading/trailing whitespace
+            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            
+            # Skip empty after trim
+            [ -z "$line" ] && continue
+            
+            # Convert gitignore pattern to regex for directory matching
+            # Handle directory patterns (ending with /)
+            if [[ "$line" == */ ]]; then
+                # Directory pattern: logs/ -> match ./logs or any path containing /logs/
+                local dir_name="${line%/}"
+                # Escape special regex characters
+                dir_name=$(echo "$dir_name" | sed 's/[.[\*^$()+?{|]/\\&/g')
+                patterns="$patterns|^\.\/$dir_name(\$|/)|/$dir_name(\$|/)"
+            elif [[ "$line" == /* ]]; then
+                # Root-relative pattern: /build -> match only ./build
+                local dir_name="${line#/}"
+                dir_name=$(echo "$dir_name" | sed 's/[.[\*^$()+?{|]/\\&/g')
+                patterns="$patterns|^\.\/$dir_name(\$|/)"
+            elif [[ "$line" != *"*"* && "$line" != *"?"* ]]; then
+                # Simple name (no wildcards): .env, .claude -> match as directory
+                local dir_name="$line"
+                dir_name=$(echo "$dir_name" | sed 's/[.[\*^$()+?{|]/\\&/g')
+                patterns="$patterns|^\.\/$dir_name(\$|/)|/$dir_name(\$|/)"
+            fi
+            # Skip wildcard patterns like *.log - they're for files, not directories
+        done < ".gitignore"
+    fi
+    
+    echo "$patterns"
+}
+
+#=============================================================================
 # Check all directories for missing pairs
 #=============================================================================
 check_all_pairs() {
@@ -112,9 +159,9 @@ check_all_pairs() {
     local partial_agents=""
     local partial_readme=""
     
-    # Directories to exclude from checking
-    # Pattern requires exact directory match (not substring) using word boundary or path separator
-    local exclude_pattern='^\./node_modules($|/)|^\./dist($|/)|^\./\.git($|/)|^\./logs($|/)|^\./backups($|/)|^\./coverage($|/)|^\./\.husky/_|/results($|/)'
+    # Build exclusion pattern from hardcoded defaults + .gitignore
+    local exclude_pattern
+    exclude_pattern=$(build_gitignore_patterns)
     
     # Special files that are intentionally unpaired
     # .github/README.md is excluded because GitHub treats it specially - it would override root README.md
