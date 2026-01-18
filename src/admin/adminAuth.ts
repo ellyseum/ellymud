@@ -118,6 +118,24 @@ export class AdminAuth {
   }
 
   /**
+   * Async version of authenticate that ensures admins are loaded first
+   * Use this for API endpoints where async is acceptable
+   */
+  public async authenticateAsync(username: string, password: string): Promise<boolean> {
+    // Reload admins to ensure we have the latest list
+    await this.reloadAdmins();
+
+    // First check if the user is an admin or super admin in the main system
+    if (!this.isAdminOrSuperAdmin(username)) {
+      return false;
+    }
+
+    // Then check if the user exists and the password is correct
+    // using the main UserManager authentication
+    return this.userManager.authenticateUser(username, password);
+  }
+
+  /**
    * Not needed anymore as passwords are managed by UserManager
    * Keeping the method for backward compatibility
    */

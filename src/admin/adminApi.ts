@@ -90,7 +90,7 @@ export function updateMUDConfig() {
   };
 }
 
-export function login(req: Request, res: Response) {
+export async function login(req: Request, res: Response) {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -98,15 +98,96 @@ export function login(req: Request, res: Response) {
     return;
   }
 
-  const authenticated = adminAuth.authenticate(username, password);
+  // Use async version to ensure admin list is loaded fresh
+  const authenticated = await adminAuth.authenticateAsync(username, password);
 
   if (authenticated) {
     // Generate JWT token
     const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
-    res.json({ success: true, token });
+    // Check if user is using the default password
+    const requiresPasswordChange = password === 'admin';
+    res.json({ success: true, token, requiresPasswordChange });
   } else {
     res.status(401).json({ success: false, message: 'Invalid credentials' });
   }
+}
+
+/**
+ * Password validation rules
+ */
+const PASSWORD_RULES = {
+  minLength: 8,
+  requireUppercase: true,
+  requireLowercase: true,
+  requireNumber: true,
+  requireSymbol: true,
+};
+
+/**
+ * Validate password against rules
+ */
+function validatePassword(password: string): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  if (password.length < PASSWORD_RULES.minLength) {
+    errors.push(`Password must be at least ${PASSWORD_RULES.minLength} characters`);
+  }
+  if (PASSWORD_RULES.requireUppercase && !/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  if (PASSWORD_RULES.requireLowercase && !/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  if (PASSWORD_RULES.requireNumber && !/[0-9]/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
+  if (PASSWORD_RULES.requireSymbol && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+    errors.push('Password must contain at least one symbol');
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
+ * Change admin's own password
+ */
+export function changePassword(userManager: UserManager) {
+  return (req: Request, res: Response) => {
+    try {
+      const { newPassword } = req.body;
+      const admin = (req as Request & { admin?: { username: string } }).admin;
+
+      if (!admin?.username) {
+        return res.status(401).json({ success: false, message: 'Not authenticated' });
+      }
+
+      if (!newPassword) {
+        return res.status(400).json({ success: false, message: 'New password is required' });
+      }
+
+      // Validate new password
+      const validation = validatePassword(newPassword);
+      if (!validation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Password does not meet requirements',
+          errors: validation.errors,
+        });
+      }
+
+      // Change the password
+      const success = userManager.changeUserPassword(admin.username, newPassword);
+
+      if (!success) {
+        return res.status(500).json({ success: false, message: 'Failed to change password' });
+      }
+
+      res.json({ success: true, message: 'Password changed successfully' });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      res.status(500).json({ success: false, message: 'Failed to change password' });
+    }
+  };
 }
 
 export function validateToken(req: Request, res: Response, next: () => void) {

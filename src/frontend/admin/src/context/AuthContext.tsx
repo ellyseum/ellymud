@@ -4,8 +4,10 @@ import { api } from '../services/api';
 interface AuthContextType {
   isAuthenticated: boolean;
   token: string | null;
+  requiresPasswordChange: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
+  completePasswordChange: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -14,6 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('mudAdminToken');
   });
+  const [requiresPasswordChange, setRequiresPasswordChange] = useState<boolean>(false);
 
   const isAuthenticated = !!token;
 
@@ -21,10 +24,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await api.login(username, password);
       // Token is at root level: { success: true, token: "..." }
-      const token = response.token || response.data?.token;
-      if (response.success && token) {
-        localStorage.setItem('mudAdminToken', token);
-        setToken(token);
+      const responseToken = response.token || response.data?.token;
+      if (response.success && responseToken) {
+        localStorage.setItem('mudAdminToken', responseToken);
+        setToken(responseToken);
+        // Check if password change is required (using default 'admin' password)
+        if (response.requiresPasswordChange) {
+          setRequiresPasswordChange(true);
+        }
         return true;
       }
       return false;
@@ -37,6 +44,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     localStorage.removeItem('mudAdminToken');
     setToken(null);
+    setRequiresPasswordChange(false);
+  }, []);
+
+  const completePasswordChange = useCallback(() => {
+    setRequiresPasswordChange(false);
   }, []);
 
   // Check token validity on mount
@@ -50,7 +62,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token, logout]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, token, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        token,
+        requiresPasswordChange,
+        login,
+        logout,
+        completePasswordChange,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

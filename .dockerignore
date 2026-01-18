@@ -47,6 +47,7 @@ Thumbs.db
 
 # Scripts (only needed for development)
 scripts/
+!scripts/docker-entrypoint.sh
 
 # Documentation
 docs/

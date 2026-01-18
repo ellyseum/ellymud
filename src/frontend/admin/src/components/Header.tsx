@@ -17,6 +17,14 @@ export function Header({ onLogout }: HeaderProps) {
             <i className="bi bi-circle-fill me-1" style={{ fontSize: '0.5rem' }}></i>
             Server Online
           </span>
+          <a
+            href="/"
+            className="btn btn-outline-light btn-sm me-2"
+            title="Go to Game Terminal"
+          >
+            <i className="bi bi-terminal me-1"></i>
+            Terminal
+          </a>
           <button
             className="btn btn-outline-light btn-sm"
             onClick={onLogout}

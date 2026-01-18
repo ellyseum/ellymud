@@ -3,22 +3,41 @@ body {
   padding: 0;
   background-color: #1a1a1a;
   font-family: 'Courier New', monospace;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   height: 100vh;
   color: #f0f0f0;
+  overflow: hidden;
 }
 
 .terminal-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   width: 800px;
   height: 500px;
+  min-width: 400px;
+  min-height: 300px;
   background-color: #0f0f0f;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.terminal-container.draggable {
+  transform: none;
+  transition: none;
+}
+
+.terminal-container.maximized {
+  left: 0 !important;
+  top: 0 !important;
+  transform: none;
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .terminal-header {
@@ -28,6 +47,13 @@ body {
   justify-content: space-between;
   align-items: center;
   font-size: 14px;
+  flex-shrink: 0;
+  cursor: move;
+  user-select: none;
+}
+
+.terminal-header:active {
+  cursor: grabbing;
 }
 
 .status {
@@ -57,6 +83,22 @@ body {
   color: #fff;
 }
 
+.header-btn {
+  background-color: #444;
+  border: none;
+  color: #888;
+  font-size: 14px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.header-btn:hover {
+  background-color: #555;
+  color: #fff;
+}
+
 .connected {
   background-color: #2a4;
   color: #fff;
@@ -67,7 +109,235 @@ body {
   color: #fff;
 }
 
-#terminal {
+.partial {
+  background-color: #a84;
+  color: #fff;
+}
+
+/* Resize handles */
+.resize-handle {
+  position: absolute;
+  background: transparent;
+}
+
+.resize-handle-n {
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  cursor: n-resize;
+}
+
+.resize-handle-s {
+  bottom: 0;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  cursor: s-resize;
+}
+
+.resize-handle-e {
+  right: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 6px;
+  cursor: e-resize;
+}
+
+.resize-handle-w {
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 6px;
+  cursor: w-resize;
+}
+
+.resize-handle-ne {
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  cursor: ne-resize;
+}
+
+.resize-handle-nw {
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nw-resize;
+}
+
+.resize-handle-se {
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  cursor: se-resize;
+}
+
+.resize-handle-sw {
+  bottom: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  cursor: sw-resize;
+}
+
+.terminal-container.maximized .resize-handle {
+  display: none;
+}
+
+/* Terminal wrapper - holds the split tree */
+#terminal-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Split containers */
+.split-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.split-horizontal {
+  flex-direction: row;
+}
+
+.split-vertical {
+  flex-direction: column;
+}
+
+/* Split panes */
+.split-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  flex-shrink: 1;
+  flex-grow: 1;
+  transition: flex-basis 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+/* Animation states for split panes */
+.split-pane.animating-in {
+  flex-basis: 0% !important;
+  opacity: 0;
+}
+
+.split-pane.animating-out {
+  flex-basis: 0% !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Split dividers */
+.split-divider {
+  background-color: #333;
+  flex-shrink: 0;
+  transition: background-color 0.15s, opacity 0.2s ease-out;
+}
+
+.split-divider.animating-in {
+  opacity: 0;
+}
+
+.split-divider:hover {
+  background-color: #555;
+}
+
+.split-divider-horizontal {
+  width: 4px;
+  cursor: col-resize;
+}
+
+.split-divider-vertical {
+  height: 4px;
+  cursor: row-resize;
+}
+
+/* Individual terminal panel */
+.terminal-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.terminal-panel.focused {
+  border-color: #4a9eff;
+}
+
+/* Panel header (shows session info) */
+.panel-header {
+  background-color: #252525;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.panel-header span:first-child {
+  flex: 1;
+}
+
+.panel-status {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.panel-status.connected {
+  background-color: #2a4;
+  color: #fff;
+}
+
+.panel-status.disconnected {
+  background-color: #a42;
+  color: #fff;
+}
+
+.panel-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+}
+
+.panel-btn:hover {
+  color: #fff;
+}
+
+.panel-close-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+}
+
+.panel-close-btn:hover {
+  color: #f55;
+}
+
+/* Terminal area within panel */
+.terminal-area {
   flex: 1;
   overflow: hidden;
 }
@@ -80,4 +350,24 @@ body {
 
 .xterm-viewport {
   overflow-y: auto !important;
+}
+
+/* Prevent text selection during drag/resize */
+body.dragging,
+body.resizing,
+body.resizing-split {
+  user-select: none;
+  cursor: inherit;
+}
+
+body.dragging * {
+  cursor: move !important;
+}
+
+body.resizing-split .split-divider-horizontal {
+  cursor: col-resize !important;
+}
+
+body.resizing-split .split-divider-vertical {
+  cursor: row-resize !important;
 }

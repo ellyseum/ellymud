@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { LoginPage } from './components/LoginPage';
+import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { OverviewPanel } from './components/panels/OverviewPanel';
 import { PlayersPanel } from './components/panels/PlayersPanel';
 import { MonitorPanel } from './components/panels/MonitorPanel';
@@ -13,7 +14,7 @@ import { WorldBuilderPanel } from './components/panels/WorldBuilderPanel';
 type TabId = 'dashboard' | 'client' | 'players' | 'config' | 'pipeline' | 'worldbuilder';
 
 function Dashboard() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, requiresPasswordChange, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
 
   useEffect(() => {
@@ -38,6 +39,11 @@ function Dashboard() {
 
   if (!isAuthenticated) {
     return <LoginPage />;
+  }
+
+  // Show password change modal if using default password
+  if (requiresPasswordChange) {
+    return <ChangePasswordModal />;
   }
 
   const renderPanel = () => {

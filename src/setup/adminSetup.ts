@@ -33,11 +33,12 @@ export class AdminSetup {
   }
 
   /**
-   * Check if admin storage exists
+   * Check if admin entry exists in the admin repository
    */
-  private static async adminStorageExists(): Promise<boolean> {
+  private static async adminEntryExists(): Promise<boolean> {
     const adminRepository = getAdminRepository();
-    return adminRepository.storageExists();
+    const admin = await adminRepository.findByUsername('admin');
+    return admin !== undefined;
   }
 
   public static async checkAndCreateAdminUser(userManager: UserManager): Promise<boolean> {
@@ -144,10 +145,10 @@ export class AdminSetup {
     } else {
       systemLogger.info('Admin user already exists.');
 
-      // Ensure admin storage exists with the admin user
-      const adminExists = await AdminSetup.adminStorageExists();
+      // Ensure admin entry exists in the admin repository
+      const adminExists = await AdminSetup.adminEntryExists();
       if (!adminExists) {
-        systemLogger.warn('Creating admin entry...');
+        systemLogger.warn('Admin entry missing, creating...');
 
         // Create admin directory if it doesn't exist
         const adminDir = path.join(config.DATA_DIR, 'admin');

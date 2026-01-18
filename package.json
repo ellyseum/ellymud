@@ -73,6 +73,8 @@
     "docker:rebuild": "docker compose down && docker compose build && docker compose up -d",
     "docker:up:postgres": "docker compose -f docker-compose.yml -f docker-compose.postgres.yml up -d",
     "docker:down:postgres": "docker compose -f docker-compose.yml -f docker-compose.postgres.yml down",
+    "docker:clean:postgres": "docker compose -f docker-compose.yml -f docker-compose.postgres.yml down -v --remove-orphans",
+    "docker:rebuild:postgres": "docker compose -f docker-compose.yml -f docker-compose.postgres.yml down && docker compose -f docker-compose.yml -f docker-compose.postgres.yml build && docker compose -f docker-compose.yml -f docker-compose.postgres.yml up -d",
     "version-major": "npm version major",
     "version-minor": "npm version minor",
     "version-patch": "npm version patch",

@@ -42,13 +42,25 @@ class ApiClient {
     return data;
   }
 
-  async login(username: string, password: string): Promise<ApiResponse<{ token: string }>> {
+  async login(
+    username: string,
+    password: string
+  ): Promise<ApiResponse<{ token: string; requiresPasswordChange?: boolean }>> {
     const response = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     });
     return response.json();
+  }
+
+  async changePassword(newPassword: string): Promise<ApiResponse<{ errors?: string[] }>> {
+    const response = await fetch(`${API_BASE}/change-password`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ newPassword }),
+    });
+    return this.handleResponse(response);
   }
 
   // Server Stats

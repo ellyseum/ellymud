@@ -478,6 +478,74 @@ h1, h2, h3, h4, h5, h6 {
   background: #636e72;
 }
 
+/* Change Password Modal */
+.change-password-overlay {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2d3436, #353b3d);
+  padding: 20px;
+}
+
+.change-password-modal {
+  width: 100%;
+  max-width: 480px;
+}
+
+.change-password-modal .card {
+  box-shadow:
+    12px 12px 24px rgba(0, 0, 0, 0.5),
+    -6px -6px 16px rgba(255, 255, 255, 0.03);
+}
+
+.change-password-modal .card-header.bg-warning {
+  background: linear-gradient(135deg, #f39c12, #fdcb6e) !important;
+  color: #2d3436 !important;
+}
+
+.change-password-modal .card-header.bg-warning h5 {
+  color: #2d3436 !important;
+}
+
+.change-password-modal .card-header.bg-warning i {
+  color: #2d3436 !important;
+}
+
+.change-password-modal .input-group .btn-outline-secondary {
+  background-color: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.change-password-modal .input-group .btn-outline-secondary:hover {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.change-password-modal .input-group .form-control {
+  border-right: none;
+}
+
+.change-password-modal .input-group .btn-outline-secondary {
+  border-left: none;
+}
+
+.change-password-modal .list-unstyled li {
+  padding: 4px 0;
+  font-size: 0.9rem;
+}
+
+.change-password-modal .list-unstyled li.text-success {
+  color: var(--success-color) !important;
+}
+
+.change-password-modal .alert-warning {
+  background-color: rgba(253, 203, 110, 0.2);
+  color: #fdcb6e;
+  border-left: 4px solid var(--warning-color);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .sidebar {

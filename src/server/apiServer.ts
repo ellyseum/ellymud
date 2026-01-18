@@ -106,6 +106,11 @@ export class APIServer {
   private setupApiRoutes(): void {
     // Admin API routes
     this.app.post('/api/admin/login', loginLimiter, AdminApi.login);
+    this.app.post(
+      '/api/admin/change-password',
+      AdminApi.validateToken,
+      AdminApi.changePassword(this.userManager)
+    );
     this.app.get(
       '/api/admin/stats',
       AdminApi.validateToken,
