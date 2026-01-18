@@ -178,6 +178,22 @@ const userManager = UserManager.getInstance();
 const userManager = new UserManager();
 ```
 
+### Command Delegation Pattern
+All commands follow: `make targets → npm scripts → actual commands`
+
+```bash
+# ✅ Use make or npm scripts
+make docker-up          # or: npm run docker:up
+make test               # or: npm run test
+make docker-logs        # or: npm run docker:logs
+
+# ❌ Don't run docker commands directly
+docker compose up -d    # Use make docker-up instead
+docker compose logs -f  # Use make docker-logs instead
+```
+
+See root `AGENTS.md` for full npm/make command reference.
+
 ## What NOT to Do
 
 - ❌ Do NOT read `todos/` folder unless explicitly asked

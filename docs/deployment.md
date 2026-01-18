@@ -14,6 +14,18 @@ License: AGPL-3.0-or-later; commercial/proprietary licensing available via https
 - [Backup and Recovery](#backup-and-recovery)
 - [Troubleshooting](#troubleshooting)
 
+## Related Guides
+
+Before deploying, review these comprehensive guides:
+
+- **[Docker Deployment](docker.md)** - Complete Docker setup with Docker Compose
+- **[Configuration Guide](configuration.md)** - Environment variables and production settings
+- **[Storage Backends](storage-backends.md)** - Choosing PostgreSQL, SQLite, or JSON
+- **[Performance Guide](performance.md)** - Optimization and scaling strategies
+- **[Troubleshooting](troubleshooting.md)** - Common deployment issues
+
+This guide provides deployment workflows. For detailed configuration, see the guides above.
+
 ## Prerequisites
 
 ### System Requirements
@@ -71,6 +83,8 @@ Deploy using Docker containers.
 
 - Requires Docker knowledge
 - Slightly more complex setup
+
+**See:** [Docker Deployment Guide](docker.md) for complete container-based deployment instructions.
 
 ### Option 3: Platform as a Service
 
@@ -665,12 +679,15 @@ Before going live:
 
 ### Horizontal Scaling
 
-EllyMUD currently uses in-memory state. For horizontal scaling:
+EllyMUD supports horizontal scaling with Redis session storage and PostgreSQL.
 
-1. **Implement Redis for session storage**
-2. **Use database for persistence** (PostgreSQL, MongoDB)
-3. **Load balancer** (nginx, HAProxy)
-4. **Shared file system** for data
+See [Performance Guide - Horizontal Scaling](performance.md#horizontal-scaling) for complete multi-server setup instructions.
+
+**Requirements:**
+1. **Redis for session storage** - Shared session state
+2. **PostgreSQL for persistence** - Shared database
+3. **Load balancer** - nginx or HAProxy with sticky sessions
+4. **Shared file system** - For data synchronization
 
 ### Vertical Scaling
 
@@ -680,6 +697,8 @@ Increase server resources:
 - More RAM
 - Faster disk (SSD)
 - Better network
+
+See [Performance Guide](performance.md) for optimization strategies.
 
 ## Cost Estimation
 
@@ -704,14 +723,18 @@ Increase server resources:
 - DDoS protection
 - Total: $600+/year
 
-## Support
+---
 
-For deployment help:
+## Related Documentation
 
-- [GitHub Issues](https://github.com/ellyseum/ellymud/issues)
-- [Documentation](README.md)
-- Community forums (if available)
+- **[Docker Deployment](docker.md)** - Container-based deployment with Docker Compose
+- **[Configuration Guide](configuration.md)** - Environment variables and production settings
+- **[Storage Backends](storage-backends.md)** - Database setup and migration
+- **[Performance Guide](performance.md)** - Optimization and scaling strategies
+- **[Troubleshooting](troubleshooting.md)** - Deployment issue resolution
+- **[Admin Guide](admin-guide.md)** - Server administration
+- **[Security Policy](../SECURITY.md)** - Security best practices
 
 ---
 
-[← Back to Documentation](README.md)
+**Need help?** Check [Troubleshooting](troubleshooting.md) or open an [issue](https://github.com/ellyseum/ellymud/issues)

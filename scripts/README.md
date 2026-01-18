@@ -11,6 +11,7 @@ For technical details, command syntax, and examples, see [AGENTS.md](AGENTS.md).
 | `bootstrap.sh`                | Fresh system setup - installs dependencies and configures environment     |
 | `check-paired-docs.sh`        | Validates README.md and AGENTS.md pairs across all directories            |
 | `data-migrate.ts`             | Bidirectional migration between JSON and database (SQLite/PostgreSQL)     |
+| `docker-entrypoint.sh`        | Docker entrypoint that generates MCP API key when missing                |
 | `migrate-room-state.ts`       | Split room data into templates and mutable state                          |
 | `generate-pipeline-report.sh` | Generates markdown report from agent pipeline metrics                     |
 | `migrate-json-to-sqlite.ts`   | Legacy migration script (superseded by `data-migrate.ts`)                 |
@@ -40,6 +41,10 @@ The `migrate-room-state.ts` script separates room templates (static definitions)
 ### Documentation Validation
 
 Scans directories for missing or incomplete documentation pairs. Used by pre-commit hooks to ensure README.md and AGENTS.md files are kept in sync.
+
+### Docker Entrypoint
+
+Generates a random MCP API key at container startup when one is not provided, then starts the server.
 
 ### Pipeline Report Generation
 

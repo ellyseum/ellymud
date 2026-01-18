@@ -13,23 +13,17 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        // Copilot
         "github.copilot",
         "github.copilot-chat",
-        // Code quality
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
-        // TypeScript
         "ms-vscode.vscode-typescript-next",
-        // Docker & containers
         "ms-azuretools.vscode-docker",
         "ms-vscode-remote.remote-containers",
-        // Build tools
         "ms-vscode.makefile-tools",
-        // Git
         "eamodio.gitlens",
-        // Testing
-        "orta.vscode-jest"
+        "orta.vscode-jest",
+        "Anthropic.claude-code"
       ],
       "settings": {
         // Editor

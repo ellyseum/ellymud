@@ -1504,6 +1504,48 @@ export class MCPServer {
         },
       },
       {
+        name: 'teleport_player',
+        description:
+          'Teleport a player directly to a room, bypassing normal movement. Useful for testing room-specific features.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            username: {
+              type: 'string',
+              description: 'Username of the player to teleport',
+            },
+            roomId: {
+              type: 'string',
+              description: 'Target room ID to teleport to',
+            },
+          },
+          required: ['username', 'roomId'],
+        },
+      },
+      {
+        name: 'set_npc_health',
+        description:
+          'Set the health of an NPC instance in a room. Useful for testing combat scenarios.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            roomId: {
+              type: 'string',
+              description: 'Room ID where the NPC is located',
+            },
+            instanceId: {
+              type: 'string',
+              description: "The NPC's instance ID",
+            },
+            health: {
+              type: 'number',
+              description: 'Health value to set',
+            },
+          },
+          required: ['roomId', 'instanceId', 'health'],
+        },
+      },
+      {
         name: 'advance_game_ticks',
         description:
           'Advance the game timer by a specific number of ticks. Used for testing time-based mechanics like regeneration (12 ticks = 1 regen cycle). Requires test mode to be enabled.',
@@ -1687,6 +1729,16 @@ export class MCPServer {
             experience: toolArgs.experience as number | undefined,
             level: toolArgs.level as number | undefined,
           });
+          break;
+        case 'teleport_player':
+          result = this.teleportPlayer(toolArgs.username as string, toolArgs.roomId as string);
+          break;
+        case 'set_npc_health':
+          result = this.setNpcHealth(
+            toolArgs.roomId as string,
+            toolArgs.instanceId as string,
+            toolArgs.health as number
+          );
           break;
         case 'advance_game_ticks':
           result = this.advanceGameTicks(toolArgs.ticks as number);
@@ -1996,6 +2048,73 @@ export class MCPServer {
         ...updates,
         ...(args.gold !== undefined ? { gold: args.gold } : {}),
       },
+    };
+  }
+
+  /**
+   * Teleport a player directly to a room
+   */
+  private teleportPlayer(username: string, roomId: string) {
+    // Verify the room exists
+    const room = this.roomManager.getRoom(roomId);
+    if (!room) {
+      throw new Error(`Room '${roomId}' not found`);
+    }
+
+    // Find the online client
+    const clients = Array.from(this.clientManager.getClients().values());
+    const onlineClient = clients.find(
+      (client) => client.user?.username?.toLowerCase() === username.toLowerCase()
+    );
+
+    if (!onlineClient || !onlineClient.user) {
+      throw new Error(`User '${username}' is not online`);
+    }
+
+    const previousRoomId = onlineClient.user.currentRoomId;
+
+    // Update the user's room
+    onlineClient.user.currentRoomId = roomId;
+
+    mcpLogger.info(`Teleported ${username} from ${previousRoomId} to ${roomId}`);
+
+    return {
+      username,
+      previousRoomId,
+      newRoomId: roomId,
+      message: `Teleported '${username}' to room '${roomId}'`,
+    };
+  }
+
+  /**
+   * Set the health of an NPC instance in a room
+   */
+  private setNpcHealth(roomId: string, instanceId: string, health: number) {
+    const room = this.roomManager.getRoom(roomId);
+    if (!room) {
+      throw new Error(`Room '${roomId}' not found`);
+    }
+
+    const npc = room.npcs.get(instanceId);
+    if (!npc) {
+      throw new Error(`NPC instance '${instanceId}' not found in room '${roomId}'`);
+    }
+
+    const previousHealth = npc.health;
+    npc.health = Math.max(0, Math.min(health, npc.maxHealth));
+
+    mcpLogger.info(
+      `Set NPC ${npc.name} (${instanceId}) health: ${previousHealth} -> ${npc.health}`
+    );
+
+    return {
+      roomId,
+      instanceId,
+      name: npc.name,
+      previousHealth,
+      newHealth: npc.health,
+      maxHealth: npc.maxHealth,
+      message: `Set health for NPC '${npc.name}' to ${npc.health}`,
     };
   }
 

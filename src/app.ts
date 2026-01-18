@@ -37,6 +37,8 @@ import { getPromptText } from './utils/promptFormatter'; // Import the getPrompt
 import { TestModeOptions, getDefaultTestModeOptions } from './testing/testMode';
 import { StateLoader } from './testing/stateLoader';
 import { checkAndAutoMigrate } from './data/autoMigrate';
+import { ensureInitialized as ensureDatabaseInitialized } from './data/db';
+import { isUsingDatabase } from './config';
 import { AreaManager } from './area/areaManager';
 import { IAsyncMUDConfigRepository, MUDConfig } from './persistence/interfaces';
 import { getMUDConfigRepository } from './persistence/RepositoryFactory';
@@ -363,6 +365,12 @@ export class GameServer {
       } catch (migrationError) {
         systemLogger.error('Auto-migration failed:', migrationError);
         systemLogger.warn('Continuing with existing data - manual migration may be required');
+      }
+
+      // Ensure database tables are created before managers try to access them
+      // Only initialize database if using sqlite, postgres, or auto storage backend
+      if (isUsingDatabase()) {
+        await ensureDatabaseInitialized();
       }
 
       // Wait for all managers to finish loading data before proceeding
