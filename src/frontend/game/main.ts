@@ -22,7 +22,6 @@ interface TerminalInstance {
   socket: ReturnType<typeof io> | null;
   connected: boolean;
   panelElement: HTMLElement;
-  statusElem: HTMLElement;
 }
 
 // Split node can be either a terminal or a split container
@@ -62,6 +61,57 @@ let resizeStartTop = 0;
 let isDraggingDivider = false;
 let dividerSplitNode: SplitNode | null = null;
 
+// Konami code state (shared between document and terminal)
+const KONAMI_CODE = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'b', 'a'];
+let konamiIndex = 0;
+
+// LocalStorage key for persisting settings
+const STORAGE_KEY = 'ellymud-terminal-settings';
+
+// Layout node for serialization (without DOM references)
+type LayoutNode =
+  | { type: 'terminal' }
+  | {
+      type: 'split';
+      direction: 'horizontal' | 'vertical';
+      sizes: [number, number];
+      children: [LayoutNode, LayoutNode];
+    };
+
+// Settings interface for localStorage
+interface TerminalSettings {
+  window: {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  };
+  maximized: boolean;
+  layout: LayoutNode;
+}
+
+/**
+ * Check if a key matches the next expected Konami code key
+ * Returns true if the full code was entered (navigates to admin)
+ */
+function checkKonamiCode(key: string): boolean {
+  if (key === KONAMI_CODE[konamiIndex]) {
+    konamiIndex++;
+    if (konamiIndex === KONAMI_CODE.length) {
+      konamiIndex = 0;
+      window.location.href = '/admin/';
+      return true;
+    }
+  } else {
+    konamiIndex = 0;
+    // Check if this key starts the sequence
+    if (key === KONAMI_CODE[0]) {
+      konamiIndex = 1;
+    }
+  }
+  return false;
+}
+
 // DOM Elements
 const terminalContainer = document.querySelector('.terminal-container') as HTMLElement;
 const terminalWrapper = document.getElementById('terminal-wrapper') as HTMLElement;
@@ -73,6 +123,150 @@ const splitVBtn = document.getElementById('split-v-btn') as HTMLElement;
 // Minimum window dimensions
 const MIN_WIDTH = 400;
 const MIN_HEIGHT = 300;
+
+/**
+ * Serialize the current split layout to a storable format
+ */
+function serializeLayout(node: SplitNode): LayoutNode {
+  if (node.type === 'terminal') {
+    return { type: 'terminal' };
+  }
+  // Get the sizes from the actual DOM elements
+  const sizes: [number, number] = [50, 50];
+  if (node.children.length === 2) {
+    const firstChild = node.children[0];
+    if (firstChild.element) {
+      const style = firstChild.element.style.flexBasis;
+      if (style && style.endsWith('%')) {
+        sizes[0] = parseFloat(style);
+        sizes[1] = 100 - sizes[0];
+      }
+    }
+  }
+  return {
+    type: 'split',
+    direction: node.direction,
+    sizes,
+    children: [serializeLayout(node.children[0]), serializeLayout(node.children[1])],
+  };
+}
+
+/**
+ * Save current settings to localStorage
+ */
+function saveSettings(): void {
+  if (!rootNode) return;
+
+  const settings: TerminalSettings = {
+    window: {
+      left: terminalContainer.offsetLeft,
+      top: terminalContainer.offsetTop,
+      width: terminalContainer.offsetWidth,
+      height: terminalContainer.offsetHeight,
+    },
+    maximized: isMaximized,
+    layout: serializeLayout(rootNode),
+  };
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // Ignore storage errors (quota exceeded, etc.)
+  }
+}
+
+/**
+ * Load settings from localStorage
+ */
+function loadSettings(): TerminalSettings | null {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored) as TerminalSettings;
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return null;
+}
+
+/**
+ * Restore layout from a saved LayoutNode
+ */
+function restoreLayout(layout: LayoutNode, parentElement: HTMLElement): SplitNode {
+  if (layout.type === 'terminal') {
+    const instance = createTerminal(parentElement);
+    return { type: 'terminal', terminalId: instance.id, element: parentElement };
+  }
+
+  // Create split container
+  const splitContainer = document.createElement('div');
+  splitContainer.className = `split-container split-${layout.direction}`;
+
+  // Create first pane
+  const firstWrapper = document.createElement('div');
+  firstWrapper.className = 'split-pane';
+  firstWrapper.style.flexBasis = `${layout.sizes[0]}%`;
+
+  // Create divider
+  const divider = document.createElement('div');
+  divider.className = `split-divider split-divider-${layout.direction}`;
+
+  // Create second pane
+  const secondWrapper = document.createElement('div');
+  secondWrapper.className = 'split-pane';
+  secondWrapper.style.flexBasis = `${layout.sizes[1]}%`;
+
+  splitContainer.appendChild(firstWrapper);
+  splitContainer.appendChild(divider);
+  splitContainer.appendChild(secondWrapper);
+  parentElement.appendChild(splitContainer);
+
+  // Recursively restore children
+  const firstChild = restoreLayout(layout.children[0], firstWrapper);
+  const secondChild = restoreLayout(layout.children[1], secondWrapper);
+
+  const splitNode: SplitNode = {
+    type: 'split',
+    direction: layout.direction,
+    element: parentElement,
+    children: [firstChild, secondChild],
+  };
+
+  // Add divider drag handler
+  divider.addEventListener('mousedown', (e: MouseEvent) => {
+    e.preventDefault();
+    isDraggingDivider = true;
+    dividerSplitNode = splitNode;
+    document.body.classList.add('resizing-split');
+  });
+
+  return splitNode;
+}
+
+/**
+ * Apply saved window settings
+ */
+function applyWindowSettings(settings: TerminalSettings): void {
+  const { window: win, maximized } = settings;
+
+  // Apply window position and size (only if not maximized)
+  if (!maximized) {
+    terminalContainer.style.left = `${win.left}px`;
+    terminalContainer.style.top = `${win.top}px`;
+    terminalContainer.style.width = `${win.width}px`;
+    terminalContainer.style.height = `${win.height}px`;
+    terminalContainer.classList.add('draggable');
+  }
+
+  // Apply maximized state
+  if (maximized) {
+    isMaximized = true;
+    terminalContainer.classList.add('maximized');
+    maximizeBtn.classList.add('maximized');
+    maximizeBtn.title = 'Restore';
+  }
+}
 
 /**
  * Get the next available terminal ID (reuses closed IDs)
@@ -109,7 +303,6 @@ function createTerminalConfig(): ConstructorParameters<typeof Terminal>[0] {
 function createTerminalPanel(id: number): {
   panel: HTMLElement;
   termDiv: HTMLElement;
-  statusElem: HTMLElement;
 } {
   const panel = document.createElement('div');
   panel.className = 'terminal-panel';
@@ -120,10 +313,6 @@ function createTerminalPanel(id: number): {
 
   const titleSpan = document.createElement('span');
   titleSpan.textContent = `Session ${id}`;
-
-  const statusSpan = document.createElement('span');
-  statusSpan.className = 'panel-status disconnected';
-  statusSpan.textContent = 'Disconnected';
 
   const refreshBtn = document.createElement('button');
   refreshBtn.className = 'panel-btn';
@@ -144,7 +333,6 @@ function createTerminalPanel(id: number): {
   });
 
   panelHeader.appendChild(titleSpan);
-  panelHeader.appendChild(statusSpan);
   panelHeader.appendChild(refreshBtn);
   panelHeader.appendChild(closeBtn);
 
@@ -154,7 +342,7 @@ function createTerminalPanel(id: number): {
   panel.appendChild(panelHeader);
   panel.appendChild(termDiv);
 
-  return { panel, termDiv, statusElem: statusSpan };
+  return { panel, termDiv };
 }
 
 /**
@@ -162,7 +350,7 @@ function createTerminalPanel(id: number): {
  */
 function createTerminal(parentElement: HTMLElement): TerminalInstance {
   const id = getNextTerminalId();
-  const { panel, termDiv, statusElem } = createTerminalPanel(id);
+  const { panel, termDiv } = createTerminalPanel(id);
 
   parentElement.appendChild(panel);
 
@@ -178,14 +366,46 @@ function createTerminal(parentElement: HTMLElement): TerminalInstance {
     socket: null,
     connected: false,
     panelElement: panel,
-    statusElem,
   };
 
   term.open(termDiv);
   fitAddon.fit();
 
+  // Pass all modifier key combinations to browser (Ctrl, Alt, Shift)
+  // The game only uses regular keys and arrow keys, no shortcuts
+  term.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+    if (event.ctrlKey || event.altKey || event.metaKey) {
+      return false; // Let browser handle it
+    }
+    return true;
+  });
+
   // Handle user input
   term.onData((data: string) => {
+    // Ctrl+R (ASCII 18) - trigger browser refresh
+    if (data === '\x12') {
+      window.location.reload();
+      return;
+    }
+
+    // Check for Konami code in terminal input
+    let konamiKey: string | null = null;
+    if (data === '\u001b[A') konamiKey = 'up';
+    else if (data === '\u001b[B') konamiKey = 'down';
+    else if (data === '\u001b[C') konamiKey = 'right';
+    else if (data === '\u001b[D') konamiKey = 'left';
+    else if (data.toLowerCase() === 'b') konamiKey = 'b';
+    else if (data.toLowerCase() === 'a') konamiKey = 'a';
+
+    if (konamiKey) {
+      if (checkKonamiCode(konamiKey)) {
+        return; // Don't send input if Konami code activated
+      }
+    } else {
+      // Reset Konami on non-matching input
+      konamiIndex = 0;
+    }
+
     if (!instance.connected || !instance.socket) return;
 
     if (data === '\r') {
@@ -221,6 +441,7 @@ function createTerminal(parentElement: HTMLElement): TerminalInstance {
   term.write('Connecting to server...\r\n');
 
   terminals.set(id, instance);
+  updateCloseButtonVisibility();
   connectTerminal(instance);
   setFocusedTerminal(id);
 
@@ -253,16 +474,12 @@ function connectTerminal(instance: TerminalInstance): void {
 
   socket.on('connect', () => {
     instance.connected = true;
-    instance.statusElem.textContent = 'Connected';
-    instance.statusElem.className = 'panel-status connected';
     instance.term.write('\r\nConnected to server\r\n');
     updateGlobalStatus();
   });
 
   socket.on('disconnect', () => {
     instance.connected = false;
-    instance.statusElem.textContent = 'Disconnected';
-    instance.statusElem.className = 'panel-status disconnected';
     instance.term.write('\r\nDisconnected from server\r\n');
     updateGlobalStatus();
   });
@@ -449,7 +666,10 @@ function splitTerminal(terminalId: number, direction: 'horizontal' | 'vertical')
       newWrapper.classList.remove('animating-in');
       divider.classList.remove('animating-in');
       // Refit after animation completes
-      setTimeout(refitAllTerminals, 220);
+      setTimeout(() => {
+        refitAllTerminals();
+        saveSettings();
+      }, 220);
     });
   });
 }
@@ -497,6 +717,7 @@ function closeTerminal(id: number): void {
 
     // Remove from map
     terminals.delete(id);
+    updateCloseButtonVisibility();
 
     // Get the sibling node
     const siblingIndex = parentInfo.index === 0 ? 1 : 0;
@@ -545,6 +766,7 @@ function closeTerminal(id: number): void {
     // Refit and update status
     refitAllTerminals();
     updateGlobalStatus();
+    saveSettings();
   }, 200); // Wait for animation to complete
 }
 
@@ -559,15 +781,28 @@ function updateGlobalStatus(): void {
   const totalCount = terminals.size;
 
   if (connectedCount === totalCount) {
-    globalStatus.textContent = totalCount > 1 ? `${connectedCount} Connected` : 'Connected';
-    globalStatus.className = 'connected';
+    globalStatus.className = 'status-light connected';
+    globalStatus.title = totalCount > 1 ? `${connectedCount} Connected` : 'Connected';
   } else if (connectedCount > 0) {
-    globalStatus.textContent = `${connectedCount}/${totalCount} Connected`;
-    globalStatus.className = 'partial';
+    globalStatus.className = 'status-light partial';
+    globalStatus.title = `${connectedCount}/${totalCount} Connected`;
   } else {
-    globalStatus.textContent = 'Disconnected';
-    globalStatus.className = 'disconnected';
+    globalStatus.className = 'status-light disconnected';
+    globalStatus.title = 'Disconnected';
   }
+}
+
+/**
+ * Update close button visibility based on terminal count
+ */
+function updateCloseButtonVisibility(): void {
+  const showCloseButtons = terminals.size > 1;
+  terminals.forEach((instance) => {
+    const closeBtn = instance.panelElement.querySelector('.panel-close-btn') as HTMLElement;
+    if (closeBtn) {
+      closeBtn.style.display = showCloseButtons ? '' : 'none';
+    }
+  });
 }
 
 /**
@@ -603,11 +838,14 @@ function splitVertical(): void {
 function toggleMaximize(): void {
   isMaximized = !isMaximized;
   terminalContainer.classList.toggle('maximized', isMaximized);
-  maximizeBtn.innerHTML = isMaximized ? '&#x2716;' : '&#x26F6;';
+  maximizeBtn.classList.toggle('maximized', isMaximized);
   maximizeBtn.title = isMaximized ? 'Restore' : 'Maximize';
 
   // Refit after transition
   setTimeout(refitAllTerminals, 50);
+
+  // Save settings
+  saveSettings();
 }
 
 /**
@@ -784,6 +1022,10 @@ function handleMouseMove(e: MouseEvent): void {
  * Handle mouse up to end drag/resize/divider
  */
 function handleMouseUp(): void {
+  const wasDragging = isDragging;
+  const wasResizing = isResizing;
+  const wasDraggingDivider = isDraggingDivider;
+
   if (isDragging) {
     isDragging = false;
     document.body.classList.remove('dragging');
@@ -802,22 +1044,41 @@ function handleMouseUp(): void {
     document.body.classList.remove('resizing-split');
     refitAllTerminals();
   }
+
+  // Save settings after drag/resize operations
+  if (wasDragging || wasResizing || wasDraggingDivider) {
+    saveSettings();
+  }
 }
 
 /**
  * Initialize the application
  */
 function init(): void {
-  // Create first terminal directly in wrapper
-  const firstInstance = createTerminal(terminalWrapper);
-  rootNode = {
-    type: 'terminal',
-    terminalId: firstInstance.id,
-    element: terminalWrapper,
-  };
+  // Try to restore saved settings
+  const savedSettings = loadSettings();
+
+  if (savedSettings) {
+    // Apply window position/size and maximized state
+    applyWindowSettings(savedSettings);
+
+    // Restore the layout
+    rootNode = restoreLayout(savedSettings.layout, terminalWrapper);
+  } else {
+    // Create first terminal directly in wrapper (default)
+    const firstInstance = createTerminal(terminalWrapper);
+    rootNode = {
+      type: 'terminal',
+      terminalId: firstInstance.id,
+      element: terminalWrapper,
+    };
+  }
 
   // Focus first terminal
-  firstInstance.term.focus();
+  const firstTerminal = terminals.values().next().value;
+  if (firstTerminal) {
+    firstTerminal.term.focus();
+  }
 
   // Handle window resize
   window.addEventListener('resize', refitAllTerminals);
@@ -842,6 +1103,71 @@ function init(): void {
   // Global mouse event handlers for drag/resize/divider
   document.addEventListener('mousemove', handleMouseMove);
   document.addEventListener('mouseup', handleMouseUp);
+
+  // Initialize secret admin access methods
+  initSecretAdminAccess();
+}
+
+/**
+ * Initialize secret admin access methods:
+ * 1. Konami Code: ↑↑↓↓←→←→BA (works in terminal and outside)
+ * 2. Click "EllyMUD Terminal" title 5 times rapidly
+ * 3. Ctrl+Shift+A hotkey
+ */
+function initSecretAdminAccess(): void {
+  // Map keyboard event codes to Konami key names
+  const keyCodeMap: Record<string, string> = {
+    ArrowUp: 'up',
+    ArrowDown: 'down',
+    ArrowLeft: 'left',
+    ArrowRight: 'right',
+    KeyB: 'b',
+    KeyA: 'a',
+  };
+
+  // Method 2: Title click pattern (5 clicks within 2 seconds)
+  const titleElement = document.querySelector('.terminal-title');
+  let titleClicks: number[] = [];
+  const CLICK_THRESHOLD = 5;
+  const CLICK_TIMEOUT = 2000;
+
+  // Method 3: Ctrl+Shift+A hotkey + Method 1: Konami code (outside terminal)
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    // Hotkey: Ctrl+Shift+A
+    if (e.ctrlKey && e.shiftKey && e.code === 'KeyA') {
+      e.preventDefault();
+      window.location.href = '/admin/';
+      return;
+    }
+
+    // Konami code detection (for when terminal is not focused)
+    const konamiKey = keyCodeMap[e.code];
+    if (konamiKey) {
+      checkKonamiCode(konamiKey);
+    } else {
+      konamiIndex = 0;
+    }
+  });
+
+  // Title click pattern
+  if (titleElement) {
+    titleElement.addEventListener('click', (e: Event) => {
+      // Don't trigger on status light clicks
+      if ((e.target as HTMLElement).classList.contains('status-light')) {
+        return;
+      }
+
+      const now = Date.now();
+      // Remove old clicks outside the timeout window
+      titleClicks = titleClicks.filter((t) => now - t < CLICK_TIMEOUT);
+      titleClicks.push(now);
+
+      if (titleClicks.length >= CLICK_THRESHOLD) {
+        titleClicks = [];
+        window.location.href = '/admin/';
+      }
+    });
+  }
 }
 
 // Initialize on DOM ready

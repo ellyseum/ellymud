@@ -123,6 +123,7 @@ export const USERNAME_MIN_LENGTH = 3;
 
 // Environment detection
 export const IS_WINDOWS = os.platform() === 'win32';
+export const DEV_MODE = process.env.NODE_ENV !== 'production';
 
 // Check for console mode - should be true if we're in a TTY, not running with auto-session,
 // and not running with noConsole flag
@@ -245,5 +246,6 @@ export default {
   NO_CONSOLE,
   DISABLE_REMOTE_ADMIN,
   USE_REDIS,
+  DEV_MODE,
   HOST_NAME: os.hostname(),
 };

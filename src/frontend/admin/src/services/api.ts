@@ -42,6 +42,17 @@ class ApiClient {
     return data;
   }
 
+  async checkHealth(): Promise<boolean> {
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'OPTIONS',
+      });
+      return response.ok || response.status === 405; // Server is responding
+    } catch {
+      return false;
+    }
+  }
+
   async login(
     username: string,
     password: string

@@ -1,11 +1,16 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { api } from '../services/api';
 
+export interface LoginResult {
+  success: boolean;
+  error?: 'invalid_credentials' | 'server_unavailable' | 'unknown';
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   token: string | null;
   requiresPasswordChange: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<LoginResult>;
   logout: () => void;
   completePasswordChange: () => void;
 }
@@ -20,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!token;
 
-  const login = useCallback(async (username: string, password: string): Promise<boolean> => {
+  const login = useCallback(async (username: string, password: string): Promise<LoginResult> => {
     try {
       const response = await api.login(username, password);
       // Token is at root level: { success: true, token: "..." }
@@ -29,15 +34,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('mudAdminToken', responseToken);
         setToken(responseToken);
         // Check if password change is required (using default 'admin' password)
-        if (response.requiresPasswordChange) {
+        if (response.data?.requiresPasswordChange) {
           setRequiresPasswordChange(true);
         }
-        return true;
+        return { success: true };
       }
-      return false;
+      return { success: false, error: 'invalid_credentials' };
     } catch (error) {
       console.error('Login error:', error);
-      return false;
+      // Check if it's a network error (server unavailable)
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return { success: false, error: 'server_unavailable' };
+      }
+      // Check for network-related errors
+      if (error instanceof Error &&
+          (error.message.includes('NetworkError') ||
+           error.message.includes('Failed to fetch') ||
+           error.message.includes('Network request failed'))) {
+        return { success: false, error: 'server_unavailable' };
+      }
+      return { success: false, error: 'unknown' };
     }
   }, []);
 

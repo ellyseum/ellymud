@@ -57,6 +57,12 @@ export class APIServer {
   private gameTimerManager: GameTimerManager;
   private serverStats: ServerStats;
   private port: number;
+  // Vite dev server instance for HMR in development mode.
+  // Using 'any' because Vite 7's type definitions require moduleResolution: "bundler" or "node16",
+  // which is incompatible with our CommonJS module system. The server is dynamically imported
+  // at runtime only in dev mode, so type safety is maintained through the Vite API contract.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private viteDevServer: any = null;
 
   constructor(
     clients: Map<string, ConnectedClient>,
@@ -73,8 +79,9 @@ export class APIServer {
     this.serverStats = serverStats;
     this.port = port ?? config.HTTP_PORT;
 
-    // Create the Express app
+    // Create the Express app with strict routing to differentiate /path from /path/
     this.app = express();
+    this.app.set('strict routing', true);
     this.app.use(cors());
     this.app.use(bodyParser.json());
 
@@ -239,7 +246,12 @@ export class APIServer {
   }
 
   private setupStaticFiles(): void {
-    // Serve hashed assets with long cache (immutable) - both game and admin
+    // In dev mode, Vite handles all static files - skip this setup
+    if (config.DEV_MODE) {
+      return;
+    }
+
+    // Production: Serve hashed assets with long cache (immutable) - both game and admin
     this.app.use(
       '/assets',
       express.static(path.join(config.PUBLIC_DIR, 'assets'), {
@@ -287,9 +299,157 @@ export class APIServer {
     // Note: xterm.js is now bundled by Vite, no need to serve from node_modules
   }
 
-  public start(): Promise<void> {
+  /**
+   * Initialize Vite dev server for HMR in development mode
+   */
+  private async initViteDevServer(): Promise<void> {
+    if (!config.DEV_MODE) {
+      return;
+    }
+
+    try {
+      // Dynamic import to avoid loading Vite in production
+      const { createServer } = await import('vite');
+
+      this.viteDevServer = await createServer({
+        configFile: path.resolve(__dirname, '../../vite.config.ts'),
+        server: {
+          middlewareMode: true,
+          hmr: {
+            // Use the same server for HMR websocket - share port 8080 with Express
+            server: this.httpServer,
+            // Explicitly tell the client to connect to the same port
+            port: this.port,
+            // Use a distinct path to avoid conflicts with Socket.IO
+            path: '/__vite_hmr',
+          },
+        },
+        appType: 'mpa', // Multi-page app (game + admin)
+      });
+
+      // Helper to serve HTML through Vite transform
+      const serveViteHtml = async (htmlPath: string, viteUrl: string, res: express.Response) => {
+        let html = fs.readFileSync(htmlPath, 'utf-8');
+        // Transform HTML through Vite for HMR injection
+        html = await this.viteDevServer.transformIndexHtml(viteUrl, html);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+      };
+
+      const adminHtmlPath = path.resolve(__dirname, '../../src/frontend/admin/index.html');
+      const gameHtmlPath = path.resolve(__dirname, '../../src/frontend/game/index.html');
+
+      // Register HTML routes BEFORE Vite middleware so they take precedence
+      // Redirect paths without trailing slash to ensure relative asset paths work
+      this.app.get('/admin', (_req, res) => {
+        res.redirect('/admin/');
+      });
+      this.app.get('/admin/', async (_req, res, next) => {
+        try {
+          await serveViteHtml(adminHtmlPath, '/admin/index.html', res);
+        } catch (e) {
+          next(e);
+        }
+      });
+      this.app.get('/admin/*', async (req, res, next) => {
+        // Let Vite handle actual asset requests (js, css, etc)
+        if (req.path.match(/\.(js|css|ts|tsx|json|map|ico|png|jpg|svg|woff|woff2)$/)) {
+          return next();
+        }
+        try {
+          await serveViteHtml(adminHtmlPath, '/admin/index.html', res);
+        } catch (e) {
+          next(e);
+        }
+      });
+
+      // Serve game client - redirect to /game/ for proper asset resolution
+      this.app.get('/', (_req, res) => {
+        res.redirect('/game/');
+      });
+      this.app.get('/game', (_req, res) => {
+        res.redirect('/game/');
+      });
+      this.app.get('/game/', async (_req, res, next) => {
+        try {
+          await serveViteHtml(gameHtmlPath, '/game/index.html', res);
+        } catch (e) {
+          next(e);
+        }
+      });
+      this.app.get('/game/*', async (req, res, next) => {
+        // Let Vite handle actual asset requests (js, css, ts, etc)
+        if (req.path.match(/\.(js|css|ts|tsx|json|map|ico|png|jpg|svg|woff|woff2)$/)) {
+          return next();
+        }
+        try {
+          await serveViteHtml(gameHtmlPath, '/game/index.html', res);
+        } catch (e) {
+          next(e);
+        }
+      });
+
+      // Use Vite's middleware AFTER our HTML routes - it handles assets, HMR, etc.
+      this.app.use(this.viteDevServer.middlewares);
+
+      systemLogger.info('Vite dev server initialized with HMR enabled');
+    } catch (error) {
+      systemLogger.error('Failed to initialize Vite dev server:', error);
+      systemLogger.warn('Falling back to static file serving');
+      // Re-enable static file serving as fallback
+      this.setupProductionStaticFiles();
+    }
+  }
+
+  /**
+   * Setup static files for production (called as fallback if Vite fails in dev)
+   */
+  private setupProductionStaticFiles(): void {
+    this.app.use(
+      '/assets',
+      express.static(path.join(config.PUBLIC_DIR, 'assets'), {
+        maxAge: '1y',
+        immutable: true,
+      })
+    );
+
+    this.app.use(
+      '/admin/assets',
+      express.static(path.join(config.PUBLIC_DIR, 'admin', 'assets'), {
+        maxAge: '1y',
+        immutable: true,
+      })
+    );
+
+    this.app.use(
+      express.static(config.PUBLIC_DIR, {
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+          }
+        },
+      })
+    );
+
+    const adminFallbackLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 300,
+      standardHeaders: true,
+      legacyHeaders: false,
+    });
+
+    this.app.get('/admin/*', adminFallbackLimiter, (_req, res, next) => {
+      const adminIndex = path.join(config.PUBLIC_DIR, 'admin', 'index.html');
+      if (fs.existsSync(adminIndex)) {
+        res.sendFile(adminIndex);
+      } else {
+        next();
+      }
+    });
+  }
+
+  public async start(): Promise<void> {
     return new Promise((resolve) => {
-      this.httpServer.listen(this.port, () => {
+      this.httpServer.listen(this.port, async () => {
         const address = this.httpServer.address();
         if (address && typeof address !== 'string') {
           this.port = address.port;
@@ -299,6 +459,12 @@ export class APIServer {
           systemLogger.info(`HTTP server running`);
           systemLogger.info(`Admin interface available`);
         }
+
+        // Initialize Vite dev server after HTTP server is listening (needed for HMR websocket)
+        if (config.DEV_MODE) {
+          await this.initViteDevServer();
+        }
+
         resolve();
       });
     });
@@ -316,7 +482,13 @@ export class APIServer {
     return this.port;
   }
 
-  public stop(): Promise<void> {
+  public async stop(): Promise<void> {
+    // Close Vite dev server first if running
+    if (this.viteDevServer) {
+      await this.viteDevServer.close();
+      this.viteDevServer = null;
+    }
+
     return new Promise((resolve) => {
       this.httpServer.close(() => {
         systemLogger.info('HTTP server stopped');

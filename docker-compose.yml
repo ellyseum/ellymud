@@ -7,7 +7,7 @@ services:
       - "8080:8080" # WebSocket
       - "3100:3100" # MCP
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - REDIS_URL=redis://redis:6379
       - USE_REDIS=true
       - STORAGE_BACKEND=json

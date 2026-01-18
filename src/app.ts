@@ -504,9 +504,10 @@ export class GameServer {
 
   private setupShutdownHandler(): void {
     // Setup graceful shutdown to save data and properly clean up
-    process.on('SIGINT', () => {
-      this.shutdown();
-    });
+    // Handle both SIGINT (Ctrl+C) and SIGTERM (ts-node-dev --exit-child)
+    const handleShutdown = () => this.shutdown();
+    process.on('SIGINT', handleShutdown);
+    process.on('SIGTERM', handleShutdown);
   }
 
   public shutdown(): void {
@@ -516,7 +517,7 @@ export class GameServer {
     this.gameTimerManager.stop();
 
     // Stop MCP Server
-    this.mcpServer.stop().catch((error: unknown) => {
+    this.mcpServer.stop().catch((error) => {
       systemLogger.error('Error stopping MCP server:', error);
     });
 
@@ -549,7 +550,6 @@ export class GameServer {
     // Also reset CommandRegistry instance
     CommandRegistry.resetInstance();
 
-    // Exit the process
     systemLogger.info('Server shutdown complete');
     process.exit(0);
   }

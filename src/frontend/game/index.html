@@ -9,13 +9,18 @@
   <body>
     <div class="terminal-container">
       <div class="terminal-header">
-        <span>EllyMUD Terminal</span>
+        <span class="terminal-title">
+          <span id="connection-status" class="status-light disconnected" title="Disconnected"></span>
+          EllyMUD Terminal
+        </span>
         <div class="status">
-          <span id="connection-status" class="disconnected">Disconnected</span>
-          <a href="/admin/" class="admin-link" title="Admin Dashboard">Admin</a>
-          <button id="split-h-btn" class="header-btn" title="Split horizontal">&#x2503;</button>
-          <button id="split-v-btn" class="header-btn" title="Split vertical">&#x2501;</button>
-          <button id="maximize-btn" class="header-btn" title="Maximize">&#x26F6;</button>
+          <button id="split-h-btn" class="header-btn split-btn" title="Split horizontal">
+            <span class="split-icon split-icon-h"></span>
+          </button>
+          <button id="split-v-btn" class="header-btn split-btn" title="Split vertical">
+            <span class="split-icon split-icon-v"></span>
+          </button>
+          <button id="maximize-btn" class="header-btn maximize-btn" title="Maximize">&#x26F6;</button>
         </div>
       </div>
       <div id="terminal-wrapper"></div>
