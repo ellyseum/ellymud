@@ -16,9 +16,10 @@ RUN npm ci
 
 # Copy source files
 COPY tsconfig.json ./
+COPY vite.config.ts ./
 COPY src/ ./src/
 
-# Build TypeScript
+# Build TypeScript and frontend
 RUN npm run build
 
 #=============================================================================
@@ -47,6 +48,9 @@ COPY public/ ./public/
 # Copy data files (as templates - mount volume for persistence)
 COPY data/ ./data/
 
+# Copy entrypoint script
+COPY scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
+
 # Create log directories
 RUN mkdir -p logs/system logs/players logs/error logs/mcp logs/raw-sessions logs/audit && \
     chown -R ellymud:ellymud /app
@@ -70,7 +74,8 @@ EXPOSE 3100
 
 # Health check (use 127.0.0.1 explicitly to avoid IPv6 issues in Alpine)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3100/health || exit 1
+    CMD node -e "const http=require('http');const req=http.get('http://127.0.0.1:3100/health',res=>{res.statusCode===200?process.exit(0):process.exit(1);});req.on('error',()=>process.exit(1));"
 
-# Start server
-CMD ["node", "--enable-source-maps", "dist/server.js"]
+# Start server with --force flag to auto-create admin with default password
+ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
+CMD ["node", "--enable-source-maps", "dist/server.js", "--force"]

@@ -490,6 +490,20 @@ Users: 15 | Rooms: 42 | Database: /path/to/data/game.db
 - `*.yml`, `*.yaml`
 - `Makefile`, `*.mk`
 
+### `docker-entrypoint.sh`
+
+**Purpose**: Docker entrypoint that generates an MCP API key when missing.
+
+**What it does**:
+
+1. Checks `ELLYMUD_MCP_API_KEY`
+2. Generates a random key using Node `crypto` if unset
+3. Exports the key and starts the server
+
+**Usage**:
+
+Used by the Docker image as `ENTRYPOINT`. No direct invocation expected.
+
 ## Conventions
 
 ### Script Headers

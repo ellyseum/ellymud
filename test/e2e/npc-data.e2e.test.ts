@@ -1,5 +1,5 @@
 import { TesterAgent } from '../../src/testing/testerAgent';
-import { NPC } from '../../src/combat/npc';
+import { NPC, NPCData } from '../../src/combat/npc';
 
 /**
  * E2E tests for NPC repository and data loading.
@@ -9,6 +9,8 @@ import { NPC } from '../../src/combat/npc';
  * - NPC data is accessible via TesterAgent
  * - NPC properties are preserved correctly
  * - Merchants and hostile NPCs are properly categorized
+ * 
+ * All tests work in both embedded and remote modes.
  */
 describe('NPC Data E2E', () => {
   let agent: TesterAgent;
@@ -27,15 +29,15 @@ describe('NPC Data E2E', () => {
   });
 
   describe('NPC Template Loading', () => {
-    it('should load NPC templates from data', () => {
-      const templates = agent.getAllNpcTemplates();
+    it('should load NPC templates from data', async () => {
+      const templates = await agent.getAllNpcTemplates();
 
       expect(templates.length).toBeGreaterThan(0);
       console.log(`Loaded ${templates.length} NPC templates`);
     });
 
-    it('should have valid NPC template structure', () => {
-      const templates = agent.getAllNpcTemplates();
+    it('should have valid NPC template structure', async () => {
+      const templates = (await agent.getAllNpcTemplates()) as NPCData[];
 
       for (const npc of templates) {
         expect(npc.id).toBeDefined();
@@ -54,30 +56,30 @@ describe('NPC Data E2E', () => {
       }
     });
 
-    it('should find NPC by ID', () => {
-      const templates = agent.getAllNpcTemplates();
+    it('should find NPC by ID', async () => {
+      const templates = (await agent.getAllNpcTemplates()) as NPCData[];
       if (templates.length === 0) {
         console.log('Skipping: No NPC templates available');
         return;
       }
 
       const firstNpc = templates[0];
-      const found = agent.getNpcTemplateById(firstNpc.id);
+      const found = await agent.getNpcTemplateById(firstNpc.id);
 
       expect(found).toBeDefined();
       expect(found?.id).toBe(firstNpc.id);
       expect(found?.name).toBe(firstNpc.name);
     });
 
-    it('should return undefined for non-existent NPC', () => {
-      const found = agent.getNpcTemplateById('non_existent_npc_12345');
+    it('should return undefined for non-existent NPC', async () => {
+      const found = await agent.getNpcTemplateById('non_existent_npc_12345');
       expect(found).toBeUndefined();
     });
   });
 
   describe('NPC Categories', () => {
-    it('should identify hostile NPCs', () => {
-      const hostileNpcs = agent.getHostileNpcTemplates();
+    it('should identify hostile NPCs', async () => {
+      const hostileNpcs = (await agent.getHostileNpcTemplates()) as NPCData[];
 
       for (const npc of hostileNpcs) {
         expect(npc.isHostile).toBe(true);
@@ -88,8 +90,8 @@ describe('NPC Data E2E', () => {
       }
     });
 
-    it('should identify merchant NPCs', () => {
-      const merchants = agent.getMerchantNpcTemplates();
+    it('should identify merchant NPCs', async () => {
+      const merchants = (await agent.getMerchantNpcTemplates()) as NPCData[];
 
       for (const npc of merchants) {
         expect(npc.merchant).toBe(true);
@@ -100,8 +102,8 @@ describe('NPC Data E2E', () => {
       }
     });
 
-    it('should identify passive NPCs', () => {
-      const templates = agent.getAllNpcTemplates();
+    it('should identify passive NPCs', async () => {
+      const templates = (await agent.getAllNpcTemplates()) as NPCData[];
       const passiveNpcs = templates.filter((npc) => npc.isPassive);
 
       for (const npc of passiveNpcs) {
@@ -115,8 +117,8 @@ describe('NPC Data E2E', () => {
   });
 
   describe('NPC Damage Tuples', () => {
-    it('should preserve damage range correctly', () => {
-      const templates = agent.getAllNpcTemplates();
+    it('should preserve damage range correctly', async () => {
+      const templates = (await agent.getAllNpcTemplates()) as NPCData[];
 
       for (const npc of templates) {
         const [minDamage, maxDamage] = npc.damage;
@@ -129,8 +131,8 @@ describe('NPC Data E2E', () => {
   });
 
   describe('NPC Instance Creation', () => {
-    it('should be able to create NPC instances from templates', () => {
-      const templates = agent.getAllNpcTemplates();
+    it('should be able to create NPC instances from templates', async () => {
+      const templates = (await agent.getAllNpcTemplates()) as NPCData[];
       if (templates.length === 0) {
         console.log('Skipping: No NPC templates available');
         return;
@@ -148,8 +150,8 @@ describe('NPC Data E2E', () => {
       expect(npcInstance.instanceId).toBeDefined();
     });
 
-    it('should generate unique instance IDs', () => {
-      const templates = agent.getAllNpcTemplates();
+    it('should generate unique instance IDs', async () => {
+      const templates = (await agent.getAllNpcTemplates()) as NPCData[];
       if (templates.length === 0) {
         console.log('Skipping: No NPC templates available');
         return;
@@ -165,8 +167,8 @@ describe('NPC Data E2E', () => {
   });
 
   describe('Merchant NPC Data', () => {
-    it('should have valid inventory configuration for merchants', () => {
-      const merchants = agent.getMerchantNpcTemplates();
+    it('should have valid inventory configuration for merchants', async () => {
+      const merchants = (await agent.getMerchantNpcTemplates()) as NPCData[];
 
       for (const merchant of merchants) {
         expect(merchant.merchant).toBe(true);

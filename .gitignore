@@ -152,3 +152,6 @@ todos/*.md
 !todos/AGENTS.md
 # Agent test results
 .github/agents/agent-tests/results/
+
+# Claude settings
+.claude/

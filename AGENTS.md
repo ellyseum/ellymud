@@ -419,34 +419,169 @@ make test                  # Run tests
 make agent-test            # Run agent tests
 ```
 
-### Using npm directly
-
-```bash
-npm start                          # Standard start (BUILDS EVERYTHING including admin UI)
-npm start -- -a                    # Admin auto-login
-npm start -- --forceSession=user   # Login as specific user
-npm run dev                        # Development with hot reload
-```
-
 ### ⚠️ CRITICAL: Build Process
 
 **`npm start` automatically builds everything** - TypeScript AND admin UI.
 
 ```
-npm start → prestart → npm run build → tsc + build:admin → public/admin/
+npm start → prestart → npm run build → tsc + build:frontend → public/
 ```
 
 **DO NOT manually run:**
-- `npm run build:admin` (redundant - already part of `npm start`)
+- `npm run build:frontend` (redundant - already part of `npm start`)
 - `rm -rf public/admin/assets/*` (unnecessary manual cleaning)
 
-**When to use what:**
-| Task | Command |
-|------|---------|
-| Testing changes | `npm start` |
-| Run tests | `npm test` or `make test` |
-| Dev with hot reload | `npm run dev` or `make dev` |
-| Admin UI hot reload | `npm run admin:dev` |
+---
+
+## ⚠️ CRITICAL: Command Delegation Pattern
+
+**All commands follow a strict delegation pattern:**
+
+```
+make targets → npm scripts → actual commands
+```
+
+**Example flow:**
+```
+make docker-up → npm run docker:up → docker compose up -d
+make test      → npm run test      → jest
+make build     → npm run build     → tsc + vite build
+```
+
+### Why This Pattern Matters
+
+1. **Single source of truth**: npm scripts in `package.json` define all commands
+2. **Maintainability**: Change command once in package.json, all entry points updated
+3. **Cross-platform**: npm scripts work identically on Linux, macOS, Windows
+4. **CI/CD compatible**: GitHub Actions and Docker can use npm scripts directly
+
+### When to Use What
+
+| Situation | Use |
+|-----------|-----|
+| Interactive development | `make <target>` (shorter, colored output) |
+| CI/CD pipelines | `npm run <script>` (explicit, no make dependency) |
+| Custom scripts | `npm run <script>` (composable) |
+| Docker containers | `npm run <script>` (no make installed) |
+
+---
+
+## NPM Scripts & Make Aliases Reference
+
+All commands are defined in `package.json` scripts and have corresponding `make` aliases.
+
+### Build & Development
+
+| npm Script | make Alias | Description |
+|------------|------------|-------------|
+| `npm run build` | `make build` | Full build (TypeScript + frontend) |
+| `npm run build:server` | - | Build TypeScript server only |
+| `npm run build:frontend` | - | Build Vite frontend only |
+| `npm run build-watch` | `make build-watch` | Watch mode TypeScript compilation |
+| `npm run dev` | `make dev` | Start dev server with hot reload |
+| `npm run dev-admin` | `make dev-admin` | Dev server with admin auto-login |
+| `npm run dev-user` | `make dev-user` | Dev server with user selection |
+| `npm run dev:frontend` | - | Vite dev server for frontend only |
+| `npm run clean` | `make clean-dist` | Remove dist directory |
+| `npm run clean-all` | `make clean-all` | Remove dist + node_modules |
+
+### Server Management
+
+| npm Script | make Alias | Description |
+|------------|------------|-------------|
+| `npm start` | `make start` | Start production server (auto-builds) |
+| `npm run prod` | `make prod-start` | Build + start in production mode |
+| `npm run start-admin` | `make start-admin` | Start with admin auto-login |
+| `npm run start-user` | `make start-user` | Start with user selection |
+
+### Testing
+
+| npm Script | make Alias | Description |
+|------------|------------|-------------|
+| `npm test` | `make test` | Run all tests (typecheck + validate + jest) |
+| `npm run test:unit` | `make test-unit` | Run unit tests only |
+| `npm run test:e2e` | - | Run E2E tests (local embedded mode) |
+| `npm run test:e2e:remote` | - | Run E2E tests against remote MCP server |
+| `npm run test:integration` | `make test-integration` | Run integration tests (requires Docker) |
+| `npm run test:coverage` | `make test-cov` | Run tests with coverage report |
+| `npm run test:watch` | `make test-watch` | Run tests in watch mode |
+| `npm run test:all` | `make test-all` | Run unit + E2E tests |
+| `npm run test:full` | `make test-full` | Run all tests including integration |
+
+### Code Quality
+
+| npm Script | make Alias | Description |
+|------------|------------|-------------|
+| `npm run lint` | `make lint` | Run ESLint (max-warnings 0) |
+| `npm run lint-fix` | `make lint-fix` | ESLint with auto-fix |
+| `npm run typecheck` | `make typecheck` | TypeScript type checking only |
+| `npm run format` | `make format` | Format with Prettier |
+| `npm run format-check` | `make format-check` | Check formatting only |
+| `npm run validate` | `make validate` | Validate JSON data files |
+| `npm run ci` | `make ci` | Full CI pipeline (lint + typecheck + validate + build) |
+
+### Docker Container Management
+
+| npm Script | make Alias | Description |
+|------------|------------|-------------|
+| `npm run docker:build` | `make docker-build` | Build Docker image |
+| `npm run docker:up` | `make docker-up` | Start containers (docker compose up -d) |
+| `npm run docker:down` | `make docker-down` | Stop containers (docker compose down) |
+| `npm run docker:logs` | `make docker-logs` | Show container logs (follow mode) |
+| `npm run docker:ps` | `make docker-ps` | Show container status |
+| `npm run docker:restart` | `make docker-restart` | Restart containers |
+| `npm run docker:shell` | `make docker-shell` | Open shell in app container |
+| `npm run docker:clean` | `make docker-clean` | Stop containers and remove volumes |
+| `npm run docker:rebuild` | `make docker-rebuild` | Full rebuild (down + build + up) |
+| `npm run docker:up:postgres` | `make docker-up-postgres` | Start with PostgreSQL backend |
+| `npm run docker:down:postgres` | `make docker-down-postgres` | Stop PostgreSQL containers |
+
+### Data Management
+
+| npm Script | make Alias | Description |
+|------------|------------|-------------|
+| `npm run data:status` | `make data-status` | Show storage backend and data counts |
+| `npm run data:export` | `make data-export` | Export database to JSON files |
+| `npm run data:import` | `make data-import` | Import JSON files into database |
+| `npm run data:backup` | `make data-backup` | Create timestamped backup |
+| `npm run data:switch` | - | Switch storage backend (interactive) |
+
+### Pipeline Artifacts (Hub Sync)
+
+| npm Script | make Alias | Description |
+|------------|------------|-------------|
+| `npm run artifact:list` | `make artifact-list` | List all pipeline artifacts |
+| `npm run artifact:push` | `make artifact-push` | Sync artifacts TO hub codespace |
+| `npm run artifact:pull` | `make artifact-pull` | Sync artifacts FROM hub codespace |
+| `npm run artifact:push-dry` | `make artifact-push-dry` | Preview push (dry run) |
+| `npm run artifact:pull-dry` | `make artifact-pull-dry` | Preview pull (dry run) |
+
+### Agent Testing
+
+| npm Script | make Alias | Description |
+|------------|------------|-------------|
+| `npm run test-agents` | `make agent-test` | Run all agent tests |
+| `npm run test-agents-dry` | `make agent-test-dry` | Dry-run agent tests (preview only) |
+| `npm run test-agents-list` | `make agent-test-list` | List all agent test IDs |
+| `npm run test-agents-validate` | `make agent-test-validate` | Validate agent test naming |
+
+### Documentation & Maintenance
+
+| npm Script | make Alias | Description |
+|------------|------------|-------------|
+| `npm run check-paired-docs` | `make docs-paired` | Check README/AGENTS.md pairs |
+| `npm run check-paired-docs-staged` | `make docs-paired-staged` | Check staged files only |
+| `npm run deps-check` | `make deps-check` | Check for unused dependencies |
+| `npm run outdated` | `make outdated` | Check for outdated dependencies |
+
+### Version Management
+
+| npm Script | Description |
+|------------|-------------|
+| `npm run version-patch` | Bump patch version (x.x.X) |
+| `npm run version-minor` | Bump minor version (x.X.0) |
+| `npm run version-major` | Bump major version (X.0.0) |
+| `npm run release` | CI + version patch + push tags |
 
 ---
 

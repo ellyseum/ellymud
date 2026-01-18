@@ -8,6 +8,10 @@ import { TesterAgent } from '../../src/testing/testerAgent';
  * - Time manipulation (tick advancement)
  * - State management (snapshots, reset)
  * - Player stat manipulation
+ * 
+ * Works in both embedded mode and remote mode:
+ * - Embedded: npm run test:e2e
+ * - Remote:   MCP_URL=http://localhost:3100 npm run test:e2e
  */
 describe('TesterAgent Feature Showcase', () => {
   let agent: TesterAgent;
@@ -28,9 +32,9 @@ describe('TesterAgent Feature Showcase', () => {
   describe('Session Control', () => {
     let sessionId: string;
 
-    afterEach(() => {
+    afterEach(async () => {
       if (sessionId) {
-        agent.closeSession(sessionId);
+        await agent.closeSession(sessionId);
       }
     });
 
@@ -46,7 +50,7 @@ describe('TesterAgent Feature Showcase', () => {
       sessionId = await agent.directLogin('commandtest');
       
       // Send the 'look' command
-      const output = agent.sendCommand(sessionId, 'look');
+      const output = await agent.sendCommand(sessionId, 'look');
       
       // Should receive room description
       expect(output.length).toBeGreaterThan(0);
@@ -56,13 +60,13 @@ describe('TesterAgent Feature Showcase', () => {
       sessionId = await agent.directLogin('outputtest');
       
       // Clear initial output
-      agent.getOutput(sessionId, true);
+      await agent.getOutput(sessionId, true);
       
       // sendCommand returns the command output and clears the buffer
-      const output = agent.sendCommand(sessionId, 'stats');
+      const output = await agent.sendCommand(sessionId, 'stats');
       
       // Verify the output contains expected stats info
-      expect(output).toContain('HP');
+      expect(output).toContain('Health');
     });
 
     it('should handle multiple sessions simultaneously', async () => {
@@ -71,14 +75,17 @@ describe('TesterAgent Feature Showcase', () => {
       
       // Both sessions should work independently
       // sendCommand returns the output directly
-      const output1 = agent.sendCommand(session1, 'look');
-      const output2 = agent.sendCommand(session2, 'look');
+      const output1 = await agent.sendCommand(session1, 'look');
+      const output2 = await agent.sendCommand(session2, 'look');
       
       expect(output1.length).toBeGreaterThan(0);
       expect(output2.length).toBeGreaterThan(0);
       
-      agent.closeSession(session1);
-      agent.closeSession(session2);
+      await agent.closeSession(session1);
+      await agent.closeSession(session2);
+      
+      // Clear sessionId so afterEach doesn't try to close a non-existent session
+      sessionId = '';
     });
   });
 
@@ -93,45 +100,45 @@ describe('TesterAgent Feature Showcase', () => {
       sessionId = await agent.directLogin('timetest');
     });
 
-    afterEach(() => {
-      agent.closeSession(sessionId);
+    afterEach(async () => {
+      await agent.closeSession(sessionId);
     });
 
-    it('should get current tick count with getTickCount()', () => {
-      const tick = agent.getTickCount();
+    it('should get current tick count with getTickCount()', async () => {
+      const tick = await agent.getTickCount();
       
       expect(typeof tick).toBe('number');
       expect(tick).toBeGreaterThanOrEqual(0);
     });
 
-    it('should advance ticks with advanceTicks()', () => {
-      const before = agent.getTickCount();
+    it('should advance ticks with advanceTicks()', async () => {
+      const before = await agent.getTickCount();
       
-      agent.advanceTicks(5);
+      await agent.advanceTicks(5);
       
-      const after = agent.getTickCount();
+      const after = await agent.getTickCount();
       expect(after).toBe(before + 5);
     });
 
-    it('should advance to next regen cycle with advanceToRegen()', () => {
+    it('should advance to next regen cycle with advanceToRegen()', async () => {
       // Regen happens every 12 ticks
-      agent.advanceToRegen();
+      await agent.advanceToRegen();
       
-      const tick = agent.getTickCount();
+      const tick = await agent.getTickCount();
       expect(tick % 12).toBe(0);
     });
 
     it('should process regeneration after 12 ticks', async () => {
       // Set player to damaged state
-      agent.setPlayerStats(sessionId, { health: 50, maxHealth: 100 });
+      await agent.setPlayerStats(sessionId, { health: 50, maxHealth: 100 });
       
-      const before = agent.getPlayerStats(sessionId);
+      const before = await agent.getPlayerStats(sessionId);
       expect(before.health).toBe(50);
       
       // Advance through one regen cycle
-      agent.advanceTicks(12);
+      await agent.advanceTicks(12);
       
-      const after = agent.getPlayerStats(sessionId);
+      const after = await agent.getPlayerStats(sessionId);
       // Should have regenerated some HP
       expect(after.health).toBeGreaterThan(50);
     });
@@ -144,20 +151,20 @@ describe('TesterAgent Feature Showcase', () => {
     it('should reset to clean state with resetToClean()', async () => {
       // Make some changes
       const sessionId = await agent.directLogin('statetest');
-      agent.setPlayerStats(sessionId, { gold: 9999 });
-      agent.closeSession(sessionId);
+      await agent.setPlayerStats(sessionId, { gold: 9999 });
+      await agent.closeSession(sessionId);
       
       // Reset to clean
       await agent.resetToClean();
       
       // New login should have default stats
       const newSession = await agent.directLogin('freshuser');
-      const stats = agent.getPlayerStats(newSession);
+      const stats = await agent.getPlayerStats(newSession);
       
       // Default gold is 0 for new users
       expect(stats.gold).toBe(0);
       
-      agent.closeSession(newSession);
+      await agent.closeSession(newSession);
     });
 
     it('should load specific snapshot with loadSnapshot()', async () => {
@@ -173,18 +180,18 @@ describe('TesterAgent Feature Showcase', () => {
       
       // Create user with specific stats
       const session1 = await agent.directLogin('isolatedone');
-      agent.setPlayerStats(session1, { level: 10 });
-      agent.closeSession(session1);
+      await agent.setPlayerStats(session1, { level: 10 });
+      await agent.closeSession(session1);
       
       // Reset and create new user
       await agent.resetToClean();
       const session2 = await agent.directLogin('isolatedtwo');
-      const stats = agent.getPlayerStats(session2);
+      const stats = await agent.getPlayerStats(session2);
       
       // New user should start at level 1
       expect(stats.level).toBe(1);
       
-      agent.closeSession(session2);
+      await agent.closeSession(session2);
     });
   });
 
@@ -199,12 +206,12 @@ describe('TesterAgent Feature Showcase', () => {
       sessionId = await agent.directLogin('statsuser');
     });
 
-    afterEach(() => {
-      agent.closeSession(sessionId);
+    afterEach(async () => {
+      await agent.closeSession(sessionId);
     });
 
-    it('should get all player stats with getPlayerStats()', () => {
-      const stats = agent.getPlayerStats(sessionId);
+    it('should get all player stats with getPlayerStats()', async () => {
+      const stats = await agent.getPlayerStats(sessionId);
       
       // Should have all expected properties
       expect(stats).toHaveProperty('health');
@@ -216,45 +223,45 @@ describe('TesterAgent Feature Showcase', () => {
       expect(stats).toHaveProperty('level');
     });
 
-    it('should set health with setPlayerStats()', () => {
-      agent.setPlayerStats(sessionId, { health: 25, maxHealth: 100 });
+    it('should set health with setPlayerStats()', async () => {
+      await agent.setPlayerStats(sessionId, { health: 25, maxHealth: 100 });
       
-      const stats = agent.getPlayerStats(sessionId);
+      const stats = await agent.getPlayerStats(sessionId);
       expect(stats.health).toBe(25);
       expect(stats.maxHealth).toBe(100);
     });
 
-    it('should set mana with setPlayerStats()', () => {
-      agent.setPlayerStats(sessionId, { mana: 30, maxMana: 75 });
+    it('should set mana with setPlayerStats()', async () => {
+      await agent.setPlayerStats(sessionId, { mana: 30, maxMana: 75 });
       
-      const stats = agent.getPlayerStats(sessionId);
+      const stats = await agent.getPlayerStats(sessionId);
       expect(stats.mana).toBe(30);
       expect(stats.maxMana).toBe(75);
     });
 
-    it('should set gold with setPlayerStats()', () => {
-      agent.setPlayerStats(sessionId, { gold: 500 });
+    it('should set gold with setPlayerStats()', async () => {
+      await agent.setPlayerStats(sessionId, { gold: 500 });
       
-      const stats = agent.getPlayerStats(sessionId);
+      const stats = await agent.getPlayerStats(sessionId);
       expect(stats.gold).toBe(500);
     });
 
-    it('should set experience with setPlayerStats()', () => {
-      agent.setPlayerStats(sessionId, { experience: 1000 });
+    it('should set experience with setPlayerStats()', async () => {
+      await agent.setPlayerStats(sessionId, { experience: 1000 });
       
-      const stats = agent.getPlayerStats(sessionId);
+      const stats = await agent.getPlayerStats(sessionId);
       expect(stats.experience).toBe(1000);
     });
 
-    it('should set level with setPlayerStats()', () => {
-      agent.setPlayerStats(sessionId, { level: 5 });
+    it('should set level with setPlayerStats()', async () => {
+      await agent.setPlayerStats(sessionId, { level: 5 });
       
-      const stats = agent.getPlayerStats(sessionId);
+      const stats = await agent.getPlayerStats(sessionId);
       expect(stats.level).toBe(5);
     });
 
-    it('should set multiple stats at once', () => {
-      agent.setPlayerStats(sessionId, {
+    it('should set multiple stats at once', async () => {
+      await agent.setPlayerStats(sessionId, {
         health: 80,
         maxHealth: 150,
         mana: 40,
@@ -264,7 +271,7 @@ describe('TesterAgent Feature Showcase', () => {
         level: 3,
       });
       
-      const stats = agent.getPlayerStats(sessionId);
+      const stats = await agent.getPlayerStats(sessionId);
       expect(stats.health).toBe(80);
       expect(stats.maxHealth).toBe(150);
       expect(stats.mana).toBe(40);
@@ -286,30 +293,30 @@ describe('TesterAgent Feature Showcase', () => {
       sessionId = await agent.directLogin('patterntest');
     });
 
-    afterEach(() => {
-      agent.closeSession(sessionId);
+    afterEach(async () => {
+      await agent.closeSession(sessionId);
     });
 
     it('Pattern: Test HP regeneration over time', async () => {
       // Setup: Damage the player
-      agent.setPlayerStats(sessionId, { health: 10, maxHealth: 100 });
+      await agent.setPlayerStats(sessionId, { health: 10, maxHealth: 100 });
       
       // Act: Advance through 3 regen cycles (36 ticks)
       for (let cycle = 0; cycle < 3; cycle++) {
-        agent.advanceTicks(12);
+        await agent.advanceTicks(12);
       }
       
       // Assert: Health should have increased significantly
-      const stats = agent.getPlayerStats(sessionId);
+      const stats = await agent.getPlayerStats(sessionId);
       expect(stats.health).toBeGreaterThan(20);
     });
 
     it('Pattern: Test command output contains expected text', async () => {
       // Clear any existing output
-      agent.getOutput(sessionId, true);
+      await agent.getOutput(sessionId, true);
       
       // Execute command - sendCommand returns the output
-      const output = agent.sendCommand(sessionId, 'help');
+      const output = await agent.sendCommand(sessionId, 'help');
       
       // Check output - help command should contain 'commands' or similar text
       expect(output.toLowerCase()).toMatch(/command|help|available/i);
@@ -317,26 +324,26 @@ describe('TesterAgent Feature Showcase', () => {
 
     it('Pattern: Test movement between rooms', async () => {
       // Get initial room - sendCommand returns the output
-      const initialOutput = agent.sendCommand(sessionId, 'look');
+      const initialOutput = await agent.sendCommand(sessionId, 'look');
       expect(initialOutput.length).toBeGreaterThan(0);
       
       // Try to move (direction depends on available exits)
-      const moveOutput = agent.sendCommand(sessionId, 'north');
+      const moveOutput = await agent.sendCommand(sessionId, 'north');
       
       // Should see some response (either moved or can't go that way)
       expect(moveOutput.length).toBeGreaterThan(0);
     });
 
     it('Pattern: Test stat changes after game actions', async () => {
-      const before = agent.getPlayerStats(sessionId);
+      const before = await agent.getPlayerStats(sessionId);
       
       // Perform some action that might change stats
       // (Example: Using rest command and advancing time)
-      agent.setPlayerStats(sessionId, { health: 50, maxHealth: 100 });
-      agent.sendCommand(sessionId, 'rest');
-      agent.advanceTicks(20); // Past resting threshold + regen
+      await agent.setPlayerStats(sessionId, { health: 50, maxHealth: 100 });
+      await agent.sendCommand(sessionId, 'rest');
+      await agent.advanceTicks(20); // Past resting threshold + regen
       
-      const after = agent.getPlayerStats(sessionId);
+      const after = await agent.getPlayerStats(sessionId);
       
       // Verify expected changes
       expect(after.health).toBeGreaterThan(50);

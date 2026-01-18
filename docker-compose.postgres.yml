@@ -1,7 +1,5 @@
-version: '3.8'
-
 # PostgreSQL configuration for production or integration testing
-# Usage: docker-compose -f docker-compose.yml -f docker-compose.postgres.yml up
+# Usage: docker compose -f docker-compose.yml -f docker-compose.postgres.yml up
 
 services:
   app:

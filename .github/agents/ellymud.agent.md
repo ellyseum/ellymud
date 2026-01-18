@@ -405,6 +405,82 @@ When `run_in_terminal` returns just `❯` with no output, the command is **still
 
 **Why**: Built-in tools are **synchronous**—they wait for completion automatically.
 
+---
+
+## ⚠️ CRITICAL: Use npm/make Commands, NOT Direct Tools
+
+**STOP! Before using direct terminal commands, check if there's an npm script or make alias.**
+
+### The Command Delegation Pattern
+
+All EllyMUD commands follow this pattern:
+
+```
+make targets → npm scripts → actual commands
+```
+
+**Example:**
+```
+make docker-up → npm run docker:up → docker compose up -d
+make test      → npm run test      → jest
+```
+
+### Why Use npm Scripts Instead of Direct Commands?
+
+| Direct Command | Use Instead | Why |
+|----------------|-------------|-----|
+| `docker compose up -d` | `make docker-up` or `npm run docker:up` | Consistent, documented |
+| `docker compose logs -f` | `make docker-logs` or `npm run docker:logs` | Single source of truth |
+| `jest` | `runTests` tool or `make test` | Includes typecheck + validate |
+| `docker build -t ellymud .` | `make docker-build` | Uses correct tag/options |
+| `./scripts/sync-to-hub.sh` | `make artifact-push` | Documented, maintainable |
+
+### Quick Reference: Common Tasks
+
+| Task | Use This |
+|------|----------|
+| Start dev server | `make dev` |
+| Run tests | `runTests` tool or `make test` |
+| Build project | `make build` |
+| Start Docker stack | `make docker-up` |
+| Stop Docker stack | `make docker-down` |
+| View Docker logs | `make docker-logs` |
+| Run E2E tests locally | `make test` then `npm run test:e2e` |
+| Run E2E tests remote | `npm run test:e2e:remote` |
+| Check container status | `make docker-ps` |
+| Full rebuild Docker | `make docker-rebuild` |
+
+### Docker-Specific Commands
+
+**All docker commands have npm scripts** - never use `docker compose` directly:
+
+| npm Script | make Alias | Actual Command |
+|------------|------------|----------------|
+| `npm run docker:up` | `make docker-up` | `docker compose up -d` |
+| `npm run docker:down` | `make docker-down` | `docker compose down` |
+| `npm run docker:logs` | `make docker-logs` | `docker compose logs -f` |
+| `npm run docker:ps` | `make docker-ps` | `docker compose ps` |
+| `npm run docker:rebuild` | `make docker-rebuild` | down + build + up |
+| `npm run docker:clean` | `make docker-clean` | `docker compose down -v --remove-orphans` |
+| `npm run docker:up:postgres` | `make docker-up-postgres` | Uses postgres compose file |
+
+### Benefits of This Pattern
+
+1. **Single source of truth**: All commands defined in `package.json`
+2. **Documented**: `make help` shows all available commands
+3. **Cross-platform**: npm scripts work on all platforms
+4. **CI/CD compatible**: GitHub Actions uses same npm scripts
+5. **Maintainable**: Change once, all entry points updated
+
+### When to Use Direct Terminal Commands
+
+Only use direct commands when:
+- The operation truly has no npm script equivalent
+- You need custom flags not covered by scripts
+- Debugging script behavior
+
+**Even then, consider adding a new npm script for future use.**
+
 ### Server Port Reference
 
 | Port | Service | Safe Kill Command |

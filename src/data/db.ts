@@ -131,7 +131,7 @@ export async function initializeDatabase(): Promise<void> {
     .addColumn('type', 'text', (col) => col.notNull())
     .addColumn('slot', 'text')
     .addColumn('value', 'integer', (col) => col.notNull().defaultTo(0))
-    .addColumn('weight', 'integer')
+    .addColumn('weight', 'real')
     .addColumn('global_limit', 'integer')
     .addColumn('stats', 'text')
     .addColumn('requirements', 'text')
@@ -229,12 +229,22 @@ export async function initializeDatabase(): Promise<void> {
     .addColumn('consumes_item', 'integer')
     .execute();
 
-  await database.schema.createTable('snake_scores').ifNotExists()
-    .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
-    .addColumn('username', 'text', (col) => col.notNull())
-    .addColumn('score', 'integer', (col) => col.notNull())
-    .addColumn('date', 'text', (col) => col.notNull())
-    .execute();
+  // snake_scores uses auto-incrementing ID - syntax differs between SQLite and PostgreSQL
+  if (STORAGE_BACKEND === 'postgres') {
+    await database.schema.createTable('snake_scores').ifNotExists()
+      .addColumn('id', 'serial', (col) => col.primaryKey())
+      .addColumn('username', 'text', (col) => col.notNull())
+      .addColumn('score', 'integer', (col) => col.notNull())
+      .addColumn('date', 'text', (col) => col.notNull())
+      .execute();
+  } else {
+    await database.schema.createTable('snake_scores').ifNotExists()
+      .addColumn('id', 'integer', (col) => col.primaryKey().autoIncrement())
+      .addColumn('username', 'text', (col) => col.notNull())
+      .addColumn('score', 'integer', (col) => col.notNull())
+      .addColumn('date', 'text', (col) => col.notNull())
+      .execute();
+  }
 
   await database.schema.createTable('mud_config').ifNotExists()
     .addColumn('key', 'text', (col) => col.primaryKey())
