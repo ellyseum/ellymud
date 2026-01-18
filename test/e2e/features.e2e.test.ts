@@ -335,8 +335,6 @@ describe('TesterAgent Feature Showcase', () => {
     });
 
     it('Pattern: Test stat changes after game actions', async () => {
-      const before = await agent.getPlayerStats(sessionId);
-      
       // Perform some action that might change stats
       // (Example: Using rest command and advancing time)
       await agent.setPlayerStats(sessionId, { health: 50, maxHealth: 100 });
@@ -345,7 +343,7 @@ describe('TesterAgent Feature Showcase', () => {
       
       const after = await agent.getPlayerStats(sessionId);
       
-      // Verify expected changes
+      // Verify expected changes (health should have regenerated above the initial 50)
       expect(after.health).toBeGreaterThan(50);
     });
   });
