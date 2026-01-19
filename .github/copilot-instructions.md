@@ -214,6 +214,9 @@ See root `AGENTS.md` for full npm/make command reference.
 - NEVER auto-add `Co-Authored-By` trailers to commit messages
 - Follow Conventional Commits format (e.g., `feat:`, `fix:`, `refactor:`)
 
+### Pull Requests
+- NEVER add "Generated with" footer to PR descriptions
+
 ## What NOT to Do
 
 - ❌ Do NOT read `todos/` folder unless explicitly asked
@@ -223,6 +226,7 @@ See root `AGENTS.md` for full npm/make command reference.
 - ❌ Do NOT create AGENTS.md without adding it to the locations list in this file
 - ❌ Do NOT make frontend/UI changes without reading `src/frontend/admin/STYLE_GUIDE.md`
 - ❌ Do NOT auto-add `Co-Authored-By` trailers to git commits
+- ❌ Do NOT add "Generated with" footer to PR descriptions
 
 ## Common Tasks
 

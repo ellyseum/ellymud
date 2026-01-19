@@ -126,6 +126,20 @@ The `.gitignore` excludes these automatically, but be aware:
 
 ---
 
+## ⚠️ CRITICAL: Git Commit and PR Rules
+
+**NEVER add AI attribution to commits or PRs:**
+
+```
+❌ NEVER: Add `Co-Authored-By:` trailers to commit messages
+❌ NEVER: Add "Generated with" footer to PR descriptions
+❌ NEVER: Add any AI attribution text to commits or PRs
+```
+
+**Follow Conventional Commits format** for all commit messages (e.g., `feat:`, `fix:`, `refactor:`).
+
+---
+
 ## ⚠️ CRITICAL: Paired Documentation Rule
 
 **STOP! Before editing ANY `README.md` or `AGENTS.md` file:**
