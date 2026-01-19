@@ -333,6 +333,33 @@ yell Selling rare items at the marketplace!
 - May have a cooldown period
 - May alert hostile NPCs
 
+### whisper / tell
+
+Send a private message to another player regardless of location.
+
+**Usage:**
+
+```
+/whisper <player> <message>
+/tell <player> <message>
+/t <player> <message>
+```
+
+**Examples:**
+
+```
+/whisper alice Hello, how are you?
+/tell bob Want to group up?
+/t charlie Meet me at the tavern
+```
+
+**Notes:**
+
+- Both players must be online
+- Messages are private - only sender and recipient see them
+- Player names are case-insensitive
+- Works across any distance in the game world
+
 ### bugreport
 
 Report a bug to the administrators.

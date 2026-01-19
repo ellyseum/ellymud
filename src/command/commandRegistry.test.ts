@@ -527,6 +527,15 @@ jest.mock('./commands/balance.command', () => ({
   })),
 }));
 
+jest.mock('./commands/whisper.command', () => ({
+  WhisperCommand: jest.fn().mockImplementation(() => ({
+    name: 'whisper',
+    description: 'Send a private message',
+    isSlashCommand: true,
+    execute: jest.fn(),
+  })),
+}));
+
 import { writeToClient } from '../utils/socketWriter';
 import { RoomManager } from '../room/roomManager';
 import { UserManager } from '../user/userManager';
@@ -946,6 +955,92 @@ describe('CommandRegistry', () => {
         mockClient,
         expect.stringContaining('Error executing command')
       );
+    });
+  });
+
+  describe('slash command handling', () => {
+    let mockClient: ConnectedClient;
+
+    beforeEach(() => {
+      mockClient = createMockClient({
+        user: createMockUser(),
+        state: ClientStateType.AUTHENTICATED,
+      });
+    });
+
+    it('should execute slash command with "/" prefix', () => {
+      commandRegistry.executeCommand(mockClient, '/whisper user hello');
+
+      const whisperCommand = commandRegistry.getCommand('/whisper');
+      expect(whisperCommand?.execute).toHaveBeenCalledWith(mockClient, 'user hello');
+    });
+
+    it('should suggest "/" prefix when slash command used without it', () => {
+      commandRegistry.executeCommand(mockClient, 'whisper user hello');
+
+      expect(mockWriteToClient).toHaveBeenCalledWith(
+        mockClient,
+        expect.stringContaining("Did you mean '/whisper'")
+      );
+    });
+
+    it('should suggest "/" prefix for slash command alias used without it', () => {
+      // 'w' is an alias for whisper (a slash command), but 'w' without '/'
+      // goes to west (direction). So let's test with 'tell' alias instead
+      commandRegistry.executeCommand(mockClient, 'tell user hello');
+
+      expect(mockWriteToClient).toHaveBeenCalledWith(
+        mockClient,
+        expect.stringContaining("Did you mean '/tell'")
+      );
+    });
+
+    it('should show simple error for invalid slash command without suggestions', () => {
+      commandRegistry.executeCommand(mockClient, '/badcommand123');
+
+      // Should show "Invalid command" without "Did you mean"
+      expect(mockWriteToClient).toHaveBeenCalledWith(
+        mockClient,
+        expect.stringContaining("Invalid command '/badcommand123'")
+      );
+
+      // Should NOT contain "Did you mean" or "Hint:"
+      const call = mockWriteToClient.mock.calls.find((c) => c[1].includes('Invalid command'));
+      expect(call?.[1]).not.toContain('Did you mean');
+      expect(call?.[1]).not.toContain('Hint:');
+    });
+
+    it('should not execute slash command without "/" prefix', () => {
+      commandRegistry.executeCommand(mockClient, 'whisper user hello');
+
+      const whisperCommand = commandRegistry.getCommand('/whisper');
+      // The command should NOT have been executed
+      expect(whisperCommand?.execute).not.toHaveBeenCalled();
+    });
+
+    it('should not execute regular command with "/" prefix', () => {
+      commandRegistry.executeCommand(mockClient, '/say hello');
+
+      // Should show invalid command
+      expect(mockWriteToClient).toHaveBeenCalledWith(
+        mockClient,
+        expect.stringContaining("Invalid command '/say'")
+      );
+
+      // The say command should NOT have been executed
+      const sayCommand = commandRegistry.getCommand('say');
+      expect(sayCommand?.execute).not.toHaveBeenCalled();
+    });
+
+    it('should return undefined for slash command without prefix via getCommand', () => {
+      const command = commandRegistry.getCommand('whisper');
+      expect(command).toBeUndefined();
+    });
+
+    it('should return command for slash command with prefix via getCommand', () => {
+      const command = commandRegistry.getCommand('/whisper');
+      expect(command).toBeDefined();
+      expect(command?.name).toBe('whisper');
     });
   });
 });
