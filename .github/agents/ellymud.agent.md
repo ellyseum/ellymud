@@ -454,15 +454,17 @@ make test      → npm run test      → jest
 
 **All docker commands have npm scripts** - never use `docker compose` directly:
 
-| npm Script | make Alias | Actual Command |
-|------------|------------|----------------|
-| `npm run docker:up` | `make docker-up` | `docker compose up -d` |
-| `npm run docker:down` | `make docker-down` | `docker compose down` |
-| `npm run docker:logs` | `make docker-logs` | `docker compose logs -f` |
-| `npm run docker:ps` | `make docker-ps` | `docker compose ps` |
-| `npm run docker:rebuild` | `make docker-rebuild` | down + build + up |
-| `npm run docker:clean` | `make docker-clean` | `docker compose down -v --remove-orphans` |
-| `npm run docker:up:postgres` | `make docker-up-postgres` | Uses postgres compose file |
+| npm Script | make Alias | Description |
+|------------|------------|-------------|
+| `npm run docker:up` | `make docker-up` | Start dev containers (alias for docker:dev) |
+| `npm run docker:down` | `make docker-down` | Stop dev containers |
+| `npm run docker:logs` | `make docker-logs` | Show container logs |
+| `npm run docker:ps` | `make docker-ps` | Show container status |
+| `npm run docker:rebuild` | `make docker-rebuild` | Full rebuild (down + build + up) |
+| `npm run docker:clean` | `make docker-clean` | Stop and remove volumes |
+| `npm run docker:dev` | `make docker-dev` | Dev environment (json + in-memory) |
+| `npm run docker:staging` | `make docker-staging` | Staging environment (sqlite + redis) |
+| `npm run docker:prod` | `make docker-prod` | Prod environment (postgres + redis) |
 
 ### Benefits of This Pattern
 

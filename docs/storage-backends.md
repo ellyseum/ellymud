@@ -280,8 +280,9 @@ sqlite3 data/game.db ".backup data/game-backup-$(date +%Y%m%d).db"
 
 **Option 1: Docker (Recommended)**
 ```bash
-# Start PostgreSQL via Docker Compose
-npm run docker:up:postgres
+# Start prod environment (includes PostgreSQL)
+npm run docker:prod
+# Or: docker compose --profile prod up -d
 ```
 
 **Option 2: Local Install**

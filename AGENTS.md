@@ -525,16 +525,17 @@ All commands are defined in `package.json` scripts and have corresponding `make`
 | npm Script | make Alias | Description |
 |------------|------------|-------------|
 | `npm run docker:build` | `make docker-build` | Build Docker image |
-| `npm run docker:up` | `make docker-up` | Start containers (docker compose up -d) |
-| `npm run docker:down` | `make docker-down` | Stop containers (docker compose down) |
+| `npm run docker:up` | `make docker-up` | Start dev containers (alias for docker:dev) |
+| `npm run docker:down` | `make docker-down` | Stop dev containers |
 | `npm run docker:logs` | `make docker-logs` | Show container logs (follow mode) |
 | `npm run docker:ps` | `make docker-ps` | Show container status |
 | `npm run docker:restart` | `make docker-restart` | Restart containers |
 | `npm run docker:shell` | `make docker-shell` | Open shell in app container |
 | `npm run docker:clean` | `make docker-clean` | Stop containers and remove volumes |
 | `npm run docker:rebuild` | `make docker-rebuild` | Full rebuild (down + build + up) |
-| `npm run docker:up:postgres` | `make docker-up-postgres` | Start with PostgreSQL backend |
-| `npm run docker:down:postgres` | `make docker-down-postgres` | Stop PostgreSQL containers |
+| `npm run docker:dev` | `make docker-dev` | Start dev environment (json + in-memory) |
+| `npm run docker:staging` | `make docker-staging` | Start staging environment (sqlite + redis) |
+| `npm run docker:prod` | `make docker-prod` | Start prod environment (postgres + redis) |
 
 ### Data Management
 

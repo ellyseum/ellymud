@@ -1,29 +1,88 @@
+# Docker Compose with environment profiles
+#
+# Usage:
+#   docker compose --profile dev up -d       # Local dev: json + in-memory
+#   docker compose --profile staging up -d   # Staging: sqlite + redis
+#   docker compose --profile prod up -d      # Production: postgres + redis
+#
+# Override storage backend in dev:
+#   STORAGE_BACKEND=sqlite docker compose --profile dev up -d
+
 services:
-  # The Game Server
-  app:
+  # ============================================
+  # DEV PROFILE - Minimal, fast iteration
+  # ============================================
+  app-dev:
     build: .
+    profiles:
+      - dev
     ports:
       - "8023:8023" # Telnet
       - "8080:8080" # WebSocket
       - "3100:3100" # MCP
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379
-      - USE_REDIS=true
-      - STORAGE_BACKEND=json
+      - NODE_ENV=development
       - ELLYMUD_MCP_API_KEY=${ELLYMUD_MCP_API_KEY}
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
-    # Run as image user to align with container filesystem ownership
+    user: "1001:1001"
+
+  # ============================================
+  # STAGING PROFILE - SQLite + Redis
+  # ============================================
+  app-staging:
+    build: .
+    profiles:
+      - staging
+    ports:
+      - "8023:8023"
+      - "8080:8080"
+      - "3100:3100"
+    environment:
+      - NODE_ENV=staging
+      - ELLYMUD_MCP_API_KEY=${ELLYMUD_MCP_API_KEY}
+    command: ["node", "dist/main.js", "--storageBackend=sqlite", "--redis"]
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
     user: "1001:1001"
     depends_on:
       redis:
         condition: service_healthy
 
-  # Redis for Session/State
+  # ============================================
+  # PROD PROFILE - PostgreSQL + Redis
+  # ============================================
+  app-prod:
+    build: .
+    profiles:
+      - prod
+    ports:
+      - "8023:8023"
+      - "8080:8080"
+      - "3100:3100"
+    environment:
+      - NODE_ENV=production
+      - ELLYMUD_MCP_API_KEY=${ELLYMUD_MCP_API_KEY}
+    command: ["node", "dist/main.js", "--storageBackend=postgres", "--redis", "--databaseUrl=postgres://ellymud:ellymud@postgres:5432/ellymud"]
+    volumes:
+      - ./logs:/app/logs
+    user: "1001:1001"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  # ============================================
+  # SHARED SERVICES
+  # ============================================
   redis:
     image: redis:alpine
+    profiles:
+      - staging
+      - prod
     ports:
       - "6379:6379"
     volumes:
@@ -35,5 +94,24 @@ services:
       timeout: 3s
       retries: 5
 
+  postgres:
+    image: postgres:16-alpine
+    profiles:
+      - prod
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ellymud
+      POSTGRES_USER: ellymud
+      POSTGRES_PASSWORD: ellymud
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ellymud -d ellymud"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
 volumes:
   redis_data:
+  postgres_data:
