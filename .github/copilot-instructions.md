@@ -210,6 +210,10 @@ docker compose logs -f  # Use make docker-logs instead
 
 See root `AGENTS.md` for full npm/make command reference.
 
+### Git Commits
+- NEVER auto-add `Co-Authored-By` trailers to commit messages
+- Follow Conventional Commits format (e.g., `feat:`, `fix:`, `refactor:`)
+
 ## What NOT to Do
 
 - ❌ Do NOT read `todos/` folder unless explicitly asked
@@ -218,6 +222,7 @@ See root `AGENTS.md` for full npm/make command reference.
 - ❌ Do NOT commit files in `.github/agents/research/`, `planning/`, etc. (ephemeral)
 - ❌ Do NOT create AGENTS.md without adding it to the locations list in this file
 - ❌ Do NOT make frontend/UI changes without reading `src/frontend/admin/STYLE_GUIDE.md`
+- ❌ Do NOT auto-add `Co-Authored-By` trailers to git commits
 
 ## Common Tasks
 
