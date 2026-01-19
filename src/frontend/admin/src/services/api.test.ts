@@ -4,13 +4,7 @@
  */
 
 import { api } from './api';
-import type {
-  GameTimerConfig,
-  MUDConfig,
-  Area,
-  RoomData,
-  PlayerDetails,
-} from '../types';
+import type { GameTimerConfig, MUDConfig, Area, RoomData, PlayerDetails } from '../types';
 
 // Mock fetch globally
 const mockFetch = jest.fn();
@@ -862,10 +856,7 @@ describe('ApiClient', () => {
 
       const result = await api.getRoomsByAreaId('area-1');
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        '/api/admin/rooms?areaId=area-1',
-        expect.any(Object)
-      );
+      expect(mockFetch).toHaveBeenCalledWith('/api/admin/rooms?areaId=area-1', expect.any(Object));
       expect(result).toEqual(mockRooms);
     });
 

@@ -1,5 +1,21 @@
 # Copilot Instructions for EllyMUD
 
+## 🚀 STARTUP: Load Project Context
+
+**At the START of every conversation**, before answering any questions or performing any tasks, read the root `/AGENTS.md` file to load full project context. This file contains:
+
+- Architecture overview and storage patterns
+- Complete npm/make command reference
+- Navigation index to all module-specific AGENTS.md files
+- Process safety rules (never kill all node processes)
+
+```
+✅ FIRST ACTION: Read /AGENTS.md
+✅ THEN: Proceed with the user's request
+```
+
+---
+
 ## 🎯 Recommended: Use the EllyMUD Agent
 
 For the best development experience, use the **EllyMUD** agent (`.github/agents/ellymud-agent.agent.md`). It has:

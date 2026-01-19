@@ -3,6 +3,7 @@ name: Problem Solver
 description: Master orchestrator that manages the full development pipeline. Can be used as subagent for complex multi-step tasks.
 infer: true
 argument-hint: Describe the problem, bug, or feature you want to implement
+embed: true
 tools:
   # Search tools (for reviewing agent outputs)
   - search/fileSearch # file_search - find pipeline output files

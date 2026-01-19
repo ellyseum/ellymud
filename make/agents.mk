@@ -5,7 +5,11 @@
 #
 # All agent commands go through npm scripts.
 
-.PHONY: agent-test agent-test-dry agent-test-list agent-validate
+.PHONY: claude agent-test agent-test-dry agent-test-list agent-validate
+
+claude: ## Generate Claude Code config from Copilot (agents, MCP, instructions)
+	@printf "$(BLUE)Generating Claude Code configuration...$(NC)\n"
+	npm run claude:generate
 
 agent-test: ## Run all agent tests
 	@printf "$(BLUE)Running agent tests...$(NC)\n"

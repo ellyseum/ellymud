@@ -342,7 +342,7 @@ describe('game/main.ts', () => {
   describe('Terminal initialization', () => {
     it('should create a terminal on init', () => {
       MockTerminal.mockClear();
-      
+
       jest.isolateModules(() => {
         setupDom();
         require('./main');
@@ -355,7 +355,7 @@ describe('game/main.ts', () => {
 
     it('should display connecting message on terminal creation', () => {
       mockTermWrite.mockClear();
-      
+
       jest.isolateModules(() => {
         setupDom();
         require('./main');
@@ -371,7 +371,7 @@ describe('game/main.ts', () => {
       // We verify by checking the addon modules were imported
       const { FitAddon } = require('@xterm/addon-fit');
       const { WebLinksAddon } = require('@xterm/addon-web-links');
-      
+
       jest.isolateModules(() => {
         setupDom();
         require('./main');
@@ -389,7 +389,7 @@ describe('game/main.ts', () => {
     it('should call fit after opening terminal', () => {
       mockTermOpen.mockClear();
       mockFit.mockClear();
-      
+
       jest.isolateModules(() => {
         setupDom();
         require('./main');
@@ -403,7 +403,7 @@ describe('game/main.ts', () => {
 
     it('should connect to Socket.IO', () => {
       mockIo.mockClear();
-      
+
       jest.isolateModules(() => {
         setupDom();
         require('./main');
@@ -416,7 +416,7 @@ describe('game/main.ts', () => {
 
     it('should register socket event handlers', () => {
       socketEventHandlers.clear();
-      
+
       jest.isolateModules(() => {
         setupDom();
         require('./main');
@@ -491,7 +491,9 @@ describe('game/main.ts', () => {
 
       triggerSocketEvent('connect_error', 'string error');
 
-      expect(mockTermWrite).toHaveBeenCalledWith(expect.stringContaining('Connection Error: string error'));
+      expect(mockTermWrite).toHaveBeenCalledWith(
+        expect.stringContaining('Connection Error: string error')
+      );
     });
   });
 
@@ -569,9 +571,11 @@ describe('game/main.ts', () => {
     let keyEventHandler: (event: KeyboardEvent) => boolean;
 
     beforeEach(() => {
-      mockTermAttachCustomKeyEventHandler.mockImplementation((handler: (e: KeyboardEvent) => boolean) => {
-        keyEventHandler = handler;
-      });
+      mockTermAttachCustomKeyEventHandler.mockImplementation(
+        (handler: (e: KeyboardEvent) => boolean) => {
+          keyEventHandler = handler;
+        }
+      );
 
       jest.isolateModules(() => {
         setupDom();
@@ -909,11 +913,11 @@ describe('game/main.ts', () => {
 
     it('should track Konami sequence through terminal input', () => {
       mockSocket.emit.mockClear();
-      
+
       // Send partial sequence - these should go to server as normal
       onDataCallback('\u001b[A'); // up
       onDataCallback('\u001b[A'); // up
-      
+
       // Arrow keys should be sent to server as 'special' events
       expect(mockSocket.emit).toHaveBeenCalledWith('special', { key: 'up' });
     });
@@ -945,7 +949,7 @@ describe('game/main.ts', () => {
 
     it('should serialize split layout', () => {
       localStorageMock.clear();
-      
+
       jest.isolateModules(() => {
         setupDom();
         require('./main');
@@ -971,7 +975,7 @@ describe('game/main.ts', () => {
 
     it('should restore split layout from saved settings', () => {
       localStorageMock.clear();
-      
+
       const savedSettings = {
         window: { left: 0, top: 0, width: 800, height: 600 },
         maximized: false,
@@ -993,7 +997,7 @@ describe('game/main.ts', () => {
       // Should create split container with 2 terminal panels
       const splitContainer = document.querySelector('.split-container.split-horizontal');
       expect(splitContainer).toBeTruthy();
-      
+
       const panels = document.querySelectorAll('.terminal-panel');
       expect(panels.length).toBe(2);
     });
