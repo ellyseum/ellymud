@@ -5,6 +5,7 @@ import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
 import { RoomManager } from '../../room/roomManager';
 import { NPC, NPCData } from '../../combat/npc';
+import { Merchant, MerchantData } from '../../combat/merchant';
 
 export class SpawnCommand implements Command {
   name = 'spawn';
@@ -82,22 +83,53 @@ export class SpawnCommand implements Command {
       // Generate a unique instance ID for this NPC
       const instanceId = `${npcType}-${Date.now()}-${crypto.randomInt(1000)}`;
 
-      // Create a new NPC in the room using the template, passing the instanceId and templateId to the constructor
-      const npc = new NPC(
-        npcTemplate.name,
-        npcTemplate.health,
-        npcTemplate.maxHealth,
-        npcTemplate.damage,
-        npcTemplate.isHostile,
-        npcTemplate.isPassive,
-        npcTemplate.experienceValue,
-        npcTemplate.description,
-        npcTemplate.attackTexts,
-        npcTemplate.deathMessages,
-        npcType, // templateId
-        instanceId, // instanceId
-        npcTemplate.inventory || [] // inventory for drops
-      );
+      // Check if this is a merchant NPC
+      const isMerchantNpc = 'merchant' in npcTemplate && npcTemplate.merchant === true;
+
+      let npc: NPC;
+      if (isMerchantNpc) {
+        // Create a Merchant instance for merchant NPCs
+        const merchantData: MerchantData = {
+          ...(npcTemplate as MerchantData),
+          id: npcType,
+        };
+        npc = new Merchant(
+          merchantData.name,
+          merchantData.health,
+          merchantData.maxHealth,
+          merchantData.damage,
+          merchantData.isHostile,
+          merchantData.isPassive,
+          merchantData.experienceValue,
+          merchantData.description,
+          merchantData.attackTexts,
+          merchantData.deathMessages,
+          npcType, // templateId
+          instanceId, // instanceId
+          merchantData.inventory || [],
+          merchantData.stockConfig || [],
+          [] // actualInventory - will be initialized
+        );
+        // Initialize merchant inventory
+        (npc as Merchant).initializeInventory();
+      } else {
+        // Create a regular NPC
+        npc = new NPC(
+          npcTemplate.name,
+          npcTemplate.health,
+          npcTemplate.maxHealth,
+          npcTemplate.damage,
+          npcTemplate.isHostile,
+          npcTemplate.isPassive,
+          npcTemplate.experienceValue,
+          npcTemplate.description,
+          npcTemplate.attackTexts,
+          npcTemplate.deathMessages,
+          npcType, // templateId
+          instanceId, // instanceId
+          npcTemplate.inventory || [] // inventory for drops
+        );
+      }
 
       // Add the NPC to the room with the proper object
       room.addNPC(npc);
