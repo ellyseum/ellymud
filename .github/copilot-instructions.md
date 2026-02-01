@@ -122,6 +122,7 @@ The project uses a hierarchical documentation system:
 │   │   ├── admin/AGENTS.md                   ← Admin panel (React)
 │   │   └── shared/AGENTS.md                  ← Shared utilities
 │   ├── mcp/AGENTS.md                         ← MCP server API
+│   ├── mobility/AGENTS.md                    ← NPC movement system
 │   ├── persistence/AGENTS.md                 ← Storage backends
 │   │   └── mappers/AGENTS.md                 ← Data mappers
 │   ├── room/AGENTS.md                        ← Room/navigation
@@ -130,6 +131,7 @@ The project uses a hierarchical documentation system:
 │   ├── server/AGENTS.md                      ← Server components
 │   ├── session/AGENTS.md                     ← Session management
 │   ├── setup/AGENTS.md                       ← Server setup
+│   ├── spawn/AGENTS.md                       ← NPC spawn system
 │   ├── state/AGENTS.md                       ← State machine
 │   ├── states/AGENTS.md                      ← Client states
 │   ├── test/helpers/AGENTS.md                ← Test helpers

@@ -4,6 +4,7 @@ import { UserManager } from '../user/userManager';
 import { CombatSystem } from '../combat/combatSystem';
 import { EffectManager } from '../effects/effectManager';
 import { SpawnManager } from '../spawn/spawnManager';
+import { MobilityManager } from '../mobility/mobilityManager';
 import { AreaManager } from '../area/areaManager';
 import { createContextLogger } from '../utils/logger';
 import { drawCommandPrompt } from '../utils/socketWriter';
@@ -35,6 +36,7 @@ export class GameTimerManager extends EventEmitter {
   private combatSystem: CombatSystem;
   private effectManager: EffectManager;
   private spawnManager: SpawnManager;
+  private mobilityManager: MobilityManager;
   private initPromise: Promise<void> | null = null;
 
   private constructor(userManager: UserManager, roomManager: RoomManager) {
@@ -52,6 +54,8 @@ export class GameTimerManager extends EventEmitter {
     // Get the SpawnManager instance
     const areaManager = AreaManager.getInstance();
     this.spawnManager = SpawnManager.getInstance(areaManager, roomManager);
+    // Get the MobilityManager instance
+    this.mobilityManager = MobilityManager.getInstance(roomManager);
     // Start async initialization
     this.initPromise = this.loadConfigFromRepository();
   }
@@ -75,6 +79,19 @@ export class GameTimerManager extends EventEmitter {
     } catch (error) {
       timerLogger.error('Error initializing SpawnManager:', error);
     }
+
+    // Initialize mobility manager
+    try {
+      this.mobilityManager.initialize();
+      timerLogger.debug('MobilityManager initialized');
+    } catch (error) {
+      timerLogger.error('Error initializing MobilityManager:', error);
+    }
+
+    // Connect spawn manager to mobility manager
+    this.spawnManager.onNPCSpawned((npc, room) => {
+      this.mobilityManager.registerNPC(npc, room);
+    });
 
     this.initPromise = null;
   }
@@ -207,6 +224,9 @@ export class GameTimerManager extends EventEmitter {
 
     // Process NPC spawning
     this.spawnManager.processTick(this.tickCount);
+
+    // Process NPC movement
+    this.mobilityManager.processTick(this.tickCount);
 
     // Process resting/meditating tick counters
     this.processRestMeditateTicks();

@@ -28,12 +28,16 @@ interface SpawnTracker {
   config: AreaSpawnConfig;
 }
 
+/** Callback when NPC is spawned */
+export type OnNPCSpawnedCallback = (npc: NPC, room: Room) => void;
+
 export class SpawnManager {
   private static instance: SpawnManager | null = null;
   private areaManager: AreaManager;
   private roomManager: RoomManager;
   private spawnTrackers: Map<string, SpawnTracker> = new Map();
   private initialized: boolean = false;
+  private onNPCSpawnedCallbacks: OnNPCSpawnedCallback[] = [];
 
   private constructor(areaManager: AreaManager, roomManager: RoomManager) {
     this.areaManager = areaManager;
@@ -49,6 +53,13 @@ export class SpawnManager {
 
   public static resetInstance(): void {
     SpawnManager.instance = null;
+  }
+
+  /**
+   * Register a callback to be called when an NPC is spawned
+   */
+  public onNPCSpawned(callback: OnNPCSpawnedCallback): void {
+    this.onNPCSpawnedCallbacks.push(callback);
   }
 
   /**
@@ -235,6 +246,15 @@ export class SpawnManager {
     // Add to room
     room.addNPC(npc);
     tracker.instances.add(instanceId);
+
+    // Notify callbacks (e.g., MobilityManager)
+    for (const callback of this.onNPCSpawnedCallbacks) {
+      try {
+        callback(npc, room);
+      } catch (error) {
+        spawnLogger.error('Error in onNPCSpawned callback:', error);
+      }
+    }
 
     spawnLogger.info(`Auto-spawned ${template.name} (${instanceId}) in room ${room.id}`);
 

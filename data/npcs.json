@@ -61,6 +61,9 @@
       "clutches its wounds and curses you before dying",
       "gurgles on its own blood and collapses in a heap"
     ],
+    "canMove": true,
+    "movementTicks": 20,
+    "staysInArea": true,
     "inventory": [
       {
         "itemId": "potion_healing_1",
@@ -100,6 +103,9 @@
       "whines pitifully and falls to the ground with glazed eyes",
       "howls mournfully as its strength fades away"
     ],
+    "canMove": true,
+    "movementTicks": 15,
+    "staysInArea": true,
     "inventory": [
       {
         "itemId": "potion_healing_1",

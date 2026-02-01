@@ -25,6 +25,10 @@ export interface NPCData {
   merchant?: boolean;
   inventory?: NPCInventoryItem[]; // Items the NPC can drop on death or sell
   stockConfig?: MerchantStockConfig[]; // For merchants: detailed stock configuration
+  // Mobility settings
+  canMove?: boolean; // Whether NPC wanders between rooms
+  movementTicks?: number; // Ticks between movement attempts (default: 30)
+  staysInArea?: boolean; // If true, won't leave spawn area (default: true)
 }
 
 export class NPC implements CombatEntity {
