@@ -10,6 +10,7 @@ For technical details, command syntax, and examples, see [AGENTS.md](AGENTS.md).
 | ----------------------------- | ------------------------------------------------------------------------- |
 | `bootstrap.sh`                | Fresh system setup - installs dependencies and configures environment     |
 | `check-paired-docs.sh`        | Validates README.md and AGENTS.md pairs across all directories            |
+| `convert-data.ts`             | Converts data files between JSON, YAML, and TOML formats                  |
 | `data-migrate.ts`             | Bidirectional migration between JSON and database (SQLite/PostgreSQL)     |
 | `docker-entrypoint.sh`        | Docker entrypoint that generates MCP API key when missing                |
 | `migrate-room-state.ts`       | Split room data into templates and mutable state                          |
@@ -24,6 +25,14 @@ For technical details, command syntax, and examples, see [AGENTS.md](AGENTS.md).
 ### Bootstrap Script
 
 Sets up a fresh development environment. Run once after cloning the repository. Supports options for skipping specific setup steps.
+
+### Data Format Conversion
+
+The `convert-data.ts` script converts data files between JSON, YAML, and TOML formats. Supports both individual files and entire directories with optional recursion.
+
+**npm scripts**:
+- `npm run convert` - Run the converter
+- `npm run convert:dry-run` - Preview changes without writing files
 
 ### Database Migration
 
@@ -64,19 +73,4 @@ Requires GitHub CLI (`gh`) to be installed and authenticated.
 
 - [AGENTS.md](AGENTS.md) - Detailed technical documentation with command syntax and examples
 - [make/README.md](../make/README.md) - Makefile targets that invoke these scripts
-
-
-Custom output path:
-
-```bash
-./scripts/generate-pipeline-report.sh ./my-report.md
-```
-
-Requires `jq` for JSON parsing.
-
-## Related
-
-- [Makefile](../Makefile) - Uses these scripts via make targets
-- [make/setup.mk](../make/setup.mk) - Bootstrap integration
-- [make/docs.mk](../make/docs.mk) - Documentation validation targets
 - [src/data/](../src/data/) - Database layer that migration script populates

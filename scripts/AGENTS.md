@@ -301,6 +301,70 @@ Summary:
 - `0`: Success (report generated or no data)
 - `1`: Missing jq dependency
 
+### `convert-data.ts`
+
+**Purpose**: Convert data files between JSON, YAML, and TOML formats.
+
+**What it does**:
+
+1. Parses source file in JSON, YAML, or TOML format
+2. Converts data structure to target format
+3. Writes output to new file (or preview with --dry-run)
+4. Supports both individual files and entire directories
+
+**Usage**:
+
+```bash
+# Convert single file
+npx ts-node scripts/convert-data.ts data/rooms.json --to yaml
+
+# Convert all JSON files in directory to YAML
+npx ts-node scripts/convert-data.ts data/ --from json --to yaml
+
+# Convert recursively with dry-run preview
+npx ts-node scripts/convert-data.ts data/ --from json --to yaml --recursive --dry-run
+
+# Convert with custom output path
+npx ts-node scripts/convert-data.ts config.yaml --to toml --output settings.toml
+
+# Using npm scripts
+npm run convert -- data/items.json --to yaml
+npm run convert:dry-run -- data/npcs.json --to yaml
+```
+
+**Options**:
+
+| Option | Description |
+|--------|-------------|
+| `--from <format>` | Source format (json\|yaml\|toml). Auto-detected from extension if not specified |
+| `--to <format>` | Target format (json\|yaml\|toml). **Required** |
+| `--dry-run` | Preview changes without writing files |
+| `--output <path>` | Custom output path (default: replaces source extension) |
+| `--recursive`, `-r` | Process subdirectories (for directory input) |
+| `--help` | Show help message |
+
+**Supported formats**:
+
+| Format | Extensions | Library |
+|--------|------------|---------|
+| JSON | `.json` | Built-in |
+| YAML | `.yaml`, `.yml` | `js-yaml` |
+| TOML | `.toml` | `toml` (parse), custom (stringify) |
+
+**npm scripts**:
+
+| Script | Description |
+|--------|-------------|
+| `npm run convert` | Run the converter |
+| `npm run convert:dry-run` | Preview changes without writing |
+
+**Exit codes**:
+
+- `0`: Success
+- `1`: Error (missing required options, file not found, parse error)
+
+---
+
 ### `data-migrate.ts`
 
 **Purpose**: Bidirectional migration tool for data between JSON files and database (SQLite/PostgreSQL).
