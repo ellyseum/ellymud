@@ -5,6 +5,7 @@ import { Command } from '../command.interface';
 import { AbilityManager } from '../../abilities/abilityManager';
 import { ItemManager } from '../../utils/itemManager';
 import { getPlayerLogger } from '../../utils/logger';
+import { questEventBus } from '../../quest/questEventHandler';
 
 export class UseCommand implements Command {
   name = 'use';
@@ -48,6 +49,17 @@ export class UseCommand implements Command {
 
     playerLogger.info(`Using item: ${foundItemId}`);
     this.abilityManager.executeItemAbility(client, foundItemId);
+
+    // Get the template ID for the quest event
+    const instance = itemManager.getItemInstance(foundItemId);
+    const templateId = instance?.templateId || foundItemId;
+
+    // Emit quest event for item use
+    questEventBus.emit('item:used', {
+      client,
+      itemId: templateId,
+      instanceId: foundItemId,
+    });
   }
 
   private showUsableItems(client: ConnectedClient): void {

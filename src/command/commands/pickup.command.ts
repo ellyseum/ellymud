@@ -9,7 +9,8 @@ import { UserManager } from '../../user/userManager';
 import { ItemManager } from '../../utils/itemManager';
 import { formatUsername } from '../../utils/formatters';
 import { colorizeItemName, stripColorCodes } from '../../utils/itemNameColorizer';
-import { getPlayerLogger } from '../../utils/logger'; // Add logger import
+import { getPlayerLogger } from '../../utils/logger';
+import { questEventBus } from '../../quest/questEventHandler';
 
 // Define a type for valid currency types
 type CurrencyType = keyof Currency;
@@ -681,6 +682,13 @@ export class PickupCommand implements Command {
     playerLogger.info(
       `Picked up item: ${stripColorCodes(rawDisplayName)} (ID: ${instanceId}) from room ${room.id}`
     );
+
+    // Emit quest event for item pickup
+    questEventBus.emit('item:pickup', {
+      client,
+      itemId: templateId || '',
+      instanceId,
+    });
   }
 
   /**

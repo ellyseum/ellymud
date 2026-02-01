@@ -5,7 +5,8 @@ import { Command } from '../command.interface';
 import { ItemManager } from '../../utils/itemManager';
 import { UserManager } from '../../user/userManager';
 import { colorizeItemName, stripColorCodes } from '../../utils/itemNameColorizer';
-import { getPlayerLogger } from '../../utils/logger'; // Add logger import
+import { getPlayerLogger } from '../../utils/logger';
+import { questEventBus } from '../../quest/questEventHandler';
 
 export class EquipCommand implements Command {
   name = 'equip';
@@ -211,6 +212,15 @@ export class EquipCommand implements Command {
     playerLogger.info(
       `Equipped item in ${item.slot} slot: ${stripColorCodes(displayName)} (ID: ${itemId}), attack: ${user.attack}, defense: ${user.defense}`
     );
+
+    // Emit quest event for item equipped
+    const templateId = instance?.templateId || itemId;
+    questEventBus.emit('item:equipped', {
+      client,
+      itemId: templateId,
+      instanceId: itemId,
+      slot: item.slot,
+    });
 
     // Show any stat changes if the item has stat bonuses
     if (item.stats) {
