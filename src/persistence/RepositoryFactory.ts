@@ -22,6 +22,8 @@ import {
   IAsyncSnakeScoreRepository,
   IAsyncMUDConfigRepository,
   IAsyncGameTimerConfigRepository,
+  IAsyncRaceRepository,
+  IAsyncClassRepository,
   RepositoryConfig,
 } from './interfaces';
 import { KyselyUserRepository } from './KyselyUserRepository';
@@ -50,6 +52,8 @@ import { AsyncFileAbilityRepository } from './AsyncFileAbilityRepository';
 import { AsyncFileSnakeScoreRepository } from './AsyncFileSnakeScoreRepository';
 import { AsyncFileMUDConfigRepository } from './AsyncFileMUDConfigRepository';
 import { AsyncFileGameTimerConfigRepository } from './AsyncFileGameTimerConfigRepository';
+import { AsyncFileRaceRepository } from './AsyncFileRaceRepository';
+import { AsyncFileClassRepository } from './AsyncFileClassRepository';
 
 /**
  * Check if we should use database (Kysely) storage
@@ -192,4 +196,22 @@ export function getGameTimerConfigRepository(
     return new KyselyGameTimerConfigRepository();
   }
   return new AsyncFileGameTimerConfigRepository(config);
+}
+
+/**
+ * Get the appropriate RaceRepository based on STORAGE_BACKEND
+ * Note: Database backend not yet implemented - falls back to file
+ */
+export function getRaceRepository(config?: RepositoryConfig): IAsyncRaceRepository {
+  // TODO: Add KyselyRaceRepository when database support is needed
+  return new AsyncFileRaceRepository(config);
+}
+
+/**
+ * Get the appropriate ClassRepository based on STORAGE_BACKEND
+ * Note: Database backend not yet implemented - falls back to file
+ */
+export function getClassRepository(config?: RepositoryConfig): IAsyncClassRepository {
+  // TODO: Add KyselyClassRepository when database support is needed
+  return new AsyncFileClassRepository(config);
 }

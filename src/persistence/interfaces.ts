@@ -4,7 +4,7 @@
  * @module persistence/interfaces
  */
 
-import { GameItem, ItemInstance, User, SnakeScoreEntry } from '../types';
+import { GameItem, ItemInstance, User, SnakeScoreEntry, Race, CharacterClass } from '../types';
 import { Room } from '../room/room';
 import { RoomData, RoomState } from '../room/roomData';
 import { NPCData } from '../combat/npc';
@@ -377,4 +377,35 @@ export interface IAsyncGameTimerConfigRepository {
 
   // Storage check
   exists(): Promise<boolean>;
+}
+
+/**
+ * Async repository interface for Race data persistence
+ * Read-only in typical usage (races loaded from JSON)
+ */
+export interface IAsyncRaceRepository {
+  // Read operations
+  findAll(): Promise<Race[]>;
+  findById(id: string): Promise<Race | undefined>;
+
+  // Write operations (for admin tools)
+  save(race: Race): Promise<void>;
+  saveAll(races: Race[]): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+/**
+ * Async repository interface for CharacterClass data persistence
+ * Read-only in typical usage (classes loaded from JSON)
+ */
+export interface IAsyncClassRepository {
+  // Read operations
+  findAll(): Promise<CharacterClass[]>;
+  findById(id: string): Promise<CharacterClass | undefined>;
+  findByTier(tier: number): Promise<CharacterClass[]>;
+
+  // Write operations (for admin tools)
+  save(characterClass: CharacterClass): Promise<void>;
+  saveAll(classes: CharacterClass[]): Promise<void>;
+  delete(id: string): Promise<void>;
 }

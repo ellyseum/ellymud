@@ -143,7 +143,7 @@
   {
     "id": "trainer_1",
     "name": "Gareth the Trainer",
-    "description": "A grizzled veteran warrior with scars crisscrossing his arms. He studies newcomers with a critical eye.",
+    "description": "A grizzled veteran warrior with scars crisscrossing his arms. He can train adventurers in the ways of all basic combat classes.",
     "health": 200,
     "maxHealth": 200,
     "damage": [5, 10],
@@ -152,6 +152,58 @@
     "experienceValue": 0,
     "attackTexts": ["Gareth demonstrates a painful strike on you!"],
     "deathMessages": ["Gareth falls, muttering about his old war wounds..."]
+  },
+  {
+    "id": "fighter_trainer",
+    "name": "Sir Bartholomew",
+    "description": "A heavily armored knight with a stern expression. His shield bears the marks of countless battles. He trains warriors in the art of combat.",
+    "health": 300,
+    "maxHealth": 300,
+    "damage": [8, 15],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Sir Bartholomew delivers a crushing blow!"],
+    "deathMessages": ["Sir Bartholomew falls with honor..."]
+  },
+  {
+    "id": "mage_trainer",
+    "name": "Archmage Elara",
+    "description": "An elderly woman in flowing robes, her eyes shimmer with arcane energy. Ancient tomes float around her as she studies the mysteries of magic.",
+    "health": 150,
+    "maxHealth": 150,
+    "damage": [5, 12],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Archmage Elara strikes you with a bolt of lightning!"],
+    "deathMessages": ["Archmage Elara fades into magical mist..."]
+  },
+  {
+    "id": "thief_trainer",
+    "name": "Shadow",
+    "description": "You can barely see this figure lurking in the darkness. When they move, it's with the grace of smoke on the wind. They train those who wish to walk unseen.",
+    "health": 180,
+    "maxHealth": 180,
+    "damage": [6, 14],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Shadow strikes from the darkness!"],
+    "deathMessages": ["Shadow vanishes into the shadows forever..."]
+  },
+  {
+    "id": "healer_trainer",
+    "name": "Sister Mercy",
+    "description": "A serene woman in white robes, her hands glow with a soft golden light. She dedicates her life to teaching the healing arts.",
+    "health": 200,
+    "maxHealth": 200,
+    "damage": [3, 8],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Sister Mercy channels painful light at you!"],
+    "deathMessages": ["Sister Mercy's light fades peacefully..."]
   },
   {
     "id": "banker_1",

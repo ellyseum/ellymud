@@ -16,6 +16,7 @@ export enum ClientStateType {
   CONNECTING = 'connecting',
   LOGIN = 'login',
   SIGNUP = 'signup',
+  RACE_SELECTION = 'race_selection', // Race selection during character creation
   CONFIRMATION = 'confirmation',
   AUTHENTICATED = 'authenticated',
   TRANSFER_REQUEST = 'transfer_request', // New state for handling session transfers
@@ -178,6 +179,51 @@ export interface ItemInstance {
   }[];
 }
 
+// Race definition interface
+export interface Race {
+  id: string;
+  name: string;
+  description: string;
+  statModifiers: {
+    strength: number;
+    dexterity: number;
+    agility: number;
+    constitution: number;
+    wisdom: number;
+    intelligence: number;
+    charisma: number;
+  };
+  bonuses: {
+    xpGain?: number; // Percentage bonus to XP gained
+    maxMana?: number; // Percentage bonus to max mana
+    maxHealth?: number; // Percentage bonus to max health
+    critChance?: number; // Percentage bonus to critical hit chance
+    attack?: number; // Percentage bonus to attack damage
+  };
+  bonusDescription: string;
+}
+
+// Class definition interface
+export interface CharacterClass {
+  id: string;
+  name: string;
+  description: string;
+  tier: number; // 0 = adventurer, 1 = tier 1, 2 = tier 2
+  requirements: {
+    level: number;
+    previousClass: string | null;
+    questFlag: string | null;
+    trainerType: string | null;
+  };
+  statBonuses: {
+    maxHealth: number;
+    maxMana: number;
+    attack: number;
+    defense: number;
+  };
+  availableAdvancement: string[]; // Class IDs that can be advanced to
+}
+
 export interface User {
   username: string;
   password?: string; // Making optional for backward compatibility
@@ -189,6 +235,12 @@ export interface User {
   maxMana: number;
   experience: number;
   level: number;
+  // Race and class system
+  raceId?: string; // "human", "elf", "dwarf", "halfling", "orc"
+  classId?: string; // "adventurer", "fighter", "magic_user", etc.
+  classHistory?: string[]; // Track progression path through classes
+  questFlags?: string[]; // For tier 2 class requirements
+  unspentAttributePoints?: number; // Points to allocate on level up
   // Add character statistics
   strength: number;
   dexterity: number;

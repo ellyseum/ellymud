@@ -269,9 +269,118 @@ export const npcSchema = {
   },
 };
 
+// Race schema
+export const raceSchema = {
+  type: 'object',
+  required: ['races'],
+  properties: {
+    races: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['id', 'name', 'description', 'statModifiers', 'bonuses', 'bonusDescription'],
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          description: { type: 'string' },
+          statModifiers: {
+            type: 'object',
+            required: [
+              'strength',
+              'dexterity',
+              'agility',
+              'constitution',
+              'wisdom',
+              'intelligence',
+              'charisma',
+            ],
+            properties: {
+              strength: { type: 'number' },
+              dexterity: { type: 'number' },
+              agility: { type: 'number' },
+              constitution: { type: 'number' },
+              wisdom: { type: 'number' },
+              intelligence: { type: 'number' },
+              charisma: { type: 'number' },
+            },
+          },
+          bonuses: {
+            type: 'object',
+            properties: {
+              xpGain: { type: 'number' },
+              maxMana: { type: 'number' },
+              maxHealth: { type: 'number' },
+              critChance: { type: 'number' },
+              attack: { type: 'number' },
+            },
+          },
+          bonusDescription: { type: 'string' },
+        },
+        additionalProperties: false,
+      },
+    },
+  },
+};
+
+// Character class schema
+export const classSchema = {
+  type: 'object',
+  required: ['classes'],
+  properties: {
+    classes: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: [
+          'id',
+          'name',
+          'description',
+          'tier',
+          'requirements',
+          'statBonuses',
+          'availableAdvancement',
+        ],
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          description: { type: 'string' },
+          tier: { type: 'number', minimum: 0, maximum: 2 },
+          requirements: {
+            type: 'object',
+            required: ['level', 'previousClass', 'questFlag', 'trainerType'],
+            properties: {
+              level: { type: 'number', minimum: 1 },
+              previousClass: { type: ['string', 'null'] },
+              questFlag: { type: ['string', 'null'] },
+              trainerType: { type: ['string', 'null'] },
+            },
+          },
+          statBonuses: {
+            type: 'object',
+            required: ['maxHealth', 'maxMana', 'attack', 'defense'],
+            properties: {
+              maxHealth: { type: 'number' },
+              maxMana: { type: 'number' },
+              attack: { type: 'number' },
+              defense: { type: 'number' },
+            },
+          },
+          availableAdvancement: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+        additionalProperties: false,
+      },
+    },
+  },
+};
+
 // Compile validators
 export const validateRooms = ajv.compile(roomSchema);
 export const validateUsers = ajv.compile(userSchema);
 export const validateItems = ajv.compile(itemSchema);
 export const validateItemInstances = ajv.compile(itemInstanceSchema);
 export const validateNpcs = ajv.compile(npcSchema);
+export const validateRaces = ajv.compile(raceSchema);
+export const validateClasses = ajv.compile(classSchema);

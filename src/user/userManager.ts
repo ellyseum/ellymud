@@ -8,6 +8,7 @@ import { colorize } from '../utils/colors';
 import { standardizeUsername } from '../utils/formatters';
 import { CombatSystem } from '../combat/combatSystem';
 import { RoomManager } from '../room/roomManager';
+import { RaceManager } from '../race/raceManager';
 import { systemLogger, getPlayerLogger } from '../utils/logger';
 import { parseAndValidateJson } from '../utils/jsonUtils';
 import config from '../config';
@@ -171,6 +172,23 @@ export class UserManager {
       // Ensure totalPlayTime is properly initialized
       if (user.totalPlayTime === undefined) {
         user.totalPlayTime = 0;
+      }
+
+      // Migration: Ensure race and class system fields exist
+      if (!user.raceId) {
+        user.raceId = 'human'; // Default existing users to human
+      }
+      if (!user.classId) {
+        user.classId = 'adventurer';
+      }
+      if (!user.classHistory) {
+        user.classHistory = ['adventurer'];
+      }
+      if (!user.questFlags) {
+        user.questFlags = [];
+      }
+      if (user.unspentAttributePoints === undefined) {
+        user.unspentAttributePoints = 0;
       }
 
       // Ensure mana stats are initialized and clamped
@@ -678,7 +696,13 @@ export class UserManager {
       maxMana: 100,
       experience: 0,
       level: 1,
-      // Initialize character statistics
+      // Race and class (race will be set during race selection)
+      raceId: undefined, // Set during race selection
+      classId: 'adventurer',
+      classHistory: ['adventurer'],
+      questFlags: [],
+      unspentAttributePoints: 0,
+      // Initialize character statistics (base stats - race modifiers applied later)
       strength: 10,
       dexterity: 10,
       agility: 10,
@@ -1060,6 +1084,128 @@ export class UserManager {
     if (!user) return false;
 
     user.totalPlayTime = (user.totalPlayTime || 0) + playTime;
+    this.saveUsers();
+    return true;
+  }
+
+  /**
+   * Apply a race to a user during character creation.
+   * This applies race stat modifiers and sets the raceId.
+   * @param username The username of the user
+   * @param raceId The race ID to apply
+   * @returns True if successful, false otherwise
+   */
+  public applyRaceToUser(username: string, raceId: string): boolean {
+    const user = this.getUser(username);
+    if (!user) {
+      systemLogger.error(`[UserManager] Cannot apply race: User ${username} not found.`);
+      return false;
+    }
+
+    const raceManager = RaceManager.getInstance();
+    const race = raceManager.getRace(raceId);
+    if (!race) {
+      systemLogger.error(`[UserManager] Cannot apply race: Race ${raceId} not found.`);
+      return false;
+    }
+
+    // Set the race ID
+    user.raceId = raceId;
+
+    // Apply stat modifiers
+    const modifiers = race.statModifiers;
+    user.strength += modifiers.strength;
+    user.dexterity += modifiers.dexterity;
+    user.agility += modifiers.agility;
+    user.constitution += modifiers.constitution;
+    user.wisdom += modifiers.wisdom;
+    user.intelligence += modifiers.intelligence;
+    user.charisma += modifiers.charisma;
+
+    // Apply race bonuses to max health/mana
+    if (race.bonuses.maxHealth) {
+      const healthBonus = Math.floor(user.maxHealth * race.bonuses.maxHealth);
+      user.maxHealth += healthBonus;
+      user.health += healthBonus; // Also increase current health
+    }
+    if (race.bonuses.maxMana) {
+      const manaBonus = Math.floor(user.maxMana * race.bonuses.maxMana);
+      user.maxMana += manaBonus;
+      user.mana += manaBonus; // Also increase current mana
+    }
+
+    this.saveUsers();
+    systemLogger.info(`[UserManager] Applied race ${raceId} to user ${username}`);
+    return true;
+  }
+
+  /**
+   * Update a user's class and class history.
+   * @param username The username of the user
+   * @param newClassId The new class ID
+   * @returns True if successful, false otherwise
+   */
+  public updateUserClass(username: string, newClassId: string): boolean {
+    const user = this.getUser(username);
+    if (!user) {
+      systemLogger.error(`[UserManager] Cannot update class: User ${username} not found.`);
+      return false;
+    }
+
+    user.classId = newClassId;
+    if (!user.classHistory) {
+      user.classHistory = [];
+    }
+    if (!user.classHistory.includes(newClassId)) {
+      user.classHistory.push(newClassId);
+    }
+
+    this.saveUsers();
+    systemLogger.info(`[UserManager] Updated class for ${username} to ${newClassId}`);
+    return true;
+  }
+
+  /**
+   * Add unspent attribute points to a user (called on level up).
+   * @param username The username of the user
+   * @param points Number of points to add
+   * @returns True if successful, false otherwise
+   */
+  public addAttributePoints(username: string, points: number): boolean {
+    const user = this.getUser(username);
+    if (!user) return false;
+
+    user.unspentAttributePoints = (user.unspentAttributePoints ?? 0) + points;
+    this.saveUsers();
+    return true;
+  }
+
+  /**
+   * Spend an attribute point to increase a stat.
+   * @param username The username of the user
+   * @param stat The stat to increase
+   * @returns True if successful, false otherwise
+   */
+  public spendAttributePoint(
+    username: string,
+    stat:
+      | 'strength'
+      | 'dexterity'
+      | 'agility'
+      | 'constitution'
+      | 'wisdom'
+      | 'intelligence'
+      | 'charisma'
+  ): boolean {
+    const user = this.getUser(username);
+    if (!user) return false;
+
+    if ((user.unspentAttributePoints ?? 0) <= 0) {
+      return false;
+    }
+
+    user[stat] += 1;
+    user.unspentAttributePoints = (user.unspentAttributePoints ?? 0) - 1;
     this.saveUsers();
     return true;
   }

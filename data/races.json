@@ -1,0 +1,94 @@
+{
+  "races": [
+    {
+      "id": "human",
+      "name": "Human",
+      "description": "Humans are the most versatile of all races, adapting quickly to any situation. Their determination and ambition drive them to excel in all fields.",
+      "statModifiers": {
+        "strength": 0,
+        "dexterity": 0,
+        "agility": 0,
+        "constitution": 0,
+        "wisdom": 0,
+        "intelligence": 0,
+        "charisma": 0
+      },
+      "bonuses": {
+        "xpGain": 0.05
+      },
+      "bonusDescription": "+5% XP gain"
+    },
+    {
+      "id": "elf",
+      "name": "Elf",
+      "description": "Elves are graceful beings with an innate connection to magic. Their long lifespans grant them wisdom and patience, though they lack the physical resilience of other races.",
+      "statModifiers": {
+        "strength": -1,
+        "dexterity": 2,
+        "agility": 0,
+        "constitution": -2,
+        "wisdom": 1,
+        "intelligence": 2,
+        "charisma": 0
+      },
+      "bonuses": {
+        "maxMana": 0.10
+      },
+      "bonusDescription": "+10% max mana"
+    },
+    {
+      "id": "dwarf",
+      "name": "Dwarf",
+      "description": "Dwarves are stout and hardy folk, renowned for their resilience and strength. They make excellent warriors and craftsmen, though they lack grace and social finesse.",
+      "statModifiers": {
+        "strength": 2,
+        "dexterity": -1,
+        "agility": -1,
+        "constitution": 3,
+        "wisdom": 1,
+        "intelligence": 0,
+        "charisma": -1
+      },
+      "bonuses": {
+        "maxHealth": 0.10
+      },
+      "bonusDescription": "+10% max health"
+    },
+    {
+      "id": "halfling",
+      "name": "Halfling",
+      "description": "Halflings are small but nimble folk known for their luck and charm. Their quick reflexes and natural agility make them excellent scouts and rogues.",
+      "statModifiers": {
+        "strength": -2,
+        "dexterity": 3,
+        "agility": 2,
+        "constitution": -1,
+        "wisdom": 0,
+        "intelligence": 0,
+        "charisma": 2
+      },
+      "bonuses": {
+        "critChance": 0.05
+      },
+      "bonusDescription": "+5% critical hit chance"
+    },
+    {
+      "id": "orc",
+      "name": "Orc",
+      "description": "Orcs are powerful and fierce warriors, bred for battle. Their raw strength and toughness are unmatched, though they often lack subtlety and magical aptitude.",
+      "statModifiers": {
+        "strength": 3,
+        "dexterity": 0,
+        "agility": -1,
+        "constitution": 2,
+        "wisdom": -2,
+        "intelligence": -2,
+        "charisma": -1
+      },
+      "bonuses": {
+        "attack": 0.05
+      },
+      "bonusDescription": "+5% attack damage"
+    }
+  ]
+}

@@ -81,7 +81,7 @@ export class SignupState implements ClientState {
         client.stateData.password = input;
         client.stateData.maskInput = false; // Disable masking after password input
 
-        // Create the user
+        // Create the user (without race - will be set in race selection)
         if (this.userManager.createUser(client.stateData.username, client.stateData.password)) {
           const user = this.userManager.getUser(client.stateData.username);
           if (user) {
@@ -89,7 +89,8 @@ export class SignupState implements ClientState {
             client.user = user;
             // Generate session reference file for new user in debug mode
             createSessionReferenceFile(client, client.stateData.username!, false);
-            client.stateData.transitionTo = ClientStateType.CONFIRMATION;
+            // Transition to race selection state
+            client.stateData.transitionTo = ClientStateType.RACE_SELECTION;
           } else {
             writeToClient(client, colorize('Error creating user. Please try again.\r\n', 'red'));
             client.stateData.transitionTo = ClientStateType.LOGIN;

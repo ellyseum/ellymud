@@ -3,6 +3,7 @@ import { UserManager } from '../user/userManager';
 import { ConnectingState } from '../states/connecting.state';
 import { LoginState } from '../states/login.state';
 import { SignupState } from '../states/signup.state';
+import { RaceSelectionState } from '../states/race-selection.state';
 import { ConfirmationState } from '../states/confirmation.state';
 import { AuthenticatedState } from '../states/authenticated.state';
 import { TransferRequestState } from '../states/transfer-request.state';
@@ -32,6 +33,7 @@ export class StateMachine {
   private connectingState: ConnectingState;
   private loginState: LoginState;
   private signupState: SignupState;
+  private raceSelectionState: RaceSelectionState;
   private confirmationState: ConfirmationState;
   private authenticatedState: AuthenticatedState;
   private transferRequestState: TransferRequestState;
@@ -49,6 +51,7 @@ export class StateMachine {
     this.connectingState = new ConnectingState();
     this.loginState = new LoginState(userManager);
     this.signupState = new SignupState(userManager);
+    this.raceSelectionState = new RaceSelectionState(userManager);
     this.confirmationState = new ConfirmationState(userManager);
     this.authenticatedState = new AuthenticatedState(clients, this); // Pass this (StateMachine) as second parameter
     this.transferRequestState = new TransferRequestState(userManager);
@@ -60,6 +63,7 @@ export class StateMachine {
     this.registerState(this.connectingState);
     this.registerState(this.loginState);
     this.registerState(this.signupState);
+    this.registerState(this.raceSelectionState);
     this.registerState(this.confirmationState);
     this.registerState(this.authenticatedState);
     this.registerState(this.transferRequestState);

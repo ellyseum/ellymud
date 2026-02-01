@@ -1,0 +1,327 @@
+{
+  "classes": [
+    {
+      "id": "adventurer",
+      "name": "Adventurer",
+      "description": "A brave soul who has set out to explore the world. Adventurers are jacks of all trades, capable of learning any path.",
+      "tier": 0,
+      "requirements": {
+        "level": 1,
+        "previousClass": null,
+        "questFlag": null,
+        "trainerType": null
+      },
+      "statBonuses": {
+        "maxHealth": 0,
+        "maxMana": 0,
+        "attack": 0,
+        "defense": 0
+      },
+      "availableAdvancement": ["fighter", "magic_user", "thief", "healer"]
+    },
+    {
+      "id": "fighter",
+      "name": "Fighter",
+      "description": "A master of martial combat, fighters excel in physical prowess and weapon mastery. They are the frontline warriors of any party.",
+      "tier": 1,
+      "requirements": {
+        "level": 5,
+        "previousClass": "adventurer",
+        "questFlag": null,
+        "trainerType": "fighter_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 20,
+        "maxMana": 0,
+        "attack": 5,
+        "defense": 3
+      },
+      "availableAdvancement": ["paladin", "berserker", "knight"]
+    },
+    {
+      "id": "magic_user",
+      "name": "Magic User",
+      "description": "A student of the arcane arts, magic users wield powerful spells to devastate their enemies. They sacrifice physical prowess for magical might.",
+      "tier": 1,
+      "requirements": {
+        "level": 5,
+        "previousClass": "adventurer",
+        "questFlag": null,
+        "trainerType": "mage_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 0,
+        "maxMana": 30,
+        "attack": 2,
+        "defense": 0
+      },
+      "availableAdvancement": ["wizard", "necromancer", "elementalist"]
+    },
+    {
+      "id": "thief",
+      "name": "Thief",
+      "description": "A cunning rogue who relies on stealth and precision. Thieves excel at striking from the shadows and avoiding detection.",
+      "tier": 1,
+      "requirements": {
+        "level": 5,
+        "previousClass": "adventurer",
+        "questFlag": null,
+        "trainerType": "thief_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 5,
+        "maxMana": 10,
+        "attack": 4,
+        "defense": 1
+      },
+      "availableAdvancement": ["assassin", "ranger", "shadow"]
+    },
+    {
+      "id": "healer",
+      "name": "Healer",
+      "description": "A devoted servant of the divine, healers channel holy power to mend wounds and protect their allies. They are essential to any group.",
+      "tier": 1,
+      "requirements": {
+        "level": 5,
+        "previousClass": "adventurer",
+        "questFlag": null,
+        "trainerType": "healer_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 10,
+        "maxMana": 25,
+        "attack": 1,
+        "defense": 2
+      },
+      "availableAdvancement": ["cleric", "druid", "shaman"]
+    },
+    {
+      "id": "paladin",
+      "name": "Paladin",
+      "description": "Holy warriors who combine martial prowess with divine magic. Paladins are champions of justice and protectors of the innocent.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "fighter",
+        "questFlag": "paladin_trial",
+        "trainerType": "paladin_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 30,
+        "maxMana": 15,
+        "attack": 7,
+        "defense": 8
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "berserker",
+      "name": "Berserker",
+      "description": "Savage warriors who channel their rage into devastating attacks. Berserkers sacrifice defense for overwhelming offensive power.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "fighter",
+        "questFlag": "berserker_trial",
+        "trainerType": "berserker_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 25,
+        "maxMana": 0,
+        "attack": 15,
+        "defense": 2
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "knight",
+      "name": "Knight",
+      "description": "Noble warriors sworn to a code of honor. Knights are heavily armored defenders who protect their allies with unbreakable resolve.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "fighter",
+        "questFlag": "knight_trial",
+        "trainerType": "knight_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 40,
+        "maxMana": 5,
+        "attack": 5,
+        "defense": 12
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "wizard",
+      "name": "Wizard",
+      "description": "Masters of arcane knowledge, wizards command the most powerful destructive spells. Their mastery of magic is unparalleled.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "magic_user",
+        "questFlag": "wizard_trial",
+        "trainerType": "wizard_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 5,
+        "maxMana": 60,
+        "attack": 8,
+        "defense": 1
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "necromancer",
+      "name": "Necromancer",
+      "description": "Dark mages who command the powers of death. Necromancers raise the dead and drain life from their enemies.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "magic_user",
+        "questFlag": "necromancer_trial",
+        "trainerType": "necromancer_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 15,
+        "maxMana": 45,
+        "attack": 6,
+        "defense": 2
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "elementalist",
+      "name": "Elementalist",
+      "description": "Mages who have mastered the primal elements. Elementalists wield fire, ice, lightning, and earth with devastating effect.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "magic_user",
+        "questFlag": "elementalist_trial",
+        "trainerType": "elementalist_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 10,
+        "maxMana": 50,
+        "attack": 10,
+        "defense": 1
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "assassin",
+      "name": "Assassin",
+      "description": "Deadly killers who strike from the shadows. Assassins deal devastating critical strikes and excel at eliminating single targets.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "thief",
+        "questFlag": "assassin_trial",
+        "trainerType": "assassin_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 10,
+        "maxMana": 15,
+        "attack": 12,
+        "defense": 3
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "ranger",
+      "name": "Ranger",
+      "description": "Skilled hunters and trackers, rangers are masters of wilderness survival. They excel at ranged combat and tracking prey.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "thief",
+        "questFlag": "ranger_trial",
+        "trainerType": "ranger_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 15,
+        "maxMana": 20,
+        "attack": 8,
+        "defense": 5
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "shadow",
+      "name": "Shadow",
+      "description": "Masters of darkness and deception, shadows blend with the night itself. They are untouchable phantoms who strike without warning.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "thief",
+        "questFlag": "shadow_trial",
+        "trainerType": "shadow_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 5,
+        "maxMana": 25,
+        "attack": 10,
+        "defense": 6
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "cleric",
+      "name": "Cleric",
+      "description": "Devoted servants of the gods, clerics channel divine power to heal and protect. They are the most powerful healers in the realm.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "healer",
+        "questFlag": "cleric_trial",
+        "trainerType": "cleric_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 20,
+        "maxMana": 50,
+        "attack": 3,
+        "defense": 6
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "druid",
+      "name": "Druid",
+      "description": "Guardians of nature who draw power from the natural world. Druids can shapeshift and command the forces of the wild.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "healer",
+        "questFlag": "druid_trial",
+        "trainerType": "druid_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 25,
+        "maxMana": 40,
+        "attack": 5,
+        "defense": 4
+      },
+      "availableAdvancement": []
+    },
+    {
+      "id": "shaman",
+      "name": "Shaman",
+      "description": "Spirit walkers who commune with the ancestors. Shamans wield both healing and destructive elemental magic.",
+      "tier": 2,
+      "requirements": {
+        "level": 15,
+        "previousClass": "healer",
+        "questFlag": "shaman_trial",
+        "trainerType": "shaman_trainer"
+      },
+      "statBonuses": {
+        "maxHealth": 15,
+        "maxMana": 45,
+        "attack": 6,
+        "defense": 3
+      },
+      "availableAdvancement": []
+    }
+  ]
+}
