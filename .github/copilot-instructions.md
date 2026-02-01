@@ -141,7 +141,8 @@ The project uses a hierarchical documentation system:
 │   ├── class/AGENTS.md                       ← Class system
 │   ├── race/AGENTS.md                        ← Race system
 │   ├── user/AGENTS.md                        ← User/auth
-│   └── utils/AGENTS.md                       ← Utilities (socketWriter CRITICAL)
+│   ├── utils/AGENTS.md                       ← Utilities (socketWriter CRITICAL)
+│   └── quest/AGENTS.md                       ← Declarative quest system
 │
 ├── test/AGENTS.md                            ← Test root
 │   ├── e2e/AGENTS.md                         ← E2E tests

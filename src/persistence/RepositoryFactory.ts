@@ -24,6 +24,7 @@ import {
   IAsyncGameTimerConfigRepository,
   IAsyncRaceRepository,
   IAsyncClassRepository,
+  IAsyncQuestProgressRepository,
   RepositoryConfig,
 } from './interfaces';
 import { KyselyUserRepository } from './KyselyUserRepository';
@@ -54,6 +55,7 @@ import { AsyncFileMUDConfigRepository } from './AsyncFileMUDConfigRepository';
 import { AsyncFileGameTimerConfigRepository } from './AsyncFileGameTimerConfigRepository';
 import { AsyncFileRaceRepository } from './AsyncFileRaceRepository';
 import { AsyncFileClassRepository } from './AsyncFileClassRepository';
+import { AsyncFileQuestProgressRepository } from './AsyncFileQuestProgressRepository';
 
 /**
  * Check if we should use database (Kysely) storage
@@ -214,4 +216,15 @@ export function getRaceRepository(config?: RepositoryConfig): IAsyncRaceReposito
 export function getClassRepository(config?: RepositoryConfig): IAsyncClassRepository {
   // TODO: Add KyselyClassRepository when database support is needed
   return new AsyncFileClassRepository(config);
+}
+
+/**
+ * Get the appropriate QuestProgressRepository based on STORAGE_BACKEND
+ * Note: Database backend not yet implemented - falls back to file
+ */
+export function getQuestProgressRepository(
+  config?: RepositoryConfig
+): IAsyncQuestProgressRepository {
+  // TODO: Add KyselyQuestProgressRepository when database support is needed
+  return new AsyncFileQuestProgressRepository(config);
 }

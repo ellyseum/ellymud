@@ -1,0 +1,65 @@
+# Tutorial Quest: Welcome to EllyMUD
+# This is a simple introductory quest that teaches basic mechanics
+
+id: tutorial_welcome
+name: "Welcome to EllyMUD"
+description: "Learn the basics of navigating the world."
+longDescription: |
+  A kind stranger has offered to show you around.
+  Complete this short tutorial to learn how to move,
+  look around, and interact with the world.
+category: tutorial
+repeatable: false
+
+prerequisites:
+  maxLevel: 5  # Only for new players
+
+steps:
+  - id: look_around
+    name: "Look Around"
+    description: "Use the 'look' command to see your surroundings."
+    objectives:
+      - type: have_flag
+        flag: tutorial_looked
+        description: "Look at your surroundings"
+    hint: "Type 'look' or just 'l' to see where you are."
+    onComplete:
+      - action: message
+        text: "Good! You can see the room description, exits, and any items or creatures here."
+        color: green
+
+  - id: explore_room
+    name: "Explore a New Room"
+    description: "Move to an adjacent room."
+    objectives:
+      - type: enter_room
+        roomId: town-square
+        description: "Visit the town square"
+    hint: "Use direction commands like 'north', 'south', 'east', 'west' (or n, s, e, w)."
+    onComplete:
+      - action: message
+        text: "Excellent! You've found the town square. This is the heart of the town."
+        color: green
+      - action: setFlag
+        flag: visited_town_square
+
+  - id: complete_tutorial
+    name: "Tutorial Complete"
+    description: "The tutorial is complete!"
+    objectives:
+      - type: have_flag
+        flag: visited_town_square
+    onComplete:
+      - action: completeQuest
+
+rewards:
+  experience: 100
+  flags:
+    - tutorial_complete
+  message: "Congratulations! You've completed the tutorial. Explore the world!"
+
+recommendedLevel:
+  min: 1
+  max: 5
+
+autoStart: true

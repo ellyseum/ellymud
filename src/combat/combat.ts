@@ -19,6 +19,7 @@ import { clearRestingMeditating } from '../utils/stateInterruption';
 import { handleNpcDrops } from './npcDeathHandler';
 import { NPC } from './npc';
 import { secureRandom, secureRandomInt, secureRandomIndex } from '../utils/secureRandom';
+import { questEventBus } from '../quest/questEventHandler';
 
 // Create a context-specific logger for Combat
 const combatLogger = createMechanicsLogger('Combat');
@@ -620,6 +621,12 @@ export class Combat {
           );
         }
       }
+
+      // Emit quest event for NPC death
+      questEventBus.emit('npc:death', {
+        killer: this.player,
+        npcTemplateId: npc.templateId,
+      });
     }
 
     // Clean up the shared entity reference

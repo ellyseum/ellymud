@@ -7,6 +7,7 @@ import { colorize } from '../../utils/colors';
 import { writeFormattedMessageToClient } from '../../utils/socketWriter';
 import { getPlayerLogger } from '../../utils/logger';
 import { clearRestingMeditating } from '../../utils/stateInterruption';
+import { questEventBus } from '../../quest/questEventHandler';
 
 export class MoveCommand implements Command {
   name = 'move';
@@ -62,6 +63,13 @@ export class MoveCommand implements Command {
       playerLogger.info(
         `Successfully moved ${direction} to room ${client.user.currentRoomId} (${newRoomName})`
       );
+
+      // Emit quest event for room entry
+      questEventBus.emit('room:enter', {
+        client,
+        roomId: client.user.currentRoomId,
+        previousRoomId: currentRoomId,
+      });
     } else if (!success) {
       playerLogger.info(`Failed to move ${direction} - no exit available`);
     }

@@ -42,6 +42,7 @@ import { isUsingDatabase } from './config';
 import { AreaManager } from './area/areaManager';
 import { IAsyncMUDConfigRepository, MUDConfig } from './persistence/interfaces';
 import { getMUDConfigRepository } from './persistence/RepositoryFactory';
+import { initQuestEventHandlers, getQuestManager } from './quest';
 
 /**
  * Port configuration for GameServer
@@ -349,6 +350,10 @@ export class GameServer {
 
     // Pre-warm the NPC cache (load from repository)
     await NPC.loadNPCDataAsync();
+
+    // Initialize quest system
+    await getQuestManager().ensureInitialized();
+    initQuestEventHandlers();
 
     systemLogger.info('All managers initialized successfully');
   }

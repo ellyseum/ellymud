@@ -23,6 +23,12 @@ jest.mock('../../utils/logger', () => ({
     warn: jest.fn(),
     error: jest.fn(),
   })),
+  createContextLogger: jest.fn(() => ({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  })),
 }));
 
 jest.mock('../../utils/stateInterruption', () => ({

@@ -73,6 +73,8 @@ import { WithdrawCommand } from './commands/withdraw.command';
 import { BalanceCommand } from './commands/balance.command';
 import { SneakCommand } from './commands/sneak.command';
 import { HideCommand } from './commands/hide.command';
+import { QuestCommand } from './commands/quest.command';
+import { TalkCommand, ReplyCommand } from './commands/talk.command';
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -224,6 +226,9 @@ export class CommandRegistry {
       new BalanceCommand(this.roomManager),
       new SneakCommand(this.clients),
       new HideCommand(this.clients),
+      new QuestCommand(),
+      new TalkCommand(this.roomManager),
+      new ReplyCommand(),
     ];
 
     // Register all commands
@@ -337,6 +342,9 @@ export class CommandRegistry {
     // Add aliases for rest and meditate commands
     this.aliases.set('r', { commandName: 'rest' });
     this.aliases.set('med', { commandName: 'meditate' });
+    // Add aliases for quest commands
+    this.aliases.set('ql', { commandName: 'quest', args: 'log' });
+    this.aliases.set('qa', { commandName: 'quest', args: 'available' });
   }
 
   private registerDirectionCommands(): void {

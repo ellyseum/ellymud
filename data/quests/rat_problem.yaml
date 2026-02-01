@@ -1,0 +1,95 @@
+# Side Quest: The Rat Problem
+# A classic beginner quest - clear out some rats
+
+id: rat_problem
+name: "The Rat Problem"
+description: "Help the innkeeper deal with a rat infestation in the cellar."
+longDescription: |
+  The local innkeeper has been having trouble with rats in the cellar.
+  They've been eating through the food stores and scaring off guests.
+  Clear out the rats and you'll be rewarded handsomely.
+category: side
+repeatable: true
+repeatCooldown: 3600  # 1 hour cooldown
+
+prerequisites:
+  level: 1
+
+steps:
+  - id: talk_to_innkeeper
+    name: "Speak with the Innkeeper"
+    description: "Find the innkeeper and learn about the rat problem."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: innkeeper
+        description: "Talk to the innkeeper"
+    npcDialogues:
+      innkeeper:
+        greeting: "Oh, thank goodness you're here! I've got a terrible rat problem in my cellar."
+        options:
+          - text: "I can help with your rat problem."
+            response: "Bless you! Head down to the cellar and clear out those vermin. There should be about 3 of them. Come back when you're done."
+            actions:
+              - action: setFlag
+                flag: accepted_rat_quest
+              - action: message
+                text: "Quest objective updated: Kill 3 rats in the cellar."
+                color: yellow
+
+          - text: "Not my problem."
+            response: "Oh... I understand. If you change your mind, please come back."
+    onComplete:
+      - action: message
+        text: "Head to the cellar and deal with those rats!"
+        color: yellow
+
+  - id: kill_rats
+    name: "Clear the Cellar"
+    description: "Kill the rats in the cellar."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: rat
+        count: 3
+        description: "Kill 3 rats"
+    onComplete:
+      - action: message
+        text: "You've cleared out all the rats! Return to the innkeeper for your reward."
+        color: green
+      - action: setFlag
+        flag: rats_cleared
+
+  - id: return_to_innkeeper
+    name: "Collect Your Reward"
+    description: "Return to the innkeeper to collect your reward."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: innkeeper
+        description: "Return to the innkeeper"
+    npcDialogues:
+      innkeeper:
+        greeting: "You're back! Did you take care of those rats?"
+        options:
+          - text: "The cellar is clear."
+            requires:
+              flags: [rats_cleared]
+            response: "Wonderful! You've saved my business. Here's your reward - you've earned it!"
+            actions:
+              - action: completeQuest
+
+          - text: "Still working on it."
+            response: "Take your time, but hurry if you can. Those rats are eating me out of house and home!"
+
+rewards:
+  experience: 250
+  currency:
+    gold: 5
+    silver: 0
+    copper: 0
+  message: "The innkeeper thanks you profusely for your help!"
+
+questGiver: innkeeper
+turnInNpc: innkeeper
+
+recommendedLevel:
+  min: 1
+  max: 5

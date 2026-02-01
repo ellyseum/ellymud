@@ -376,6 +376,290 @@ export const classSchema = {
   },
 };
 
+// Quest objective schema
+const questObjectiveSchema = {
+  type: 'object',
+  required: ['type'],
+  properties: {
+    id: { type: 'string' },
+    description: { type: 'string' },
+    hidden: { type: 'boolean' },
+    type: {
+      type: 'string',
+      enum: [
+        'use_item',
+        'pickup_item',
+        'have_item',
+        'talk_to_npc',
+        'kill_mob',
+        'enter_room',
+        'have_flag',
+        'deliver_item',
+        'reach_level',
+        'equip_item',
+      ],
+    },
+    // Type-specific properties (all optional at schema level, validated in code)
+    itemId: { type: 'string' },
+    npcTemplateId: { type: 'string' },
+    roomId: { type: 'string' },
+    flag: { type: 'string' },
+    level: { type: 'number' },
+    slot: { type: 'string' },
+    count: { type: 'number', minimum: 1 },
+    dialogueOption: { type: 'string' },
+  },
+  additionalProperties: false,
+};
+
+// Quest action schema
+const questActionSchema = {
+  type: 'object',
+  required: ['action'],
+  properties: {
+    action: {
+      type: 'string',
+      enum: [
+        'setFlag',
+        'removeFlag',
+        'setQuestFlag',
+        'removeQuestFlag',
+        'message',
+        'giveItem',
+        'removeItem',
+        'giveXP',
+        'giveCurrency',
+        'teleport',
+        'spawnNPC',
+        'advanceStep',
+        'completeQuest',
+        'failQuest',
+        'startQuest',
+        'playSound',
+      ],
+    },
+    delay: { type: 'number', minimum: 0 },
+    // Type-specific properties
+    flag: { type: 'string' },
+    text: { type: 'string' },
+    color: { type: 'string' },
+    itemId: { type: 'string' },
+    count: { type: 'number', minimum: 1 },
+    amount: { type: 'number' },
+    gold: { type: 'number' },
+    silver: { type: 'number' },
+    copper: { type: 'number' },
+    roomId: { type: 'string' },
+    npcTemplateId: { type: 'string' },
+    stepId: { type: 'string' },
+    questId: { type: 'string' },
+    reason: { type: 'string' },
+    sound: { type: 'string' },
+  },
+  additionalProperties: false,
+};
+
+// Dialogue requirements schema
+const dialogueRequirementsSchema = {
+  type: 'object',
+  properties: {
+    flags: { type: 'array', items: { type: 'string' } },
+    questFlags: { type: 'array', items: { type: 'string' } },
+    level: { type: 'number', minimum: 1 },
+    classId: { type: 'string' },
+    raceId: { type: 'string' },
+    items: { type: 'array', items: { type: 'string' } },
+    activeStep: { type: 'string' },
+  },
+  additionalProperties: false,
+};
+
+// Dialogue option schema
+const dialogueOptionSchema = {
+  type: 'object',
+  required: ['text', 'response'],
+  properties: {
+    text: { type: 'string' },
+    response: { type: 'string' },
+    requires: dialogueRequirementsSchema,
+    actions: { type: 'array', items: questActionSchema },
+    nextNode: { type: 'string' },
+  },
+  additionalProperties: false,
+};
+
+// NPC dialogue schema
+const npcDialogueSchema = {
+  type: 'object',
+  required: ['greeting', 'options'],
+  properties: {
+    greeting: { type: 'string' },
+    options: { type: 'array', items: dialogueOptionSchema },
+  },
+  additionalProperties: false,
+};
+
+// Quest step schema
+const questStepSchema = {
+  type: 'object',
+  required: ['id', 'name', 'objectives'],
+  properties: {
+    id: { type: 'string' },
+    name: { type: 'string' },
+    description: { type: 'string' },
+    objectives: { type: 'array', items: questObjectiveSchema, minItems: 1 },
+    npcDialogues: {
+      type: 'object',
+      additionalProperties: npcDialogueSchema,
+    },
+    onStart: { type: 'array', items: questActionSchema },
+    onComplete: { type: 'array', items: questActionSchema },
+    requireAllObjectives: { type: 'boolean' },
+    hint: { type: 'string' },
+    timeLimit: { type: 'number', minimum: 0 },
+  },
+  additionalProperties: false,
+};
+
+// Quest prerequisites schema
+const questPrerequisitesSchema = {
+  type: 'object',
+  properties: {
+    level: { type: 'number', minimum: 1 },
+    maxLevel: { type: 'number', minimum: 1 },
+    classId: { type: 'string' },
+    raceId: { type: 'string' },
+    questFlags: { type: 'array', items: { type: 'string' } },
+    flags: { type: 'array', items: { type: 'string' } },
+    questsCompleted: { type: 'array', items: { type: 'string' } },
+    questsNotCompleted: { type: 'array', items: { type: 'string' } },
+    requiredItems: { type: 'array', items: { type: 'string' } },
+  },
+  additionalProperties: false,
+};
+
+// Quest rewards schema
+const questRewardsSchema = {
+  type: 'object',
+  properties: {
+    experience: { type: 'number', minimum: 0 },
+    questFlags: { type: 'array', items: { type: 'string' } },
+    flags: { type: 'array', items: { type: 'string' } },
+    items: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['itemId'],
+        properties: {
+          itemId: { type: 'string' },
+          count: { type: 'number', minimum: 1 },
+        },
+        additionalProperties: false,
+      },
+    },
+    currency: {
+      type: 'object',
+      properties: {
+        gold: { type: 'number', minimum: 0 },
+        silver: { type: 'number', minimum: 0 },
+        copper: { type: 'number', minimum: 0 },
+      },
+      additionalProperties: false,
+    },
+    message: { type: 'string' },
+    title: { type: 'string' },
+  },
+  additionalProperties: false,
+};
+
+// Quest definition schema
+export const questSchema = {
+  type: 'object',
+  required: ['id', 'name', 'description', 'category', 'steps'],
+  properties: {
+    id: { type: 'string', pattern: '^[a-z][a-z0-9_]*$' },
+    name: { type: 'string', minLength: 1 },
+    description: { type: 'string', minLength: 1 },
+    longDescription: { type: 'string' },
+    category: {
+      type: 'string',
+      enum: ['main', 'side', 'class_trial', 'tutorial', 'daily', 'event'],
+    },
+    repeatable: { type: 'boolean' },
+    repeatCooldown: { type: 'number', minimum: 0 },
+    prerequisites: questPrerequisitesSchema,
+    steps: { type: 'array', items: questStepSchema, minItems: 1 },
+    rewards: questRewardsSchema,
+    questGiver: { type: 'string' },
+    turnInNpc: { type: 'string' },
+    autoStart: { type: 'boolean' },
+    recommendedLevel: {
+      type: 'object',
+      required: ['min', 'max'],
+      properties: {
+        min: { type: 'number', minimum: 1 },
+        max: { type: 'number', minimum: 1 },
+      },
+      additionalProperties: false,
+    },
+    chainId: { type: 'string' },
+    chainOrder: { type: 'number', minimum: 1 },
+  },
+  additionalProperties: false,
+};
+
+// Quest progress schema (for saved progress data)
+export const questProgressSchema = {
+  type: 'object',
+  required: ['username', 'activeQuests', 'completedQuests', 'failedQuests', 'updatedAt'],
+  properties: {
+    username: { type: 'string' },
+    activeQuests: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['questId', 'currentStepId', 'startedAt', 'stepProgress'],
+        properties: {
+          questId: { type: 'string' },
+          currentStepId: { type: 'string' },
+          startedAt: { type: 'string' },
+          stepProgress: { type: 'object', additionalProperties: true },
+          variables: { type: 'object', additionalProperties: true },
+        },
+        additionalProperties: false,
+      },
+    },
+    completedQuests: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['questId', 'completedAt', 'completionCount'],
+        properties: {
+          questId: { type: 'string' },
+          completedAt: { type: 'string' },
+          completionCount: { type: 'number', minimum: 1 },
+        },
+        additionalProperties: false,
+      },
+    },
+    failedQuests: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['questId', 'failedAt'],
+        properties: {
+          questId: { type: 'string' },
+          failedAt: { type: 'string' },
+          reason: { type: 'string' },
+        },
+        additionalProperties: false,
+      },
+    },
+    updatedAt: { type: 'string' },
+  },
+  additionalProperties: false,
+};
+
 // Compile validators
 export const validateRooms = ajv.compile(roomSchema);
 export const validateUsers = ajv.compile(userSchema);
@@ -384,3 +668,5 @@ export const validateItemInstances = ajv.compile(itemInstanceSchema);
 export const validateNpcs = ajv.compile(npcSchema);
 export const validateRaces = ajv.compile(raceSchema);
 export const validateClasses = ajv.compile(classSchema);
+export const validateQuest = ajv.compile(questSchema);
+export const validateQuestProgress = ajv.compile(questProgressSchema);

@@ -409,3 +409,84 @@ export interface IAsyncClassRepository {
   saveAll(classes: CharacterClass[]): Promise<void>;
   delete(id: string): Promise<void>;
 }
+
+/**
+ * Quest progress data for a player (imported from quest/types)
+ */
+export interface QuestProgressData {
+  username: string;
+  activeQuests: ActiveQuestState[];
+  completedQuests: CompletedQuestRecord[];
+  failedQuests: FailedQuestRecord[];
+  updatedAt: string;
+}
+
+/**
+ * Active quest state (imported from quest/types)
+ */
+export interface ActiveQuestState {
+  questId: string;
+  currentStepId: string;
+  startedAt: string;
+  stepProgress: Record<string, StepProgress>;
+  variables?: Record<string, unknown>;
+}
+
+/**
+ * Progress on a single quest step
+ */
+export interface StepProgress {
+  stepId: string;
+  completed: boolean;
+  startedAt: string;
+  completedAt?: string;
+  objectives: Record<string, ObjectiveProgress>;
+}
+
+/**
+ * Progress on a single objective
+ */
+export interface ObjectiveProgress {
+  objectiveId: string;
+  current: number;
+  required: number;
+  completed: boolean;
+}
+
+/**
+ * Completed quest record
+ */
+export interface CompletedQuestRecord {
+  questId: string;
+  completedAt: string;
+  completionCount: number;
+}
+
+/**
+ * Failed quest record
+ */
+export interface FailedQuestRecord {
+  questId: string;
+  failedAt: string;
+  reason?: string;
+}
+
+/**
+ * Async repository interface for Quest Progress data persistence
+ */
+export interface IAsyncQuestProgressRepository {
+  // Read operations
+  findByUsername(username: string): Promise<QuestProgressData | undefined>;
+  findAll(): Promise<QuestProgressData[]>;
+  findUsersWithActiveQuest(questId: string): Promise<string[]>;
+  findUsersWithCompletedQuest(questId: string): Promise<string[]>;
+
+  // Write operations
+  save(progress: QuestProgressData): Promise<void>;
+  saveAll(progressList: QuestProgressData[]): Promise<void>;
+  delete(username: string): Promise<void>;
+
+  // Convenience methods
+  hasCompletedQuest(username: string, questId: string): Promise<boolean>;
+  getActiveQuestCount(username: string): Promise<number>;
+}
