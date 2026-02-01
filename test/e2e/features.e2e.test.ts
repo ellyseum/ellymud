@@ -340,11 +340,112 @@ describe('TesterAgent Feature Showcase', () => {
       await agent.setPlayerStats(sessionId, { health: 50, maxHealth: 100 });
       await agent.sendCommand(sessionId, 'rest');
       await agent.advanceTicks(20); // Past resting threshold + regen
-      
+
       const after = await agent.getPlayerStats(sessionId);
-      
+
       // Verify expected changes (health should have regenerated above the initial 50)
       expect(after.health).toBeGreaterThan(50);
+    });
+  });
+
+  // ============================================================
+  // STEALTH MOVEMENT TESTS
+  // ============================================================
+  describe('Stealth Movement', () => {
+    let sneaker: string;
+    let observer: string;
+
+    beforeEach(async () => {
+      await agent.resetToClean();
+      // Create two players in the same room
+      sneaker = await agent.directLogin('sneaker');
+      observer = await agent.directLogin('observer');
+    });
+
+    afterEach(async () => {
+      await agent.closeSession(sneaker);
+      await agent.closeSession(observer);
+    });
+
+    it('should not show departure message when sneaking', async () => {
+      // Clear observer's buffer
+      await agent.getOutput(observer, true);
+
+      // Sneaker enables sneak mode
+      const sneakOutput = await agent.sendCommand(sneaker, 'sneak');
+      expect(sneakOutput.toLowerCase()).toContain('stealthily');
+
+      // Small delay to ensure observer sees sneak message
+      await new Promise((r) => setTimeout(r, 100));
+
+      // Clear observer buffer (contains "slips into shadows" message)
+      await agent.getOutput(observer, true);
+
+      // Sneaker moves north
+      await agent.sendCommand(sneaker, 'north');
+
+      // Wait for any messages to propagate
+      await new Promise((r) => setTimeout(r, 200));
+
+      // Observer should NOT see departure message
+      const observerOutput = await agent.getOutput(observer, false);
+      expect(observerOutput.toLowerCase()).not.toContain('leaves');
+      expect(observerOutput.toLowerCase()).not.toContain('sneaker');
+    });
+
+    it('should break hide on movement', async () => {
+      // Sneaker hides
+      const hideOutput = await agent.sendCommand(sneaker, 'hide');
+      expect(hideOutput.toLowerCase()).toContain('hide');
+
+      // Sneaker moves - should break hide
+      const moveOutput = await agent.sendCommand(sneaker, 'north');
+
+      // Should see "break cover" message
+      expect(moveOutput.toLowerCase()).toContain('break');
+    });
+
+    it('should maintain sneak after movement', async () => {
+      // Enable sneak
+      await agent.sendCommand(sneaker, 'sneak');
+
+      // Move north
+      await agent.sendCommand(sneaker, 'north');
+
+      // Toggling sneak off should show "stop sneaking" (meaning it was still on)
+      const stopOutput = await agent.sendCommand(sneaker, 'sneak');
+      expect(stopOutput.toLowerCase()).toContain('stop sneaking');
+    });
+
+    it('should hide player from room description when hidden', async () => {
+      // Clear observer buffer
+      await agent.getOutput(observer, true);
+
+      // Sneaker hides
+      await agent.sendCommand(sneaker, 'hide');
+
+      // Observer looks - should not see sneaker
+      const lookOutput = await agent.sendCommand(observer, 'look');
+
+      // Sneaker should NOT be visible in room description
+      expect(lookOutput.toLowerCase()).not.toContain('sneaker');
+    });
+
+    it('should allow sneak and hide to be used together', async () => {
+      // Enable both sneak and hide
+      const sneakOutput = await agent.sendCommand(sneaker, 'sneak');
+      expect(sneakOutput.toLowerCase()).toContain('stealthily');
+
+      const hideOutput = await agent.sendCommand(sneaker, 'hide');
+      expect(hideOutput.toLowerCase()).toContain('hide');
+
+      // Move - should break hide but keep sneak
+      const moveOutput = await agent.sendCommand(sneaker, 'north');
+      expect(moveOutput.toLowerCase()).toContain('break');
+
+      // Toggle sneak off - should work (proving sneak was still active)
+      const sneakOffOutput = await agent.sendCommand(sneaker, 'sneak');
+      expect(sneakOffOutput.toLowerCase()).toContain('stop sneaking');
     });
   });
 });
