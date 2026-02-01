@@ -3,6 +3,8 @@ import { RoomManager } from '../room/roomManager';
 import { UserManager } from '../user/userManager';
 import { CombatSystem } from '../combat/combatSystem';
 import { EffectManager } from '../effects/effectManager';
+import { SpawnManager } from '../spawn/spawnManager';
+import { AreaManager } from '../area/areaManager';
 import { createContextLogger } from '../utils/logger';
 import { drawCommandPrompt } from '../utils/socketWriter';
 import { IAsyncGameTimerConfigRepository, GameTimerConfig } from '../persistence/interfaces';
@@ -32,6 +34,7 @@ export class GameTimerManager extends EventEmitter {
   private roomManager: RoomManager;
   private combatSystem: CombatSystem;
   private effectManager: EffectManager;
+  private spawnManager: SpawnManager;
   private initPromise: Promise<void> | null = null;
 
   private constructor(userManager: UserManager, roomManager: RoomManager) {
@@ -46,6 +49,9 @@ export class GameTimerManager extends EventEmitter {
     this.combatSystem = CombatSystem.getInstance(userManager, roomManager);
     // Get the EffectManager instance
     this.effectManager = EffectManager.getInstance(userManager, roomManager);
+    // Get the SpawnManager instance
+    const areaManager = AreaManager.getInstance();
+    this.spawnManager = SpawnManager.getInstance(areaManager, roomManager);
     // Start async initialization
     this.initPromise = this.loadConfigFromRepository();
   }
@@ -61,6 +67,15 @@ export class GameTimerManager extends EventEmitter {
       timerLogger.error('Error loading GameTimer config from repository:', error);
       // Keep default config
     }
+
+    // Initialize spawn manager
+    try {
+      await this.spawnManager.initialize();
+      timerLogger.debug('SpawnManager initialized');
+    } catch (error) {
+      timerLogger.error('Error initializing SpawnManager:', error);
+    }
+
     this.initPromise = null;
   }
 
@@ -189,6 +204,9 @@ export class GameTimerManager extends EventEmitter {
 
     // Process room-based combat for entities with aggression
     this.combatSystem.processRoomCombat();
+
+    // Process NPC spawning
+    this.spawnManager.processTick(this.tickCount);
 
     // Process resting/meditating tick counters
     this.processRestMeditateTicks();

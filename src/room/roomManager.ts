@@ -523,6 +523,11 @@ To create rooms and build your world, follow these steps:
     return Array.from(this.rooms.values());
   }
 
+  // Get all rooms in a specific area (used by spawn system)
+  public getRoomsByArea(areaId: string): Room[] {
+    return Array.from(this.rooms.values()).filter((room) => room.areaId === areaId);
+  }
+
   // Service delegation methods - these delegate to specialized services
 
   // Movement methods
