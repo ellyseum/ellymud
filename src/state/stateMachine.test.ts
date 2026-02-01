@@ -91,6 +91,15 @@ jest.mock('../states/editor.state', () => ({
   })),
 }));
 
+jest.mock('../states/race-selection.state', () => ({
+  RaceSelectionState: jest.fn().mockImplementation(() => ({
+    name: ClientStateType.RACE_SELECTION,
+    enter: jest.fn(),
+    handle: jest.fn(),
+    exit: jest.fn(),
+  })),
+}));
+
 jest.mock('../utils/logger', () => ({
   createContextLogger: jest.fn(() => ({
     info: jest.fn(),

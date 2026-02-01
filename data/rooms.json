@@ -132,8 +132,6 @@
     "id": "town-center-room-8",
     "name": "Room 8",
     "description": "A newly created room.",
-    "shortDescription": "Room 8",
-    "longDescription": "A newly created room.",
     "exits": [
       {
         "direction": "north",
@@ -144,13 +142,6 @@
         "roomId": "town-center-room-9"
       }
     ],
-    "items": [],
-    "npcs": [],
-    "currency": {
-      "gold": 0,
-      "silver": 0,
-      "copper": 0
-    },
     "flags": [],
     "areaId": "town-center",
     "gridX": 1,

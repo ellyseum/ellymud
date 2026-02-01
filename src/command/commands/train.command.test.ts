@@ -28,6 +28,18 @@ jest.mock('../../utils/logger', () => ({
     warn: jest.fn(),
     error: jest.fn(),
   }),
+  createContextLogger: jest.fn().mockReturnValue({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  }),
+  createMechanicsLogger: jest.fn().mockReturnValue({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  }),
 }));
 
 import { writeToClient, writeFormattedMessageToClient } from '../../utils/socketWriter';
@@ -259,7 +271,14 @@ describe('TrainCommand', () => {
         );
         expect(mockWriteToClient).toHaveBeenCalledWith(client, expect.stringContaining('level 2'));
         expect(user.level).toBe(2);
-        expect(mockUserManager.updateUserStats).toHaveBeenCalledWith(user.username, { level: 2 });
+        expect(mockUserManager.updateUserStats).toHaveBeenCalledWith(user.username, {
+          level: 2,
+          maxHealth: 105,
+          health: 105,
+          maxMana: 53,
+          mana: 53,
+          unspentAttributePoints: 1,
+        });
       });
 
       it('should level up from level 2 with correct experience', () => {

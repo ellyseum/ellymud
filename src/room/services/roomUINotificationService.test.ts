@@ -112,7 +112,8 @@ describe('RoomUINotificationService', () => {
       const result = roomUINotificationService.lookRoom(client);
 
       expect(result).toBe(true);
-      expect(townSquare.getDescriptionExcludingPlayer).toHaveBeenCalledWith('testuser');
+      // Second arg is hiddenPlayerNames array (for stealth system)
+      expect(townSquare.getDescriptionExcludingPlayer).toHaveBeenCalledWith('testuser', []);
       expect(mockWriteToClient).toHaveBeenCalled();
     });
 

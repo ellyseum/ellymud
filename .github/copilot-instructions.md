@@ -138,6 +138,8 @@ The project uses a hierarchical documentation system:
 │   ├── testing/AGENTS.md                     ← Testing utilities
 │   ├── timer/AGENTS.md                       ← Game timer
 │   ├── types/AGENTS.md                       ← TypeScript types
+│   ├── class/AGENTS.md                       ← Class system
+│   ├── race/AGENTS.md                        ← Race system
 │   ├── user/AGENTS.md                        ← User/auth
 │   └── utils/AGENTS.md                       ← Utilities (socketWriter CRITICAL)
 │

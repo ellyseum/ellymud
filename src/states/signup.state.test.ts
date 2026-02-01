@@ -206,7 +206,8 @@ describe('SignupState additional tests', () => {
       signupState.handle(client, 'validpassword');
 
       expect(client.user).not.toBeNull();
-      expect(client.stateData.transitionTo).toBe(ClientStateType.CONFIRMATION);
+      // After password, signup now transitions to race selection before confirmation
+      expect(client.stateData.transitionTo).toBe(ClientStateType.RACE_SELECTION);
     });
 
     it('should transition to LOGIN when getUser returns null after createUser', () => {
