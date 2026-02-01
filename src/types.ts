@@ -227,6 +227,8 @@ export interface User {
   isMeditating?: boolean; // Player is meditating for MP regeneration bonus
   restingTicks?: number; // Number of ticks player has been resting
   meditatingTicks?: number; // Number of ticks player has been meditating
+  isSneaking?: boolean; // Move silently, invisible to NPCs
+  isHiding?: boolean; // Invisible to everyone in room, breaks on move
   flags?: string[]; // Array to store player flags for permissions, quests, etc.
   pendingAdminMessages?: Array<{ message: string; timestamp: string }>; // Store admin messages for offline users
 

@@ -71,6 +71,8 @@ import { WaresCommand } from './commands/wares.command';
 import { DepositCommand } from './commands/deposit.command';
 import { WithdrawCommand } from './commands/withdraw.command';
 import { BalanceCommand } from './commands/balance.command';
+import { SneakCommand } from './commands/sneak.command';
+import { HideCommand } from './commands/hide.command';
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -220,6 +222,8 @@ export class CommandRegistry {
       new DepositCommand(this.roomManager, this.userManager),
       new WithdrawCommand(this.roomManager, this.userManager),
       new BalanceCommand(this.roomManager),
+      new SneakCommand(this.clients),
+      new HideCommand(this.clients),
     ];
 
     // Register all commands

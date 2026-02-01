@@ -130,11 +130,14 @@ export class PlayerMovementService implements IPlayerMovementService {
     const fullOppositeDirectionName = this.directionHelper.getFullDirectionName(oppositeDirection);
 
     // Notify players in current room that this player is leaving (but not yet gone)
-    this.notifyPlayersInRoom(
-      currentRoomId,
-      `${formatUsername(client.user.username)} starts moving ${fullDirectionName}.\r\n`,
-      client.user.username
-    );
+    // Skip if player is sneaking or hiding
+    if (!client.user.isSneaking && !client.user.isHiding) {
+      this.notifyPlayersInRoom(
+        currentRoomId,
+        `${formatUsername(client.user.username)} starts moving ${fullDirectionName}.\r\n`,
+        client.user.username
+      );
+    }
 
     // Calculate movement delay based on agility
     // Default to 10 if agility is undefined
@@ -206,18 +209,30 @@ export class PlayerMovementService implements IPlayerMovementService {
       nextRoom.addPlayer(client.user.username);
 
       // NOW notify players in the old room that this player has left
-      this.notifyPlayersInRoom(
-        currentRoomId,
-        `${formatUsername(client.user.username)} leaves ${fullDirectionName}.\r\n`,
-        client.user.username
-      );
+      // Skip if player is sneaking (silent movement)
+      if (!client.user.isSneaking && !client.user.isHiding) {
+        this.notifyPlayersInRoom(
+          currentRoomId,
+          `${formatUsername(client.user.username)} leaves ${fullDirectionName}.\r\n`,
+          client.user.username
+        );
+      }
+
+      // Clear hiding state when moving (hiding breaks on movement)
+      if (client.user.isHiding) {
+        client.user.isHiding = false;
+        writeToClient(client, colorize('You break your cover as you move.\r\n', 'yellow'));
+      }
 
       // NOW notify players in the destination room that this player has arrived
-      this.notifyPlayersInRoom(
-        nextRoomId,
-        `${formatUsername(client.user.username)} enters from the ${fullOppositeDirectionName}.\r\n`,
-        client.user.username
-      );
+      // Skip if player is sneaking (silent movement)
+      if (!client.user.isSneaking) {
+        this.notifyPlayersInRoom(
+          nextRoomId,
+          `${formatUsername(client.user.username)} enters from the ${fullOppositeDirectionName}.\r\n`,
+          client.user.username
+        );
+      }
 
       // NOW update user's current room
       client.user.currentRoomId = nextRoomId;
@@ -226,10 +241,23 @@ export class PlayerMovementService implements IPlayerMovementService {
       const playerLogger = getPlayerLogger(client.user.username);
       playerLogger.info(`Moved to room ${nextRoomId}: ${nextRoom.name}`);
 
+      // Collect hidden players for room description
+      const hiddenPlayers: string[] = [];
+      for (const playerName of nextRoom.players) {
+        if (playerName === client.user.username) continue;
+        // Find the client to check if they're hiding
+        for (const [, playerClient] of this.getClients()) {
+          if (playerClient.user?.username === playerName && playerClient.user?.isHiding) {
+            hiddenPlayers.push(playerName);
+            break;
+          }
+        }
+      }
+
       // Show the new room description with formatted message to redraw prompt after
       writeFormattedMessageToClient(
         client,
-        nextRoom.getDescriptionExcludingPlayer(client.user.username),
+        nextRoom.getDescriptionExcludingPlayer(client.user.username, hiddenPlayers),
         true // Explicitly set drawPrompt to true
       );
 

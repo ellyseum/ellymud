@@ -52,8 +52,18 @@ export class RoomUINotificationService implements IRoomUINotificationService {
       return this.teleportService.teleportToStartingRoom(client);
     }
 
+    // Collect hidden players (those with isHiding true)
+    const hiddenPlayers: string[] = [];
+    for (const playerName of room.players) {
+      if (playerName === client.user.username) continue; // Skip self
+      const playerClient = this.findClientByUsername(playerName);
+      if (playerClient?.user?.isHiding) {
+        hiddenPlayers.push(playerName);
+      }
+    }
+
     // Use the Room's method for consistent formatting with formatted message writer
-    writeToClient(client, room.getDescriptionExcludingPlayer(client.user.username));
+    writeToClient(client, room.getDescriptionExcludingPlayer(client.user.username, hiddenPlayers));
     return true;
   }
 

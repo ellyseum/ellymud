@@ -136,10 +136,24 @@ export class CombatProcessor {
             }
           }
           // If no specific aggressors but entity is hostile, target any player in the room
+          // Filter out sneaking or hiding players - they're invisible to NPCs
           else if (playersInRoom.length > 0) {
-            // Select a random player from the room to attack
-            const randomIdx = secureRandomIndex(playersInRoom.length);
-            const targetPlayerName = playersInRoom[randomIdx];
+            const visiblePlayers = playersInRoom.filter((playerName) => {
+              const playerClient = this.findClientByUsername(playerName);
+              if (!playerClient?.user) return true; // Include if we can't verify
+              return !playerClient.user.isSneaking && !playerClient.user.isHiding;
+            });
+
+            if (visiblePlayers.length === 0) {
+              systemLogger.debug(
+                `All players in room ${roomId} are hidden/sneaking, NPC ${entityName} cannot find targets`
+              );
+              continue;
+            }
+
+            // Select a random visible player from the room to attack
+            const randomIdx = secureRandomIndex(visiblePlayers.length);
+            const targetPlayerName = visiblePlayers[randomIdx];
             const targetPlayer = this.findClientByUsername(targetPlayerName);
 
             if (targetPlayer && targetPlayer.user) {

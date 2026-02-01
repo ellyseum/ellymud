@@ -59,6 +59,9 @@ export interface UserData {
   };
   inCombat: boolean;
   currentRoomId: string;
+  // Stealth states
+  isSneaking?: boolean; // Move silently, invisible to NPCs
+  isHiding?: boolean; // Invisible to everyone in room, breaks on move
   inventory: {
     items: string[];
     currency: Currency;

@@ -358,8 +358,8 @@ export class Room {
     return output;
   }
 
-  getDescriptionExcludingPlayer(username: string): string {
-    return this.getFormattedDescription(true, username);
+  getDescriptionExcludingPlayer(username: string, hiddenPlayers?: string[]): string {
+    return this.getFormattedDescription(true, username, hiddenPlayers);
   }
 
   getBriefDescription(): string {
@@ -415,7 +415,11 @@ export class Room {
   }
 
   // Centralized method to format room descriptions
-  private getFormattedDescription(includeLongDesc: boolean, excludePlayer?: string): string {
+  private getFormattedDescription(
+    includeLongDesc: boolean,
+    excludePlayer?: string,
+    hiddenPlayers?: string[]
+  ): string {
     let description = colorize(this.name, 'cyan') + '\r\n';
 
     if (includeLongDesc) {
@@ -423,13 +427,13 @@ export class Room {
     }
 
     // Add the common parts
-    description += this.getFormattedCommonDescription(excludePlayer);
+    description += this.getFormattedCommonDescription(excludePlayer, hiddenPlayers);
 
     return description;
   }
 
   // Centralized method for common description formatting
-  private getFormattedCommonDescription(excludePlayer?: string): string {
+  private getFormattedCommonDescription(excludePlayer?: string, hiddenPlayers?: string[]): string {
     let description = '';
 
     // Add currency description if there's any
@@ -548,7 +552,11 @@ export class Room {
     // Add players and NPCs
     let players = this.players;
     if (excludePlayer) {
-      players = this.players.filter((player) => player !== excludePlayer);
+      players = players.filter((player) => player !== excludePlayer);
+    }
+    // Filter out hidden players
+    if (hiddenPlayers && hiddenPlayers.length > 0) {
+      players = players.filter((player) => !hiddenPlayers.includes(player));
     }
 
     const entities = [
