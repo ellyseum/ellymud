@@ -62,6 +62,7 @@ export function WorldBuilderPanel() {
     originalDirection: string;
     direction: string;
     targetRoomId: string;
+    isNew?: boolean; // true when adding a new exit
   } | null>(null);
   
   // Auto mode state - when enabled, new rooms auto-link to selected room
@@ -848,44 +849,84 @@ export function WorldBuilderPanel() {
       roomId,
       originalDirection: exit.direction,
       direction: exit.direction,
-      targetRoomId: exit.roomId
+      targetRoomId: exit.roomId,
+      isNew: false
     });
     setShowExitEditorModal(true);
   }, []);
 
-  // Save edited exit
+  // Open exit editor for creating a new exit
+  const openNewExitEditor = useCallback((roomId: string) => {
+    // Find a direction that isn't already used
+    const room = allRooms.find(r => r.id === roomId);
+    const usedDirections = new Set(room?.exits?.map(e => e.direction) || []);
+    const directions = ['north', 'south', 'east', 'west', 'northeast', 'northwest', 'southeast', 'southwest', 'up', 'down'];
+    const availableDirection = directions.find(d => !usedDirections.has(d)) || 'north';
+
+    // Find a default target room (first room in any area that isn't this room)
+    const defaultTarget = allRooms.find(r => r.id !== roomId);
+
+    setEditingExit({
+      roomId,
+      originalDirection: '', // Empty means new exit
+      direction: availableDirection,
+      targetRoomId: defaultTarget?.id || '',
+      isNew: true
+    });
+    setShowExitEditorModal(true);
+  }, [allRooms]);
+
+  // Save edited exit (or create new exit)
   const handleSaveExit = useCallback(async () => {
     if (!editingExit) return;
-    
+
     try {
       const room = allRooms.find(r => r.id === editingExit.roomId);
       if (!room) {
         setError('Room not found');
         return;
       }
-      
+
+      if (!editingExit.targetRoomId) {
+        setError('Please select a target room');
+        return;
+      }
+
       // Store old exits for undo
       const oldExits = room.exits || [];
-      
-      // Update the exit in the room's exits array
-      const updatedExits = room.exits?.map(exit => 
-        exit.direction === editingExit.originalDirection && exit.roomId === editingExit.targetRoomId
-          ? { direction: editingExit.direction, roomId: editingExit.targetRoomId }
-          : exit
-      ) || [];
-      
+
+      let updatedExits: typeof oldExits;
+
+      if (editingExit.isNew) {
+        // Check if exit in this direction already exists
+        const existingExit = oldExits.find(e => e.direction === editingExit.direction);
+        if (existingExit) {
+          setError(`An exit to the ${editingExit.direction} already exists`);
+          return;
+        }
+        // Add new exit
+        updatedExits = [...oldExits, { direction: editingExit.direction, roomId: editingExit.targetRoomId }];
+      } else {
+        // Update existing exit
+        updatedExits = room.exits?.map(exit =>
+          exit.direction === editingExit.originalDirection
+            ? { direction: editingExit.direction, roomId: editingExit.targetRoomId }
+            : exit
+        ) || [];
+      }
+
       await api.updateRoom(editingExit.roomId, { exits: updatedExits });
-      
+
       // Push to undo history
       pushHistory({
-        type: 'UPDATE_EXIT',
+        type: editingExit.isNew ? 'UPDATE_EXIT' : 'UPDATE_EXIT', // Could add CREATE_EXIT type
         roomId: editingExit.roomId,
         oldExits,
         newExits: updatedExits
       });
-      
+
       const updatedRoom = { ...room, exits: updatedExits };
-      
+
       // Update local state
       setAllRooms(prev => prev.map(r => r.id === editingExit.roomId ? updatedRoom : r));
       if (selectedArea) {
@@ -897,7 +938,7 @@ export function WorldBuilderPanel() {
       if (selectedRoom?.id === editingExit.roomId) {
         setSelectedRoom(updatedRoom);
       }
-      
+
       setShowExitEditorModal(false);
       setEditingExit(null);
     } catch (err) {
@@ -1172,19 +1213,28 @@ export function WorldBuilderPanel() {
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Exits</label>
+                    <label className="form-label d-flex justify-content-between align-items-center">
+                      <span>Exits</span>
+                      <button
+                        className="btn btn-sm btn-outline-success py-0 px-2"
+                        onClick={() => openNewExitEditor(selectedRoom.id)}
+                        title="Add new exit (supports cross-area links)"
+                      >
+                        <i className="bi bi-plus-lg"></i>
+                      </button>
+                    </label>
                     <div className="d-flex flex-wrap gap-1">
-                      {selectedRoom.exits?.map((exit, idx) => (
+                      {selectedRoom.exits?.length ? selectedRoom.exits.map((exit, idx) => (
                         <button
                           key={idx}
-                          className="badge bg-secondary border-0"
+                          className={`badge border-0 ${exit.roomId.includes(':') ? 'bg-info' : 'bg-secondary'}`}
                           style={{ cursor: 'pointer' }}
                           onClick={() => openExitEditor(selectedRoom.id, exit)}
-                          title="Click to edit exit"
+                          title={exit.roomId.includes(':') ? 'Cross-area link - click to edit' : 'Click to edit exit'}
                         >
-                          {exit.direction} → {exit.roomId}
+                          {exit.direction} → {exit.roomId.includes(':') ? `[${exit.roomId}]` : exit.roomId}
                         </button>
-                      )) || <span className="text-muted">No exits</span>}
+                      )) : <span className="text-muted">No exits</span>}
                     </div>
                   </div>
                   <div className="d-grid gap-2">
@@ -1539,12 +1589,12 @@ export function WorldBuilderPanel() {
             <div className="modal-content bg-dark text-white">
               <div className="modal-header border-secondary">
                 <h5 className="modal-title">
-                  <i className="bi bi-pencil me-2"></i>
-                  Edit Exit
+                  <i className={`bi ${editingExit.isNew ? 'bi-plus-lg' : 'bi-pencil'} me-2`}></i>
+                  {editingExit.isNew ? 'Add Exit' : 'Edit Exit'}
                 </h5>
-                <button 
-                  type="button" 
-                  className="btn-close btn-close-white" 
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
                   onClick={() => { setShowExitEditorModal(false); setEditingExit(null); }}
                 ></button>
               </div>
@@ -1552,7 +1602,7 @@ export function WorldBuilderPanel() {
                 <div className="alert alert-info py-2 mb-3">
                   <small>
                     <i className="bi bi-info-circle me-1"></i>
-                    Exit from: <strong>{allRooms.find(r => r.id === editingExit.roomId)?.name || editingExit.roomId}</strong>
+                    {editingExit.isNew ? 'Adding exit from' : 'Exit from'}: <strong>{allRooms.find(r => r.id === editingExit.roomId)?.name || editingExit.roomId}</strong>
                   </small>
                 </div>
                 <div className="mb-3">
@@ -1581,38 +1631,87 @@ export function WorldBuilderPanel() {
                     value={editingExit.targetRoomId}
                     onChange={(e) => setEditingExit(prev => prev ? { ...prev, targetRoomId: e.target.value } : null)}
                   >
-                    {allRooms.map(room => (
-                      <option key={room.id} value={room.id}>
-                        {room.name || room.id} ({room.id})
-                      </option>
-                    ))}
+                    {/* Group rooms by area for easier cross-area linking */}
+                    {(() => {
+                      // Get the current room's area
+                      const currentRoom = allRooms.find(r => r.id === editingExit.roomId);
+                      const currentAreaId = currentRoom?.areaId;
+
+                      // Group rooms by area
+                      const roomsByArea = new Map<string, RoomData[]>();
+                      allRooms.forEach(room => {
+                        const areaId = room.areaId || 'no-area';
+                        if (!roomsByArea.has(areaId)) {
+                          roomsByArea.set(areaId, []);
+                        }
+                        roomsByArea.get(areaId)!.push(room);
+                      });
+
+                      // Sort areas: current area first, then alphabetically
+                      const sortedAreas = Array.from(roomsByArea.keys()).sort((a, b) => {
+                        if (a === currentAreaId) return -1;
+                        if (b === currentAreaId) return 1;
+                        return a.localeCompare(b);
+                      });
+
+                      return sortedAreas.map(areaId => {
+                        const areaRooms = roomsByArea.get(areaId)!;
+                        const areaName = areas.find(a => a.id === areaId)?.name || areaId;
+                        const isCrossArea = areaId !== currentAreaId;
+
+                        return (
+                          <optgroup key={areaId} label={`${areaName}${isCrossArea ? ' (cross-area)' : ' (current)'}`}>
+                            {areaRooms.map(room => {
+                              // Use qualified ID for cross-area links
+                              const roomValue = isCrossArea && room.areaId
+                                ? `${room.areaId}:${room.id}`
+                                : room.id;
+                              return (
+                                <option key={room.id} value={roomValue}>
+                                  {room.name || room.id} ({room.id})
+                                </option>
+                              );
+                            })}
+                          </optgroup>
+                        );
+                      });
+                    })()}
                   </select>
+                  {editingExit.targetRoomId.includes(':') && (
+                    <small className="text-info mt-1 d-block">
+                      <i className="bi bi-link-45deg me-1"></i>
+                      Cross-area link: {editingExit.targetRoomId}
+                    </small>
+                  )}
                 </div>
               </div>
-              <div className="modal-footer border-secondary d-flex justify-content-between">
-                <button 
-                  type="button" 
-                  className="btn btn-danger"
-                  onClick={handleDeleteExit}
-                >
-                  <i className="bi bi-trash me-1"></i>
-                  Delete Exit
-                </button>
+              <div className={`modal-footer border-secondary d-flex ${editingExit.isNew ? 'justify-content-end' : 'justify-content-between'}`}>
+                {!editingExit.isNew && (
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={handleDeleteExit}
+                  >
+                    <i className="bi bi-trash me-1"></i>
+                    Delete Exit
+                  </button>
+                )}
                 <div>
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary me-2" 
+                  <button
+                    type="button"
+                    className="btn btn-secondary me-2"
                     onClick={() => { setShowExitEditorModal(false); setEditingExit(null); }}
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn btn-primary"
                     onClick={handleSaveExit}
+                    disabled={!editingExit.targetRoomId}
                   >
-                    <i className="bi bi-floppy me-1"></i>
-                    Save Changes
+                    <i className={`bi ${editingExit.isNew ? 'bi-plus-lg' : 'bi-floppy'} me-1`}></i>
+                    {editingExit.isNew ? 'Add Exit' : 'Save Changes'}
                   </button>
                 </div>
               </div>
