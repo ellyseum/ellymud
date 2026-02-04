@@ -12,6 +12,20 @@ import { join } from 'path';
 import { systemLogger, mcpLogger } from '../utils/logger';
 import { VirtualSessionManager } from './virtualSessionManager';
 import { getMUDConfigRepository } from '../persistence/RepositoryFactory';
+import { TEST_MODE } from '../config';
+
+/**
+ * Commands that are only allowed in test mode (--testMode or NODE_ENV=test).
+ * These commands can modify or destroy game state and should never run against production data.
+ */
+const TEST_ONLY_COMMANDS = new Set([
+  'load_test_snapshot',
+  'save_test_snapshot',
+  'reset_game_state',
+  'advance_game_ticks',
+  'set_player_stats',
+  'direct_login',
+]);
 
 // MCP protocol types
 interface MCPToolCallParams {
@@ -154,6 +168,24 @@ export class MCPServer {
         });
       }
 
+      next();
+    });
+
+    // Block test-only REST endpoints when not in test mode
+    this.app.use((req, res, next) => {
+      // Allow read-only test endpoints (tick-count, snapshots list)
+      const readOnlyTestPaths = ['/api/test/tick-count', '/api/test/snapshots'];
+      if (
+        req.path.startsWith('/api/test/') &&
+        !readOnlyTestPaths.includes(req.path) &&
+        !TEST_MODE
+      ) {
+        mcpLogger.warn(`Blocked test endpoint '${req.path}' - server not in test mode`);
+        return res.status(403).json({
+          success: false,
+          error: `Test endpoints require test mode. Start server with --testMode or NODE_ENV=test.`,
+        });
+      }
       next();
     });
 
@@ -1640,6 +1672,19 @@ export class MCPServer {
     const { name, arguments: args } = params;
     // Cast args to Record for accessing properties by key
     const toolArgs = args as Record<string, string | number | boolean | undefined>;
+
+    // Block test-only commands when not in test mode
+    if (TEST_ONLY_COMMANDS.has(name) && !TEST_MODE) {
+      mcpLogger.warn(`Blocked test-only command '${name}' - server not in test mode`);
+      return res.json({
+        jsonrpc: '2.0',
+        id,
+        error: {
+          code: -32600,
+          message: `Command '${name}' requires test mode. Start server with --testMode or NODE_ENV=test to use this command.`,
+        },
+      });
+    }
 
     try {
       let result;

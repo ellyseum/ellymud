@@ -4,6 +4,43 @@ import fs from 'fs';
 import path from 'path';
 import { parseAndValidateJson } from '../utils/jsonUtils';
 
+/**
+ * Bootstrap test data directory with fresh snapshot data.
+ * Copies essential data files from the fresh snapshot into the isolated test directory.
+ * Only copies files that don't already exist to allow tests to pre-populate data.
+ */
+function bootstrapTestData(testDataDir: string, baseDataDir: string): void {
+  const freshSnapshotDir = path.join(baseDataDir, 'test-snapshots', 'fresh');
+
+  // Files to copy from fresh snapshot
+  const snapshotFiles = ['users.json', 'rooms.json', 'items.json', 'npcs.json'];
+
+  // Also copy essential non-snapshot files from base data dir
+  const baseDataFiles = ['mud-config.json'];
+
+  // Copy fresh snapshot files
+  for (const file of snapshotFiles) {
+    const srcPath = path.join(freshSnapshotDir, file);
+    const destPath = path.join(testDataDir, file);
+
+    // Only copy if source exists and destination doesn't
+    if (fs.existsSync(srcPath) && !fs.existsSync(destPath)) {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+
+  // Copy base data files (config, etc.)
+  for (const file of baseDataFiles) {
+    const srcPath = path.join(baseDataDir, file);
+    const destPath = path.join(testDataDir, file);
+
+    // Only copy if source exists and destination doesn't
+    if (fs.existsSync(srcPath) && !fs.existsSync(destPath)) {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
 // Define the configuration interface
 export interface CLIConfig {
   // Session flags
@@ -203,19 +240,28 @@ export function parseCommandLineArgs(): CLIConfig {
     .alias('help', 'h')
     .parseSync();
 
+  // Determine if we're in test mode
+  const isTestMode = argv.testMode || process.env.NODE_ENV === 'test';
+
+  // In test mode, use isolated data directory unless explicitly overridden
+  // Each test run gets a unique directory based on process ID to allow parallel tests
+  const effectiveDataDir =
+    isTestMode && argv.dataDir === defaultDataDir
+      ? path.join(defaultDataDir, `.test-runtime-${process.pid}`)
+      : argv.dataDir;
+
   // Set default file paths if not provided
   const config: CLIConfig = {
     adminSession: argv.adminSession,
     userSession: argv.userSession,
     forceSession: argv.forceSession || null, // Add forced user session option
-    force: argv.force, // Add force flag
     disableRemoteAdmin: argv.disableRemoteAdmin,
-    dataDir: argv.dataDir,
-    roomsFile: argv.roomsFile || path.join(argv.dataDir, 'rooms.json'),
-    usersFile: argv.usersFile || path.join(argv.dataDir, 'users.json'),
-    itemsFile: argv.itemsFile || path.join(argv.dataDir, 'items.json'),
-    npcsFile: argv.npcsFile || path.join(argv.dataDir, 'npcs.json'),
-    mudConfigFile: argv.mudConfigFile || path.join(argv.dataDir, 'mud-config.json'),
+    dataDir: effectiveDataDir,
+    roomsFile: argv.roomsFile || path.join(effectiveDataDir, 'rooms.json'),
+    usersFile: argv.usersFile || path.join(effectiveDataDir, 'users.json'),
+    itemsFile: argv.itemsFile || path.join(effectiveDataDir, 'items.json'),
+    npcsFile: argv.npcsFile || path.join(effectiveDataDir, 'npcs.json'),
+    mudConfigFile: argv.mudConfigFile || path.join(effectiveDataDir, 'mud-config.json'),
     rooms: argv.rooms || null,
     users: argv.users || null,
     items: argv.items || null,
@@ -224,13 +270,23 @@ export function parseCommandLineArgs(): CLIConfig {
     wsPort: argv.wsPort,
     httpPort: argv.httpPort || null,
     logLevel: argv.logLevel,
-    noColor: argv.noColor,
-    // Auto-enable silent and noConsole if an auto-session is requested
-    silent: argv.silent || argv.adminSession || argv.userSession || Boolean(argv.forceSession),
+    noColor: argv.noColor || isTestMode, // Auto-disable colors in test mode
+    // Auto-enable silent and noConsole if an auto-session is requested OR in test mode
+    silent:
+      argv.silent ||
+      argv.adminSession ||
+      argv.userSession ||
+      Boolean(argv.forceSession) ||
+      isTestMode,
     noConsole:
-      argv.noConsole || argv.adminSession || argv.userSession || Boolean(argv.forceSession),
+      argv.noConsole ||
+      argv.adminSession ||
+      argv.userSession ||
+      Boolean(argv.forceSession) ||
+      isTestMode,
     debug: argv.debug, // Updated to use the debug flag from command line arguments
-    testMode: argv.testMode, // Test mode flag
+    testMode: isTestMode, // Test mode flag (--testMode or NODE_ENV=test)
+    force: argv.force || isTestMode, // Auto-force in test mode (skip admin prompts)
     useRedis: argv.redis, // Use Redis for session storage
     storageBackend: argv.storageBackend as 'json' | 'sqlite' | 'postgres' | 'auto', // Storage backend
     databaseUrl: argv.databaseUrl || null, // Database connection URL
@@ -239,6 +295,11 @@ export function parseCommandLineArgs(): CLIConfig {
   // Ensure data directory exists
   if (!fs.existsSync(config.dataDir)) {
     fs.mkdirSync(config.dataDir, { recursive: true });
+  }
+
+  // In test mode, bootstrap the isolated data directory with fresh snapshot data
+  if (isTestMode && config.dataDir !== defaultDataDir) {
+    bootstrapTestData(config.dataDir, defaultDataDir);
   }
 
   return config;

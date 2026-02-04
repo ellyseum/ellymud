@@ -44,23 +44,43 @@ You are an **end-to-end testing agent** for the EllyMUD MUD game. Your purpose i
 
 ## Server Startup
 
-If the MCP server is not running (tools return connection errors), start the server in the background with these flags:
+If the MCP server is not running (tools return connection errors), start the server in the background.
+
+### Recommended: Use `--testMode` Flag
 
 ```bash
-cd /home/jocel/projects/ellymud && npm start -- --silent --noConsole --force &
+cd /home/jocel/projects/ellymud && npm start -- --testMode
 ```
 
-**Flags explained:**
-| Flag | Alias | Description |
-|------|-------|-------------|
-| `--silent` | `-s` | Suppress all console logging output |
-| `--noConsole` | `-c` | Disable interactive console commands and help messages |
-| `--force` | `-f` | Force create admin user with default password (skips prompts) |
+The `--testMode` flag automatically enables all test-appropriate flags:
+| Auto-Enabled | Description |
+|--------------|-------------|
+| `--silent` | Suppress all console logging output |
+| `--noConsole` | Disable interactive keyboard menu |
+| `--noColor` | Disable ANSI colors for cleaner logs |
+| `--force` | Skip admin password prompts |
 
-**Why these flags:**
-- `--silent`: Prevents log spam in terminal during automated tests
-- `--noConsole`: Disables the interactive keyboard menu (l/a/u/m/s/q/h) that would block background execution
-- `--force`: Auto-creates admin user without interactive password prompts
+**Additionally, `--testMode`:**
+- Uses isolated data directory: `data/.test-runtime-{pid}/`
+- Bootstraps with fresh snapshot data (empty users, clean rooms)
+- Enables state-clobbering MCP commands (`reset_game_state`, `load_test_snapshot`, etc.)
+- Each test process gets its own data directory (supports parallel tests)
+
+### Backgrounding the Server
+
+**⚠️ IMPORTANT:** Use Claude's `run_in_background` parameter instead of shell `&`:
+
+```
+✅ CORRECT: run_in_terminal with run_in_background=true
+   - Claude tracks the background process
+   - Use TaskOutput to check status
+   - Process appears in /tasks list
+
+❌ AVOID: Shell backgrounding with &
+   - Requires manual PID tracking
+   - Must use kill explicitly
+   - Not tracked by Claude's task system
+```
 
 **Wait for startup:** After starting, wait 3-5 seconds for the server to initialize before calling MCP tools.
 
@@ -454,8 +474,13 @@ These commands are sent via `virtual_session_command`. Commands are case-insensi
 
 ### 1. Always Start Clean
 
+**If server was started with `--testMode`:**
+- Data is already isolated in `data/.test-runtime-{pid}/`
+- Fresh snapshot data is auto-bootstrapped
+- Safe to modify state without affecting production data
+
 ```
-1. reset_game_state()           # Clean slate
+1. reset_game_state()           # Clean slate (optional if freshly started)
 2. set_test_mode(enabled=true)  # Pause timer for deterministic tests
 3. direct_login(username="...")  # Create test user
 ```
@@ -515,6 +540,27 @@ For testing regeneration, cooldowns, or other time-based mechanics:
 2. virtual_session_close(sessionId)  # Close session
 3. (Optional) reset_game_state()     # Reset for next test
 ```
+
+**Note:** If server was started with `--testMode`, all data changes are in the isolated `data/.test-runtime-{pid}/` directory. This directory is gitignored and can be safely deleted. Production data in `data/` is never touched.
+
+### 6b. Data Isolation (Test Mode)
+
+When the server runs with `--testMode`:
+
+| Aspect | Test Mode | Production Mode |
+|--------|-----------|-----------------|
+| Data directory | `data/.test-runtime-{pid}/` | `data/` |
+| Users file | Isolated copy | Real users |
+| State-clobbering commands | Allowed | **Blocked** |
+| Parallel test support | ✅ (unique PIDs) | N/A |
+
+**Blocked commands outside test mode:**
+- `reset_game_state` - Would wipe production data
+- `load_test_snapshot` - Would overwrite production state
+- `save_test_snapshot` - Could expose production data
+- `advance_game_ticks` - Would manipulate production time
+- `set_player_stats` - Would modify real players
+- `direct_login` - For test scenarios only
 
 ### 7. Multi-User Testing
 

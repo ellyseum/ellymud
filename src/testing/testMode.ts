@@ -3,6 +3,11 @@
  * @module testing/testMode
  */
 
+import * as path from 'path';
+
+/** Default isolated data directory for tests */
+export const TEST_DATA_DIR = path.join(__dirname, '..', '..', 'data', '.test-runtime');
+
 /**
  * Generate a random port in the high range (49152-65535)
  * This range is designated for dynamic/private ports
@@ -66,6 +71,12 @@ export interface TestModeOptions {
    * Whether to disable interactive console. Defaults to true in test mode.
    */
   noConsole?: boolean;
+
+  /**
+   * Data directory for test mode. Defaults to data/.test-runtime/
+   * This isolates test data from production data.
+   */
+  dataDir?: string;
 }
 
 /**
@@ -84,5 +95,6 @@ export function getDefaultTestModeOptions(): Required<TestModeOptions> {
     silent: true,
     noColor: true,
     noConsole: true,
+    dataDir: TEST_DATA_DIR,
   };
 }

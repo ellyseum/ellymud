@@ -73,6 +73,9 @@ Thumbs.db
 coverage/
 .nyc_output/
 
+# Test runtime data (isolated per test run, auto-generated)
+data/.test-runtime-*/
+
 # Temporary files
 tmp/
 temp/
