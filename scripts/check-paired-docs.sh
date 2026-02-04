@@ -105,7 +105,8 @@ build_gitignore_patterns() {
     local patterns=""
     
     # Always exclude these standard directories
-    patterns='^\./node_modules($|/)|^\./dist($|/)|^\./\.git($|/)|^\./logs($|/)|^\./backups($|/)|^\./coverage($|/)|^\./\.husky/_|/results($|/)'
+    # Also exclude test runtime directories (data/.test-runtime-*/)
+    patterns='^\./node_modules($|/)|^\./dist($|/)|^\./\.git($|/)|^\./logs($|/)|^\./backups($|/)|^\./coverage($|/)|^\./\.husky/_|/results($|/)|\.test-runtime-[0-9]+($|/)'
     
     # Read additional patterns from .gitignore if it exists
     if [ -f ".gitignore" ]; then
