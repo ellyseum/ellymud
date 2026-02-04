@@ -128,8 +128,8 @@ export class MapCommand implements Command {
     // Track if we have any cross-area exits for the legend
     let hasCrossAreaExits = false;
 
-    // Render grid (Y increases going down in terminal)
-    for (let y = minY; y <= maxY; y++) {
+    // Render grid (iterate from maxY to minY so north appears at top)
+    for (let y = maxY; y >= minY; y--) {
       // Each row is 3 lines tall for connections
       const topLine: string[] = [];
       const midLine: string[] = [];
