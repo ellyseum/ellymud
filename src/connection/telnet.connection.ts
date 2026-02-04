@@ -7,7 +7,7 @@ import { getSessionLogger, closeSessionLogger } from '../utils/rawSessionLogger'
 // Telnet control codes
 const IAC = 255; // Interpret As Command
 const WILL = 251;
-// const WONT = 252; // Unused but kept for reference
+const WONT = 252;
 const DO = 253;
 const DONT = 254;
 const SB = 250; // Subnegotiation Begin
@@ -108,15 +108,27 @@ export class TelnetConnection extends EventEmitter implements IConnection<Socket
         // Debug telnet commands
         // console.log('TELNET CMD:', data[i], data[i+1], data[i+2]);
 
-        // Skip the telnet command sequence (at least IAC + command code)
-        i += 2;
-        // If it's a subnegotiation, skip until the end (IAC SE)
-        if (i < data.length && data[i - 1] === SB) {
-          while (i < data.length && !(data[i - 1] === IAC && data[i] === SE)) {
+        const cmd = data[i + 1];
+
+        // Handle subnegotiation (IAC SB ... IAC SE)
+        if (cmd === SB) {
+          i += 2; // Skip IAC SB
+          // Skip until we find IAC SE
+          while (i < data.length - 1 && !(data[i] === IAC && data[i + 1] === SE)) {
             i++;
           }
-          i++;
+          i += 2; // Skip IAC SE
+          continue;
         }
+
+        // WILL, WONT, DO, DONT are 3 bytes: IAC + command + option
+        if (cmd === WILL || cmd === WONT || cmd === DO || cmd === DONT) {
+          i += 3;
+          continue;
+        }
+
+        // Other IAC commands are 2 bytes
+        i += 2;
         continue;
       }
 
