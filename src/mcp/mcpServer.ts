@@ -149,10 +149,23 @@ export class MCPServer {
       const apiKey = req.headers['x-api-key'] as string;
       const expectedApiKey = process.env.ELLYMUD_MCP_API_KEY;
 
-      // If no API key is configured, allow all requests (backward compatibility)
+      // If no API key is configured in production, reject all requests
       if (!expectedApiKey) {
-        mcpLogger.warn('ELLYMUD_MCP_API_KEY not set - server is running without authentication');
-        return next();
+        if (TEST_MODE) {
+          // Allow unauthenticated access in test mode for E2E testing
+          return next();
+        }
+        // In production, API key is required - reject the request
+        mcpLogger.error('ELLYMUD_MCP_API_KEY not set - rejecting unauthenticated request');
+        return res.status(503).json({
+          jsonrpc: '2.0',
+          error: {
+            code: -32002,
+            message:
+              'MCP server not configured - ELLYMUD_MCP_API_KEY environment variable is required',
+          },
+          id: null,
+        });
       }
 
       // Validate API key

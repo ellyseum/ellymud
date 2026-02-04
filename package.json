@@ -58,6 +58,7 @@
     "data:backup": "npx ts-node scripts/data-migrate.ts backup",
     "data:switch": "npx ts-node scripts/data-migrate.ts switch",
     "convert": "ts-node scripts/convert-data.ts",
+    "audit:data": "npx ts-node scripts/audit-data.ts",
     "convert:dry-run": "ts-node scripts/convert-data.ts --dry-run",
     "artifact:list": "./scripts/pipeline-artifacts-list.sh",
     "artifact:push": "./scripts/sync-to-hub.sh",

@@ -48,7 +48,32 @@
       "dangerLevel": 0,
       "xpMultiplier": 1.0
     },
-    "spawnConfig": [],
+    "spawnConfig": [
+      {
+        "npcTemplateId": "village-elder-millbrook",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["millbrook-village-square"]
+      },
+      {
+        "npcTemplateId": "millbrook-shopkeeper",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["millbrook-general-store"]
+      },
+      {
+        "npcTemplateId": "millbrook-innkeeper",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["millbrook-tavern"]
+      },
+      {
+        "npcTemplateId": "shrine-priestess",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["millbrook-shrine"]
+      }
+    ],
     "defaultRoomFlags": ["safe"],
     "created": "2026-02-04T00:00:00.000Z",
     "modified": "2026-02-04T00:00:00.000Z"
@@ -96,7 +121,86 @@
       "dangerLevel": 0,
       "xpMultiplier": 1.0
     },
-    "spawnConfig": [],
+    "spawnConfig": [
+      {
+        "npcTemplateId": "town-guard",
+        "maxInstances": 4,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-north-gate", "thornwood-south-gate"]
+      },
+      {
+        "npcTemplateId": "thornwood-merchant",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-market-square"]
+      },
+      {
+        "npcTemplateId": "banker_1",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-market-square"]
+      },
+      {
+        "npcTemplateId": "thornwood-blacksmith",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-blacksmith"]
+      },
+      {
+        "npcTemplateId": "thornwood-supplier",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-general-goods"]
+      },
+      {
+        "npcTemplateId": "thornwood-mayor",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-town-hall"]
+      },
+      {
+        "npcTemplateId": "fighter_trainer",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-training-hall"]
+      },
+      {
+        "npcTemplateId": "trainer_1",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-training-hall"]
+      },
+      {
+        "npcTemplateId": "thornwood-armorer",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-armor-shop"]
+      },
+      {
+        "npcTemplateId": "healer_trainer",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-temple"]
+      },
+      {
+        "npcTemplateId": "thornwood-innkeeper",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-tavern"]
+      },
+      {
+        "npcTemplateId": "mage_trainer",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-mage-tower"]
+      },
+      {
+        "npcTemplateId": "thornwood-magic-vendor",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-mage-tower"]
+      }
+    ],
     "defaultRoomFlags": ["safe"],
     "created": "2026-02-04T00:00:00.000Z",
     "modified": "2026-02-04T00:00:00.000Z"
@@ -124,6 +228,12 @@
         "respawnTicks": 60
       },
       {
+        "npcTemplateId": "giant-thornwood-spider",
+        "maxInstances": 1,
+        "respawnTicks": 180,
+        "spawnRooms": ["forest-spider-nest"]
+      },
+      {
         "npcTemplateId": "brown-bear",
         "maxInstances": 2,
         "respawnTicks": 90
@@ -132,6 +242,12 @@
         "npcTemplateId": "forest-bandit",
         "maxInstances": 3,
         "respawnTicks": 75
+      },
+      {
+        "npcTemplateId": "bandit-leader",
+        "maxInstances": 1,
+        "respawnTicks": 180,
+        "spawnRooms": ["forest-bandit-camp"]
       }
     ],
     "defaultRoomFlags": [],
@@ -169,6 +285,12 @@
         "npcTemplateId": "cave-troll",
         "maxInstances": 1,
         "respawnTicks": 180
+      },
+      {
+        "npcTemplateId": "goblin-chieftain",
+        "maxInstances": 1,
+        "respawnTicks": 300,
+        "spawnRooms": ["goblin-chieftain-throne"]
       }
     ],
     "defaultRoomFlags": [],
@@ -206,6 +328,12 @@
         "npcTemplateId": "drowned-knight",
         "maxInstances": 2,
         "respawnTicks": 150
+      },
+      {
+        "npcTemplateId": "marsh-lord",
+        "maxInstances": 1,
+        "respawnTicks": 600,
+        "spawnRooms": ["marsh-sunken-temple"]
       }
     ],
     "defaultRoomFlags": [],
