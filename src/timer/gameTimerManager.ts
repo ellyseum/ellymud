@@ -72,8 +72,10 @@ export class GameTimerManager extends EventEmitter {
       // Keep default config
     }
 
-    // Initialize spawn manager
+    // Initialize spawn manager (requires AreaManager to be initialized first)
     try {
+      const areaManager = AreaManager.getInstance();
+      await areaManager.initialize();
       await this.spawnManager.initialize();
       timerLogger.debug('SpawnManager initialized');
     } catch (error) {

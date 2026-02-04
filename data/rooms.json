@@ -125,7 +125,7 @@
     "description": "A clear stream meanders through the edge of the village, its waters babbling softly over smooth stones. A simple wooden footbridge spans the stream, connecting the village to the meadows beyond. Willows lean over the banks, their trailing branches dipping into the water. Children often play here in summer, and the village women come to wash clothes on the flat rocks. The stream continues south, eventually feeding into the marshlands beyond the forest.",
     "exits": [
       { "direction": "east", "roomId": "millbrook-south-road" },
-      { "direction": "west", "roomId": "outskirts-meadow" }
+      { "direction": "south", "roomId": "outskirts-meadow" }
     ],
     "flags": ["safe"],
     "areaId": "millbrook-village",
