@@ -86,7 +86,8 @@ describe('SignupState', () => {
 
       signupState.enter(client);
 
-      expect(mockWriteToClient).toHaveBeenCalledWith(client, expect.stringContaining('username'));
+      // The enhanced sign-on experience uses "Choose your name:" instead of "username"
+      expect(mockWriteToClient).toHaveBeenCalledWith(client, expect.stringContaining('name'));
     });
 
     it('should prompt for password when username is set', () => {

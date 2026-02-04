@@ -45,7 +45,8 @@ describe('ConnectingState', () => {
       connectingState.enter(client);
 
       expect(mockWriteToClient).toHaveBeenCalled();
-      expect(mockWriteToClient.mock.calls.length).toBeGreaterThanOrEqual(4);
+      // The enter method writes: clear screen, ASCII art banner, welcome text
+      expect(mockWriteToClient.mock.calls.length).toBe(3);
     });
 
     it('should clear the screen first', () => {
