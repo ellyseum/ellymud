@@ -5,8 +5,9 @@
 
 import { CLIConfig } from './cliConfig';
 
-// Store original argv
+// Store original argv and NODE_ENV
 const originalArgv = process.argv;
+const originalNodeEnv = process.env.NODE_ENV;
 
 // Mock fs
 jest.mock('fs', () => ({
@@ -25,10 +26,13 @@ describe('cliConfig', () => {
   beforeEach(() => {
     jest.resetModules();
     process.argv = ['node', 'server.js'];
+    // Clear NODE_ENV to test non-test-mode defaults
+    delete process.env.NODE_ENV;
   });
 
   afterEach(() => {
     process.argv = originalArgv;
+    process.env.NODE_ENV = originalNodeEnv;
   });
 
   describe('parseCommandLineArgs', () => {
