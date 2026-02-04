@@ -351,29 +351,77 @@ export class AuthenticatedState implements ClientState {
   private drawBanner(client: ConnectedClient): void {
     if (!client.user) return;
 
-    // Create a horizontal line
-    const line = '========================================';
+    const user = client.user;
+    const className = user.classId || 'adventurer';
+    const raceName = user.raceId || 'unknown';
 
-    writeToClient(client, `${line}\r\n`);
+    writeToClient(client, '\r\n');
     writeToClient(
       client,
-      colorize(`Welcome, ${formatUsername(client.user.username)}!\r\n`, 'green')
+      colorize('    ═══════════════════════════════════════════════════════\r\n', 'cyan')
     );
     writeToClient(
       client,
-      colorize(
-        `Health: ${client.user.health}/${client.user.maxHealth} | XP: ${client.user.experience} | Level: ${client.user.level}\r\n`,
-        'bright'
-      )
+      colorize('      Welcome back, ', 'white') +
+        colorize(formatUsername(user.username), 'yellow') +
+        colorize('!\r\n', 'white')
+    );
+    writeToClient(
+      client,
+      colorize('    ═══════════════════════════════════════════════════════\r\n', 'cyan')
+    );
+    writeToClient(client, '\r\n');
+
+    // Format race and class names nicely
+    const raceDisplay = raceName.charAt(0).toUpperCase() + raceName.slice(1);
+    const classDisplay = className.charAt(0).toUpperCase() + className.slice(1).replace(/_/g, ' ');
+    const gold = user.inventory?.currency?.gold ?? 0;
+
+    // Character quick stats
+    writeToClient(
+      client,
+      colorize('    ', 'white') +
+        colorize(`${raceDisplay} ${classDisplay}`, 'green') +
+        colorize(' | ', 'gray') +
+        colorize(`Level ${user.level}`, 'yellow') +
+        colorize(' | ', 'gray') +
+        colorize(`${user.experience} XP`, 'cyan') +
+        '\r\n'
+    );
+    writeToClient(
+      client,
+      colorize('    HP: ', 'white') +
+        colorize(`${user.health}/${user.maxHealth}`, 'green') +
+        colorize(' | MP: ', 'white') +
+        colorize(`${user.mana ?? 0}/${user.maxMana ?? 0}`, 'blue') +
+        colorize(' | Gold: ', 'white') +
+        colorize(`${gold}`, 'yellow') +
+        '\r\n'
     );
 
-    // If this is a new session (not a transfer), show more info
+    writeToClient(client, '\r\n');
+
+    // If this is a new session (not a transfer), show helpful tips
     if (!client.stateData.isSessionTransfer) {
-      // Fix: use a valid color type instead of 'gray'
-      writeToClient(client, colorize(`Type "help" for a list of commands.\r\n`, 'dim'));
+      writeToClient(
+        client,
+        colorize('    Quick commands: ', 'gray') +
+          colorize('look', 'cyan') +
+          colorize(', ', 'gray') +
+          colorize('inventory', 'cyan') +
+          colorize(', ', 'gray') +
+          colorize('help', 'cyan') +
+          colorize(', ', 'gray') +
+          colorize('quest', 'cyan') +
+          '\r\n'
+      );
     }
 
-    writeToClient(client, `${line}\r\n`);
+    writeToClient(
+      client,
+      colorize('    ───────────────────────────────────────────────────────\r\n', 'gray')
+    );
+    writeToClient(client, '\r\n');
   }
 
   // Broadcast login notification to all authenticated users except the one logging in

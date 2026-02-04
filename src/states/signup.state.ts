@@ -16,18 +16,55 @@ export class SignupState implements ClientState {
     // Initialize default state values if needed
     client.stateData.maskInput = false;
 
+    // Show character creation header
+    writeToClient(client, '\r\n');
+    writeToClient(
+      client,
+      colorize('    ╔═══════════════════════════════════════════════════════╗\r\n', 'green')
+    );
+    writeToClient(
+      client,
+      colorize('    ║', 'green') +
+        colorize('              CHARACTER CREATION                       ', 'bright') +
+        colorize('║\r\n', 'green')
+    );
+    writeToClient(
+      client,
+      colorize('    ╚═══════════════════════════════════════════════════════╝\r\n', 'green')
+    );
+    writeToClient(client, '\r\n');
+
+    writeToClient(
+      client,
+      colorize('    A new hero emerges from the mists of destiny...\r\n\r\n', 'gray')
+    );
+
     // Check if we already have a username (came from login state)
     if (client.stateData.username) {
       // Show the username that will be used
       writeToClient(
         client,
-        colorize(`Username: ${formatUsername(client.stateData.username)}\r\n`, 'green')
+        colorize('    Your chosen name: ', 'cyan') +
+          colorize(formatUsername(client.stateData.username), 'yellow') +
+          '\r\n\r\n'
       );
       client.stateData.maskInput = true; // Enable password masking for next input
-      writeToClient(client, colorize('Create a password: ', 'green'));
+      writeToClient(
+        client,
+        colorize('    Now, whisper a secret word to protect your identity.\r\n', 'gray')
+      );
+      writeToClient(client, colorize('    Create a password: ', 'cyan'));
     } else {
       // No username yet, ask for one
-      writeToClient(client, colorize('Create a username: ', 'green'));
+      writeToClient(
+        client,
+        colorize('    What name shall echo through the halls of legend?\r\n', 'gray')
+      );
+      writeToClient(
+        client,
+        colorize('    (3-16 characters, letters and numbers only)\r\n\r\n', 'gray')
+      );
+      writeToClient(client, colorize('    Choose your name: ', 'cyan'));
     }
   }
 

@@ -1,0 +1,142 @@
+# Main Quest: Forest Menace
+# Investigation into the bandit problem
+
+id: forest_menace
+name: "The Forest Menace"
+description: "Investigate the bandit threat in Thornwood Forest."
+longDescription: |
+  Travelers and merchants have been disappearing on the roads
+  through Thornwood Forest. The town guard suspects bandits,
+  but they're stretched too thin to investigate. Mayor Thornwood
+  needs someone to look into the problem.
+category: main
+repeatable: false
+
+prerequisites:
+  level: 5
+  questFlags:
+    - recognized_by_thornwood
+
+steps:
+  - id: speak_mayor
+    name: "Report to the Mayor"
+    description: "Speak with Mayor Thornwood about the bandit problem."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thornwood-mayor
+        description: "Discuss the bandit threat"
+    npcDialogues:
+      thornwood-mayor:
+        greeting: "Ah, adventurer. I have a matter that requires someone of your... particular skills."
+        options:
+          - text: "What do you need?"
+            response: |
+              Bandits. They've been hitting caravans in the forest,
+              and my guards can't spare the men to hunt them down.
+              I need you to find their camp and deal with their
+              leader. Bring me proof of your success.
+            actions:
+              - action: setFlag
+                flag: bandit_hunt_started
+              - action: message
+                text: "Quest started: Find the bandit camp in Thornwood Forest."
+                color: yellow
+          - text: "Perhaps another time."
+            response: "Don't wait too long. People are dying out there."
+    onComplete:
+      - action: message
+        text: "Search the forest for signs of the bandit camp."
+        color: yellow
+
+  - id: find_evidence
+    name: "Search for Clues"
+    description: "Look for evidence of the bandit camp."
+    objectives:
+      - type: enter_room
+        roomId: forest-hunters-camp
+        description: "Investigate the abandoned hunter's camp"
+    hint: "The bandits leave traces. Search off the main path."
+    onComplete:
+      - action: message
+        text: "This hunter was attacked by bandits. Their camp must be nearby."
+        color: yellow
+      - action: setFlag
+        flag: found_hunter_camp
+
+  - id: find_bandit_camp
+    name: "Locate the Bandits"
+    description: "Find the bandit hideout."
+    objectives:
+      - type: enter_room
+        roomId: forest-bandit-camp
+        description: "Discover the bandit hideout"
+    onComplete:
+      - action: message
+        text: "You've found the bandit camp! Defeat their leader, Scarface."
+        color: yellow
+
+  - id: defeat_scarface
+    name: "Defeat Scarface"
+    description: "Kill the bandit leader."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: bandit-leader
+        count: 1
+        description: "Kill Scarface the Bandit Leader"
+    onComplete:
+      - action: message
+        text: "Scarface is dead! Search for evidence to bring to the Mayor."
+        color: green
+      - action: setFlag
+        flag: scarface_killed
+
+  - id: return_to_mayor
+    name: "Report to the Mayor"
+    description: "Return to Mayor Thornwood with proof of your success."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thornwood-mayor
+        description: "Report to Mayor Thornwood"
+    npcDialogues:
+      thornwood-mayor:
+        greeting: "You return. What news of the bandits?"
+        options:
+          - text: "Scarface is dead. The bandits are leaderless."
+            requires:
+              flags: [scarface_killed]
+            response: |
+              Excellent work! With their leader gone, the remaining
+              bandits will scatter. The roads will be safer now.
+              You've done Thornwood a great service. Here is your
+              reward - and my thanks.
+            actions:
+              - action: completeQuest
+          - text: "Still hunting."
+            response: "Don't delay. Every day more lives are at risk."
+    onComplete:
+      - action: message
+        text: "The forest roads are safer now."
+        color: green
+
+rewards:
+  experience: 500
+  currency:
+    gold: 25
+    silver: 0
+    copper: 0
+  items:
+    - itemId: forest-cloak
+      count: 1
+  questFlags:
+    - bandits_defeated
+  message: |
+    The bandit threat has been dealt with!
+    You received the Cloak of the Forest as a reward.
+    But darker threats still lurk in the Vale...
+
+questGiver: thornwood-mayor
+turnInNpc: thornwood-mayor
+
+recommendedLevel:
+  min: 5
+  max: 8

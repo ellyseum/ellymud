@@ -1,0 +1,142 @@
+# Tutorial Quest: Welcome to Thornwood Vale
+# The starting quest that teaches basic game mechanics
+
+id: welcome_to_thornwood
+name: "Welcome to Thornwood Vale"
+description: "Learn the basics of adventuring in Thornwood Vale."
+longDescription: |
+  Every great adventurer starts somewhere, and for you, that's
+  Millbrook Village. Elder Tobias has offered to introduce you
+  to the ways of the world. Learn to look around, move between
+  areas, and prepare yourself for the adventures ahead.
+category: tutorial
+repeatable: false
+
+prerequisites:
+  maxLevel: 5
+
+steps:
+  - id: speak_with_elder
+    name: "Speak with Elder Tobias"
+    description: "Introduce yourself to the village elder."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: village-elder-millbrook
+        description: "Talk to Elder Tobias"
+    npcDialogues:
+      village-elder-millbrook:
+        greeting: "Ah, a new face in Millbrook! Welcome, traveler. I am Tobias, elder of this humble village."
+        options:
+          - text: "I'm looking for adventure."
+            response: |
+              Adventure, you say? Well, you've come to the right place.
+              Thornwood Vale has no shortage of excitement - and danger.
+              First, let me teach you the basics. Try looking around
+              to get your bearings. Use the 'look' command.
+            actions:
+              - action: setFlag
+                flag: tutorial_started
+              - action: message
+                text: "Quest started: Learn to use the 'look' command."
+                color: yellow
+          - text: "Just passing through."
+            response: "Safe travels then. But if you change your mind, I'll be here."
+    onComplete:
+      - action: message
+        text: "Good! Now try moving around. Visit the tavern to the west."
+        color: green
+
+  - id: explore_tavern
+    name: "Visit the Sleeping Sheep"
+    description: "Learn to move by visiting the local tavern."
+    objectives:
+      - type: enter_room
+        roomId: millbrook-tavern
+        description: "Enter the Sleeping Sheep Tavern"
+    hint: "Type 'west' or 'w' to move in that direction."
+    onComplete:
+      - action: message
+        text: "Excellent! You've found the tavern. Barley the innkeeper can tell you local gossip."
+        color: green
+      - action: setFlag
+        flag: visited_tavern
+
+  - id: speak_with_innkeeper
+    name: "Talk to the Innkeeper"
+    description: "Learn about the area from Barley the innkeeper."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: millbrook-innkeeper
+        description: "Speak with Barley"
+    npcDialogues:
+      millbrook-innkeeper:
+        greeting: "Ho there, traveler! Welcome to the Sleeping Sheep! Can I get you something?"
+        options:
+          - text: "Tell me about this area."
+            response: |
+              Millbrook's a quiet place, but there's been trouble lately.
+              Rats in the fields, spiders near the caves, even talk of
+              goblins in the forest to the south. If you're looking for
+              work, plenty of folk could use a helping hand.
+            actions:
+              - action: setFlag
+                flag: learned_area_info
+          - text: "Just looking around."
+            response: "Make yourself at home. My stew's the best in the Vale!"
+    onComplete:
+      - action: message
+        text: "You've learned about the local troubles. Return to Elder Tobias."
+        color: green
+
+  - id: return_to_elder
+    name: "Report to Elder Tobias"
+    description: "Tell the elder what you've learned."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: village-elder-millbrook
+        description: "Return to Elder Tobias"
+    npcDialogues:
+      village-elder-millbrook:
+        greeting: "Back already? Did you learn something useful?"
+        options:
+          - text: "Barley told me about the troubles in the area."
+            requires:
+              flags: [learned_area_info]
+            response: |
+              Good, good. You're already showing promise. There's much
+              work to be done in Thornwood Vale, and we need capable
+              adventurers. Take this letter - it will introduce you
+              to Mayor Thornwood in the town to the south. He can
+              point you toward opportunities worthy of your talents.
+            actions:
+              - action: giveItem
+                itemId: elder-letter
+                count: 1
+              - action: giveItem
+                itemId: tutorial-sword
+                count: 1
+              - action: completeQuest
+    onComplete:
+      - action: message
+        text: "Tutorial complete! Head south to Thornwood Town when you're ready."
+        color: green
+
+rewards:
+  experience: 100
+  currency:
+    gold: 5
+    silver: 0
+    copper: 0
+  flags:
+    - tutorial_complete
+  message: |
+    Congratulations! You've completed the tutorial.
+    You received a training sword and a letter of introduction.
+    Head south through the outskirts to reach Thornwood Town!
+
+questGiver: village-elder-millbrook
+autoStart: false
+
+recommendedLevel:
+  min: 1
+  max: 3

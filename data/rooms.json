@@ -1,222 +1,1032 @@
 [
   {
-    "id": "town-center-room-1",
-    "name": "Room 1",
-    "description": "A newly created room.",
+    "id": "millbrook-village-square",
+    "name": "Millbrook Village Square",
+    "shortDescription": "A quaint village square with a central well",
+    "description": "You stand in the heart of Millbrook Village, a peaceful hamlet surrounded by rolling farmland. A stone well sits in the center of the square, its bucket hanging from a weathered rope. Simple wooden buildings line the square - a general store to the north, the village elder's cottage to the east, and the local tavern to the west. Colorful flowers bloom in window boxes, and the air smells of fresh bread from a nearby bakery. Villagers go about their daily routines, nodding friendly greetings to travelers.",
     "exits": [
-      {
-        "direction": "north",
-        "roomId": "town-center-room-2"
-      }
+      { "direction": "north", "roomId": "millbrook-general-store" },
+      { "direction": "east", "roomId": "millbrook-elder-cottage" },
+      { "direction": "west", "roomId": "millbrook-tavern" },
+      { "direction": "south", "roomId": "millbrook-south-road" }
     ],
-    "flags": [],
-    "areaId": "town-center",
+    "flags": ["safe", "starting-room"],
+    "areaId": "millbrook-village",
     "gridX": 0,
-    "gridY": 0
+    "gridY": 0,
+    "spawnItems": [],
+    "spawnNpcs": ["village-elder-millbrook"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
   },
   {
-    "id": "town-center-room-2",
-    "name": "Room 2",
-    "description": "A newly created room.",
+    "id": "millbrook-general-store",
+    "name": "Millbrook General Store",
+    "shortDescription": "A cluttered but cozy general store",
+    "description": "Rows of wooden shelves line the walls of this small shop, stacked with an assortment of practical goods. Bags of grain lean against barrels of salted fish, while farming tools hang from hooks near the ceiling. The shopkeeper's counter is cluttered with ledgers and a small brass scale. Dried herbs dangle from the rafters, filling the air with a pleasant earthy aroma. A hand-painted sign reads 'Honest Prices for Honest Folk.'",
     "exits": [
-      {
-        "direction": "south",
-        "roomId": "town-center-room-1"
-      },
-      {
-        "direction": "north",
-        "roomId": "town-center-room-3"
-      }
+      { "direction": "south", "roomId": "millbrook-village-square" }
     ],
-    "flags": [],
-    "areaId": "town-center",
+    "flags": ["safe", "shop"],
+    "areaId": "millbrook-village",
     "gridX": 0,
-    "gridY": -1
+    "gridY": 1,
+    "spawnItems": [],
+    "spawnNpcs": ["millbrook-shopkeeper"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
   },
   {
-    "id": "town-center-room-3",
-    "name": "Room 3",
-    "description": "A newly created room.",
+    "id": "millbrook-elder-cottage",
+    "name": "Elder's Cottage",
+    "shortDescription": "A warm cottage filled with books and memories",
+    "description": "This cozy cottage belongs to the village elder, a repository of wisdom and local history. Bookshelves line every wall, crammed with leather-bound tomes, scrolls, and handwritten journals. A fire crackles in the stone hearth, casting dancing shadows across comfortable armchairs draped with knitted blankets. The elder's desk sits beneath a window overlooking the village square, covered with maps and correspondence. The smell of pipe tobacco and old parchment hangs in the air.",
     "exits": [
-      {
-        "direction": "south",
-        "roomId": "town-center-room-2"
-      },
-      {
-        "direction": "northeast",
-        "roomId": "town-center-room-4"
-      }
+      { "direction": "west", "roomId": "millbrook-village-square" }
     ],
-    "flags": [],
-    "areaId": "town-center",
-    "gridX": 0,
-    "gridY": -2
-  },
-  {
-    "id": "town-center-room-4",
-    "name": "Room 4",
-    "description": "A newly created room.",
-    "exits": [
-      {
-        "direction": "southwest",
-        "roomId": "town-center-room-3"
-      },
-      {
-        "direction": "south",
-        "roomId": "town-center-room-5"
-      }
-    ],
-    "flags": [],
-    "areaId": "town-center",
+    "flags": ["safe"],
+    "areaId": "millbrook-village",
     "gridX": 1,
-    "gridY": -3
+    "gridY": 0,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
   },
   {
-    "id": "town-center-room-5",
-    "name": "Room 5",
-    "description": "A newly created room.",
+    "id": "millbrook-tavern",
+    "name": "The Sleeping Sheep Tavern",
+    "shortDescription": "A homey tavern with the smell of stew",
+    "description": "The Sleeping Sheep is Millbrook's only tavern, a welcoming establishment with low-beamed ceilings and a large stone fireplace. Rough-hewn tables and benches fill the common room, where farmers and travelers share stories over mugs of ale. A faded painting of a sleeping sheep hangs above the bar, giving the tavern its name. The innkeeper tends to a large pot of hearty stew that bubbles invitingly over the fire, and the scent of fresh bread and roasted meat fills the air.",
     "exits": [
-      {
-        "direction": "north",
-        "roomId": "town-center-room-4"
-      },
-      {
-        "direction": "south",
-        "roomId": "town-center-room-6"
-      }
+      { "direction": "east", "roomId": "millbrook-village-square" },
+      { "direction": "up", "roomId": "millbrook-tavern-rooms" }
     ],
-    "flags": [],
-    "areaId": "town-center",
-    "gridX": 1,
-    "gridY": -2
-  },
-  {
-    "id": "town-center-room-6",
-    "name": "Room 6",
-    "description": "A newly created room.",
-    "exits": [
-      {
-        "direction": "north",
-        "roomId": "town-center-room-5"
-      },
-      {
-        "direction": "south",
-        "roomId": "town-center-room-7"
-      }
-    ],
-    "flags": [],
-    "areaId": "town-center",
-    "gridX": 1,
-    "gridY": -1
-  },
-  {
-    "id": "town-center-room-7",
-    "name": "Room 7",
-    "description": "A newly created room.",
-    "exits": [
-      {
-        "direction": "north",
-        "roomId": "town-center-room-6"
-      },
-      {
-        "direction": "south",
-        "roomId": "town-center-room-8"
-      }
-    ],
-    "flags": [],
-    "areaId": "town-center",
-    "gridX": 1,
-    "gridY": 0
-  },
-  {
-    "id": "town-center-room-8",
-    "name": "Room 8",
-    "description": "A newly created room.",
-    "exits": [
-      {
-        "direction": "north",
-        "roomId": "town-center-room-7"
-      },
-      {
-        "direction": "west",
-        "roomId": "town-center-room-9"
-      }
-    ],
-    "flags": [],
-    "areaId": "town-center",
-    "gridX": 1,
-    "gridY": 1
-  },
-  {
-    "id": "town-center-room-9",
-    "name": "Room 9",
-    "description": "A newly created room.",
-    "exits": [
-      {
-        "direction": "east",
-        "roomId": "town-center-room-8"
-      },
-      {
-        "direction": "northwest",
-        "roomId": "town-center-room-10"
-      }
-    ],
-    "flags": [],
-    "areaId": "town-center",
-    "gridX": 0,
-    "gridY": 1
-  },
-  {
-    "id": "town-center-room-10",
-    "name": "Room 10",
-    "description": "A newly created room.",
-    "exits": [
-      {
-        "direction": "southeast",
-        "roomId": "town-center-room-9"
-      },
-      {
-        "direction": "southwest",
-        "roomId": "town-center-room-11"
-      }
-    ],
-    "flags": [],
-    "areaId": "town-center",
+    "flags": ["safe", "inn"],
+    "areaId": "millbrook-village",
     "gridX": -1,
-    "gridY": 0
+    "gridY": 0,
+    "spawnItems": [],
+    "spawnNpcs": ["millbrook-innkeeper"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
   },
   {
-    "id": "town-center-room-11",
-    "name": "Room 11",
-    "description": "A newly created room.",
+    "id": "millbrook-tavern-rooms",
+    "name": "Tavern Guest Rooms",
+    "shortDescription": "A quiet hallway of guest rooms",
+    "description": "A narrow hallway runs along the second floor of the Sleeping Sheep, lined with doors to simple but clean guest rooms. The wooden floorboards creak underfoot, and a small window at the end of the hall provides a view of the village rooftops. Oil lamps hang from brackets on the walls, their flames turned low to conserve fuel. It's quiet up here, removed from the bustle of the common room below.",
     "exits": [
-      {
-        "direction": "northeast",
-        "roomId": "town-center-room-10"
-      },
-      {
-        "direction": "southeast",
-        "roomId": "town-center-room-12"
-      }
+      { "direction": "down", "roomId": "millbrook-tavern" }
+    ],
+    "flags": ["safe", "rest"],
+    "areaId": "millbrook-village",
+    "gridX": -1,
+    "gridY": 0,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "millbrook-south-road",
+    "name": "South Road",
+    "shortDescription": "A dirt road leading out of the village",
+    "description": "The main road leads south out of Millbrook Village, a well-worn dirt path flanked by wooden fences. To the east, farmland stretches toward distant hills, while to the west, meadows roll gently toward a small stream. The village square lies to the north, and you can see the spire of the local shrine rising above the rooftops. Further south, the road continues toward the outskirts and eventually the wider world beyond.",
+    "exits": [
+      { "direction": "north", "roomId": "millbrook-village-square" },
+      { "direction": "south", "roomId": "outskirts-north-fields" },
+      { "direction": "east", "roomId": "millbrook-shrine" },
+      { "direction": "west", "roomId": "millbrook-stream" }
+    ],
+    "flags": ["safe"],
+    "areaId": "millbrook-village",
+    "gridX": 0,
+    "gridY": -1,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "millbrook-shrine",
+    "name": "Village Shrine",
+    "shortDescription": "A small shrine to the harvest goddess",
+    "description": "This modest shrine is dedicated to Aelindra, goddess of the harvest. A weathered stone altar sits beneath a wooden canopy, decorated with offerings of grain, flowers, and small coins. Carved wooden prayers hang from the rafters, fluttering in the breeze. The shrine is well-maintained, evidence of the village's devotion. A peaceful aura permeates the area, and visitors often report feeling a sense of calm when they pray here.",
+    "exits": [
+      { "direction": "west", "roomId": "millbrook-south-road" }
+    ],
+    "flags": ["safe", "sanctuary"],
+    "areaId": "millbrook-village",
+    "gridX": 1,
+    "gridY": -1,
+    "spawnItems": [],
+    "spawnNpcs": ["shrine-priestess"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "millbrook-stream",
+    "name": "Millbrook Stream",
+    "shortDescription": "A peaceful stream with a wooden footbridge",
+    "description": "A clear stream meanders through the edge of the village, its waters babbling softly over smooth stones. A simple wooden footbridge spans the stream, connecting the village to the meadows beyond. Willows lean over the banks, their trailing branches dipping into the water. Children often play here in summer, and the village women come to wash clothes on the flat rocks. The stream continues south, eventually feeding into the marshlands beyond the forest.",
+    "exits": [
+      { "direction": "east", "roomId": "millbrook-south-road" },
+      { "direction": "west", "roomId": "outskirts-meadow" }
+    ],
+    "flags": ["safe"],
+    "areaId": "millbrook-village",
+    "gridX": -1,
+    "gridY": -1,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "outskirts-north-fields",
+    "name": "Northern Fields",
+    "shortDescription": "Farmland on the edge of the village",
+    "description": "Rolling fields of wheat and barley stretch in every direction, the golden stalks swaying in the gentle breeze. Scarecrows stand sentinel among the crops, their ragged clothes flapping in the wind. Stone walls divide the fields into neat parcels, and you can see farmers working in the distance. The road to Millbrook lies to the north, while the fields continue south toward wilder lands. Occasionally, you spot movement among the crops - perhaps field mice or something larger.",
+    "exits": [
+      { "direction": "north", "roomId": "millbrook-south-road" },
+      { "direction": "south", "roomId": "outskirts-old-barn" },
+      { "direction": "east", "roomId": "outskirts-orchard" },
+      { "direction": "west", "roomId": "outskirts-meadow" }
     ],
     "flags": [],
-    "areaId": "town-center",
+    "areaId": "millbrook-outskirts",
+    "gridX": 0,
+    "gridY": -2,
+    "spawnItems": [],
+    "spawnNpcs": ["field-rat"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "outskirts-meadow",
+    "name": "Grassy Meadow",
+    "shortDescription": "A wildflower meadow buzzing with insects",
+    "description": "This untended meadow is a riot of wildflowers - daisies, buttercups, and wild poppies paint the landscape in vibrant colors. Bees drone lazily from blossom to blossom, and butterflies flit through the tall grass. The stream from the village borders the meadow to the north, its gentle burbling a soothing backdrop. While beautiful, the meadow also provides cover for small predators - you notice spider webs glistening in the undergrowth.",
+    "exits": [
+      { "direction": "north", "roomId": "millbrook-stream" },
+      { "direction": "east", "roomId": "outskirts-north-fields" },
+      { "direction": "south", "roomId": "outskirts-rocky-hill" }
+    ],
+    "flags": [],
+    "areaId": "millbrook-outskirts",
+    "gridX": -1,
+    "gridY": -2,
+    "spawnItems": [],
+    "spawnNpcs": ["giant-spider"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "outskirts-orchard",
+    "name": "Apple Orchard",
+    "shortDescription": "An old apple orchard gone slightly wild",
+    "description": "This orchard once belonged to a prosperous farmer, but years of neglect have let it grow wild. Gnarled apple trees stand in crooked rows, their branches heavy with fruit - some ripe, some rotting on the ground. The sweet-sour smell of fermenting apples attracts all manner of creatures. Wild boars root through the fallen fruit, and you can hear something rustling in the undergrowth. Despite its abandonment, the orchard still produces a surprising bounty each autumn.",
+    "exits": [
+      { "direction": "west", "roomId": "outskirts-north-fields" },
+      { "direction": "south", "roomId": "outskirts-ruined-farmhouse" }
+    ],
+    "flags": [],
+    "areaId": "millbrook-outskirts",
+    "gridX": 1,
+    "gridY": -2,
+    "spawnItems": [],
+    "spawnNpcs": ["wild-boar"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "outskirts-old-barn",
+    "name": "Abandoned Barn",
+    "shortDescription": "A decrepit barn overtaken by vermin",
+    "description": "This old barn has seen better days. The wooden walls are riddled with holes, and half the roof has collapsed inward. Rusted farm equipment lies scattered about, half-buried in moldy hay. The smell of decay and animal droppings is almost overwhelming. Rats have made this their stronghold, and you can hear them squeaking and scrabbling in the darkness. Despite its dilapidated state, there might be something useful buried among the debris.",
+    "exits": [
+      { "direction": "north", "roomId": "outskirts-north-fields" },
+      { "direction": "south", "roomId": "outskirts-crossroads" }
+    ],
+    "flags": [],
+    "areaId": "millbrook-outskirts",
+    "gridX": 0,
+    "gridY": -3,
+    "spawnItems": [],
+    "spawnNpcs": ["field-rat", "field-rat"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 5 }
+  },
+  {
+    "id": "outskirts-rocky-hill",
+    "name": "Rocky Hillside",
+    "shortDescription": "A boulder-strewn slope with caves",
+    "description": "The ground rises here into a rocky hillside, dotted with large boulders and scraggly bushes. Several small caves pierce the hillside, dark openings that disappear into the earth. Animal tracks crisscross the dusty soil - some small, some concerningly large. The elevation provides a good view of the surrounding countryside, with Millbrook Village visible to the north and dark forest on the southern horizon. Strange sounds occasionally echo from the caves below.",
+    "exits": [
+      { "direction": "north", "roomId": "outskirts-meadow" },
+      { "direction": "east", "roomId": "outskirts-crossroads" },
+      { "direction": "down", "roomId": "outskirts-shallow-cave" }
+    ],
+    "flags": [],
+    "areaId": "millbrook-outskirts",
+    "gridX": -1,
+    "gridY": -3,
+    "spawnItems": [],
+    "spawnNpcs": ["wild-boar"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "outskirts-shallow-cave",
+    "name": "Shallow Cave",
+    "shortDescription": "A damp cave with signs of animal habitation",
+    "description": "This natural cave extends only a short distance into the hillside, but it's clearly home to something. Bones are scattered across the floor - mostly small animals, but a few look disturbingly humanoid. A nest of dried grass and leaves fills one corner, and the walls are scratched with claw marks. The air is cool and damp, carrying the musky scent of a predator. Faint daylight filters in from the entrance above, but shadows pool in the corners.",
+    "exits": [
+      { "direction": "up", "roomId": "outskirts-rocky-hill" }
+    ],
+    "flags": [],
+    "areaId": "millbrook-outskirts",
+    "gridX": -1,
+    "gridY": -3,
+    "spawnItems": ["bone-fragment"],
+    "spawnNpcs": ["giant-spider"],
+    "spawnCurrency": { "gold": 0, "silver": 2, "copper": 10 }
+  },
+  {
+    "id": "outskirts-ruined-farmhouse",
+    "name": "Ruined Farmhouse",
+    "shortDescription": "The burned remains of a farmhouse",
+    "description": "Fire claimed this farmhouse years ago, leaving only charred timbers and a crumbling stone chimney. Weeds have overgrown the foundation, and a rusted weathervane lies twisted in the debris. Local children tell stories about the farmer who lived here and the mysterious fire that took his life. Some say his ghost still wanders the ruins on moonless nights. The cellar entrance, partially blocked by debris, leads down into darkness.",
+    "exits": [
+      { "direction": "north", "roomId": "outskirts-orchard" },
+      { "direction": "west", "roomId": "outskirts-crossroads" },
+      { "direction": "down", "roomId": "outskirts-cellar" }
+    ],
+    "flags": [],
+    "areaId": "millbrook-outskirts",
+    "gridX": 1,
+    "gridY": -3,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 3 }
+  },
+  {
+    "id": "outskirts-cellar",
+    "name": "Farmhouse Cellar",
+    "shortDescription": "A dark cellar beneath the ruins",
+    "description": "The stone cellar survived the fire that destroyed the farmhouse above. Shelves line the walls, still holding jars of preserved foods long turned to sludge. Broken wine casks litter the floor, their contents long since evaporated or absorbed into the earthen floor. Rats have made this their domain, nesting among the debris. In the back of the cellar, a strange symbol has been scratched into the wall - evidence of the dark practices rumored to have caused the fire.",
+    "exits": [
+      { "direction": "up", "roomId": "outskirts-ruined-farmhouse" }
+    ],
+    "flags": [],
+    "areaId": "millbrook-outskirts",
+    "gridX": 1,
+    "gridY": -3,
+    "spawnItems": ["old-cellar-key"],
+    "spawnNpcs": ["field-rat", "field-rat", "giant-spider"],
+    "spawnCurrency": { "gold": 0, "silver": 5, "copper": 15 }
+  },
+  {
+    "id": "outskirts-crossroads",
+    "name": "Country Crossroads",
+    "shortDescription": "A four-way intersection with a weathered signpost",
+    "description": "Four roads meet at this rural crossroads, marked by a weathered wooden signpost. The sign points north to Millbrook Village, east to the old farmlands, west to the rocky hills, and south toward Thornwood Town. A small shrine to the traveler's god stands at the roadside, its offerings box mostly empty. Caravans occasionally pass through here, and footprints in the dusty road tell of recent traffic. The forest looms on the southern horizon, dark and foreboding.",
+    "exits": [
+      { "direction": "north", "roomId": "outskirts-old-barn" },
+      { "direction": "east", "roomId": "outskirts-ruined-farmhouse" },
+      { "direction": "west", "roomId": "outskirts-rocky-hill" },
+      { "direction": "south", "roomId": "thornwood-north-gate" }
+    ],
+    "flags": [],
+    "areaId": "millbrook-outskirts",
+    "gridX": 0,
+    "gridY": -4,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-north-gate",
+    "name": "North Gate of Thornwood",
+    "shortDescription": "The northern entrance to Thornwood Town",
+    "description": "Sturdy wooden gates mark the northern entrance to Thornwood Town, flanked by stone watchtowers manned by vigilant guards. The road from Millbrook ends here, joining the cobblestone streets of the larger settlement. Merchants queue with their carts, awaiting inspection before entry. The guards eye all travelers carefully - bandit activity has increased lately, and the threat from the forest grows ever present. Beyond the gates, you can see the bustle of the town marketplace.",
+    "exits": [
+      { "direction": "north", "roomId": "outskirts-crossroads" },
+      { "direction": "south", "roomId": "thornwood-market-square" }
+    ],
+    "flags": ["safe"],
+    "areaId": "thornwood-town",
+    "gridX": 0,
+    "gridY": -5,
+    "spawnItems": [],
+    "spawnNpcs": ["town-guard"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-market-square",
+    "name": "Thornwood Market Square",
+    "shortDescription": "A bustling marketplace at the town's heart",
+    "description": "The market square is the beating heart of Thornwood Town, alive with commerce and conversation. Merchants hawk their wares from colorful stalls - weapons, armor, potions, and exotic goods from distant lands. Street performers entertain the crowds while pickpockets work the distracted. A large fountain dominates the center of the square, its bronze statue of a noble warrior pointing toward the forest that gave the town its name. All major roads in town converge here.",
+    "exits": [
+      { "direction": "north", "roomId": "thornwood-north-gate" },
+      { "direction": "east", "roomId": "thornwood-blacksmith" },
+      { "direction": "west", "roomId": "thornwood-general-goods" },
+      { "direction": "south", "roomId": "thornwood-town-hall" }
+    ],
+    "flags": ["safe", "bank"],
+    "areaId": "thornwood-town",
+    "gridX": 0,
+    "gridY": -6,
+    "spawnItems": [],
+    "spawnNpcs": ["thornwood-merchant", "banker_1"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-blacksmith",
+    "name": "Iron Forge Smithy",
+    "shortDescription": "A hot smithy ringing with hammer strikes",
+    "description": "The clang of hammer on anvil fills this sweltering workshop. The master blacksmith works the forge with practiced efficiency, shaping glowing metal into weapons and armor. Finished pieces hang from the walls and rest on wooden racks - swords, axes, shields, and helms of various quality. The forge itself roars with intense heat, its orange glow illuminating the soot-blackened walls. The smell of hot metal and coal smoke is almost overwhelming.",
+    "exits": [
+      { "direction": "west", "roomId": "thornwood-market-square" }
+    ],
+    "flags": ["safe", "shop"],
+    "areaId": "thornwood-town",
+    "gridX": 1,
+    "gridY": -6,
+    "spawnItems": [],
+    "spawnNpcs": ["thornwood-blacksmith"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-general-goods",
+    "name": "Wanderer's Supply",
+    "shortDescription": "A well-stocked adventuring supply shop",
+    "description": "This shop caters specifically to adventurers, stocking everything a traveler might need. Backpacks, ropes, torches, rations, and camping supplies fill the shelves. A glass case near the counter displays potions of various colors, each carefully labeled. Maps of the region hang on the walls, marked with warnings about dangerous areas. The shopkeeper is a retired adventurer herself, and her stories of past exploits are as valuable as her wares.",
+    "exits": [
+      { "direction": "east", "roomId": "thornwood-market-square" }
+    ],
+    "flags": ["safe", "shop"],
+    "areaId": "thornwood-town",
+    "gridX": -1,
+    "gridY": -6,
+    "spawnItems": [],
+    "spawnNpcs": ["thornwood-supplier"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-town-hall",
+    "name": "Thornwood Town Hall",
+    "shortDescription": "The seat of local government",
+    "description": "The town hall is an impressive stone building, its facade adorned with the carved emblem of Thornwood - a thorny oak beneath a crescent moon. Inside, the great hall serves as a meeting place for the town council and a venue for important announcements. Bulletin boards line the walls, covered with bounties, job postings, and official proclamations. Guards stand at attention near the mayor's office, and clerks bustle about with scrolls and ledgers.",
+    "exits": [
+      { "direction": "north", "roomId": "thornwood-market-square" },
+      { "direction": "east", "roomId": "thornwood-training-hall" },
+      { "direction": "west", "roomId": "thornwood-temple" },
+      { "direction": "south", "roomId": "thornwood-south-gate" }
+    ],
+    "flags": ["safe"],
+    "areaId": "thornwood-town",
+    "gridX": 0,
+    "gridY": -7,
+    "spawnItems": [],
+    "spawnNpcs": ["thornwood-mayor"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-training-hall",
+    "name": "Warrior's Training Hall",
+    "shortDescription": "A training facility for aspiring fighters",
+    "description": "The clash of practice weapons fills this spacious hall. Training dummies line one wall, bearing the marks of countless strikes. Weapon racks hold a variety of practice arms - wooden swords, padded staves, and blunted axes. Experienced trainers oversee novice warriors, correcting stances and demonstrating techniques. The floor is covered with sawdust to absorb sweat and blood. This is where Thornwood's defenders are forged.",
+    "exits": [
+      { "direction": "west", "roomId": "thornwood-town-hall" },
+      { "direction": "north", "roomId": "thornwood-armor-shop" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "thornwood-town",
+    "gridX": 1,
+    "gridY": -7,
+    "spawnItems": [],
+    "spawnNpcs": ["fighter_trainer", "trainer_1"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-armor-shop",
+    "name": "Ironhide Armory",
+    "shortDescription": "A shop specializing in protective gear",
+    "description": "Suits of armor stand on wooden mannequins throughout this shop, displaying the armorer's craft. Chain mail glitters in the lamplight, leather armor hangs from wall hooks, and a full suit of plate armor dominates the center of the room - a masterwork far beyond most adventurers' budgets. The armorer measures a customer in the back, chalk marks covering a piece of leather he's cutting to size. The smell of leather treatment oil fills the air.",
+    "exits": [
+      { "direction": "south", "roomId": "thornwood-training-hall" }
+    ],
+    "flags": ["safe", "shop"],
+    "areaId": "thornwood-town",
+    "gridX": 1,
+    "gridY": -6,
+    "spawnItems": [],
+    "spawnNpcs": ["thornwood-armorer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-temple",
+    "name": "Temple of the Divine Light",
+    "shortDescription": "A serene temple offering healing and guidance",
+    "description": "Stained glass windows cast colored light across the polished stone floor of this peaceful temple. Rows of wooden pews face an altar adorned with candles and sacred symbols. Priests in white robes tend to the faithful, offering blessings, healing, and spiritual guidance. A statue of the Divine Light - depicted as a radiant figure with arms outstretched - watches over the congregation with a serene expression. The air is thick with incense and prayer.",
+    "exits": [
+      { "direction": "east", "roomId": "thornwood-town-hall" },
+      { "direction": "down", "roomId": "thornwood-temple-crypt" }
+    ],
+    "flags": ["safe", "sanctuary", "trainer"],
+    "areaId": "thornwood-town",
+    "gridX": -1,
+    "gridY": -7,
+    "spawnItems": [],
+    "spawnNpcs": ["healer_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-temple-crypt",
+    "name": "Temple Crypt",
+    "shortDescription": "A quiet crypt beneath the temple",
+    "description": "Stone stairs descend into this crypt beneath the Temple of the Divine Light. The faithful dead of Thornwood rest here in stone sarcophagi lining the walls, their names and deeds carved into the stone. Eternal flames burn in sconces, never dying, a symbol of the Divine Light's eternal protection. The air is cool and still, with a faint smell of old incense. Unlike other crypts, this place feels peaceful rather than ominous.",
+    "exits": [
+      { "direction": "up", "roomId": "thornwood-temple" }
+    ],
+    "flags": ["safe"],
+    "areaId": "thornwood-town",
+    "gridX": -1,
+    "gridY": -7,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-south-gate",
+    "name": "South Gate of Thornwood",
+    "shortDescription": "The gateway to the Thornwood Forest",
+    "description": "The southern gate of Thornwood Town opens onto the road to the forest that gives the town its name. These gates are heavier than the northern ones, reinforced with iron bands and watched by twice as many guards. Claw marks scar the outer surface of the gates - reminders of past attacks from forest creatures. Warning signs are posted prominently: 'Thornwood Forest - Travel at Own Risk.' Beyond the gates, the ancient trees loom dark and foreboding.",
+    "exits": [
+      { "direction": "north", "roomId": "thornwood-town-hall" },
+      { "direction": "east", "roomId": "thornwood-tavern" },
+      { "direction": "west", "roomId": "thornwood-mage-tower" },
+      { "direction": "south", "roomId": "forest-entrance" }
+    ],
+    "flags": ["safe"],
+    "areaId": "thornwood-town",
+    "gridX": 0,
+    "gridY": -8,
+    "spawnItems": [],
+    "spawnNpcs": ["town-guard", "town-guard"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-tavern",
+    "name": "The Thorny Rose Tavern",
+    "shortDescription": "A lively tavern popular with adventurers",
+    "description": "The Thorny Rose is Thornwood's most popular tavern, especially among adventurers. Trophy heads of monsters hang on the walls - wolves, bears, and even a goblin chieftain's skull. A bard performs on a small stage, spinning tales of heroic deeds. The bar is well-stocked with ales, wines, and stronger spirits. In dark corners, hooded figures make deals and exchange secrets. The innkeeper keeps a heavy club beneath the counter for troublemakers.",
+    "exits": [
+      { "direction": "west", "roomId": "thornwood-south-gate" },
+      { "direction": "up", "roomId": "thornwood-tavern-rooms" }
+    ],
+    "flags": ["safe", "inn"],
+    "areaId": "thornwood-town",
+    "gridX": 1,
+    "gridY": -8,
+    "spawnItems": [],
+    "spawnNpcs": ["thornwood-innkeeper"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-tavern-rooms",
+    "name": "Rose Inn Rooms",
+    "shortDescription": "Comfortable rooms above the tavern",
+    "description": "The rooms above the Thorny Rose are surprisingly comfortable, catering to adventurers who can afford better than a common room floor. Each room has a proper bed with clean linens, a lockable door, and a window overlooking either the town or the forest. Weapon racks and armor stands are provided - the innkeeper knows his clientele. The sounds of merriment from below are muffled but still audible.",
+    "exits": [
+      { "direction": "down", "roomId": "thornwood-tavern" }
+    ],
+    "flags": ["safe", "rest"],
+    "areaId": "thornwood-town",
+    "gridX": 1,
+    "gridY": -8,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-mage-tower",
+    "name": "Tower of the Arcane",
+    "shortDescription": "A wizard's tower crackling with magic",
+    "description": "This tower rises high above the surrounding buildings, its stones inscribed with glowing runes. Strange lights flicker in the upper windows, and the air around the tower feels charged with magical energy. The interior is a maze of bookshelves, alchemical equipment, and arcane artifacts. Apprentice wizards hurry about on errands, while senior mages debate esoteric theories. The tower serves as both academy and magical supply shop for those with the coin.",
+    "exits": [
+      { "direction": "east", "roomId": "thornwood-south-gate" },
+      { "direction": "up", "roomId": "thornwood-mage-library" }
+    ],
+    "flags": ["safe", "shop", "trainer"],
+    "areaId": "thornwood-town",
+    "gridX": -1,
+    "gridY": -8,
+    "spawnItems": [],
+    "spawnNpcs": ["mage_trainer", "thornwood-magic-vendor"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-mage-library",
+    "name": "Arcane Library",
+    "shortDescription": "A vast library of magical knowledge",
+    "description": "The upper floor of the tower houses an impressive library of magical texts. Bookshelves reach from floor to ceiling, accessed by rolling ladders. Floating candles provide illumination without risk of fire. Mages sit at study tables, poring over ancient tomes and taking notes. Some books are chained to their shelves - dangerous knowledge that should not be removed. A librarian golem silently restocks returned volumes.",
+    "exits": [
+      { "direction": "down", "roomId": "thornwood-mage-tower" }
+    ],
+    "flags": ["safe"],
+    "areaId": "thornwood-town",
+    "gridX": -1,
+    "gridY": -8,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "forest-entrance",
+    "name": "Edge of Thornwood Forest",
+    "shortDescription": "Where civilization ends and wilderness begins",
+    "description": "The road from Thornwood Town ends here at the forest's edge. Ancient thorny oaks tower overhead, their gnarled branches forming a dark canopy that blocks most sunlight. The air is cooler here, thick with the scent of moss and decay. Bird calls echo through the trees, but they sound alien and unsettling. Claw marks scar the bark of trees near the path, and you notice bleached bones half-hidden in the undergrowth. This is where the wild begins.",
+    "exits": [
+      { "direction": "north", "roomId": "thornwood-south-gate" },
+      { "direction": "south", "roomId": "forest-main-path" },
+      { "direction": "east", "roomId": "forest-eastern-trail" }
+    ],
+    "flags": [],
+    "areaId": "thornwood-forest",
+    "gridX": 0,
+    "gridY": -9,
+    "spawnItems": [],
+    "spawnNpcs": ["forest-wolf"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "forest-main-path",
+    "name": "Thornwood Main Path",
+    "shortDescription": "A well-worn path through the forest",
+    "description": "This is the main trail through Thornwood Forest, worn deep by generations of travelers. The thorny oaks press close on either side, their branches reaching across to form a tunnel of vegetation. Patches of mottled light filter through gaps in the canopy, creating pools of illumination amid the gloom. The path is relatively safe, but you can hear movement in the undergrowth - you're being watched. Travelers rarely venture here alone.",
+    "exits": [
+      { "direction": "north", "roomId": "forest-entrance" },
+      { "direction": "south", "roomId": "forest-clearing" },
+      { "direction": "west", "roomId": "forest-dense-woods" }
+    ],
+    "flags": [],
+    "areaId": "thornwood-forest",
+    "gridX": 0,
+    "gridY": -10,
+    "spawnItems": [],
+    "spawnNpcs": ["forest-wolf"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "forest-eastern-trail",
+    "name": "Eastern Trail",
+    "shortDescription": "A narrow trail leading deeper into the forest",
+    "description": "This narrower trail branches east from the main path, winding between massive tree trunks. Spider webs span between the branches overhead, some large enough to trap a man. The ground is covered with a thick carpet of dead leaves that muffles your footsteps. Strange markings have been carved into some trees - warnings in a language you don't recognize. The trail continues east toward what looks like a rocky outcropping.",
+    "exits": [
+      { "direction": "west", "roomId": "forest-entrance" },
+      { "direction": "east", "roomId": "forest-spider-nest" }
+    ],
+    "flags": [],
+    "areaId": "thornwood-forest",
+    "gridX": 1,
+    "gridY": -9,
+    "spawnItems": [],
+    "spawnNpcs": ["thornwood-spider"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "forest-spider-nest",
+    "name": "Spider's Nest",
+    "shortDescription": "A grove thick with massive spider webs",
+    "description": "Webs cover everything here - trees, rocks, even the ground itself. The silk threads are as thick as rope, and cocoons of various sizes hang from branches above. Some are small, containing forest creatures, but others are disturbingly humanoid in shape. Giant spiders lurk in the shadows, their many eyes glittering in the dim light. The air is thick and hard to breathe, tainted with the musky smell of spider. Tread carefully - the webs are sticky and strong.",
+    "exits": [
+      { "direction": "west", "roomId": "forest-eastern-trail" }
+    ],
+    "flags": [],
+    "areaId": "thornwood-forest",
+    "gridX": 2,
+    "gridY": -9,
+    "spawnItems": [],
+    "spawnNpcs": ["thornwood-spider", "thornwood-spider", "giant-thornwood-spider"],
+    "spawnCurrency": { "gold": 0, "silver": 8, "copper": 25 }
+  },
+  {
+    "id": "forest-dense-woods",
+    "name": "Dense Woods",
+    "shortDescription": "Thick forest where little light penetrates",
+    "description": "The forest grows impossibly dense here, the thorny oaks packed so tightly that moving between them requires careful maneuvering. Almost no light reaches the forest floor, and the gloom is oppressive. Strange fungi grow on rotting logs, some glowing with a faint phosphorescence. The sounds of the forest are muted here - even your own footsteps seem swallowed by the shadows. It would be easy to become lost in this maze of trees.",
+    "exits": [
+      { "direction": "east", "roomId": "forest-main-path" },
+      { "direction": "south", "roomId": "forest-bear-den" },
+      { "direction": "west", "roomId": "forest-hunters-camp" }
+    ],
+    "flags": [],
+    "areaId": "thornwood-forest",
+    "gridX": -1,
+    "gridY": -10,
+    "spawnItems": [],
+    "spawnNpcs": ["forest-bandit"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "forest-hunters-camp",
+    "name": "Abandoned Hunter's Camp",
+    "shortDescription": "A deserted camp with signs of a struggle",
+    "description": "Someone made camp here recently, but they left in a hurry - or didn't leave at all. A tent lies collapsed, its canvas shredded. A cold fire pit contains charred bones that might be animal, might be something else. Supplies are scattered about: a broken bow, scattered arrows, and a blood-stained bedroll. Claw marks gouge the nearby trees. Whatever happened here, it wasn't good. Yet amidst the destruction, useful items might remain.",
+    "exits": [
+      { "direction": "east", "roomId": "forest-dense-woods" }
+    ],
+    "flags": [],
+    "areaId": "thornwood-forest",
     "gridX": -2,
-    "gridY": 1
+    "gridY": -10,
+    "spawnItems": ["hunters-journal", "scattered-arrows"],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 1, "silver": 15, "copper": 30 }
   },
   {
-    "id": "town-center-room-12",
-    "name": "Room 12",
-    "description": "A newly created room.",
+    "id": "forest-bear-den",
+    "name": "Bear's Den",
+    "shortDescription": "A shallow cave that reeks of bear",
+    "description": "A shallow cave has been carved into a hillside here, the entrance worn smooth by years of use. The overwhelming smell of bear fills the air - musk, fur, and rotting meat. Bones litter the ground outside the cave, and claw marks scar every nearby surface. The den extends back into darkness, and you can hear deep, rumbling breathing from within. A massive brown bear has made this its home, and it does not welcome visitors.",
     "exits": [
-      {
-        "direction": "northwest",
-        "roomId": "town-center-room-11"
-      }
+      { "direction": "north", "roomId": "forest-dense-woods" },
+      { "direction": "east", "roomId": "forest-clearing" }
     ],
     "flags": [],
-    "areaId": "town-center",
+    "areaId": "thornwood-forest",
     "gridX": -1,
-    "gridY": 2
+    "gridY": -11,
+    "spawnItems": [],
+    "spawnNpcs": ["brown-bear"],
+    "spawnCurrency": { "gold": 2, "silver": 10, "copper": 0 }
+  },
+  {
+    "id": "forest-clearing",
+    "name": "Forest Clearing",
+    "shortDescription": "A sunlit clearing in the forest",
+    "description": "This natural clearing offers a welcome respite from the oppressive darkness of the forest. Sunlight streams down through the break in the canopy, illuminating a carpet of wildflowers and soft grass. A ancient stone stands in the center of the clearing, carved with spiral symbols of unknown origin. Animals seem to avoid this place - the silence is almost eerie. The main path continues south toward the old ruins, while trails branch in other directions.",
+    "exits": [
+      { "direction": "north", "roomId": "forest-main-path" },
+      { "direction": "south", "roomId": "forest-ancient-ruins" },
+      { "direction": "west", "roomId": "forest-bear-den" },
+      { "direction": "east", "roomId": "forest-bandit-camp" }
+    ],
+    "flags": [],
+    "areaId": "thornwood-forest",
+    "gridX": 0,
+    "gridY": -11,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "forest-bandit-camp",
+    "name": "Bandit Hideout",
+    "shortDescription": "A hidden camp of forest outlaws",
+    "description": "Nestled in a hollow between rocky outcroppings, this camp is nearly invisible from the main trails. Crude tents surround a central fire pit where a pot of something questionable bubbles. Stolen goods are piled haphazardly - bolts of cloth, crates of provisions, and a few weapons. Wanted posters with familiar faces are pinned to a wooden board, trophies of their notoriety. The bandits who call this place home prey on travelers through the forest.",
+    "exits": [
+      { "direction": "west", "roomId": "forest-clearing" }
+    ],
+    "flags": [],
+    "areaId": "thornwood-forest",
+    "gridX": 1,
+    "gridY": -11,
+    "spawnItems": ["stolen-goods"],
+    "spawnNpcs": ["forest-bandit", "forest-bandit", "bandit-leader"],
+    "spawnCurrency": { "gold": 5, "silver": 20, "copper": 50 }
+  },
+  {
+    "id": "forest-ancient-ruins",
+    "name": "Ancient Ruins",
+    "shortDescription": "Crumbling ruins from a forgotten age",
+    "description": "The forest has reclaimed these ancient ruins, but the massive stone blocks resist nature's advance. Toppled columns lie among the undergrowth, and fragments of carved friezes hint at the civilization that once flourished here. A partially intact archway frames the entrance to what might have been a temple or palace. Strange symbols cover the remaining walls, similar to those on the standing stone in the clearing. The air feels heavy with old magic.",
+    "exits": [
+      { "direction": "north", "roomId": "forest-clearing" },
+      { "direction": "south", "roomId": "forest-south-road" },
+      { "direction": "down", "roomId": "goblin-cave-entrance" }
+    ],
+    "flags": [],
+    "areaId": "thornwood-forest",
+    "gridX": 0,
+    "gridY": -12,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "forest-south-road",
+    "name": "Southern Forest Road",
+    "shortDescription": "A road leading toward the marsh",
+    "description": "The main path through the forest continues south here, but the forest character changes. The thorny oaks give way to twisted willows and black alders, their roots standing in pools of stagnant water. The ground becomes soft and treacherous, and the air grows thick with moisture and the smell of decay. This is the boundary between Thornwood Forest and Darkhollow Marsh. Mist curls between the trees ahead, obscuring what lies beyond.",
+    "exits": [
+      { "direction": "north", "roomId": "forest-ancient-ruins" },
+      { "direction": "south", "roomId": "marsh-entrance" }
+    ],
+    "flags": [],
+    "areaId": "thornwood-forest",
+    "gridX": 0,
+    "gridY": -13,
+    "spawnItems": [],
+    "spawnNpcs": ["forest-wolf"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "goblin-cave-entrance",
+    "name": "Goblin Cave Entrance",
+    "shortDescription": "A dark cave mouth beneath the ruins",
+    "description": "A jagged opening in the earth yawns beneath the ancient ruins, leading down into darkness. The stench of goblins wafts up from below - a nauseating mixture of unwashed bodies, rotting meat, and worse. Crude torches flicker in sconces just inside the entrance, and you can hear guttural voices echoing from the depths. Goblin graffiti covers the walls near the entrance - crude drawings and warnings in their harsh language. This is clearly goblin territory.",
+    "exits": [
+      { "direction": "up", "roomId": "forest-ancient-ruins" },
+      { "direction": "down", "roomId": "goblin-cave-tunnel" }
+    ],
+    "flags": [],
+    "areaId": "goblin-caves",
+    "gridX": 0,
+    "gridY": -12,
+    "spawnItems": [],
+    "spawnNpcs": ["cave-goblin"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "goblin-cave-tunnel",
+    "name": "Twisting Tunnel",
+    "shortDescription": "A narrow tunnel carved by goblin hands",
+    "description": "This tunnel was clearly not made for human-sized creatures. The ceiling is low, forcing you to crouch, and the walls press close on either side. Goblin-sized alcoves have been carved into the walls, some containing sleeping mats, others holding crude weapons or moldy food stores. The smell is even worse down here, and the flickering torchlight creates dancing shadows that make it hard to see threats until they're upon you.",
+    "exits": [
+      { "direction": "up", "roomId": "goblin-cave-entrance" },
+      { "direction": "south", "roomId": "goblin-barracks" },
+      { "direction": "east", "roomId": "goblin-storage" }
+    ],
+    "flags": [],
+    "areaId": "goblin-caves",
+    "gridX": 0,
+    "gridY": -13,
+    "spawnItems": [],
+    "spawnNpcs": ["cave-goblin", "cave-goblin"],
+    "spawnCurrency": { "gold": 0, "silver": 2, "copper": 15 }
+  },
+  {
+    "id": "goblin-barracks",
+    "name": "Goblin Barracks",
+    "shortDescription": "A filthy chamber where goblins sleep",
+    "description": "Dozens of crude bedrolls cover the floor of this large cavern, arranged in rough rows. Personal belongings are scattered everywhere - stolen trinkets, gnawed bones, and crude weapons. The air is thick with the stench of unwashed goblin and the smoke from several small cooking fires. Goblins mill about, sharpening weapons, gambling with dice made from knucklebones, and squabbling over food. They don't take kindly to intruders.",
+    "exits": [
+      { "direction": "north", "roomId": "goblin-cave-tunnel" },
+      { "direction": "south", "roomId": "goblin-mess-hall" },
+      { "direction": "west", "roomId": "goblin-archers-post" }
+    ],
+    "flags": [],
+    "areaId": "goblin-caves",
+    "gridX": 0,
+    "gridY": -14,
+    "spawnItems": [],
+    "spawnNpcs": ["cave-goblin", "cave-goblin", "cave-goblin"],
+    "spawnCurrency": { "gold": 0, "silver": 5, "copper": 25 }
+  },
+  {
+    "id": "goblin-storage",
+    "name": "Goblin Storage Cave",
+    "shortDescription": "A cave filled with stolen goods",
+    "description": "The goblins have accumulated quite a hoard of stolen goods over the years, all piled haphazardly in this storage cavern. Crates and barrels overflow with provisions, bolts of cloth, and various tools. More valuable items - jewelry, weapons, and coins - are kept in a locked chest against the far wall. A goblin guard watches over the treasure, suspicious of even its fellow goblins. Years of raids on travelers have filled this room with potential wealth.",
+    "exits": [
+      { "direction": "west", "roomId": "goblin-cave-tunnel" }
+    ],
+    "flags": [],
+    "areaId": "goblin-caves",
+    "gridX": 1,
+    "gridY": -13,
+    "spawnItems": ["goblin-treasure-key"],
+    "spawnNpcs": ["cave-goblin", "goblin-archer"],
+    "spawnCurrency": { "gold": 3, "silver": 15, "copper": 40 }
+  },
+  {
+    "id": "goblin-archers-post",
+    "name": "Archer's Overlook",
+    "shortDescription": "A ledge where goblin archers keep watch",
+    "description": "A natural ledge overlooks a lower cavern, providing an excellent vantage point for goblin archers. Bundles of crude arrows are stacked against the walls, and murder holes have been carved through the rock floor to allow shots at enemies below. The goblins here are better armed than their fellows, with shortbows and leather armor stolen from travelers. They take their guard duty seriously - for goblins.",
+    "exits": [
+      { "direction": "east", "roomId": "goblin-barracks" },
+      { "direction": "down", "roomId": "goblin-mess-hall" }
+    ],
+    "flags": [],
+    "areaId": "goblin-caves",
+    "gridX": -1,
+    "gridY": -14,
+    "spawnItems": ["crude-arrows"],
+    "spawnNpcs": ["goblin-archer", "goblin-archer"],
+    "spawnCurrency": { "gold": 0, "silver": 3, "copper": 20 }
+  },
+  {
+    "id": "goblin-mess-hall",
+    "name": "Goblin Mess Hall",
+    "shortDescription": "Where goblins gather to eat and scheme",
+    "description": "This large cavern serves as the communal eating area for the goblin tribe. Long stone tables are covered with the remains of meals you'd rather not identify. A large fire pit dominates the center, where something is always roasting on a spit. The walls are decorated with crude trophies - skulls, shields, and other mementos of goblin victories. This is where the tribe gathers for feasts and where the shaman holds religious ceremonies.",
+    "exits": [
+      { "direction": "north", "roomId": "goblin-barracks" },
+      { "direction": "up", "roomId": "goblin-archers-post" },
+      { "direction": "south", "roomId": "goblin-shaman-chamber" },
+      { "direction": "east", "roomId": "goblin-troll-pit" }
+    ],
+    "flags": [],
+    "areaId": "goblin-caves",
+    "gridX": 0,
+    "gridY": -15,
+    "spawnItems": [],
+    "spawnNpcs": ["cave-goblin", "goblin-shaman"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 10 }
+  },
+  {
+    "id": "goblin-troll-pit",
+    "name": "Troll Pit",
+    "shortDescription": "A deep pit containing a chained troll",
+    "description": "A massive pit has been dug into the cavern floor, its walls too steep and smooth to climb. At the bottom lurks a cave troll, chained to an iron stake driven into the rock. The goblins keep the troll as a combination of pet, weapon, and garbage disposal. It's fed a diet of refuse and the occasional prisoner. When the tribe goes to war, they release the troll ahead of their forces. The creature looks up at you with hungry, calculating eyes.",
+    "exits": [
+      { "direction": "west", "roomId": "goblin-mess-hall" }
+    ],
+    "flags": [],
+    "areaId": "goblin-caves",
+    "gridX": 1,
+    "gridY": -15,
+    "spawnItems": [],
+    "spawnNpcs": ["cave-troll"],
+    "spawnCurrency": { "gold": 5, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "goblin-shaman-chamber",
+    "name": "Shaman's Chamber",
+    "shortDescription": "The lair of the goblin shaman",
+    "description": "This smaller cavern has been claimed by the tribe's shaman, a goblin who commands dark magic. Totems made of bones and feathers hang from the ceiling, clicking together in an unfelt breeze. Strange symbols are painted on the walls in what looks disturbingly like blood. A crude altar dominates one corner, covered with offerings and ritual implements. The shaman's sleeping pallet is surrounded by pouches of herbs, scrolls covered in goblin scrawl, and other magical paraphernalia.",
+    "exits": [
+      { "direction": "north", "roomId": "goblin-mess-hall" },
+      { "direction": "south", "roomId": "goblin-chieftain-throne" }
+    ],
+    "flags": [],
+    "areaId": "goblin-caves",
+    "gridX": 0,
+    "gridY": -16,
+    "spawnItems": ["shaman-staff"],
+    "spawnNpcs": ["goblin-shaman"],
+    "spawnCurrency": { "gold": 2, "silver": 10, "copper": 0 }
+  },
+  {
+    "id": "goblin-chieftain-throne",
+    "name": "Chieftain's Throne Room",
+    "shortDescription": "The seat of goblin power",
+    "description": "The deepest chamber of the goblin caves serves as the throne room of the chieftain. A crude throne has been constructed from stolen furniture and decorated with bones and gems. The goblin chieftain sits here, surrounded by his most loyal guards, dispensing rough justice and planning raids. The walls are hung with the tribe's greatest trophies - captured banners, noble weapons, and the skull of a knight who ventured too deep. This is the heart of goblin power in the region.",
+    "exits": [
+      { "direction": "north", "roomId": "goblin-shaman-chamber" }
+    ],
+    "flags": [],
+    "areaId": "goblin-caves",
+    "gridX": 0,
+    "gridY": -17,
+    "spawnItems": ["chieftain-crown"],
+    "spawnNpcs": ["goblin-chieftain", "cave-goblin", "cave-goblin"],
+    "spawnCurrency": { "gold": 25, "silver": 50, "copper": 100 }
+  },
+  {
+    "id": "marsh-entrance",
+    "name": "Edge of Darkhollow Marsh",
+    "shortDescription": "Where the forest gives way to swamp",
+    "description": "The solid ground of Thornwood Forest ends here, giving way to the treacherous terrain of Darkhollow Marsh. Murky water stretches in every direction, broken by islands of sodden earth and twisted trees. Mist hangs thick in the air, limiting visibility to a few dozen feet. The stench of decay is overwhelming - rotting vegetation, stagnant water, and something worse. Strange lights flicker in the distance, and you hear splashing that could be anything. Or anyone.",
+    "exits": [
+      { "direction": "north", "roomId": "forest-south-road" },
+      { "direction": "south", "roomId": "marsh-shallow-waters" },
+      { "direction": "east", "roomId": "marsh-dead-trees" }
+    ],
+    "flags": [],
+    "areaId": "darkhollow-marsh",
+    "gridX": 0,
+    "gridY": -14,
+    "spawnItems": [],
+    "spawnNpcs": ["marsh-zombie"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "marsh-shallow-waters",
+    "name": "Shallow Waters",
+    "shortDescription": "Knee-deep murky water with uncertain footing",
+    "description": "The water here is deceptively shallow, only reaching your knees - but the bottom is treacherous mud that tries to pull you down with every step. Bubbles rise to the surface, releasing noxious gases. Dead reeds and waterlogged wood float on the surface, making it hard to see what lurks below. Movement is slow and exhausting here, and the constant splashing makes stealth impossible. Things are watching from the mist.",
+    "exits": [
+      { "direction": "north", "roomId": "marsh-entrance" },
+      { "direction": "south", "roomId": "marsh-sunken-road" },
+      { "direction": "west", "roomId": "marsh-bog-island" }
+    ],
+    "flags": [],
+    "areaId": "darkhollow-marsh",
+    "gridX": 0,
+    "gridY": -15,
+    "spawnItems": [],
+    "spawnNpcs": ["bog-serpent"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "marsh-dead-trees",
+    "name": "Grove of Dead Trees",
+    "shortDescription": "A stand of skeletal trees in the mist",
+    "description": "Blackened, dead trees stand in this section of marsh, their bare branches reaching toward the gray sky like grasping fingers. No leaves grow here - the trees died long ago, poisoned by something in the water. Thick vines wind around the trunks, and pale fungi grow on the rotting bark. The ground between the trees is slightly higher, providing relatively dry footing. But something has been using this grove - you see tracks in the mud and scraps of rotting cloth.",
+    "exits": [
+      { "direction": "west", "roomId": "marsh-entrance" },
+      { "direction": "south", "roomId": "marsh-hag-hut" }
+    ],
+    "flags": [],
+    "areaId": "darkhollow-marsh",
+    "gridX": 1,
+    "gridY": -14,
+    "spawnItems": [],
+    "spawnNpcs": ["marsh-zombie", "marsh-zombie"],
+    "spawnCurrency": { "gold": 0, "silver": 3, "copper": 15 }
+  },
+  {
+    "id": "marsh-bog-island",
+    "name": "Bog Island",
+    "shortDescription": "A small island of solid ground in the swamp",
+    "description": "This small island rises slightly above the surrounding swamp, providing precious dry ground. Someone has camped here before - you find the remains of a fire pit and some rotting supplies. The island is dominated by a large willow tree, its trailing branches creating a natural shelter. From here, you can see the lights of will-o'-wisps dancing in the distance. It's relatively safe here, at least compared to the surrounding waters.",
+    "exits": [
+      { "direction": "east", "roomId": "marsh-shallow-waters" }
+    ],
+    "flags": [],
+    "areaId": "darkhollow-marsh",
+    "gridX": -1,
+    "gridY": -15,
+    "spawnItems": ["abandoned-supplies"],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 1, "silver": 8, "copper": 20 }
+  },
+  {
+    "id": "marsh-hag-hut",
+    "name": "Swamp Hag's Hut",
+    "shortDescription": "A twisted shack built on stilts",
+    "description": "A ramshackle hut stands on wooden stilts above the marsh water, reached by a precarious wooden walkway. The hut is built from salvaged wood, bones, and stranger materials. Charms and fetishes hang from the eaves, clicking in the breeze. Smoke rises from a crooked chimney, carrying strange smells. The swamp hag who lives here is both feared and sought out - she trades in dark magic, forbidden knowledge, and questionable potions. Visitors are rare, and not always leave.",
+    "exits": [
+      { "direction": "north", "roomId": "marsh-dead-trees" },
+      { "direction": "west", "roomId": "marsh-sunken-road" }
+    ],
+    "flags": [],
+    "areaId": "darkhollow-marsh",
+    "gridX": 1,
+    "gridY": -15,
+    "spawnItems": [],
+    "spawnNpcs": ["swamp-hag"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "marsh-sunken-road",
+    "name": "Sunken Road",
+    "shortDescription": "An ancient road now submerged in swamp",
+    "description": "An old road once ran through here, its cobblestones now submerged beneath a foot of murky water. You can feel the relatively solid surface beneath your feet, making travel easier than through the open swamp. The road was built by the same civilization that left the ruins in the forest, and leads toward something in the heart of the marsh. Broken milestones mark the path, their inscriptions worn away by centuries of exposure.",
+    "exits": [
+      { "direction": "north", "roomId": "marsh-shallow-waters" },
+      { "direction": "south", "roomId": "marsh-ruined-bridge" },
+      { "direction": "east", "roomId": "marsh-hag-hut" }
+    ],
+    "flags": [],
+    "areaId": "darkhollow-marsh",
+    "gridX": 0,
+    "gridY": -16,
+    "spawnItems": [],
+    "spawnNpcs": ["drowned-knight"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "marsh-ruined-bridge",
+    "name": "Ruined Bridge",
+    "shortDescription": "The remains of an ancient stone bridge",
+    "description": "A stone bridge once spanned a deep channel here, but time and neglect have reduced it to broken arches and tumbled blocks. The channel still runs deep and dark, with unknown things moving in its depths. The remains of the bridge provide stepping stones across the gap, but one wrong step could send you plunging into the murky water. On the far side, the road continues toward the dark heart of the marsh.",
+    "exits": [
+      { "direction": "north", "roomId": "marsh-sunken-road" },
+      { "direction": "south", "roomId": "marsh-dark-heart" }
+    ],
+    "flags": [],
+    "areaId": "darkhollow-marsh",
+    "gridX": 0,
+    "gridY": -17,
+    "spawnItems": [],
+    "spawnNpcs": ["bog-serpent"],
+    "spawnCurrency": { "gold": 0, "silver": 5, "copper": 0 }
+  },
+  {
+    "id": "marsh-dark-heart",
+    "name": "Heart of Darkhollow",
+    "shortDescription": "The dark center of the marsh",
+    "description": "You have reached the dark heart of Darkhollow Marsh, where an ancient evil festers. A ring of standing stones rises from a circular island, their surfaces covered with glowing runes. The water surrounding the island is black and still, reflecting nothing. An altar of dark stone stands at the center of the ring, stained with old blood. The mist is thicker here, swirling with unnatural purpose. This place was old when the world was young, and something terrible still remembers it.",
+    "exits": [
+      { "direction": "north", "roomId": "marsh-ruined-bridge" },
+      { "direction": "down", "roomId": "marsh-sunken-temple" }
+    ],
+    "flags": [],
+    "areaId": "darkhollow-marsh",
+    "gridX": 0,
+    "gridY": -18,
+    "spawnItems": [],
+    "spawnNpcs": ["drowned-knight", "marsh-zombie"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "marsh-sunken-temple",
+    "name": "Sunken Temple",
+    "shortDescription": "An ancient temple beneath the marsh",
+    "description": "Stone steps descend from the standing stones into a flooded temple beneath the marsh. The water is chest-deep and cold, and phosphorescent organisms provide an eerie green glow. Carved reliefs on the walls depict terrible rituals and beings that should not exist. At the far end of the temple, a massive stone door stands sealed, covered with warning glyphs. Whatever is imprisoned behind that door, generations of people have worked to keep it there. The Marsh Lord guards this place still.",
+    "exits": [
+      { "direction": "up", "roomId": "marsh-dark-heart" }
+    ],
+    "flags": [],
+    "areaId": "darkhollow-marsh",
+    "gridX": 0,
+    "gridY": -18,
+    "spawnItems": ["ancient-seal-fragment"],
+    "spawnNpcs": ["marsh-lord"],
+    "spawnCurrency": { "gold": 50, "silver": 100, "copper": 0 }
   }
 ]

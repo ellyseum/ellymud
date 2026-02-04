@@ -17,19 +17,83 @@ export class ConfirmationState implements ClientState {
     }
 
     client.stateData.maskInput = false;
-    writeToClient(client, colorize('======== User Registration Complete ========\r\n', 'bright'));
+
+    // Character creation complete header
+    writeToClient(client, '\r\n');
     writeToClient(
       client,
-      colorize(`Username: ${formatUsername(client.user.username)}\r\n`, 'green')
+      colorize('    ╔═══════════════════════════════════════════════════════╗\r\n', 'green')
     );
     writeToClient(
       client,
-      colorize(`Account created on: ${client.user.joinDate.toLocaleDateString()}\r\n`, 'cyan')
+      colorize('    ║', 'green') +
+        colorize('            YOUR LEGEND BEGINS HERE                    ', 'bright') +
+        colorize('║\r\n', 'green')
     );
-    writeToClient(client, colorize('\r\nPlease review your account details.\r\n', 'yellow'));
     writeToClient(
       client,
-      colorize('Type "confirm" to complete registration or "cancel" to abort: ', 'magenta')
+      colorize('    ╚═══════════════════════════════════════════════════════╝\r\n', 'green')
+    );
+    writeToClient(client, '\r\n');
+
+    // Character summary
+    writeToClient(
+      client,
+      colorize('    The scribes have recorded your arrival in Thornwood Vale:\r\n\r\n', 'gray')
+    );
+
+    writeToClient(
+      client,
+      colorize('    ┌─────────────────────────────────────────────────────┐\r\n', 'cyan')
+    );
+    writeToClient(
+      client,
+      colorize('    │  ', 'cyan') +
+        colorize('Name:  ', 'white') +
+        colorize(formatUsername(client.user.username).padEnd(42), 'yellow') +
+        colorize(' │\r\n', 'cyan')
+    );
+    const raceName = client.user.raceId
+      ? client.user.raceId.charAt(0).toUpperCase() + client.user.raceId.slice(1)
+      : 'Unknown';
+    writeToClient(
+      client,
+      colorize('    │  ', 'cyan') +
+        colorize('Race:  ', 'white') +
+        colorize(raceName.padEnd(42), 'green') +
+        colorize(' │\r\n', 'cyan')
+    );
+    writeToClient(
+      client,
+      colorize('    │  ', 'cyan') +
+        colorize('Class: ', 'white') +
+        colorize('Adventurer (Tier 0)'.padEnd(42), 'magenta') +
+        colorize(' │\r\n', 'cyan')
+    );
+    writeToClient(
+      client,
+      colorize('    │  ', 'cyan') +
+        colorize('Level: ', 'white') +
+        colorize('1'.padEnd(42), 'white') +
+        colorize(' │\r\n', 'cyan')
+    );
+    writeToClient(
+      client,
+      colorize('    └─────────────────────────────────────────────────────┘\r\n', 'cyan')
+    );
+
+    writeToClient(client, '\r\n');
+    writeToClient(
+      client,
+      colorize('    Review your character above. Is this correct?\r\n\r\n', 'white')
+    );
+    writeToClient(
+      client,
+      colorize('    Type ', 'gray') +
+        colorize('"confirm"', 'green') +
+        colorize(' to enter the world, or ', 'gray') +
+        colorize('"cancel"', 'red') +
+        colorize(' to start over: ', 'gray')
     );
   }
 

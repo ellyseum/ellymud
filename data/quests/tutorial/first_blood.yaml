@@ -1,0 +1,111 @@
+# Tutorial Quest: First Blood
+# Teaches combat by hunting field rats
+
+id: first_blood
+name: "First Blood"
+description: "Learn combat basics by hunting field rats in the outskirts."
+longDescription: |
+  The farmers in the outskirts have been complaining about rats
+  infesting their barns and fields. This is a perfect opportunity
+  to learn the basics of combat while helping the community.
+category: tutorial
+repeatable: false
+
+prerequisites:
+  level: 1
+  questsCompleted:
+    - welcome_to_thornwood
+
+steps:
+  - id: find_rats
+    name: "Find the Rats"
+    description: "Travel to the outskirts and locate the rats."
+    objectives:
+      - type: enter_room
+        roomId: outskirts-old-barn
+        description: "Find rats in the abandoned barn"
+    hint: "Head south from the village to find the outskirts."
+    onComplete:
+      - action: message
+        text: "You've found the rats! Time to put your weapon to use."
+        color: yellow
+
+  - id: kill_rats
+    name: "Kill the Rats"
+    description: "Defeat the rats infesting the barn."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: field-rat
+        count: 5
+        description: "Kill 5 field rats"
+    hint: "Use the 'attack' or 'kill' command to initiate combat."
+    onComplete:
+      - action: message
+        text: "The rats have been dealt with! Collect your rewards."
+        color: green
+      - action: setFlag
+        flag: rats_killed
+
+  - id: collect_tails
+    name: "Collect Rat Tails"
+    description: "Gather rat tails as proof of your deeds."
+    objectives:
+      - type: have_item
+        itemId: rat-tail
+        count: 3
+        description: "Collect 3 rat tails"
+    hint: "Defeated enemies sometimes drop items. Pick them up with 'get'."
+    onComplete:
+      - action: message
+        text: "You have enough tails. Return to Martha at the general store."
+        color: green
+
+  - id: return_to_martha
+    name: "Claim Your Bounty"
+    description: "Return to Martha with the rat tails."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: millbrook-shopkeeper
+        description: "Bring rat tails to Martha"
+    npcDialogues:
+      millbrook-shopkeeper:
+        greeting: "Back from the fields? Any luck with those rats?"
+        options:
+          - text: "Here are the rat tails."
+            requires:
+              items: [rat-tail]
+              minCount: 3
+            response: |
+              Oh wonderful! These'll make a fine bounty claim. The
+              farmers will be so relieved. Here's your payment -
+              you've earned it, young adventurer!
+            actions:
+              - action: removeItem
+                itemId: rat-tail
+                count: 3
+              - action: completeQuest
+          - text: "Still hunting."
+            response: "Keep at it! Those vermin won't exterminate themselves."
+    onComplete:
+      - action: message
+        text: "You've completed your first combat quest!"
+        color: green
+
+rewards:
+  experience: 150
+  currency:
+    gold: 3
+    silver: 0
+    copper: 0
+  flags:
+    - first_combat_complete
+  message: |
+    Well done! You've completed your first combat quest.
+    You're ready to take on greater challenges now.
+
+questGiver: millbrook-shopkeeper
+turnInNpc: millbrook-shopkeeper
+
+recommendedLevel:
+  min: 1
+  max: 3

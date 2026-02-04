@@ -1,0 +1,102 @@
+# Main Quest: The Road to Thornwood
+# Bridges the tutorial area to the main hub
+
+id: road_to_thornwood
+name: "The Road to Thornwood"
+description: "Deliver Elder Tobias's letter to Mayor Thornwood."
+longDescription: |
+  Elder Tobias has given you a letter of introduction for
+  Mayor Aldric Thornwood. The journey from Millbrook to
+  Thornwood Town takes you through the outskirts - be
+  prepared for any trouble along the way.
+category: main
+repeatable: false
+
+prerequisites:
+  level: 2
+  questsCompleted:
+    - welcome_to_thornwood
+
+steps:
+  - id: journey_south
+    name: "Travel to Thornwood"
+    description: "Make your way south to Thornwood Town."
+    objectives:
+      - type: enter_room
+        roomId: thornwood-north-gate
+        description: "Reach the North Gate of Thornwood"
+    hint: "Follow the road south from the crossroads."
+    onComplete:
+      - action: message
+        text: "You've reached Thornwood Town! Find the Town Hall."
+        color: green
+
+  - id: enter_town_hall
+    name: "Find the Town Hall"
+    description: "Locate the Town Hall in Thornwood."
+    objectives:
+      - type: enter_room
+        roomId: thornwood-town-hall
+        description: "Enter Thornwood Town Hall"
+    hint: "The Town Hall is south of the market square."
+    onComplete:
+      - action: message
+        text: "This is the Town Hall. Present your letter to the Mayor."
+        color: green
+
+  - id: meet_mayor
+    name: "Meet the Mayor"
+    description: "Present your letter of introduction to Mayor Thornwood."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thornwood-mayor
+        description: "Speak with Mayor Aldric Thornwood"
+    npcDialogues:
+      thornwood-mayor:
+        greeting: "Yes? State your business. I'm a busy man."
+        options:
+          - text: "I have a letter from Elder Tobias of Millbrook."
+            requires:
+              items: [elder-letter]
+            response: |
+              Ah, old Tobias! How is he? Let me see...
+              *reads the letter*
+              I see. He speaks highly of you. Well, Thornwood Town
+              can always use capable adventurers. We have troubles
+              of our own - bandits on the roads, goblins in the
+              caves, and dark rumors from the marsh. Speak with
+              the guard captain or check the bounty board if you
+              seek work. Welcome to Thornwood!
+            actions:
+              - action: removeItem
+                itemId: elder-letter
+              - action: giveItem
+                itemId: thornwood-ring
+                count: 1
+              - action: completeQuest
+          - text: "Just looking around."
+            response: "The Town Hall is no place for sightseeing. Come back when you have real business."
+    onComplete:
+      - action: message
+        text: "You are now recognized as an adventurer of Thornwood!"
+        color: green
+
+rewards:
+  experience: 250
+  currency:
+    gold: 10
+    silver: 0
+    copper: 0
+  questFlags:
+    - recognized_by_thornwood
+  message: |
+    You've been welcomed to Thornwood Town!
+    The Thornwood Signet Ring marks you as a recognized adventurer.
+    Explore the town to find trainers, merchants, and new quests.
+
+questGiver: village-elder-millbrook
+turnInNpc: thornwood-mayor
+
+recommendedLevel:
+  min: 2
+  max: 5

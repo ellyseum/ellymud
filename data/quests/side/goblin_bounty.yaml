@@ -1,0 +1,93 @@
+# Side Quest: Goblin Bounty
+# Repeatable goblin hunting quest
+
+id: goblin_bounty
+name: "Goblin Bounty"
+description: "Collect goblin ears for the bounty office."
+longDescription: |
+  The town has put a standing bounty on goblins. Every dead
+  goblin makes the roads a little safer. Bring proof of your
+  kills - goblin ears - to collect your payment.
+category: side
+repeatable: true
+repeatCooldown: 1800
+
+prerequisites:
+  level: 6
+  questFlags:
+    - recognized_by_thornwood
+
+steps:
+  - id: hunt_goblins
+    name: "Hunt Goblins"
+    description: "Kill goblins and collect their ears."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: cave-goblin
+        count: 8
+        description: "Kill 8 goblins"
+    onComplete:
+      - action: message
+        text: "Eight goblins down. Collect your evidence."
+        color: green
+      - action: setFlag
+        flag: goblins_killed_bounty
+
+  - id: collect_ears
+    name: "Collect Evidence"
+    description: "Gather goblin ears."
+    objectives:
+      - type: have_item
+        itemId: goblin-ear
+        count: 8
+        description: "Collect 8 goblin ears"
+    onComplete:
+      - action: message
+        text: "Return to town to claim your bounty."
+        color: green
+
+  - id: claim_bounty
+    name: "Claim Your Bounty"
+    description: "Turn in the ears at the town hall."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thornwood-mayor
+        description: "Claim bounty from Mayor Thornwood"
+    npcDialogues:
+      thornwood-mayor:
+        greeting: "Here about the goblin bounty?"
+        options:
+          - text: "I have ears to turn in."
+            requires:
+              items: [goblin-ear]
+              minCount: 8
+            response: |
+              *counts the ears*
+              Eight goblins fewer to worry about. Well done.
+              Here's your payment from the bounty fund.
+            actions:
+              - action: removeItem
+                itemId: goblin-ear
+                count: 8
+              - action: completeQuest
+          - text: "Just checking in."
+            response: "The bounty stands until the goblin threat is eliminated."
+    onComplete:
+      - action: message
+        text: "Bounty collected!"
+        color: green
+
+rewards:
+  experience: 250
+  currency:
+    gold: 12
+    silver: 0
+    copper: 0
+  message: "Another bounty collected. The goblins fear your name."
+
+questGiver: thornwood-mayor
+turnInNpc: thornwood-mayor
+
+recommendedLevel:
+  min: 6
+  max: 12

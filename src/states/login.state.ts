@@ -17,7 +17,31 @@ export class LoginState implements ClientState {
       maskInput: false, // Start with normal echo
       passwordAttempts: 0, // Initialize password attempts counter
     };
-    writeToClient(client, colorize('Enter your username (or "new" to sign up): ', 'cyan'));
+
+    // Show login options
+    writeToClient(client, colorize('      ┌─────────────────────────────────────┐\r\n', 'cyan'));
+    writeToClient(
+      client,
+      colorize('      │', 'cyan') +
+        colorize('  Enter your ', 'white') +
+        colorize('username', 'green') +
+        colorize(' to log in         ', 'white') +
+        colorize('│\r\n', 'cyan')
+    );
+    writeToClient(
+      client,
+      colorize('      │', 'cyan') +
+        colorize('  Type ', 'white') +
+        colorize('"new"', 'yellow') +
+        colorize(' to create a new character  ', 'white') +
+        colorize('│\r\n', 'cyan')
+    );
+    writeToClient(
+      client,
+      colorize('      └─────────────────────────────────────┘\r\n\r\n', 'cyan')
+    );
+
+    writeToClient(client, colorize('      Your name, adventurer: ', 'cyan'));
   }
 
   exit(client: ConnectedClient): void {

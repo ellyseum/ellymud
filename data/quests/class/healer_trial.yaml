@@ -1,0 +1,151 @@
+# Class Trial: Healer's Devotion
+# Unlocks Healer class advancement
+
+id: healer_trial
+name: "The Healer's Devotion"
+description: "Prove your dedication to the healing arts."
+longDescription: |
+  Sister Mercy has watched your progress with interest.
+  To advance as a Healer, you must prove not just your
+  skill, but your compassion - by helping those in
+  desperate need.
+category: class_trial
+repeatable: false
+
+prerequisites:
+  level: 5
+  classId: healer
+
+steps:
+  - id: seek_trial
+    name: "Seek Guidance"
+    description: "Speak with Sister Mercy about advancement."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: healer_trainer
+        description: "Request the Healer's Trial"
+    npcDialogues:
+      healer_trainer:
+        greeting: "Child, your Light burns brighter every day. Do you seek to advance?"
+        options:
+          - text: "I am ready to deepen my healing abilities."
+            response: |
+              Healing is not merely about mending wounds - it is
+              about compassion, sacrifice, and hope. To prove your
+              devotion, you must venture into danger not for glory,
+              but to help others.
+
+              The undead in Darkhollow Marsh have risen from the
+              corpses of fallen travelers. Their spirits are trapped.
+              I need you to gather spectral essence so that I may
+              perform the rites to free their souls.
+            actions:
+              - action: setQuestFlag
+                flag: healer_trial_started
+              - action: message
+                text: "Quest started: Gather spectral essence from the marsh undead."
+                color: yellow
+          - text: "I need more practice first."
+            response: "The Light guides all in its own time. Return when ready."
+    onComplete:
+      - action: message
+        text: "Venture into the marsh and free the trapped spirits."
+        color: yellow
+
+  - id: enter_marsh
+    name: "Brave the Marsh"
+    description: "Enter Darkhollow Marsh."
+    objectives:
+      - type: enter_room
+        roomId: marsh-entrance
+        description: "Enter Darkhollow Marsh"
+    onComplete:
+      - action: message
+        text: "The undead wander here. Free their spirits."
+        color: yellow
+
+  - id: defeat_undead
+    name: "Release the Spirits"
+    description: "Defeat the marsh undead."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: marsh-zombie
+        count: 3
+        description: "Release 3 trapped spirits"
+      - type: kill_mob
+        npcTemplateId: drowned-knight
+        count: 1
+        description: "Free 1 drowned knight's spirit"
+    requireAllObjectives: true
+    onComplete:
+      - action: message
+        text: "The spirits are freed. Gather the essence."
+        color: green
+      - action: setFlag
+        flag: spirits_freed
+
+  - id: collect_essence
+    name: "Gather Essence"
+    description: "Collect spectral essence from the freed spirits."
+    objectives:
+      - type: have_item
+        itemId: spectral-essence
+        count: 1
+        description: "Collect spectral essence"
+    onComplete:
+      - action: message
+        text: "Return to Sister Mercy with the essence."
+        color: green
+
+  - id: complete_trial
+    name: "Complete the Rites"
+    description: "Bring the essence to Sister Mercy."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: healer_trainer
+        description: "Complete the trial"
+    npcDialogues:
+      healer_trainer:
+        greeting: "You've returned from the marsh. Did you succeed?"
+        options:
+          - text: "The spirits are freed. Here is the essence."
+            requires:
+              flags: [spirits_freed]
+              items: [spectral-essence]
+            response: |
+              *performs a brief ritual over the essence*
+              Their souls are at peace now, thanks to you.
+              You ventured into darkness not for reward, but to
+              bring peace to the suffering. This is the true
+              heart of a healer. The Light shines through you.
+              Your dedication is proven.
+            actions:
+              - action: removeItem
+                itemId: spectral-essence
+              - action: completeQuest
+          - text: "Still working on it."
+            response: "Those spirits have waited long enough. Please hurry."
+    onComplete:
+      - action: message
+        text: "Your healing abilities grow stronger!"
+        color: green
+
+rewards:
+  experience: 500
+  questFlags:
+    - healer_trial_complete
+  items:
+    - itemId: scroll-heal
+      count: 2
+    - itemId: millbrook-pendant
+      count: 1
+  message: |
+    Congratulations! You have completed the Healer's Trial.
+    New healing abilities are now available to you.
+
+questGiver: healer_trainer
+turnInNpc: healer_trainer
+
+recommendedLevel:
+  min: 5
+  max: 10

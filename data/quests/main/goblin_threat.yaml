@@ -1,0 +1,177 @@
+# Main Quest: The Goblin Threat
+# Major dungeon quest in the goblin caves
+
+id: goblin_threat
+name: "The Goblin Threat"
+description: "Assault the goblin caves and defeat their chieftain."
+longDescription: |
+  The goblin tribes in the caves beneath the old ruins have been
+  growing bolder. Their raids threaten the entire Vale. Mayor
+  Thornwood has authorized a bounty on the goblin chieftain -
+  bring peace to the region by eliminating their leader.
+category: main
+repeatable: false
+
+prerequisites:
+  level: 8
+  questFlags:
+    - bandits_defeated
+
+steps:
+  - id: receive_mission
+    name: "Accept the Mission"
+    description: "Speak with Mayor Thornwood about the goblin problem."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thornwood-mayor
+        description: "Discuss the goblin threat"
+    npcDialogues:
+      thornwood-mayor:
+        greeting: "The goblin problem has grown dire. I need your help again."
+        options:
+          - text: "Tell me about the goblins."
+            response: |
+              The goblins have unified under a new chieftain - Grulkak.
+              He's organized the tribes, and their raids have become
+              more frequent and deadly. We've captured one of their
+              battle plans - they're preparing for a major assault
+              on the outlying farms.
+
+              I need you to go into their caves and kill Grulkak.
+              Without their leader, the tribes will splinter and
+              we'll have time to strengthen our defenses.
+            actions:
+              - action: setFlag
+                flag: goblin_mission_started
+              - action: message
+                text: "Quest started: Enter the Goblin Caves and kill Chieftain Grulkak."
+                color: yellow
+          - text: "Not ready for this."
+            response: "I understand. But don't wait too long - the goblins won't."
+    onComplete:
+      - action: message
+        text: "Find the entrance to the goblin caves in the forest ruins."
+        color: yellow
+
+  - id: enter_caves
+    name: "Enter the Caves"
+    description: "Find and enter the goblin caves."
+    objectives:
+      - type: enter_room
+        roomId: goblin-cave-entrance
+        description: "Enter the goblin caves"
+    hint: "The cave entrance is beneath the ancient ruins."
+    onComplete:
+      - action: message
+        text: "You've entered goblin territory. Proceed with caution."
+        color: yellow
+
+  - id: defeat_shaman
+    name: "Clear the Shaman"
+    description: "Defeat the goblin shaman who protects the chieftain."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: goblin-shaman
+        count: 1
+        description: "Kill the Goblin Shaman"
+    hint: "The shaman guards the path to the chieftain."
+    onComplete:
+      - action: message
+        text: "The shaman's magic no longer protects the chieftain."
+        color: green
+
+  - id: defeat_chieftain
+    name: "Kill Chieftain Grulkak"
+    description: "Defeat the goblin chieftain."
+    objectives:
+      - type: enter_room
+        roomId: goblin-chieftain-throne
+        description: "Reach the throne room"
+      - type: kill_mob
+        npcTemplateId: goblin-chieftain
+        count: 1
+        description: "Kill Chieftain Grulkak"
+    requireAllObjectives: true
+    onComplete:
+      - action: message
+        text: "Grulkak is dead! Retrieve his battle plans as evidence."
+        color: green
+      - action: setFlag
+        flag: grulkak_killed
+
+  - id: retrieve_plans
+    name: "Retrieve the Plans"
+    description: "Take the goblin battle plans."
+    objectives:
+      - type: have_item
+        itemId: goblin-battle-plan
+        count: 1
+        description: "Obtain the goblin battle plans"
+    hint: "Search Grulkak's throne room."
+    onComplete:
+      - action: message
+        text: "You have the plans. Return to Mayor Thornwood."
+        color: green
+
+  - id: return_to_mayor
+    name: "Report Your Victory"
+    description: "Bring the battle plans to Mayor Thornwood."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thornwood-mayor
+        description: "Report to Mayor Thornwood"
+    npcDialogues:
+      thornwood-mayor:
+        greeting: "You've returned from the caves. Do you bring good news?"
+        options:
+          - text: "Grulkak is dead. Here are his battle plans."
+            requires:
+              flags: [grulkak_killed]
+              items: [goblin-battle-plan]
+            response: |
+              *examines the plans*
+              By the gods... they were planning an assault on
+              Millbrook Village itself! You've saved countless
+              lives this day. The realm is in your debt.
+
+              But I must warn you - these plans mention something
+              else. A 'dark power' in the marsh that the goblins
+              feared. We may have an even greater threat ahead.
+            actions:
+              - action: removeItem
+                itemId: goblin-battle-plan
+              - action: completeQuest
+          - text: "Still working on it."
+            response: "Hurry. Every day the threat grows."
+    onComplete:
+      - action: message
+        text: "The goblin threat is ended... but what lurks in the marsh?"
+        color: green
+
+rewards:
+  experience: 1000
+  currency:
+    gold: 50
+    silver: 0
+    copper: 0
+  items:
+    - itemId: goblin-slayer-sword
+      count: 1
+  questFlags:
+    - goblins_defeated
+    - marsh_warning_received
+  message: |
+    The goblin tribes are broken! Thornwood is safe - for now.
+    You received the legendary Goblin Slayer sword.
+    But the Mayor's warning echoes in your mind...
+    What darkness awaits in Darkhollow Marsh?
+
+questGiver: thornwood-mayor
+turnInNpc: thornwood-mayor
+
+recommendedLevel:
+  min: 8
+  max: 12
+
+chainId: vale_threats
+chainOrder: 2

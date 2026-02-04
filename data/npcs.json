@@ -217,5 +217,733 @@
     "experienceValue": 0,
     "attackTexts": ["Goldwin whacks you with a heavy ledger!"],
     "deathMessages": ["Goldwin gasps 'My ledgers!' and collapses..."]
+  },
+  {
+    "id": "village-elder-millbrook",
+    "name": "Elder Tobias",
+    "description": "A kindly old man with a long white beard and twinkling blue eyes. He wears simple farmer's clothes but carries himself with quiet authority. As the elder of Millbrook Village, he knows everyone and everything that happens here.",
+    "health": 40,
+    "maxHealth": 40,
+    "damage": [1, 2],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Elder Tobias whacks you with his walking stick!"],
+    "deathMessages": ["Elder Tobias sighs and slumps against the well..."]
+  },
+  {
+    "id": "millbrook-shopkeeper",
+    "name": "Martha the Shopkeeper",
+    "description": "A plump, cheerful woman in an apron, her graying hair pulled back in a practical bun. She runs Millbrook's general store with a firm but fair hand, always ready with a bit of gossip or advice for travelers.",
+    "health": 60,
+    "maxHealth": 60,
+    "damage": [1, 3],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Martha swats you with a broom!"],
+    "deathMessages": ["Martha collapses behind her counter..."],
+    "merchant": true,
+    "inventory": [
+      { "itemId": "healing-potion", "itemCount": 10, "spawnRate": 1.0 },
+      { "itemId": "torch-basic", "itemCount": 20, "spawnRate": 1.0 },
+      { "itemId": "rope-hemp", "itemCount": 5, "spawnRate": 1.0 },
+      { "itemId": "rations-trail", "itemCount": 15, "spawnRate": 1.0 },
+      { "itemId": "sword-poor", "itemCount": 2, "spawnRate": 1.0 }
+    ]
+  },
+  {
+    "id": "millbrook-innkeeper",
+    "name": "Barley the Innkeeper",
+    "description": "A rotund, jovial man with a ruddy face and a booming laugh. He's been running the Sleeping Sheep for thirty years and prides himself on his hearty stew. His belly shakes when he laughs, which is often.",
+    "health": 80,
+    "maxHealth": 80,
+    "damage": [2, 4],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Barley smashes a tankard over your head!"],
+    "deathMessages": ["Barley slumps against the bar with a final sigh..."],
+    "inventory": [
+      { "itemId": "healing-potion", "itemCount": 5, "spawnRate": 1.0 },
+      { "itemId": "ale-mug", "itemCount": 20, "spawnRate": 1.0 }
+    ]
+  },
+  {
+    "id": "shrine-priestess",
+    "name": "Priestess Willow",
+    "description": "A young woman in flowing green robes, her auburn hair adorned with wildflowers. She tends the village shrine to Aelindra with quiet devotion and offers blessings to travelers.",
+    "health": 50,
+    "maxHealth": 50,
+    "damage": [1, 2],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Priestess Willow's eyes flash with divine anger!"],
+    "deathMessages": ["Priestess Willow's light fades from her eyes..."]
+  },
+  {
+    "id": "field-rat",
+    "name": "field rat",
+    "description": "A large brown rat the size of a small dog. Its beady eyes gleam with cunning, and its yellowed teeth look sharp enough to gnaw through leather. These vermin are a constant nuisance to farmers.",
+    "health": 15,
+    "maxHealth": 15,
+    "damage": [1, 3],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 25,
+    "attackTexts": [
+      "lunges at $TARGET$ with bared teeth",
+      "bites $TARGET$'s ankle",
+      "scratches at $TARGET$ with dirty claws"
+    ],
+    "deathMessages": [
+      "squeaks once and goes still",
+      "twitches and expires with a final squeal",
+      "curls up and dies, its beady eyes glazing over"
+    ],
+    "canMove": true,
+    "movementTicks": 10,
+    "staysInArea": true,
+    "inventory": [
+      { "itemId": "rat-tail", "itemCount": 1, "spawnRate": 0.8 }
+    ]
+  },
+  {
+    "id": "wild-boar",
+    "name": "wild boar",
+    "description": "A bristly, tusked pig gone feral. Its small eyes gleam with aggression, and foam flecks its snout. Wild boars are territorial and will charge anyone who gets too close.",
+    "health": 35,
+    "maxHealth": 35,
+    "damage": [3, 6],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 75,
+    "attackTexts": [
+      "charges at $TARGET$ with lowered tusks",
+      "gores $TARGET$ with a vicious tusk",
+      "tramples $TARGET$ with its hooves"
+    ],
+    "deathMessages": [
+      "squeals in rage and collapses, foaming at the mouth",
+      "stumbles and falls, its last breath a defiant grunt",
+      "crashes to the ground, its tusks digging into the dirt"
+    ],
+    "canMove": true,
+    "movementTicks": 25,
+    "staysInArea": true,
+    "inventory": [
+      { "itemId": "boar-tusk", "itemCount": 1, "spawnRate": 0.6 },
+      { "itemId": "raw-meat", "itemCount": 1, "spawnRate": 0.9 }
+    ]
+  },
+  {
+    "id": "giant-spider",
+    "name": "giant spider",
+    "description": "A spider the size of a large dog, its black carapace gleaming in the light. Eight malevolent eyes watch your every move, and venom drips from its fangs. Webs trail from its spinnerets.",
+    "health": 25,
+    "maxHealth": 25,
+    "damage": [2, 5],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 60,
+    "attackTexts": [
+      "lunges at $TARGET$ with dripping fangs",
+      "wraps sticky webbing around $TARGET$",
+      "sinks its venomous fangs into $TARGET$"
+    ],
+    "deathMessages": [
+      "curls its legs inward and dies",
+      "spasms violently and goes still",
+      "leaks dark ichor and collapses into a heap"
+    ],
+    "canMove": true,
+    "movementTicks": 15,
+    "staysInArea": true,
+    "inventory": [
+      { "itemId": "spider-silk", "itemCount": 1, "spawnRate": 0.7 },
+      { "itemId": "spider-venom", "itemCount": 1, "spawnRate": 0.3 }
+    ]
+  },
+  {
+    "id": "town-guard",
+    "name": "Thornwood Guard",
+    "description": "A vigilant guard in chainmail armor bearing the thorny oak emblem of Thornwood Town. They carry a well-maintained sword and shield, and their eyes constantly scan for trouble.",
+    "health": 100,
+    "maxHealth": 100,
+    "damage": [5, 10],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["The guard strikes you with practiced precision!"],
+    "deathMessages": ["The guard falls, their duty done..."]
+  },
+  {
+    "id": "thornwood-merchant",
+    "name": "Gerald the Trader",
+    "description": "A prosperous-looking merchant in fine clothes, his fingers adorned with gold rings. He deals in general goods and always seems to have what travelers need - for a price.",
+    "health": 60,
+    "maxHealth": 60,
+    "damage": [1, 3],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Gerald throws his ledger at you!"],
+    "deathMessages": ["Gerald clutches his coin purse as he falls..."],
+    "merchant": true,
+    "inventory": [
+      { "itemId": "healing-potion", "itemCount": 20, "spawnRate": 1.0 },
+      { "itemId": "mana-potion", "itemCount": 15, "spawnRate": 1.0 },
+      { "itemId": "torch-basic", "itemCount": 30, "spawnRate": 1.0 },
+      { "itemId": "rope-hemp", "itemCount": 10, "spawnRate": 1.0 },
+      { "itemId": "antidote-basic", "itemCount": 10, "spawnRate": 1.0 }
+    ]
+  },
+  {
+    "id": "thornwood-blacksmith",
+    "name": "Grimjaw the Smith",
+    "description": "A massive man with arms like tree trunks and a face marked by old burns. His leather apron is scorched and stained, and his hands are calloused from years at the forge. He speaks little but his weapons speak volumes.",
+    "health": 150,
+    "maxHealth": 150,
+    "damage": [8, 15],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Grimjaw swings his hammer at you!"],
+    "deathMessages": ["Grimjaw falls against his anvil with a final clang..."],
+    "merchant": true,
+    "inventory": [
+      { "itemId": "sword-common", "itemCount": 3, "spawnRate": 1.0 },
+      { "itemId": "sword-uncommon", "itemCount": 2, "spawnRate": 1.0 },
+      { "itemId": "axe-common", "itemCount": 3, "spawnRate": 1.0 },
+      { "itemId": "axe-uncommon", "itemCount": 2, "spawnRate": 1.0 },
+      { "itemId": "dagger-steel", "itemCount": 5, "spawnRate": 1.0 },
+      { "itemId": "mace-iron", "itemCount": 3, "spawnRate": 1.0 }
+    ]
+  },
+  {
+    "id": "thornwood-armorer",
+    "name": "Helena Ironhide",
+    "description": "A muscular woman with short-cropped gray hair and keen eyes that assess your measurements at a glance. She crafts the finest armor in the Vale, each piece a testament to her skill.",
+    "health": 120,
+    "maxHealth": 120,
+    "damage": [6, 12],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Helena strikes you with a gauntlet!"],
+    "deathMessages": ["Helena falls amid her finest work..."],
+    "merchant": true,
+    "inventory": [
+      { "itemId": "helmet-001", "itemCount": 3, "spawnRate": 1.0 },
+      { "itemId": "chest-001", "itemCount": 2, "spawnRate": 1.0 },
+      { "itemId": "chainmail-chest", "itemCount": 2, "spawnRate": 1.0 },
+      { "itemId": "shield-001", "itemCount": 4, "spawnRate": 1.0 },
+      { "itemId": "shield-iron", "itemCount": 2, "spawnRate": 1.0 },
+      { "itemId": "boots-001", "itemCount": 3, "spawnRate": 1.0 },
+      { "itemId": "gloves-001", "itemCount": 3, "spawnRate": 1.0 }
+    ]
+  },
+  {
+    "id": "thornwood-supplier",
+    "name": "Vera Wanderfoot",
+    "description": "A wiry woman in her fifties with weathered skin and bright eyes. A retired adventurer, she now runs an outfitting shop and loves swapping stories with those brave enough to venture into the wild.",
+    "health": 80,
+    "maxHealth": 80,
+    "damage": [4, 8],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Vera trips you with an expert move!"],
+    "deathMessages": ["Vera sighs, 'One last adventure...'"],
+    "merchant": true,
+    "inventory": [
+      { "itemId": "healing-potion", "itemCount": 25, "spawnRate": 1.0 },
+      { "itemId": "greater-healing-potion", "itemCount": 10, "spawnRate": 1.0 },
+      { "itemId": "mana-potion", "itemCount": 20, "spawnRate": 1.0 },
+      { "itemId": "antidote-basic", "itemCount": 15, "spawnRate": 1.0 },
+      { "itemId": "torch-basic", "itemCount": 50, "spawnRate": 1.0 },
+      { "itemId": "rope-hemp", "itemCount": 15, "spawnRate": 1.0 },
+      { "itemId": "backpack-leather", "itemCount": 5, "spawnRate": 1.0 }
+    ]
+  },
+  {
+    "id": "thornwood-mayor",
+    "name": "Mayor Aldric Thornwood",
+    "description": "A tall, dignified man in his sixties with silver hair and a neatly trimmed beard. He wears the chain of office over fine but practical clothes. His family has led Thornwood Town for generations.",
+    "health": 60,
+    "maxHealth": 60,
+    "damage": [2, 4],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Mayor Thornwood strikes you with his cane of office!"],
+    "deathMessages": ["Mayor Thornwood collapses with dignity..."]
+  },
+  {
+    "id": "thornwood-innkeeper",
+    "name": "Red Thorn",
+    "description": "A tough-looking woman with fiery red hair and a scar across her cheek. She runs the Thorny Rose with an iron fist and has been known to personally throw out troublemakers. She's also the best source of local rumors.",
+    "health": 100,
+    "maxHealth": 100,
+    "damage": [5, 10],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Red Thorn smashes a bottle over your head!"],
+    "deathMessages": ["Red Thorn falls behind her bar..."],
+    "inventory": [
+      { "itemId": "healing-potion", "itemCount": 10, "spawnRate": 1.0 },
+      { "itemId": "ale-mug", "itemCount": 50, "spawnRate": 1.0 }
+    ]
+  },
+  {
+    "id": "thornwood-magic-vendor",
+    "name": "Apprentice Finwick",
+    "description": "A nervous young man in slightly singed robes, constantly checking lists and muttering about inventory. He manages the Tower's magical supply shop under the watchful eye of Archmage Elara.",
+    "health": 40,
+    "maxHealth": 40,
+    "damage": [3, 6],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Finwick hurls a minor spell at you!"],
+    "deathMessages": ["Finwick's robes slowly stop smoldering..."],
+    "merchant": true,
+    "inventory": [
+      { "itemId": "mana-potion", "itemCount": 25, "spawnRate": 1.0 },
+      { "itemId": "greater-mana-potion", "itemCount": 10, "spawnRate": 1.0 },
+      { "itemId": "scroll-fireball", "itemCount": 3, "spawnRate": 1.0 },
+      { "itemId": "scroll-heal", "itemCount": 5, "spawnRate": 1.0 },
+      { "itemId": "wand-basic", "itemCount": 2, "spawnRate": 1.0 },
+      { "itemId": "staff-apprentice", "itemCount": 2, "spawnRate": 1.0 }
+    ]
+  },
+  {
+    "id": "forest-wolf",
+    "name": "Thornwood wolf",
+    "description": "A large gray wolf with gleaming yellow eyes, its coat matted with burrs and forest debris. These wolves are larger and fiercer than their lowland cousins, adapted to hunting in the dense undergrowth.",
+    "health": 45,
+    "maxHealth": 45,
+    "damage": [4, 8],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 120,
+    "attackTexts": [
+      "lunges at $TARGET$'s throat with bared fangs",
+      "circles around and attacks $TARGET$ from behind",
+      "bites deep into $TARGET$'s leg"
+    ],
+    "deathMessages": [
+      "howls mournfully as it collapses",
+      "snarls one last time and goes limp",
+      "whimpers and falls, blood staining its gray fur"
+    ],
+    "canMove": true,
+    "movementTicks": 12,
+    "staysInArea": true,
+    "inventory": [
+      { "itemId": "wolf-pelt", "itemCount": 1, "spawnRate": 0.7 },
+      { "itemId": "wolf-fang", "itemCount": { "min": 1, "max": 2 }, "spawnRate": 0.5 }
+    ]
+  },
+  {
+    "id": "thornwood-spider",
+    "name": "Thornwood spider",
+    "description": "A massive spider with a body the size of a shield, its legs spanning several feet. Its carapace is mottled brown and green for camouflage among the forest leaves. Its venom is especially potent.",
+    "health": 40,
+    "maxHealth": 40,
+    "damage": [3, 7],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 100,
+    "attackTexts": [
+      "drops from above onto $TARGET$",
+      "wraps $TARGET$ in sticky webbing",
+      "sinks its dripping fangs into $TARGET$"
+    ],
+    "deathMessages": [
+      "curls its legs inward and dies",
+      "leaks green ichor as it expires",
+      "thrashes violently and goes still"
+    ],
+    "canMove": true,
+    "movementTicks": 20,
+    "staysInArea": true,
+    "inventory": [
+      { "itemId": "spider-silk", "itemCount": { "min": 1, "max": 2 }, "spawnRate": 0.8 },
+      { "itemId": "spider-venom", "itemCount": 1, "spawnRate": 0.4 }
+    ]
+  },
+  {
+    "id": "giant-thornwood-spider",
+    "name": "giant Thornwood spider",
+    "description": "A monstrous spider, queen of its nest. Its bloated body is covered in coarse hairs, and its mandibles drip with venom that could kill a horse. Countless smaller spiders scuttle in its wake.",
+    "health": 100,
+    "maxHealth": 100,
+    "damage": [6, 12],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 350,
+    "attackTexts": [
+      "slams into $TARGET$ with crushing force",
+      "injects $TARGET$ with a massive dose of venom",
+      "wraps $TARGET$ in layer upon layer of webbing"
+    ],
+    "deathMessages": [
+      "lets out a hideous screech and collapses",
+      "thrashes in its death throes, spraying ichor",
+      "curls into a ball and expires with a final shudder"
+    ],
+    "inventory": [
+      { "itemId": "spider-silk", "itemCount": { "min": 3, "max": 5 }, "spawnRate": 1.0 },
+      { "itemId": "spider-venom", "itemCount": { "min": 2, "max": 3 }, "spawnRate": 0.8 },
+      { "itemId": "spider-eye-gem", "itemCount": 1, "spawnRate": 0.3 }
+    ]
+  },
+  {
+    "id": "brown-bear",
+    "name": "brown bear",
+    "description": "A massive brown bear standing seven feet tall on its hind legs. Its claws are as long as daggers, and its roar can be heard for miles. It views you as either a threat or a meal.",
+    "health": 120,
+    "maxHealth": 120,
+    "damage": [8, 15],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 400,
+    "attackTexts": [
+      "swipes at $TARGET$ with massive claws",
+      "roars and charges at $TARGET$",
+      "pins $TARGET$ down and bites savagely"
+    ],
+    "deathMessages": [
+      "roars one last time and collapses with a thunderous crash",
+      "stumbles and falls, the light fading from its eyes",
+      "lets out a final growl and lies still"
+    ],
+    "inventory": [
+      { "itemId": "bear-pelt", "itemCount": 1, "spawnRate": 0.8 },
+      { "itemId": "bear-claw", "itemCount": { "min": 1, "max": 4 }, "spawnRate": 0.6 },
+      { "itemId": "raw-meat", "itemCount": { "min": 2, "max": 4 }, "spawnRate": 0.9 }
+    ]
+  },
+  {
+    "id": "forest-bandit",
+    "name": "forest bandit",
+    "description": "A rough-looking outlaw in mismatched armor, their face hidden behind a cloth mask. They prey on travelers through the forest, and their eyes gleam with dangerous intent.",
+    "health": 60,
+    "maxHealth": 60,
+    "damage": [5, 10],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 200,
+    "attackTexts": [
+      "slashes at $TARGET$ with a notched blade",
+      "tries to trip $TARGET$ and go for the killing blow",
+      "feints left and strikes $TARGET$ from the right"
+    ],
+    "deathMessages": [
+      "curses and falls to their knees before collapsing",
+      "gasps 'The boss will... avenge...' and dies",
+      "reaches for a pouch of coins and goes still"
+    ],
+    "canMove": true,
+    "movementTicks": 18,
+    "staysInArea": true,
+    "inventory": [
+      { "itemId": "bandit-mask", "itemCount": 1, "spawnRate": 0.3 },
+      { "itemId": "dagger-steel", "itemCount": 1, "spawnRate": 0.4 }
+    ]
+  },
+  {
+    "id": "bandit-leader",
+    "name": "Scarface the Bandit Leader",
+    "description": "A cruel-looking man with a distinctive scar running from forehead to chin. He wears better armor than his followers and carries a wicked-looking sword. His reputation for brutality is well-earned.",
+    "health": 150,
+    "maxHealth": 150,
+    "damage": [10, 18],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 600,
+    "attackTexts": [
+      "executes a vicious combination attack on $TARGET$",
+      "laughs cruelly as he slashes at $TARGET$",
+      "kicks $TARGET$ and follows up with a sword thrust"
+    ],
+    "deathMessages": [
+      "snarls 'This isn't over!' and collapses",
+      "reaches for a hidden dagger but goes limp",
+      "falls to his knees, his scar pale against his graying face"
+    ],
+    "inventory": [
+      { "itemId": "sword-uncommon", "itemCount": 1, "spawnRate": 0.5 },
+      { "itemId": "bandit-leader-key", "itemCount": 1, "spawnRate": 1.0 },
+      { "itemId": "stolen-jewelry", "itemCount": { "min": 1, "max": 3 }, "spawnRate": 0.7 }
+    ]
+  },
+  {
+    "id": "cave-goblin",
+    "name": "cave goblin",
+    "description": "A small, wiry creature with sickly pale green skin adapted to life underground. Its eyes are large and gleaming in the darkness, and it clutches a crude weapon made from a sharpened bone.",
+    "health": 30,
+    "maxHealth": 30,
+    "damage": [3, 6],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 85,
+    "attackTexts": [
+      "stabs at $TARGET$ with a bone shiv",
+      "leaps at $TARGET$ with a shriek",
+      "bites $TARGET$'s hand with sharp teeth"
+    ],
+    "deathMessages": [
+      "screams and falls, clutching its wound",
+      "hisses and collapses into a heap",
+      "gurgles something in goblin and dies"
+    ],
+    "canMove": true,
+    "movementTicks": 15,
+    "staysInArea": true,
+    "inventory": [
+      { "itemId": "goblin-ear", "itemCount": 1, "spawnRate": 0.9 },
+      { "itemId": "bone-shiv", "itemCount": 1, "spawnRate": 0.3 }
+    ]
+  },
+  {
+    "id": "goblin-archer",
+    "name": "goblin archer",
+    "description": "A goblin with slightly better equipment than its fellows, wielding a shortbow made from scavenged wood and sinew. It prefers to attack from a distance, its aim surprisingly good for such a small creature.",
+    "health": 25,
+    "maxHealth": 25,
+    "damage": [4, 8],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 110,
+    "attackTexts": [
+      "fires an arrow at $TARGET$'s chest",
+      "takes careful aim and shoots $TARGET$",
+      "peppers $TARGET$ with a rapid volley"
+    ],
+    "deathMessages": [
+      "tries to nock one last arrow and fails",
+      "falls backward, its bow clattering away",
+      "screams a goblin curse and collapses"
+    ],
+    "inventory": [
+      { "itemId": "goblin-ear", "itemCount": 1, "spawnRate": 0.9 },
+      { "itemId": "crude-arrows", "itemCount": { "min": 3, "max": 8 }, "spawnRate": 0.7 },
+      { "itemId": "shortbow-goblin", "itemCount": 1, "spawnRate": 0.2 }
+    ]
+  },
+  {
+    "id": "goblin-shaman",
+    "name": "goblin shaman",
+    "description": "An older goblin draped in bones, feathers, and strange totems. It mutters constantly in the goblin tongue, and its hands crackle with dark magic. The other goblins treat it with fearful reverence.",
+    "health": 50,
+    "maxHealth": 50,
+    "damage": [5, 10],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 250,
+    "attackTexts": [
+      "hurls a bolt of dark energy at $TARGET$",
+      "curses $TARGET$ with foul magic",
+      "summons spirits to claw at $TARGET$"
+    ],
+    "deathMessages": [
+      "shrieks as its magic turns against it",
+      "collapses, its totems falling silent",
+      "mutters a final curse and expires"
+    ],
+    "inventory": [
+      { "itemId": "goblin-ear", "itemCount": 1, "spawnRate": 1.0 },
+      { "itemId": "shaman-totem", "itemCount": 1, "spawnRate": 0.5 },
+      { "itemId": "dark-essence", "itemCount": 1, "spawnRate": 0.3 }
+    ]
+  },
+  {
+    "id": "cave-troll",
+    "name": "cave troll",
+    "description": "A massive, misshapen creature standing twice the height of a man. Its gray-green skin is covered with warts and patches of coarse hair. It stinks of rot and carries a tree trunk as a club. Intelligence glimmers dully in its small eyes.",
+    "health": 200,
+    "maxHealth": 200,
+    "damage": [12, 20],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 800,
+    "attackTexts": [
+      "swings its massive club at $TARGET$",
+      "tries to grab $TARGET$ in one huge fist",
+      "stomps toward $TARGET$ with earth-shaking steps"
+    ],
+    "deathMessages": [
+      "roars in disbelief and topples like a felled tree",
+      "clutches its wounds and crashes to the ground",
+      "lets out a pitiful moan and dies"
+    ],
+    "inventory": [
+      { "itemId": "troll-blood", "itemCount": 1, "spawnRate": 0.7 },
+      { "itemId": "troll-hide", "itemCount": 1, "spawnRate": 0.5 },
+      { "itemId": "crude-club", "itemCount": 1, "spawnRate": 0.3 }
+    ]
+  },
+  {
+    "id": "goblin-chieftain",
+    "name": "Grulkak the Goblin Chieftain",
+    "description": "The largest and meanest goblin in the tribe, Grulkak has killed his way to the top. He wears a crown made from a human skull and carries a wickedly serrated sword. His cunning is matched only by his cruelty.",
+    "health": 180,
+    "maxHealth": 180,
+    "damage": [10, 18],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 1000,
+    "attackTexts": [
+      "roars and charges at $TARGET$ with his serrated blade",
+      "feints and strikes $TARGET$ from an unexpected angle",
+      "calls for his guards while slashing at $TARGET$"
+    ],
+    "deathMessages": [
+      "screams 'Impossible!' as he falls from his throne",
+      "clutches his skull crown as he dies",
+      "promises revenge with his dying breath"
+    ],
+    "inventory": [
+      { "itemId": "goblin-crown", "itemCount": 1, "spawnRate": 1.0 },
+      { "itemId": "sword-rare", "itemCount": 1, "spawnRate": 0.3 },
+      { "itemId": "chieftain-key", "itemCount": 1, "spawnRate": 1.0 }
+    ]
+  },
+  {
+    "id": "marsh-zombie",
+    "name": "marsh zombie",
+    "description": "The waterlogged corpse of some unfortunate traveler, animated by dark magic. Its flesh is bloated and gray, and it moves with jerky, unnatural motions. Empty eyes stare from a rotting face.",
+    "health": 55,
+    "maxHealth": 55,
+    "damage": [5, 10],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 180,
+    "attackTexts": [
+      "claws at $TARGET$ with rotting fingers",
+      "lurches toward $TARGET$ with arms outstretched",
+      "tries to bite $TARGET$ with decayed teeth"
+    ],
+    "deathMessages": [
+      "collapses into a heap of putrid flesh",
+      "lets out a final moan and goes still",
+      "falls apart as the dark magic fades"
+    ],
+    "canMove": true,
+    "movementTicks": 25,
+    "staysInArea": true,
+    "inventory": [
+      { "itemId": "rotting-flesh", "itemCount": 1, "spawnRate": 0.8 },
+      { "itemId": "tarnished-coin", "itemCount": { "min": 1, "max": 5 }, "spawnRate": 0.4 }
+    ]
+  },
+  {
+    "id": "bog-serpent",
+    "name": "bog serpent",
+    "description": "A massive snake adapted to life in the marsh, its scales mottled brown and green. It can grow up to twenty feet long and is perfectly camouflaged in the murky water. Its venom causes paralysis.",
+    "health": 80,
+    "maxHealth": 80,
+    "damage": [7, 14],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 300,
+    "attackTexts": [
+      "strikes at $TARGET$ with lightning speed",
+      "wraps its coils around $TARGET$",
+      "sinks its fangs into $TARGET$, injecting venom"
+    ],
+    "deathMessages": [
+      "thrashes violently and goes limp",
+      "hisses one last time and dies",
+      "uncoils slowly as life leaves its body"
+    ],
+    "inventory": [
+      { "itemId": "serpent-scale", "itemCount": { "min": 2, "max": 4 }, "spawnRate": 0.7 },
+      { "itemId": "serpent-venom", "itemCount": 1, "spawnRate": 0.5 },
+      { "itemId": "serpent-fang", "itemCount": 2, "spawnRate": 0.4 }
+    ]
+  },
+  {
+    "id": "swamp-hag",
+    "name": "Murklurk the Swamp Hag",
+    "description": "A hideous crone with greenish skin and tangled hair like swamp weeds. Her eyes glow with malevolent intelligence, and she cackles as she stirs a bubbling cauldron. She knows dark secrets and darker magic.",
+    "health": 140,
+    "maxHealth": 140,
+    "damage": [8, 16],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 550,
+    "attackTexts": [
+      "hurls a glob of acid at $TARGET$",
+      "curses $TARGET$ with a withering hex",
+      "rakes $TARGET$ with clawed fingers"
+    ],
+    "deathMessages": [
+      "shrieks as her magic consumes her",
+      "melts into a puddle of foul ichor",
+      "cackles 'You'll pay for this!' and dissolves"
+    ],
+    "inventory": [
+      { "itemId": "hag-eye", "itemCount": 1, "spawnRate": 0.6 },
+      { "itemId": "cursed-pendant", "itemCount": 1, "spawnRate": 0.3 },
+      { "itemId": "potion-of-dark-vision", "itemCount": 1, "spawnRate": 0.4 }
+    ]
+  },
+  {
+    "id": "drowned-knight",
+    "name": "drowned knight",
+    "description": "The animated corpse of a warrior who died in the marsh long ago. Rusted armor clings to its waterlogged frame, and it still carries the sword it died holding. Its hollow eyes burn with spectral light.",
+    "health": 150,
+    "maxHealth": 150,
+    "damage": [10, 18],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 500,
+    "attackTexts": [
+      "swings its ancient blade at $TARGET$",
+      "raises its shield and bashes $TARGET$",
+      "executes a practiced thrust at $TARGET$'s heart"
+    ],
+    "deathMessages": [
+      "falls to its knees and crumbles to rust",
+      "lets out a ghostly sigh and collapses",
+      "reaches toward something unseen and goes still"
+    ],
+    "inventory": [
+      { "itemId": "knight-sigil", "itemCount": 1, "spawnRate": 0.5 },
+      { "itemId": "rusted-sword", "itemCount": 1, "spawnRate": 0.3 },
+      { "itemId": "spectral-essence", "itemCount": 1, "spawnRate": 0.2 }
+    ]
+  },
+  {
+    "id": "marsh-lord",
+    "name": "The Marsh Lord",
+    "description": "A towering figure of corrupted majesty, the Marsh Lord was once a noble guardian of this land. Now his form is bloated with dark power, his armor fused to rotting flesh. He guards the sunken temple with eternal vigilance, his eyes burning with cold fire.",
+    "health": 300,
+    "maxHealth": 300,
+    "damage": [15, 25],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 2000,
+    "attackTexts": [
+      "brings down his massive blade in a devastating arc at $TARGET$",
+      "summons tendrils of dark water to drag $TARGET$ under",
+      "roars with the voice of the drowned dead and strikes $TARGET$"
+    ],
+    "deathMessages": [
+      "staggers back, dark energy pouring from his wounds",
+      "lets out a final, mournful howl and collapses",
+      "reaches toward the sealed door and whispers 'At last... rest...'"
+    ],
+    "inventory": [
+      { "itemId": "marsh-lord-crown", "itemCount": 1, "spawnRate": 1.0 },
+      { "itemId": "sword-epic", "itemCount": 1, "spawnRate": 0.4 },
+      { "itemId": "ancient-seal-fragment", "itemCount": 1, "spawnRate": 1.0 },
+      { "itemId": "dark-essence", "itemCount": { "min": 2, "max": 4 }, "spawnRate": 0.8 }
+    ]
   }
 ]

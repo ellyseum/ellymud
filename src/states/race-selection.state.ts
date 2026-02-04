@@ -27,21 +27,88 @@ export class RaceSelectionState implements ClientState {
   private displayRaceSelection(client: ConnectedClient): void {
     const races = this.raceManager.getAllRaces();
 
-    writeToClient(client, colorize('\r\n======== Race Selection ========\r\n', 'bright'));
+    // Race selection header
+    writeToClient(client, '\r\n');
     writeToClient(
       client,
-      colorize('Choose your race carefully - this choice is permanent!\r\n\r\n', 'yellow')
+      colorize('    ╔═══════════════════════════════════════════════════════╗\r\n', 'magenta')
+    );
+    writeToClient(
+      client,
+      colorize('    ║', 'magenta') +
+        colorize('                CHOOSE YOUR HERITAGE                   ', 'bright') +
+        colorize('║\r\n', 'magenta')
+    );
+    writeToClient(
+      client,
+      colorize('    ╚═══════════════════════════════════════════════════════╝\r\n', 'magenta')
+    );
+    writeToClient(client, '\r\n');
+
+    writeToClient(
+      client,
+      colorize('    The blood that flows through your veins will shape your\r\n', 'gray')
+    );
+    writeToClient(
+      client,
+      colorize('    destiny. Choose wisely, for this choice is ', 'gray') +
+        colorize('permanent', 'yellow') +
+        colorize('.\r\n\r\n', 'gray')
     );
 
-    // Display each race with its stats
+    // Display each race with its stats in a formatted box
     races.forEach((race, index) => {
-      writeToClient(client, colorize(`${index + 1}. ${race.name}\r\n`, 'cyan'));
-      writeToClient(client, colorize(`   ${race.description}\r\n`, 'dim'));
-      writeToClient(client, colorize(`   ${this.formatStatModifiers(race)}\r\n`, 'white'));
-      writeToClient(client, colorize(`   Bonus: ${race.bonusDescription}\r\n\r\n`, 'green'));
+      const raceIcon = this.getRaceIcon(race.id);
+      writeToClient(
+        client,
+        colorize(`    ┌─── `, 'gray') +
+          colorize(`${raceIcon} `, 'white') +
+          colorize(`[${index + 1}] `, 'yellow') +
+          colorize(race.name.toUpperCase(), 'cyan') +
+          colorize(` ${'─'.repeat(Math.max(0, 40 - race.name.length))}┐\r\n`, 'gray')
+      );
+      writeToClient(
+        client,
+        colorize('    │ ', 'gray') +
+          colorize(race.description.substring(0, 52).padEnd(52), 'white') +
+          colorize(' │\r\n', 'gray')
+      );
+      writeToClient(
+        client,
+        colorize('    │ ', 'gray') +
+          colorize(this.formatStatModifiers(race).padEnd(52), 'cyan') +
+          colorize(' │\r\n', 'gray')
+      );
+      writeToClient(
+        client,
+        colorize('    │ ', 'gray') +
+          colorize('★ ', 'yellow') +
+          colorize(race.bonusDescription.substring(0, 50).padEnd(50), 'green') +
+          colorize(' │\r\n', 'gray')
+      );
+      writeToClient(client, colorize('    └' + '─'.repeat(54) + '┘\r\n', 'gray'));
+      writeToClient(client, '\r\n');
     });
 
-    writeToClient(client, colorize('Enter the number or name of your chosen race: ', 'magenta'));
+    writeToClient(
+      client,
+      colorize('    Enter a ', 'white') +
+        colorize('number', 'yellow') +
+        colorize(' (1-' + races.length + ') or ', 'white') +
+        colorize('race name', 'cyan') +
+        colorize(': ', 'white')
+    );
+  }
+
+  private getRaceIcon(raceId: string): string {
+    const icons: Record<string, string> = {
+      human: '*',
+      elf: '~',
+      dwarf: '#',
+      halfling: 'o',
+      orc: '!',
+    };
+    return icons[raceId] || '+';
   }
 
   private formatStatModifiers(race: Race): string {
