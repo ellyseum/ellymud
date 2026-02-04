@@ -48,6 +48,7 @@ services:
     build: .
     environment:
       - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
       - ELLYMUD_MCP_API_KEY=${ELLYMUD_MCP_API_KEY}
       - STORAGE_BACKEND=postgres
       - DATABASE_URL=postgres://ellymud:${POSTGRES_PASSWORD:-ellymud}@postgres:5432/ellymud
