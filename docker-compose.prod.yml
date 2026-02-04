@@ -1,0 +1,117 @@
+# Production Docker Compose with nginx reverse proxy
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# First time setup:
+#   1. Set environment variables in .env.prod
+#   2. Run: docker compose -f docker-compose.prod.yml run --rm certbot certonly --webroot -w /var/www/certbot -d yourdomain.com
+#   3. Then: docker compose -f docker-compose.prod.yml up -d
+
+services:
+  # ============================================
+  # NGINX REVERSE PROXY
+  # ============================================
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"       # HTTP
+      - "443:443"     # HTTPS
+      - "23:23"       # Telnet (TCP stream)
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - ellymud-net
+
+  # ============================================
+  # CERTBOT (SSL Certificate Management)
+  # ============================================
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - ellymud-net
+
+  # ============================================
+  # ELLYMUD APPLICATION
+  # ============================================
+  app:
+    build: .
+    environment:
+      - NODE_ENV=production
+      - ELLYMUD_MCP_API_KEY=${ELLYMUD_MCP_API_KEY}
+      - STORAGE_BACKEND=postgres
+      - DATABASE_URL=postgres://ellymud:${POSTGRES_PASSWORD:-ellymud}@postgres:5432/ellymud
+      - REDIS_URL=redis://redis:6379
+    command: ["node", "--enable-source-maps", "dist/server.js", "--storageBackend=postgres", "--redis", "--databaseUrl=postgres://ellymud:${POSTGRES_PASSWORD:-ellymud}@postgres:5432/ellymud", "--force"]
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data  # For initial migration from JSON
+    user: "1001:1001"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - ellymud-net
+    # Internal ports only - nginx handles external
+    expose:
+      - "8023"  # Telnet
+      - "8080"  # WebSocket/HTTP
+      - "3100"  # MCP API
+
+  # ============================================
+  # REDIS (Session Storage)
+  # ============================================
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ellymud-net
+
+  # ============================================
+  # POSTGRESQL (Persistent Storage)
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ellymud
+      POSTGRES_USER: ellymud
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ellymud}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ellymud -d ellymud"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ellymud-net
+
+networks:
+  ellymud-net:
+    driver: bridge
+
+volumes:
+  redis_data:
+  postgres_data:
