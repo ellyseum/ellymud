@@ -75,6 +75,8 @@ import { SneakCommand } from './commands/sneak.command';
 import { HideCommand } from './commands/hide.command';
 import { QuestCommand } from './commands/quest.command';
 import { TalkCommand, ReplyCommand } from './commands/talk.command';
+import { MapCommand } from './commands/map.command';
+import { WalkCommand } from './commands/walk.command';
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -229,6 +231,8 @@ export class CommandRegistry {
       new QuestCommand(),
       new TalkCommand(this.roomManager),
       new ReplyCommand(),
+      new MapCommand(this.clients),
+      new WalkCommand(this.clients),
     ];
 
     // Register all commands
@@ -345,6 +349,12 @@ export class CommandRegistry {
     // Add aliases for quest commands
     this.aliases.set('ql', { commandName: 'quest', args: 'log' });
     this.aliases.set('qa', { commandName: 'quest', args: 'available' });
+    // Add aliases for map command
+    this.aliases.set('m', { commandName: 'map' });
+    this.aliases.set('area', { commandName: 'map' });
+    // Add aliases for walk command
+    this.aliases.set('goto', { commandName: 'walk' });
+    this.aliases.set('autowalk', { commandName: 'walk' });
   }
 
   private registerDirectionCommands(): void {

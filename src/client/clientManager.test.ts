@@ -20,6 +20,26 @@ jest.mock('../utils/logger', () => ({
     warn: jest.fn(),
     error: jest.fn(),
   },
+  createContextLogger: jest.fn(() => ({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  })),
+  getPlayerLogger: jest.fn(() => ({
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  })),
+}));
+
+// Mock WalkCommand to avoid import chain issues
+jest.mock('../command/commands/walk.command', () => ({
+  WalkCommand: {
+    isWalking: jest.fn().mockReturnValue(false),
+    interrupt: jest.fn(),
+  },
 }));
 
 jest.mock('../utils/formatters', () => ({

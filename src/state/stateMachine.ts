@@ -26,6 +26,8 @@ const sensitiveCommands = [
 ];
 
 export class StateMachine {
+  private static instance: StateMachine | null = null;
+
   private states: Map<ClientStateType, ClientState> = new Map();
   private userManager: UserManager;
 
@@ -41,10 +43,30 @@ export class StateMachine {
   private gameState: GameState;
   private editorState: EditorState;
 
+  /**
+   * Get the singleton instance of StateMachine.
+   * Must be initialized first via constructor.
+   */
+  public static getInstance(): StateMachine {
+    if (!StateMachine.instance) {
+      throw new Error('StateMachine not initialized. Create an instance first.');
+    }
+    return StateMachine.instance;
+  }
+
+  /**
+   * Check if StateMachine has been initialized.
+   */
+  public static isInitialized(): boolean {
+    return StateMachine.instance !== null;
+  }
+
   constructor(
     userManager: UserManager,
     private clients: Map<string, ConnectedClient>
   ) {
+    // Store singleton reference
+    StateMachine.instance = this;
     this.userManager = userManager;
 
     // Initialize state objects

@@ -12,6 +12,8 @@ import { getPlayerLogger } from '../../utils/logger';
 import { CommandHandler } from '../../command/commandHandler';
 import { UserManager } from '../../user/userManager';
 import { RoomManager, EMERGENCY_ROOM_ID } from '../roomManager';
+import { StateMachine } from '../../state/stateMachine';
+import { movementEventBus } from './movementEventBus';
 
 export class PlayerMovementService implements IPlayerMovementService {
   private roomManager: {
@@ -112,6 +114,13 @@ export class PlayerMovementService implements IPlayerMovementService {
         client.user.username
       );
 
+      // Emit movement cancelled event
+      movementEventBus.emitCancelled({
+        clientId: client.id,
+        username: client.user.username,
+        reason: `no exit ${direction}`,
+      });
+
       return false;
     }
 
@@ -153,9 +162,20 @@ export class PlayerMovementService implements IPlayerMovementService {
       client.stateData = {};
     }
     client.stateData.isMoving = true;
+    client.stateData.currentMovementDirection = direction;
 
     // Suppress the prompt until movement is complete
     client.stateData.suppressPrompt = true;
+
+    // Emit movement start event
+    movementEventBus.emitStart({
+      clientId: client.id,
+      username: client.user.username,
+      fromRoomId: currentRoomId,
+      toRoomId: nextRoomId,
+      direction,
+      delay,
+    });
 
     // Execute movement - synchronously in test mode, with delay otherwise
     if (delay === 0) {
@@ -166,6 +186,7 @@ export class PlayerMovementService implements IPlayerMovementService {
         nextRoom,
         currentRoomId,
         nextRoomId,
+        direction,
         fullDirectionName,
         fullOppositeDirectionName
       );
@@ -178,6 +199,7 @@ export class PlayerMovementService implements IPlayerMovementService {
           nextRoom,
           currentRoomId,
           nextRoomId,
+          direction,
           fullDirectionName,
           fullOppositeDirectionName
         );
@@ -197,6 +219,7 @@ export class PlayerMovementService implements IPlayerMovementService {
     nextRoom: Room,
     currentRoomId: string,
     nextRoomId: string,
+    direction: string,
     fullDirectionName: string,
     fullOppositeDirectionName: string
   ): void {
@@ -275,14 +298,17 @@ export class PlayerMovementService implements IPlayerMovementService {
         // Process only the first command after movement is complete
         // We'll handle multiple movement commands sequentially
         setTimeout(() => {
-          // Get UserManager instance
+          // Get singleton instances
           const userManager = UserManager.getInstance();
+          const stateMachine = StateMachine.getInstance();
 
           // Create a new instance of CommandHandler with full RoomManager
           const commandHandler = new CommandHandler(
             this.getClients(),
             userManager,
-            RoomManager.getInstance(this.getClients())
+            RoomManager.getInstance(this.getClients()),
+            undefined, // combatSystem - let it use default
+            stateMachine
           );
 
           // Process only the first command in the queue
@@ -306,7 +332,18 @@ export class PlayerMovementService implements IPlayerMovementService {
       if (client.stateData) {
         client.stateData.isMoving = false;
         client.stateData.suppressPrompt = false;
+        client.stateData.currentMovementDirection = undefined;
       }
+
+      // Emit movement complete event
+      movementEventBus.emitComplete({
+        clientId: client.id,
+        username: client.user.username,
+        fromRoomId: currentRoomId,
+        toRoomId: nextRoomId,
+        direction,
+        success: true,
+      });
 
       // Force redraw of the prompt to ensure it appears
       drawCommandPrompt(client);

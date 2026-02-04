@@ -9,6 +9,7 @@ import { StateMachine } from '../state/stateMachine';
 import { formatUsername } from '../utils/formatters';
 import { getPromptText } from '../utils/promptFormatter';
 import { stopBuffering, writeToClient } from '../utils/socketWriter';
+import { WalkCommand } from '../command/commands/walk.command';
 
 export class ClientManager {
   private static instance: ClientManager;
@@ -291,6 +292,12 @@ export class ClientManager {
 
           // Add the command to the queue
           client.stateData.movementCommandQueue.push(client.buffer);
+
+          // If user is auto-walking, interrupt it (command input cancels auto-walk)
+          // The current movement will complete, but no more auto-steps will happen
+          if (WalkCommand.isWalking(client.id)) {
+            WalkCommand.interrupt(client, 'user input');
+          }
 
           // Clear the buffer silently (we don't want to echo during movement)
           client.buffer = '';

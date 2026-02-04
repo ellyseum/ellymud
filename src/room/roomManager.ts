@@ -39,6 +39,8 @@ export const EMERGENCY_ROOM_ID = '__emergency_void__';
 
 export class RoomManager implements IRoomManager {
   private rooms: Map<string, Room> = new Map();
+  /** Qualified room lookup: "area:roomId" -> Room */
+  private qualifiedRooms: Map<string, Room> = new Map();
   private clients: Map<string, ConnectedClient>;
   private testMode: boolean = false;
 
@@ -212,6 +214,7 @@ export class RoomManager implements IRoomManager {
 
     // Clear existing rooms to prevent duplicates
     this.rooms.clear();
+    this.qualifiedRooms.clear();
 
     // Load all NPC templates first
     const npcData = NPC.loadNPCData();
@@ -220,13 +223,21 @@ export class RoomManager implements IRoomManager {
       const room = new Room(roomData);
       this.rooms.set(room.id, room);
 
+      // Also add to qualified lookup if room has an area
+      if (room.areaId) {
+        const qualifiedId = `${room.areaId}:${room.id}`;
+        this.qualifiedRooms.set(qualifiedId, room);
+      }
+
       // Instantiate NPCs from templates after room is created
       if (Array.isArray(roomData.npcs)) {
         this.npcInteractionService.instantiateNpcsFromTemplates(room, roomData.npcs, npcData);
       }
     });
 
-    systemLogger.info('Pre-validated rooms loaded successfully');
+    systemLogger.info(
+      `Pre-validated rooms loaded successfully (${this.rooms.size} rooms, ${this.qualifiedRooms.size} qualified)`
+    );
   }
 
   private async loadRooms(): Promise<void> {
@@ -350,11 +361,56 @@ export class RoomManager implements IRoomManager {
   }
 
   // Core room management methods
+  /**
+   * Get a room by ID. Supports both formats:
+   * - Legacy: "room-id" (globally unique)
+   * - Qualified: "area:room-id" (area-scoped)
+   */
   public getRoom(roomId: string): Room | undefined {
     // Special handling for emergency room - create if needed
     if (roomId === EMERGENCY_ROOM_ID && !this.rooms.has(EMERGENCY_ROOM_ID)) {
       this.ensureEmergencyRoom();
     }
+
+    // Check for qualified ID format (area:room-id)
+    if (roomId.includes(':')) {
+      return this.qualifiedRooms.get(roomId);
+    }
+
+    // Legacy format - direct lookup
+    return this.rooms.get(roomId);
+  }
+
+  /**
+   * Get the qualified ID for a room (area:room-id)
+   * Returns just the room ID if no area is set
+   */
+  public getQualifiedId(room: Room): string {
+    if (room.areaId) {
+      return `${room.areaId}:${room.id}`;
+    }
+    return room.id;
+  }
+
+  /**
+   * Resolve a room ID to a Room, trying qualified format first if area context is provided
+   */
+  public resolveRoom(roomId: string, contextAreaId?: string): Room | undefined {
+    // If already qualified, use directly
+    if (roomId.includes(':')) {
+      return this.qualifiedRooms.get(roomId);
+    }
+
+    // Try qualified lookup with context area
+    if (contextAreaId) {
+      const qualifiedId = `${contextAreaId}:${roomId}`;
+      const qualifiedRoom = this.qualifiedRooms.get(qualifiedId);
+      if (qualifiedRoom) {
+        return qualifiedRoom;
+      }
+    }
+
+    // Fall back to legacy lookup
     return this.rooms.get(roomId);
   }
 
@@ -809,6 +865,13 @@ To create rooms and build your world, follow these steps:
 
     const room = new Room(roomData);
     this.rooms.set(roomData.id, room);
+
+    // Add to qualified lookup if room has an area
+    if (room.areaId) {
+      const qualifiedId = `${room.areaId}:${room.id}`;
+      this.qualifiedRooms.set(qualifiedId, room);
+    }
+
     await this.repository.save(roomData);
     systemLogger.info(`[RoomManager] Created room: ${roomData.id}`);
     return room;
@@ -818,14 +881,26 @@ To create rooms and build your world, follow these steps:
    * Update room data (overload for RoomData input)
    */
   public async updateRoomData(roomData: RoomData): Promise<void> {
-    const room = this.rooms.get(roomData.id);
-    if (!room) {
+    const existingRoom = this.rooms.get(roomData.id);
+    if (!existingRoom) {
       throw new Error(`Room '${roomData.id}' not found`);
+    }
+
+    // Remove old qualified entry if area changed
+    if (existingRoom.areaId) {
+      const oldQualifiedId = `${existingRoom.areaId}:${existingRoom.id}`;
+      this.qualifiedRooms.delete(oldQualifiedId);
     }
 
     // Update in-memory room
     const newRoom = new Room(roomData);
     this.rooms.set(roomData.id, newRoom);
+
+    // Add new qualified entry if room has an area
+    if (newRoom.areaId) {
+      const qualifiedId = `${newRoom.areaId}:${newRoom.id}`;
+      this.qualifiedRooms.set(qualifiedId, newRoom);
+    }
 
     // Persist
     await this.repository.save(roomData);
@@ -836,8 +911,15 @@ To create rooms and build your world, follow these steps:
    * Delete a room
    */
   public async deleteRoom(roomId: string): Promise<void> {
-    if (!this.rooms.has(roomId)) {
+    const room = this.rooms.get(roomId);
+    if (!room) {
       throw new Error(`Room '${roomId}' not found`);
+    }
+
+    // Remove from qualified lookup if room has an area
+    if (room.areaId) {
+      const qualifiedId = `${room.areaId}:${room.id}`;
+      this.qualifiedRooms.delete(qualifiedId);
     }
 
     this.rooms.delete(roomId);

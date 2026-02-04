@@ -10,6 +10,7 @@ import { StateMachine } from '../state/stateMachine'; // Add StateMachine import
 import { systemLogger, getPlayerLogger } from '../utils/logger'; // Add logger imports
 import { EffectManager } from '../effects/effectManager';
 import { AbilityManager } from '../abilities/abilityManager';
+import { WalkCommand } from './commands/walk.command';
 // Import the commands index file to ensure all commands are registered
 import './commands';
 
@@ -99,6 +100,11 @@ export class CommandHandler {
       }
       drawCommandPrompt(client);
       return;
+    }
+
+    // Interrupt auto-walk if user enters any command
+    if (WalkCommand.isWalking(client.id)) {
+      WalkCommand.interrupt(client, 'user input');
     }
 
     // Initialize command history if it doesn't exist
