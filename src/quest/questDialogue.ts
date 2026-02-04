@@ -254,5 +254,7 @@ export function cleanupOldConversations(): void {
   }
 }
 
-// Cleanup old conversations every minute
-setInterval(cleanupOldConversations, 60 * 1000);
+// Cleanup old conversations every minute (skip in test mode to prevent Jest hanging)
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(cleanupOldConversations, 60 * 1000);
+}

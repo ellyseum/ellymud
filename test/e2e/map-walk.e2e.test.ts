@@ -103,15 +103,15 @@ describe('Map and Walk Commands E2E', () => {
       // First get current room name
       const lookOutput = await agent.sendCommand(sessionId, 'look');
 
-      // Try to walk to current room (by walking to a known room first and then back)
-      const output = await agent.sendCommand(sessionId, 'walk room 1');
+      // Try to walk to current room - walking to the starting room should say "already there"
+      const output = await agent.sendCommand(sessionId, 'walk millbrook-village-square');
 
       // Either starts walking or says already there
       expect(output).toMatch(/Starting auto-walk|already there/);
     });
 
     it('should start auto-walk for valid destination', async () => {
-      const output = await agent.sendCommand(sessionId, 'walk room 2');
+      const output = await agent.sendCommand(sessionId, 'walk millbrook-general-store');
 
       // Should either start walking or show an error if no path
       expect(output).toMatch(/Starting auto-walk|Cannot find path|already there/);

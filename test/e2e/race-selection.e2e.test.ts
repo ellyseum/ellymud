@@ -59,8 +59,8 @@ describe('Race Selection E2E', () => {
       await new Promise((r) => setTimeout(r, 100));
       const raceSelectionOutput = await agent.getOutput(sessionId, true);
 
-      // Should now be in race selection state and see the race menu
-      expect(raceSelectionOutput.toLowerCase()).toContain('race selection');
+      // Should now be in race selection state and see the race menu (header says "CHOOSE YOUR HERITAGE")
+      expect(raceSelectionOutput.toLowerCase()).toContain('heritage');
       expect(raceSelectionOutput.toLowerCase()).toContain('human');
       expect(raceSelectionOutput.toLowerCase()).toContain('elf');
       expect(raceSelectionOutput.toLowerCase()).toContain('dwarf');
