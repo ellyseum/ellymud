@@ -50,10 +50,9 @@ services:
       - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET}
       - ELLYMUD_MCP_API_KEY=${ELLYMUD_MCP_API_KEY}
-      - STORAGE_BACKEND=postgres
-      - DATABASE_URL=postgres://ellymud:${POSTGRES_PASSWORD:-ellymud}@postgres:5432/ellymud
+      - STORAGE_BACKEND=json
       - REDIS_URL=redis://redis:6379
-    command: ["node", "--enable-source-maps", "dist/server.js", "--storageBackend=postgres", "--redis", "--databaseUrl=postgres://ellymud:${POSTGRES_PASSWORD:-ellymud}@postgres:5432/ellymud", "--force"]
+    command: ["node", "--enable-source-maps", "dist/server.js", "--storageBackend=json", "--redis", "--force"]
     volumes:
       - ./logs:/app/logs
       - ./data:/app/data  # For initial migration from JSON
