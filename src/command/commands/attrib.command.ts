@@ -51,27 +51,34 @@ type AttributeName =
   | 'charisma';
 
 /**
- * Calculate the cost to raise a stat from currentValue by 1 point
- * Based on the CURRENT value of the stat
+ * Calculate the cost to add 1 point based on how many points ALREADY ALLOCATED
+ * This uses allocated points, NOT the current stat value (so race bonuses don't penalize)
+ *
+ * Cost tiers (based on points already allocated to this stat):
+ *   0-19:  1 point per stat
+ *   20-39: 2 points per stat
+ *   40-49: 3 points per stat
+ *   50-59: 4 points per stat
+ *   60+:   5 points per stat
  */
-function getCostPerPoint(currentValue: number): number {
-  if (currentValue <= 20) return 1;
-  if (currentValue <= 40) return 2;
-  if (currentValue <= 50) return 3;
-  if (currentValue <= 60) return 4;
-  return 5; // 61+
+function getCostPerPoint(allocatedSoFar: number): number {
+  if (allocatedSoFar < 20) return 1;
+  if (allocatedSoFar < 40) return 2;
+  if (allocatedSoFar < 50) return 3;
+  if (allocatedSoFar < 60) return 4;
+  return 5; // 60+
 }
 
 /**
- * Calculate total cost to add `amount` points to a stat starting at `currentValue`
+ * Calculate total cost to add `amount` points starting with `alreadyAllocated` points
  */
-function calculateTotalCost(currentValue: number, amount: number): number {
+function calculateTotalCost(alreadyAllocated: number, amount: number): number {
   let totalCost = 0;
-  let value = currentValue;
+  let allocated = alreadyAllocated;
 
   for (let i = 0; i < amount; i++) {
-    totalCost += getCostPerPoint(value);
-    value++;
+    totalCost += getCostPerPoint(allocated);
+    allocated++;
   }
 
   return totalCost;
@@ -134,25 +141,66 @@ export class AttribCommand implements Command {
   private showAttributes(client: ConnectedClient): void {
     const user = client.user!;
     const unspent = user.unspentAttributePoints ?? 0;
+    const allocated = user.allocatedStats ?? {
+      strength: 0,
+      dexterity: 0,
+      agility: 0,
+      constitution: 0,
+      wisdom: 0,
+      intelligence: 0,
+      charisma: 0,
+    };
 
     const attrs = [
-      { name: 'Strength', abbr: 'STR', value: user.strength, desc: 'Physical power, melee damage' },
-      { name: 'Dexterity', abbr: 'DEX', value: user.dexterity, desc: 'Accuracy, ranged damage' },
-      { name: 'Agility', abbr: 'AGI', value: user.agility, desc: 'Speed, dodge chance' },
+      {
+        name: 'Strength',
+        abbr: 'STR',
+        key: 'strength' as const,
+        value: user.strength,
+        desc: 'Physical power, melee damage',
+      },
+      {
+        name: 'Dexterity',
+        abbr: 'DEX',
+        key: 'dexterity' as const,
+        value: user.dexterity,
+        desc: 'Accuracy, ranged damage',
+      },
+      {
+        name: 'Agility',
+        abbr: 'AGI',
+        key: 'agility' as const,
+        value: user.agility,
+        desc: 'Speed, dodge chance',
+      },
       {
         name: 'Constitution',
         abbr: 'CON',
+        key: 'constitution' as const,
         value: user.constitution,
         desc: 'Health, physical resistance',
       },
-      { name: 'Wisdom', abbr: 'WIS', value: user.wisdom, desc: 'Mana, magic resistance' },
+      {
+        name: 'Wisdom',
+        abbr: 'WIS',
+        key: 'wisdom' as const,
+        value: user.wisdom,
+        desc: 'Mana, magic resistance',
+      },
       {
         name: 'Intelligence',
         abbr: 'INT',
+        key: 'intelligence' as const,
         value: user.intelligence,
         desc: 'Spell power, mana regen',
       },
-      { name: 'Charisma', abbr: 'CHA', value: user.charisma, desc: 'Prices, NPC reactions' },
+      {
+        name: 'Charisma',
+        abbr: 'CHA',
+        key: 'charisma' as const,
+        value: user.charisma,
+        desc: 'Prices, NPC reactions',
+      },
     ];
 
     writeToClient(client, colorize('\r\n=== Character Attributes ===\r\n', 'cyan'));
@@ -162,7 +210,9 @@ export class AttribCommand implements Command {
     );
 
     for (const attr of attrs) {
-      const costNext = getCostPerPoint(attr.value);
+      // Cost is based on points ALLOCATED, not current stat value (race bonuses don't count)
+      const allocatedToStat = allocated[attr.key];
+      const costNext = getCostPerPoint(allocatedToStat);
       writeToClient(
         client,
         colorize(`${attr.abbr}: `, 'yellow') +
@@ -187,17 +237,29 @@ export class AttribCommand implements Command {
     const currentValue = user[stat] as number;
     const unspent = user.unspentAttributePoints ?? 0;
 
-    // Calculate cost
-    const totalCost = calculateTotalCost(currentValue, amount);
+    // Get current allocated points for this stat (race bonuses don't count)
+    const allocated = user.allocatedStats ?? {
+      strength: 0,
+      dexterity: 0,
+      agility: 0,
+      constitution: 0,
+      wisdom: 0,
+      intelligence: 0,
+      charisma: 0,
+    };
+    const allocatedToStat = allocated[stat];
+
+    // Calculate cost based on ALLOCATED points, not current value
+    const totalCost = calculateTotalCost(allocatedToStat, amount);
 
     if (totalCost > unspent) {
       // Calculate how many they CAN afford
       let affordable = 0;
       let costSoFar = 0;
-      let tempValue = currentValue;
-      while (costSoFar + getCostPerPoint(tempValue) <= unspent) {
-        costSoFar += getCostPerPoint(tempValue);
-        tempValue++;
+      let tempAllocated = allocatedToStat;
+      while (costSoFar + getCostPerPoint(tempAllocated) <= unspent) {
+        costSoFar += getCostPerPoint(tempAllocated);
+        tempAllocated++;
         affordable++;
       }
 
@@ -214,15 +276,29 @@ export class AttribCommand implements Command {
     // Apply the change
     const newValue = currentValue + amount;
     const newUnspent = unspent - totalCost;
+    const newAllocated = allocatedToStat + amount;
 
     // Update user object
     user[stat] = newValue;
     user.unspentAttributePoints = newUnspent;
+    if (!user.allocatedStats) {
+      user.allocatedStats = {
+        strength: 0,
+        dexterity: 0,
+        agility: 0,
+        constitution: 0,
+        wisdom: 0,
+        intelligence: 0,
+        charisma: 0,
+      };
+    }
+    user.allocatedStats[stat] = newAllocated;
 
     // Persist to userManager
     this.userManager.updateUserStats(user.username, {
       [stat]: newValue,
       unspentAttributePoints: newUnspent,
+      allocatedStats: user.allocatedStats,
     });
 
     writeToClient(

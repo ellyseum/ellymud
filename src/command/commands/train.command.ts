@@ -403,7 +403,7 @@ export class TrainCommand implements Command {
     // Add stat gains from leveling up
     const healthGain = 5;
     const manaGain = 3;
-    const attributePointGain = 1;
+    const attributePointGain = 10;
 
     client.user.maxHealth += healthGain;
     client.user.health += healthGain;
@@ -433,10 +433,7 @@ export class TrainCommand implements Command {
     writeToClient(client, colorize(`  +${manaGain} Max Mana\r\n`, 'blue'));
     writeToClient(
       client,
-      colorize(
-        `  +${attributePointGain} Attribute Point (use "train stats" to allocate)\r\n`,
-        'cyan'
-      )
+      colorize(`  +${attributePointGain} Attribute Points (use "attrib" to allocate)\r\n`, 'cyan')
     );
 
     // Check if class advancement is now available
