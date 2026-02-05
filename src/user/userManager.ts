@@ -710,6 +710,16 @@ export class UserManager {
       wisdom: 10,
       intelligence: 10,
       charisma: 10,
+      // Track allocated points (for cost scaling - separate from race bonuses)
+      allocatedStats: {
+        strength: 0,
+        dexterity: 0,
+        agility: 0,
+        constitution: 0,
+        wisdom: 0,
+        intelligence: 0,
+        charisma: 0,
+      },
       // Initialize combat stats (will be recalculated based on equipment)
       attack: 5, // Base attack (strength/2)
       defense: 5, // Base defense (constitution/2)
