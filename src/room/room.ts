@@ -563,11 +563,11 @@ export class Room {
       players = players.filter((player) => !hiddenPlayers.includes(player));
     }
 
-    // Classic MUD style: players in cyan, hostile NPCs in yellow, friendly in cyan
+    // MajorMUD style: hostile=magenta, neutral=blue, friendly/passive=gray
     const playerEntities = players.map((player) => colorize(formatUsername(player), 'brightCyan'));
     const npcEntities = Array.from(this.npcs.values()).map((npc) => {
-      // Hostile NPCs in yellow (danger), friendly/neutral in cyan
-      const npcColor = npc.isHostile ? 'yellow' : 'cyan';
+      // Hostile NPCs in magenta (will attack), passive in gray, neutral in blue
+      const npcColor = npc.isHostile ? 'magenta' : npc.isPassive ? 'gray' : 'blue';
       return colorize(`a ${npc.name}`, npcColor);
     });
     const entities = [...playerEntities, ...npcEntities];

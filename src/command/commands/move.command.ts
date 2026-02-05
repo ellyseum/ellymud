@@ -52,8 +52,11 @@ export class MoveCommand implements Command {
     // Interrupt resting/meditating on movement
     clearRestingMeditating(client, 'movement');
 
-    // Simply proceed with movement regardless of combat state
-    // Combat system will handle checking rooms during next tick
+    // If in combat, moving is effectively fleeing - clear combat state first
+    if (client.user.inCombat) {
+      this.combatSystem.breakCombat(client);
+    }
+
     const success = this.roomManager.movePlayer(client, direction);
 
     // Log the result of movement attempt
