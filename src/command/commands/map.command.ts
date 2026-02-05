@@ -71,8 +71,11 @@ export class MapCommand implements Command {
     const currentZ = currentRoom.gridZ ?? 0;
     const sameFloorRooms = roomsWithCoords.filter((r) => (r.gridZ ?? 0) === currentZ);
 
+    // Check if user is an admin (for showing cross-area links)
+    const isAdmin = client.user.flags?.includes('admin') ?? false;
+
     // Generate and display the map
-    const mapOutput = this.generateMap(sameFloorRooms, currentRoomId, currentZ);
+    const mapOutput = this.generateMap(sameFloorRooms, currentRoomId, currentZ, isAdmin);
     writeToClient(client, mapOutput);
   }
 
@@ -97,8 +100,14 @@ export class MapCommand implements Command {
 
   /**
    * Generate ASCII map from rooms with grid coordinates
+   * @param showCrossArea - If true, highlight cross-area exits (admin-only feature)
    */
-  private generateMap(rooms: Room[], currentRoomId: string, currentZ: number = 0): string {
+  private generateMap(
+    rooms: Room[],
+    currentRoomId: string,
+    currentZ: number = 0,
+    showCrossArea: boolean = false
+  ): string {
     // Find bounds
     let minX = Infinity,
       maxX = -Infinity;
@@ -162,17 +171,17 @@ export class MapCommand implements Command {
           const exitSE = room.exits.find((e) => e.direction === 'southeast');
           const exitSW = room.exits.find((e) => e.direction === 'southwest');
 
-          // Check for cross-area connections
-          const crossN = exitN && this.isCrossAreaExit(room, exitN);
-          const crossS = exitS && this.isCrossAreaExit(room, exitS);
-          const crossE = exitE && this.isCrossAreaExit(room, exitE);
-          const crossW = exitW && this.isCrossAreaExit(room, exitW);
-          const crossNE = exitNE && this.isCrossAreaExit(room, exitNE);
-          const crossNW = exitNW && this.isCrossAreaExit(room, exitNW);
-          const crossSE = exitSE && this.isCrossAreaExit(room, exitSE);
-          const crossSW = exitSW && this.isCrossAreaExit(room, exitSW);
+          // Check for cross-area connections (only for admins)
+          const crossN = showCrossArea && exitN && this.isCrossAreaExit(room, exitN);
+          const crossS = showCrossArea && exitS && this.isCrossAreaExit(room, exitS);
+          const crossE = showCrossArea && exitE && this.isCrossAreaExit(room, exitE);
+          const crossW = showCrossArea && exitW && this.isCrossAreaExit(room, exitW);
+          const crossNE = showCrossArea && exitNE && this.isCrossAreaExit(room, exitNE);
+          const crossNW = showCrossArea && exitNW && this.isCrossAreaExit(room, exitNW);
+          const crossSE = showCrossArea && exitSE && this.isCrossAreaExit(room, exitSE);
+          const crossSW = showCrossArea && exitSW && this.isCrossAreaExit(room, exitSW);
 
-          // Track if room has any cross-area exit
+          // Track if room has any cross-area exit (only shown for admins)
           const hasCrossExit =
             crossN || crossS || crossE || crossW || crossNE || crossNW || crossSE || crossSW;
           if (hasCrossExit) hasCrossAreaExits = true;
