@@ -89,9 +89,14 @@ export class TrainCommand implements Command {
       return;
     }
 
-    // Handle 'train stats' - enter editor state
+    // Handle 'train stats' - disabled for now (editor state not fully implemented)
     if (trimmedArgs === 'stats') {
-      this.enterEditorState(client);
+      writeToClient(
+        client,
+        colorize('The stat editor is not yet available.\r\n', 'yellow') +
+          colorize('Use "attrib <stat> <points>" to allocate attribute points.\r\n', 'white') +
+          colorize('Example: attrib strength 5\r\n', 'dim')
+      );
       return;
     }
 
@@ -119,9 +124,9 @@ export class TrainCommand implements Command {
       client,
       colorize('Usage:\r\n', 'yellow') +
         colorize('  train           - Level up when you have enough XP\r\n', 'white') +
-        colorize('  train stats     - Enter the stat editor\r\n', 'white') +
         colorize('  train class     - View available class options\r\n', 'white') +
-        colorize('  train class <n> - Advance to a new class\r\n', 'white')
+        colorize('  train class <n> - Advance to a new class\r\n', 'white') +
+        colorize('\r\nTo allocate attribute points, use the "attrib" command.\r\n', 'dim')
     );
   }
 

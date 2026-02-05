@@ -142,7 +142,7 @@ describe('TrainCommand', () => {
     });
 
     describe('train stats', () => {
-      it('should enter editor state when in training room and using "train stats"', () => {
+      it('should show not available message when using "train stats"', () => {
         const room = createMockRoom('training-room', 'Training Room', {
           flags: ['trainer'],
         });
@@ -160,12 +160,12 @@ describe('TrainCommand', () => {
 
         expect(mockWriteToClient).toHaveBeenCalledWith(
           client,
-          expect.stringContaining('Entering the editor')
+          expect.stringContaining('not yet available')
         );
-        expect(client.stateData.forcedTransition).toBe(ClientStateType.EDITOR);
+        expect(mockWriteToClient).toHaveBeenCalledWith(client, expect.stringContaining('attrib'));
       });
 
-      it('should allow train stats from AUTHENTICATED state', () => {
+      it('should suggest using attrib command instead', () => {
         const room = createMockRoom('training-room', 'Training Room', {
           flags: ['trainer'],
         });
@@ -181,48 +181,10 @@ describe('TrainCommand', () => {
 
         trainCommand.execute(client, 'stats');
 
-        expect(client.stateData.forcedTransition).toBe(ClientStateType.EDITOR);
-      });
-
-      it('should show error when using train stats from invalid state', () => {
-        const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['trainer'],
-        });
-        mockRoomManager.getRoom.mockReturnValue(room);
-
-        const client = createMockClient({
-          user: createMockUser({
-            currentRoomId: 'training-room',
-          }),
-          state: ClientStateType.CONNECTING,
-          stateData: {},
-        });
-
-        trainCommand.execute(client, 'stats');
-
         expect(mockWriteToClient).toHaveBeenCalledWith(
           client,
-          expect.stringContaining('only use this command while in the game')
+          expect.stringContaining('attrib <stat> <points>')
         );
-      });
-
-      it('should store previous room id when entering editor', () => {
-        const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['trainer'],
-        });
-        mockRoomManager.getRoom.mockReturnValue(room);
-
-        const client = createMockClient({
-          user: createMockUser({
-            currentRoomId: 'training-room',
-          }),
-          state: ClientStateType.GAME,
-          stateData: {},
-        });
-
-        trainCommand.execute(client, 'stats');
-
-        expect(client.stateData.previousRoomId).toBe('training-room');
       });
     });
 
@@ -460,7 +422,10 @@ describe('TrainCommand', () => {
 
         trainCommand.execute(client, 'STATS');
 
-        expect(client.stateData.forcedTransition).toBe(ClientStateType.EDITOR);
+        expect(mockWriteToClient).toHaveBeenCalledWith(
+          client,
+          expect.stringContaining('not yet available')
+        );
       });
 
       it('should trim whitespace from arguments', () => {
@@ -479,7 +444,10 @@ describe('TrainCommand', () => {
 
         trainCommand.execute(client, '  stats  ');
 
-        expect(client.stateData.forcedTransition).toBe(ClientStateType.EDITOR);
+        expect(mockWriteToClient).toHaveBeenCalledWith(
+          client,
+          expect.stringContaining('not yet available')
+        );
       });
     });
   });
