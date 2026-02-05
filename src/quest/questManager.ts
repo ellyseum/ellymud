@@ -287,6 +287,11 @@ export class QuestManager extends EventEmitter {
     // Initialize step progress
     activeState.stepProgress[startingStep] = this.createStepProgress(firstStep, quest);
 
+    // Secondary check to prevent race condition duplicates
+    if (progress.activeQuests.some((q) => q.questId === questId)) {
+      return { success: false, error: 'Quest is already active.' };
+    }
+
     // Add to active quests
     progress.activeQuests.push(activeState);
     await this.saveProgress(progress);

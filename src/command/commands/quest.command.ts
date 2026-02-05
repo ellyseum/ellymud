@@ -44,6 +44,7 @@ export class QuestCommand implements Command {
 
       case 'available':
       case 'avail':
+      case 'list':
         await this.showAvailableQuests(client);
         break;
 
