@@ -23,6 +23,7 @@ describe('SpawnManager', () => {
   let mockAreaManager: {
     getAll: jest.Mock<Promise<Area[]>>;
     getInstance: jest.Mock;
+    getById: jest.Mock;
   };
   let mockRoomManager: {
     getRoomsByArea: jest.Mock;
@@ -46,6 +47,7 @@ describe('SpawnManager', () => {
     mockAreaManager = {
       getAll: jest.fn<Promise<Area[]>, []>(),
       getInstance: jest.fn(),
+      getById: jest.fn(),
     };
 
     // Setup mock room manager
