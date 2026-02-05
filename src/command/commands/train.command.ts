@@ -119,6 +119,22 @@ export class TrainCommand implements Command {
       return;
     }
 
+    // Check if the argument might be a class name (shortcut for 'train class <name>')
+    // This allows players to use 'train magic_user' instead of 'train class magic_user'
+    const allClasses = this.classManager.getAllClasses();
+    const potentialClass = allClasses.find(
+      (c) =>
+        c.id === trimmedArgs ||
+        c.name.toLowerCase() === trimmedArgs ||
+        c.name.toLowerCase().replace(/\s+/g, '_') === trimmedArgs
+    );
+
+    if (potentialClass) {
+      // Found a matching class, treat as class advancement
+      this.attemptClassAdvancement(client, trimmedArgs, playerLogger);
+      return;
+    }
+
     // Unknown argument
     writeToClient(
       client,
