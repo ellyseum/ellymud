@@ -1020,6 +1020,7 @@ export class MCPServer {
       name: room.name,
       description: room.description,
       exits: room.exits,
+      flags: room.flags,
       items: room.items,
       currency: room.currency,
       currentUsers: usersInRoom,
@@ -1037,6 +1038,7 @@ export class MCPServer {
         name: r.name,
         description: r.description?.substring(0, 100) + '...',
         exits: Object.keys(r.exits || {}),
+        flags: r.flags,
       })),
     };
   }

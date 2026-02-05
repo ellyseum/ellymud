@@ -15,6 +15,10 @@ export interface AreaCombatConfig {
   dangerLevel: number;
   /** XP multiplier, 1.0 = normal */
   xpMultiplier: number;
+  /** Maximum NPCs allowed per room (default: 3 for low danger, 5 for high) */
+  maxNpcsPerRoom?: number;
+  /** Maximum total NPCs in the entire area (default: sum of spawnConfig maxInstances) */
+  maxTotalNpcs?: number;
 }
 
 /**

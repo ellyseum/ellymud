@@ -81,7 +81,7 @@ export class TrainCommand implements Command {
 
     // Check if in training room for all train commands
     const room = this.roomManager.getRoom(client.user.currentRoomId);
-    if (!room || !room.flags.includes('training')) {
+    if (!room || !room.flags.includes('trainer')) {
       writeToClient(
         client,
         colorize('You can only train in a designated training room.\r\n', 'yellow')
