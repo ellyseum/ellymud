@@ -241,6 +241,16 @@ export interface User {
   classHistory?: string[]; // Track progression path through classes
   questFlags?: string[]; // For tier 2 class requirements
   unspentAttributePoints?: number; // Points to allocate on level up
+  // Track how many points player has allocated to each stat (for cost scaling)
+  allocatedStats?: {
+    strength: number;
+    dexterity: number;
+    agility: number;
+    constitution: number;
+    wisdom: number;
+    intelligence: number;
+    charisma: number;
+  };
   // Add character statistics
   strength: number;
   dexterity: number;
