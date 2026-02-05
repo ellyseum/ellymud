@@ -191,6 +191,19 @@ export class UserManager {
         user.unspentAttributePoints = 0;
       }
 
+      // Migration: Ensure allocatedStats exists for attribute cost scaling
+      if (!user.allocatedStats) {
+        user.allocatedStats = {
+          strength: 0,
+          dexterity: 0,
+          agility: 0,
+          constitution: 0,
+          wisdom: 0,
+          intelligence: 0,
+          charisma: 0,
+        };
+      }
+
       // Ensure mana stats are initialized and clamped
       if (typeof user.maxMana !== 'number' || Number.isNaN(user.maxMana)) {
         user.maxMana = 100;
