@@ -1,0 +1,56 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Allow manual triggers
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false  # Don't cancel in-progress deployments
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    # Only deploy after CI passes
+    needs: []
+    environment: production
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Oracle
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+            cd ~/ellymud
+
+            # Stash any local changes (data files modified by running server)
+            git stash --include-untracked || true
+
+            # Pull latest code
+            git pull origin main
+
+            # Rebuild and restart containers
+            docker compose -f docker-compose.prod.yml up -d --build
+
+            # Show status
+            docker compose -f docker-compose.prod.yml ps
+          EOF
+
+      - name: Verify Deployment
+        run: |
+          sleep 10
+          curl -sf https://${{ secrets.DEPLOY_HOST }}/health || echo "Health check endpoint not available"
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
