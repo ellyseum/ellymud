@@ -144,7 +144,7 @@ describe('TrainCommand', () => {
     describe('train stats', () => {
       it('should enter editor state when in training room and using "train stats"', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -167,7 +167,7 @@ describe('TrainCommand', () => {
 
       it('should allow train stats from AUTHENTICATED state', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -186,7 +186,7 @@ describe('TrainCommand', () => {
 
       it('should show error when using train stats from invalid state', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -208,7 +208,7 @@ describe('TrainCommand', () => {
 
       it('should store previous room id when entering editor', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -229,7 +229,7 @@ describe('TrainCommand', () => {
     describe('level up', () => {
       it('should show error when not enough experience', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -251,7 +251,7 @@ describe('TrainCommand', () => {
 
       it('should level up when enough experience', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -277,13 +277,13 @@ describe('TrainCommand', () => {
           health: 105,
           maxMana: 53,
           mana: 53,
-          unspentAttributePoints: 1,
+          unspentAttributePoints: 10,
         });
       });
 
       it('should level up from level 2 with correct experience', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -303,7 +303,7 @@ describe('TrainCommand', () => {
 
       it('should notify other players in the same room', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -338,7 +338,7 @@ describe('TrainCommand', () => {
 
       it('should not notify players in different rooms', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -373,7 +373,7 @@ describe('TrainCommand', () => {
 
       it('should not notify unauthenticated clients', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -403,7 +403,7 @@ describe('TrainCommand', () => {
 
       it('should not notify self', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -429,7 +429,7 @@ describe('TrainCommand', () => {
     describe('unknown arguments', () => {
       it('should show usage when unknown argument is provided', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -446,7 +446,7 @@ describe('TrainCommand', () => {
 
       it('should handle "stats" case-insensitively', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
@@ -465,7 +465,7 @@ describe('TrainCommand', () => {
 
       it('should trim whitespace from arguments', () => {
         const room = createMockRoom('training-room', 'Training Room', {
-          flags: ['training'],
+          flags: ['trainer'],
         });
         mockRoomManager.getRoom.mockReturnValue(room);
 
