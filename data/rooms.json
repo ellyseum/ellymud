@@ -79,6 +79,7 @@
     "areaId": "millbrook-village",
     "gridX": -1,
     "gridY": 0,
+    "gridZ": 1,
     "spawnItems": [],
     "spawnNpcs": [],
     "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
@@ -236,6 +237,7 @@
     "areaId": "millbrook-outskirts",
     "gridX": -1,
     "gridY": -3,
+    "gridZ": -1,
     "spawnItems": ["bone-fragment"],
     "spawnNpcs": ["giant-spider"],
     "spawnCurrency": { "gold": 0, "silver": 2, "copper": 10 }
@@ -270,6 +272,7 @@
     "areaId": "millbrook-outskirts",
     "gridX": 1,
     "gridY": -3,
+    "gridZ": -1,
     "spawnItems": ["old-cellar-key"],
     "spawnNpcs": ["field-rat", "field-rat", "giant-spider"],
     "spawnCurrency": { "gold": 0, "silver": 5, "copper": 15 }
@@ -442,6 +445,7 @@
     "areaId": "thornwood-town",
     "gridX": -1,
     "gridY": -7,
+    "gridZ": -1,
     "spawnItems": [],
     "spawnNpcs": [],
     "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
@@ -494,6 +498,7 @@
     "areaId": "thornwood-town",
     "gridX": 1,
     "gridY": -8,
+    "gridZ": 1,
     "spawnItems": [],
     "spawnNpcs": [],
     "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
@@ -527,6 +532,7 @@
     "areaId": "thornwood-town",
     "gridX": -1,
     "gridY": -8,
+    "gridZ": 1,
     "spawnItems": [],
     "spawnNpcs": [],
     "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
@@ -1025,6 +1031,7 @@
     "areaId": "darkhollow-marsh",
     "gridX": 0,
     "gridY": -18,
+    "gridZ": -1,
     "spawnItems": ["ancient-seal-fragment"],
     "spawnNpcs": ["marsh-lord"],
     "spawnCurrency": { "gold": 50, "silver": 100, "copper": 0 }

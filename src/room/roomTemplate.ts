@@ -19,6 +19,8 @@ export interface RoomTemplate {
   areaId?: string;
   gridX?: number;
   gridY?: number;
+  /** Floor/level for multi-level areas (0 = ground, -1 = underground, +1 = upper) */
+  gridZ?: number;
 }
 
 /**

@@ -66,8 +66,13 @@ export class MapCommand implements Command {
       return;
     }
 
+    // Filter rooms by Z level (floor) matching the current room
+    // Default Z is 0 (ground floor) if not specified
+    const currentZ = currentRoom.gridZ ?? 0;
+    const sameFloorRooms = roomsWithCoords.filter((r) => (r.gridZ ?? 0) === currentZ);
+
     // Generate and display the map
-    const mapOutput = this.generateMap(roomsWithCoords, currentRoomId);
+    const mapOutput = this.generateMap(sameFloorRooms, currentRoomId, currentZ);
     writeToClient(client, mapOutput);
   }
 
@@ -93,7 +98,7 @@ export class MapCommand implements Command {
   /**
    * Generate ASCII map from rooms with grid coordinates
    */
-  private generateMap(rooms: Room[], currentRoomId: string): string {
+  private generateMap(rooms: Room[], currentRoomId: string, currentZ: number = 0): string {
     // Find bounds
     let minX = Infinity,
       maxX = -Infinity;
@@ -120,9 +125,15 @@ export class MapCommand implements Command {
     // Build the map
     const lines: string[] = [];
 
-    // Header
+    // Header with floor indicator
     const areaId = rooms[0]?.areaId || 'Unknown Area';
-    lines.push(colorize(`=== Map: ${areaId} ===`, 'cyan'));
+    let floorLabel = '';
+    if (currentZ < 0) {
+      floorLabel = ` (B${Math.abs(currentZ)})`; // B1, B2, etc. for basement/underground
+    } else if (currentZ > 0) {
+      floorLabel = ` (F${currentZ + 1})`; // F2, F3, etc. for upper floors (F1 is ground)
+    }
+    lines.push(colorize(`=== Map: ${areaId}${floorLabel} ===`, 'cyan'));
     lines.push('');
 
     // Track if we have any cross-area exits for the legend
