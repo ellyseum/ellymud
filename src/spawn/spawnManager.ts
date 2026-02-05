@@ -138,7 +138,12 @@ export class SpawnManager {
       const maxInstances = tracker.config.maxInstances;
 
       if (currentCount >= maxInstances) {
-        continue; // At capacity
+        continue; // At capacity for this NPC type
+      }
+
+      // Check area-wide NPC limit
+      if (this.isAreaAtNpcCapacity(tracker.areaId)) {
+        continue; // Area at total NPC capacity
       }
 
       // Check respawn cooldown
@@ -263,17 +268,53 @@ export class SpawnManager {
 
   /**
    * Get eligible rooms for spawning in this tracker's area
+   * Respects maxNpcsPerRoom limit from area combat config
    */
   private getSpawnRooms(tracker: SpawnTracker): Room[] {
+    // Get the area to check combat config limits
+    const area = this.areaManager.getById(tracker.areaId);
+    const maxNpcsPerRoom = area?.combatConfig?.maxNpcsPerRoom;
+
+    let rooms: Room[];
+
     // If specific rooms configured, use those
     if (tracker.config.spawnRooms && tracker.config.spawnRooms.length > 0) {
-      return tracker.config.spawnRooms
+      rooms = tracker.config.spawnRooms
         .map((roomId) => this.roomManager.getRoom(roomId))
         .filter((room): room is Room => room !== undefined);
+    } else {
+      // Otherwise, all rooms in the area
+      rooms = this.roomManager.getRoomsByArea(tracker.areaId);
     }
 
-    // Otherwise, all rooms in the area
-    return this.roomManager.getRoomsByArea(tracker.areaId);
+    // Filter out rooms that have reached maxNpcsPerRoom limit
+    if (maxNpcsPerRoom !== undefined && maxNpcsPerRoom > 0) {
+      rooms = rooms.filter((room) => room.npcs.size < maxNpcsPerRoom);
+    }
+
+    return rooms;
+  }
+
+  /**
+   * Count total NPCs across all rooms in an area
+   */
+  private countTotalNpcsInArea(areaId: string): number {
+    const rooms = this.roomManager.getRoomsByArea(areaId);
+    return rooms.reduce((total, room) => total + room.npcs.size, 0);
+  }
+
+  /**
+   * Check if area has reached its total NPC limit
+   */
+  private isAreaAtNpcCapacity(areaId: string): boolean {
+    const area = this.areaManager.getById(areaId);
+    const maxTotalNpcs = area?.combatConfig?.maxTotalNpcs;
+
+    if (maxTotalNpcs === undefined || maxTotalNpcs <= 0) {
+      return false; // No limit set
+    }
+
+    return this.countTotalNpcsInArea(areaId) >= maxTotalNpcs;
   }
 
   /**

@@ -461,7 +461,7 @@
     "name": "Healing Potion",
     "description": "A small vial of red liquid.",
     "type": "consumable",
-    "abilityId": "healing_potion_effect",
+    "ability": "healing_potion_effect",
     "value": 10,
     "weight": 0.5
   },

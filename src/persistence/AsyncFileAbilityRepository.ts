@@ -35,13 +35,21 @@ export class AsyncFileAbilityRepository implements IAsyncAbilityRepository {
 
     try {
       const data = fs.readFileSync(this.abilitiesFile, 'utf8');
-      const fileData: AbilitiesFileData = JSON.parse(data);
-      if (fileData && Array.isArray(fileData.abilities)) {
-        repoLogger.debug(
-          `Loaded ${fileData.abilities.length} abilities from ${this.abilitiesFile}`
-        );
-        return fileData.abilities;
+      const parsed = JSON.parse(data);
+
+      // Support both formats: plain array [...] or wrapped { abilities: [...] }
+      let abilities: AbilityTemplate[];
+      if (Array.isArray(parsed)) {
+        abilities = parsed;
+      } else if (parsed && Array.isArray(parsed.abilities)) {
+        abilities = parsed.abilities;
+      } else {
+        repoLogger.warn(`Invalid abilities file format at ${this.abilitiesFile}`);
+        return [];
       }
+
+      repoLogger.debug(`Loaded ${abilities.length} abilities from ${this.abilitiesFile}`);
+      return abilities;
     } catch (error) {
       repoLogger.error(`Error loading abilities from ${this.abilitiesFile}:`, error);
     }

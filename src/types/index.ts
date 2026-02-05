@@ -50,6 +50,16 @@ export interface UserData {
   wisdom: number;
   intelligence: number;
   charisma: number;
+  // Track how many points player has allocated to each stat (for cost scaling)
+  allocatedStats?: {
+    strength: number;
+    dexterity: number;
+    agility: number;
+    constitution: number;
+    wisdom: number;
+    intelligence: number;
+    charisma: number;
+  };
   // Combat stats
   attack?: number; // Calculated from equipment
   defense?: number; // Calculated from equipment
