@@ -701,8 +701,8 @@ export class UserManager {
       classId: 'adventurer',
       classHistory: ['adventurer'],
       questFlags: [],
-      unspentAttributePoints: 0,
-      // Initialize character statistics (base stats - race modifiers applied later)
+      unspentAttributePoints: 100, // Starting attribute points for character customization
+      // Initialize character statistics (base stats - race modifiers applied during race selection)
       strength: 10,
       dexterity: 10,
       agility: 10,

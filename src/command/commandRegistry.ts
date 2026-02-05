@@ -64,6 +64,7 @@ import { AbilityManager } from '../abilities/abilityManager';
 import { RestCommand } from './commands/rest.command';
 import { MeditateCommand } from './commands/meditate.command';
 import { TrainCommand } from './commands/train.command'; // Import Train command for leveling
+import { AttribCommand } from './commands/attrib.command'; // Import Attrib command for stat allocation
 import { ExpCommand } from './commands/exp.command'; // Import Exp command for experience display
 import { BuyCommand } from './commands/buy.command';
 import { SellCommand } from './commands/sell.command';
@@ -219,6 +220,7 @@ export class CommandRegistry {
       new RestCommand(), // Add rest command for HP regen
       new MeditateCommand(), // Add meditate command for MP regen
       new TrainCommand(this.userManager, this.clients, this.roomManager), // Add train command for leveling and editor
+      new AttribCommand(this.userManager), // Add attrib command for stat allocation
       new ExpCommand(), // Add exp command for experience display
       new BuyCommand(this.roomManager, this.userManager),
       new SellCommand(this.roomManager, this.userManager),
