@@ -372,17 +372,18 @@ export class Room {
 
   /**
    * Generate a description for someone looking into the room from outside
+   * Uses classic MUD style colors
    */
   getDescriptionForPeeking(fromDirection: string): string {
-    let description = colorize(this.name, 'cyan') + '\r\n';
+    let description = colorize(this.name, 'brightWhite') + '\r\n';
     description += colorize(this.description, 'white') + '\r\n';
 
-    // Show players in the room
+    // Show players in the room (cyan for players)
     if (this.players.length > 0) {
-      description += colorize(`You can see some figures moving around.\r\n`, 'yellow');
+      description += colorize(`You can see some figures moving around.\r\n`, 'cyan');
     }
 
-    // Show NPCs in the room
+    // Show NPCs in the room (yellow for potential danger)
     if (this.npcs.size > 0) {
       description += colorize(`You can see some creatures moving around.\r\n`, 'yellow');
     }
@@ -400,27 +401,30 @@ export class Room {
     // Only show exits since player is just peeking
     if (this.exits.length > 0) {
       const directions = this.exits.map((exit) => exit.direction);
-      description += colorize(`Obvious exits: ${directions.join(', ')}.\r\n`, 'green');
+      description +=
+        colorize('Obvious exits: ', 'white') + colorize(directions.join(', '), 'cyan') + '.\r\n';
 
       // Mention the direction the player is peeking from
       description += colorize(
         `You are looking into this room from the ${fromDirection}.\r\n`,
-        'yellow'
+        'dim'
       );
     } else {
-      description += colorize('There are no obvious exits.\r\n', 'green');
+      description += colorize('There are no obvious exits.\r\n', 'cyan');
     }
 
     return description;
   }
 
   // Centralized method to format room descriptions
+  // Colors follow classic MajorMUD style: bright room name, white description
   private getFormattedDescription(
     includeLongDesc: boolean,
     excludePlayer?: string,
     hiddenPlayers?: string[]
   ): string {
-    let description = colorize(this.name, 'cyan') + '\r\n';
+    // Room name in bright white (classic MUD style)
+    let description = colorize(this.name, 'brightWhite') + '\r\n';
 
     if (includeLongDesc) {
       description += colorize(this.description, 'white') + '\r\n';
@@ -559,21 +563,26 @@ export class Room {
       players = players.filter((player) => !hiddenPlayers.includes(player));
     }
 
-    const entities = [
-      ...players.map((player) => colorize(formatUsername(player), 'brightMagenta')),
-      ...Array.from(this.npcs.values()).map((npc) => colorize(`a ${npc.name}`, 'magenta')),
-    ];
+    // Classic MUD style: players in cyan, hostile NPCs in yellow, friendly in cyan
+    const playerEntities = players.map((player) => colorize(formatUsername(player), 'brightCyan'));
+    const npcEntities = Array.from(this.npcs.values()).map((npc) => {
+      // Hostile NPCs in yellow (danger), friendly/neutral in cyan
+      const npcColor = npc.isHostile ? 'yellow' : 'cyan';
+      return colorize(`a ${npc.name}`, npcColor);
+    });
+    const entities = [...playerEntities, ...npcEntities];
 
     if (entities.length > 0) {
-      description += colorize(`Also here: ${entities.join(', ')}.`, 'magenta') + '\r\n';
+      description += colorize('Also here: ', 'white') + entities.join(', ') + '.\r\n';
     }
 
-    // Add exits
+    // Add exits (classic MUD style: cyan for exits)
     if (this.exits.length > 0) {
       const directions = this.exits.map((exit) => exit.direction);
-      description += colorize(`Obvious exits: ${directions.join(', ')}.`, 'green') + '\r\n';
+      description +=
+        colorize('Obvious exits: ', 'white') + colorize(directions.join(', '), 'cyan') + '.\r\n';
     } else {
-      description += colorize('There are no obvious exits.', 'green') + '\r\n';
+      description += colorize('There are no obvious exits.', 'cyan') + '\r\n';
     }
 
     return description;
