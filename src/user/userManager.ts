@@ -1048,29 +1048,21 @@ export class UserManager {
    * @param username The username of the user to update
    * @param updatedData The partial user data to apply
    * @returns True if the user was updated, false if user not found
+   *
+   * NOTE: This method uses Object.assign to modify the user in place,
+   * preserving the object reference. This is important because client.user
+   * and the user in the array must stay in sync (same object reference).
    */
   public updateUser(username: string, updatedData: Partial<User>): boolean {
-    const index = this.users.findIndex(
-      (user) => user.username.toLowerCase() === username.toLowerCase()
-    );
-    if (index === -1) return false;
-
-    // Get the existing user
-    const existingUser = this.users[index]; // Type: User
+    const user = this.getUser(username);
+    if (!user) return false;
 
     // Merge the updated data onto the existing user, ensuring username is not changed
     const dataToMerge = { ...updatedData };
     delete dataToMerge.username; // Prevent username change via this method
 
-    // Explicitly construct the updated user object to satisfy the User type
-    const updatedUserObject: User = {
-      ...existingUser, // Start with existing user properties
-      ...dataToMerge, // Override with updated data (excluding username)
-      username: existingUser.username, // Explicitly keep the original username (string)
-    };
-
-    // Apply the updates
-    this.users[index] = updatedUserObject;
+    // Use Object.assign to modify in place (preserves object reference for client.user)
+    Object.assign(user, dataToMerge);
 
     // Save changes to disk
     this.saveUsers();
