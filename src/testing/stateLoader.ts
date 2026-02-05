@@ -101,9 +101,7 @@ export class StateLoader {
    * @param name - Snapshot name (e.g., "fresh", "combat-ready")
    * @throws Error if snapshot doesn't exist
    */
-  async loadSnapshot(
-    name: string
-  ): Promise<{
+  async loadSnapshot(name: string): Promise<{
     usersLoaded: number;
     roomsLoaded: number;
     itemsLoaded: number;
