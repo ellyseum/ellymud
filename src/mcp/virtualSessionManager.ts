@@ -3,6 +3,7 @@ import { ClientManager } from '../client/clientManager';
 import { UserManager } from '../user/userManager';
 import { ConnectedClient, ClientStateType } from '../types';
 import { mcpLogger } from '../utils/logger';
+import { SudoCommand } from '../command/commands/sudo.command';
 import crypto from 'crypto';
 
 /**
@@ -103,7 +104,7 @@ export class VirtualSessionManager {
       throw new Error(`User '${username}' not found after creation`);
     }
 
-    // Grant admin flag if requested
+    // Grant admin flag and active admin privileges if requested
     if (isAdmin) {
       if (!user.flags) {
         user.flags = [];
@@ -113,6 +114,9 @@ export class VirtualSessionManager {
         this.userManager.updateUserStats(lowerUsername, { flags: user.flags });
         mcpLogger.info(`Granted admin flag to user: ${username}`);
       }
+      // Grant active admin access (so SudoCommand.isAuthorizedUser returns true)
+      SudoCommand.grantAdminAccess(username);
+      mcpLogger.info(`Granted active admin privileges to user: ${username}`);
     }
 
     // Set up the client as authenticated

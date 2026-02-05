@@ -1,0 +1,106 @@
+# Side Quest: Spider Infestation
+# Early side quest in the outskirts
+
+id: spider_infestation
+name: "Spider Infestation"
+description: "Clear out the giant spiders from the caves near Millbrook."
+longDescription: |
+  Giant spiders have moved into the caves in the rocky hills
+  near Millbrook. Their webs are spreading, and several
+  livestock have gone missing. The village needs someone
+  to deal with the problem before it gets worse.
+category: side
+repeatable: true
+repeatCooldown: 7200
+
+prerequisites:
+  level: 2
+
+steps:
+  - id: find_caves
+    name: "Find the Spider Caves"
+    description: "Locate the spider nest in the rocky hills."
+    objectives:
+      - type: enter_room
+        roomId: outskirts-shallow-cave
+        description: "Find the spider cave"
+    hint: "Check the rocky hillside west of the meadow."
+    onComplete:
+      - action: message
+        text: "You've found where the spiders are nesting. Clear them out!"
+        color: yellow
+
+  - id: kill_spiders
+    name: "Exterminate the Spiders"
+    description: "Kill the giant spiders."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: giant-spider
+        count: 4
+        description: "Kill 4 giant spiders"
+    onComplete:
+      - action: message
+        text: "The spider nest is cleared! Return to Millbrook."
+        color: green
+      - action: setFlag
+        flag: spiders_cleared
+
+  - id: collect_silk
+    name: "Gather Spider Silk"
+    description: "Collect spider silk as proof."
+    objectives:
+      - type: have_item
+        itemId: spider-silk
+        count: 2
+        description: "Collect 2 bundles of spider silk"
+    onComplete:
+      - action: message
+        text: "Return the silk to Martha at the general store."
+        color: green
+
+  - id: return_to_martha
+    name: "Claim Your Reward"
+    description: "Bring the spider silk to Martha."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: millbrook-shopkeeper
+        description: "Return to Martha"
+    npcDialogues:
+      millbrook-shopkeeper:
+        greeting: "Did you deal with those awful spiders?"
+        options:
+          - text: "The nest is cleared. Here's some silk I collected."
+            requires:
+              flags: [spiders_cleared]
+              items: [spider-silk]
+              minCount: 2
+            response: |
+              Oh thank goodness! I'll make sure the farmers hear about
+              this. And this silk - we can actually sell this to the
+              weavers in Thornwood. Here's your payment!
+            actions:
+              - action: removeItem
+                itemId: spider-silk
+                count: 2
+              - action: completeQuest
+          - text: "Still working on it."
+            response: "Be careful in those caves!"
+    onComplete:
+      - action: message
+        text: "Spider infestation cleared!"
+        color: green
+
+rewards:
+  experience: 200
+  currency:
+    gold: 8
+    silver: 0
+    copper: 0
+  message: "You've cleared out the spider infestation!"
+
+questGiver: millbrook-shopkeeper
+turnInNpc: millbrook-shopkeeper
+
+recommendedLevel:
+  min: 2
+  max: 5

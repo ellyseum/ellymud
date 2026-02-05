@@ -13,7 +13,12 @@ test-snapshots/
 │   ├── rooms.json      # Minimal room set
 │   ├── items.json      # Empty items (optional)
 │   └── npcs.json       # Empty NPCs (optional)
-├── combat-ready/       # Player + enemy in same room (custom)
+├── full-world/         # Generated world (may have stale data)
+├── thornwood-vale/     # Production-accurate snapshot (recommended for E2E)
+│   ├── users.json      # Empty user array
+│   ├── rooms.json      # Full production room data
+│   ├── items.json      # Production item definitions
+│   └── npcs.json       # Production NPC templates
 └── my-scenario/        # Any custom snapshot
 ```
 

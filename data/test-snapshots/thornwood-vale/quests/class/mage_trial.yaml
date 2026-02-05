@@ -1,0 +1,129 @@
+# Class Trial: Mage's Test
+# Unlocks Magic User class advancement
+
+id: mage_trial
+name: "The Mage's Test"
+description: "Prove your arcane knowledge to advance as a Magic User."
+longDescription: |
+  Archmage Elara senses potential in you. To advance your
+  magical studies, you must prove both your knowledge and
+  your courage by retrieving a magical artifact from a
+  dangerous location.
+category: class_trial
+repeatable: false
+
+prerequisites:
+  level: 5
+  classId: magic-user
+
+steps:
+  - id: seek_trial
+    name: "Request the Trial"
+    description: "Speak with Archmage Elara about advancement."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: mage_trainer
+        description: "Request the Mage's Trial"
+    npcDialogues:
+      mage_trainer:
+        greeting: "Ah, apprentice. Your aura has grown stronger. Seeking advancement?"
+        options:
+          - text: "I am ready to advance my magical studies."
+            response: |
+              Magic is not merely power - it is understanding.
+              The goblin shaman in the caves below the ruins has
+              stolen a totem of considerable magical significance.
+              Retrieve it. Study how he corrupted its power.
+              Only then will you understand the responsibility
+              that comes with greater magic.
+            actions:
+              - action: setQuestFlag
+                flag: mage_trial_started
+              - action: message
+                text: "Quest started: Retrieve the shaman's totem from the Goblin Caves."
+                color: yellow
+          - text: "I need more study first."
+            response: "Patience is a virtue in the arcane arts. Return when ready."
+    onComplete:
+      - action: message
+        text: "Find the goblin shaman and retrieve the totem."
+        color: yellow
+
+  - id: defeat_shaman
+    name: "Defeat the Shaman"
+    description: "Kill the goblin shaman."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: goblin-shaman
+        count: 1
+        description: "Defeat the goblin shaman"
+    onComplete:
+      - action: message
+        text: "The shaman is defeated. Take its totem."
+        color: green
+      - action: setFlag
+        flag: shaman_defeated
+
+  - id: retrieve_totem
+    name: "Retrieve the Totem"
+    description: "Take the shaman's magical totem."
+    objectives:
+      - type: have_item
+        itemId: shaman-totem
+        count: 1
+        description: "Obtain the shaman totem"
+    onComplete:
+      - action: message
+        text: "You feel the dark magic within the totem. Return to Archmage Elara."
+        color: green
+
+  - id: complete_trial
+    name: "Complete the Trial"
+    description: "Return the totem to Archmage Elara."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: mage_trainer
+        description: "Present the totem"
+    npcDialogues:
+      mage_trainer:
+        greeting: "You have returned. The totem - do you have it?"
+        options:
+          - text: "Here it is. I can feel the corruption in it."
+            requires:
+              flags: [shaman_defeated]
+              items: [shaman-totem]
+            response: |
+              *takes the totem carefully*
+              Yes... the shaman twisted its purpose, used it for
+              dark magic. You felt that. Good. That awareness is
+              the first step toward wisdom. Magic can heal or harm,
+              create or destroy. You have shown you understand this.
+              You are ready for greater mysteries.
+            actions:
+              - action: removeItem
+                itemId: shaman-totem
+              - action: completeQuest
+          - text: "Still searching."
+            response: "The totem's magic leaves traces. Follow them."
+    onComplete:
+      - action: message
+        text: "Your magical studies advance to a new level!"
+        color: green
+
+rewards:
+  experience: 500
+  questFlags:
+    - mage_trial_complete
+  items:
+    - itemId: scroll-fireball
+      count: 1
+  message: |
+    Congratulations! You have completed the Mage's Trial.
+    New spells and magical techniques are now available to you.
+
+questGiver: mage_trainer
+turnInNpc: mage_trainer
+
+recommendedLevel:
+  min: 5
+  max: 8

@@ -1,5 +1,5 @@
 // Combat class manages individual combat sessions between a player and NPCs
-import { ConnectedClient } from '../types';
+import { ConnectedClient, GameItem } from '../types';
 import { CombatEntity } from './combatEntity.interface';
 import { colorize, ColorType } from '../utils/colors';
 import {
@@ -18,8 +18,22 @@ import { AbilityManager } from '../abilities/abilityManager';
 import { clearRestingMeditating } from '../utils/stateInterruption';
 import { handleNpcDrops } from './npcDeathHandler';
 import { NPC } from './npc';
-import { secureRandom, secureRandomInt, secureRandomIndex } from '../utils/secureRandom';
+import { secureRandomIndex } from '../utils/secureRandom';
 import { questEventBus } from '../quest/questEventHandler';
+import { ResourceManager } from '../resource/resourceManager';
+import { ClassManager } from '../class/classManager';
+import { RaceManager } from '../race/raceManager';
+import { ComboManager } from './comboManager';
+import {
+  calculateHitChance,
+  calculateUserDodgeChance,
+  calculateUserCritChance,
+  calculatePhysicalDamage,
+  calculateDamageReduction,
+  rollToHit,
+  rollToDodge,
+  rollToCrit,
+} from './combatFormulas';
 
 // Create a context-specific logger for Combat
 const combatLogger = createMechanicsLogger('Combat');
@@ -252,12 +266,14 @@ export class Combat {
   }
 
   private processWeaponAttack(player: ConnectedClient, target: CombatEntity, roomId: string): void {
-    const hit = secureRandom() >= 0.5;
-
+    const user = player.user!;
     const itemManager = this.itemManager;
-    const weaponId = player.user!.equipment?.weapon;
+
+    // Get weapon info
+    const weaponId = user.equipment?.weapon;
     let weaponName = 'fists';
-    let weaponDamage = 0;
+    let weaponMinDamage = 1;
+    let weaponMaxDamage = 3;
 
     if (weaponId) {
       const displayName = itemManager.getItemDisplayName(weaponId);
@@ -267,54 +283,186 @@ export class Combat {
         const template = instance
           ? itemManager.getItem(instance.templateId)
           : itemManager.getItem(weaponId);
-        if (template?.stats?.attack) {
-          weaponDamage = template.stats.attack;
+        if (template?.damage && Array.isArray(template.damage)) {
+          [weaponMinDamage, weaponMaxDamage] = template.damage;
+        } else if (template?.stats?.attack) {
+          // Fallback for old format: use attack as max damage
+          weaponMinDamage = Math.floor(template.stats.attack / 2);
+          weaponMaxDamage = template.stats.attack;
         }
       }
     }
 
-    if (hit) {
-      const baseDamage = secureRandomInt(5, 10);
-      const totalDamage = baseDamage + weaponDamage;
-      const actualDamage = target.takeDamage(totalDamage);
-      target.addAggression(player.user!.username, actualDamage);
+    // Get target stats for defense calculations
+    // NPCs don't have explicit levels yet, use experience value as a proxy
+    const targetLevel =
+      target instanceof NPC ? Math.max(1, Math.floor(target.experienceValue / 50)) : 1;
+    const targetDodge = this.calculateTargetDodge(target);
+    const targetDr = this.calculateTargetDR(target);
 
-      writeFormattedMessageToClient(
-        player,
-        colorize(
-          `You hit the ${target.name} with your ${weaponName} for ${actualDamage} damage.\r\n`,
-          'red'
-        )
-      );
+    // Get race data for combat bonuses
+    const raceManager = RaceManager.getInstance();
+    const raceData = raceManager.getRace(user.raceId ?? 'human');
 
-      const username = formatUsername(player.user!.username);
-      this.combatSystem.broadcastRoomCombatMessage(
-        roomId,
-        `${username} hits the ${target.name} with their ${weaponName} for ${actualDamage} damage.\r\n`,
-        'red' as ColorType,
-        player.user!.username
-      );
+    // Calculate hit chance
+    const hitChance = calculateHitChance(user.dexterity, user.level, targetDodge, targetLevel);
 
-      this.triggerWeaponProc(player, target, roomId);
-      this.reduceWeaponDurability(player);
-    } else {
-      target.addAggression(player.user!.username, 0);
+    // Roll to hit
+    if (!rollToHit(hitChance)) {
+      // Miss
+      target.addAggression(user.username, 0);
 
       writeFormattedMessageToClient(
         player,
         colorize(`You swing at the ${target.name} with your ${weaponName}, and miss!\r\n`, 'cyan')
       );
 
-      const username = formatUsername(player.user!.username);
+      const username = formatUsername(user.username);
       this.combatSystem.broadcastRoomCombatMessage(
         roomId,
         `${username} swings at the ${target.name} with their ${weaponName}, and misses!\r\n`,
         'cyan' as ColorType,
-        player.user!.username
+        user.username
       );
+      return;
     }
 
+    // Check if target dodges
+    if (rollToDodge(targetDodge)) {
+      target.addAggression(user.username, 0);
+
+      writeFormattedMessageToClient(
+        player,
+        colorize(`The ${target.name} dodges your attack!\r\n`, 'cyan')
+      );
+
+      const username = formatUsername(user.username);
+      this.combatSystem.broadcastRoomCombatMessage(
+        roomId,
+        `The ${target.name} dodges ${username}'s attack!\r\n`,
+        'cyan' as ColorType,
+        user.username
+      );
+      return;
+    }
+
+    // Check for critical hit
+    const critChance = calculateUserCritChance(user, raceData, false);
+    const isCrit = rollToCrit(critChance, false);
+
+    // Calculate damage
+    const totalDamage = calculatePhysicalDamage(
+      user.strength,
+      weaponMinDamage,
+      weaponMaxDamage,
+      targetDr,
+      isCrit,
+      false
+    );
+
+    const actualDamage = target.takeDamage(totalDamage);
+    target.addAggression(user.username, actualDamage);
+
+    // Trigger rage building for the attacker
+    const resourceManager = ResourceManager.getInstance();
+    resourceManager.onDamageDealt(user, actualDamage);
+
+    // Build the hit message
+    let hitMessage: string;
+    let broadcastMessage: string;
+    const username = formatUsername(user.username);
+
+    if (isCrit) {
+      hitMessage = `CRITICAL! You hit the ${target.name} with your ${weaponName} for ${actualDamage} damage!\r\n`;
+      broadcastMessage = `CRITICAL! ${username} hits the ${target.name} with their ${weaponName} for ${actualDamage} damage!\r\n`;
+    } else {
+      hitMessage = `You hit the ${target.name} with your ${weaponName} for ${actualDamage} damage.\r\n`;
+      broadcastMessage = `${username} hits the ${target.name} with their ${weaponName} for ${actualDamage} damage.\r\n`;
+    }
+
+    writeFormattedMessageToClient(player, colorize(hitMessage, isCrit ? 'boldRed' : 'red'));
+
+    this.combatSystem.broadcastRoomCombatMessage(
+      roomId,
+      broadcastMessage,
+      (isCrit ? 'boldRed' : 'red') as ColorType,
+      user.username
+    );
+
+    this.triggerWeaponProc(player, target, roomId);
+    this.reduceWeaponDurability(player);
     this.reduceArmorDurability(target);
+  }
+
+  /**
+   * Calculate target's dodge chance
+   */
+  private calculateTargetDodge(target: CombatEntity): number {
+    if (target instanceof NPC) {
+      // NPCs don't have explicit stats yet, calculate dodge from experience value
+      // Higher level NPCs are harder to hit (base 5 + exp/100)
+      const estimatedAgility = Math.min(50, 10 + Math.floor(target.experienceValue / 25));
+      return Math.floor(estimatedAgility / 5);
+    }
+
+    // For player targets, use full calculation
+    if (target.isUser()) {
+      const targetUser = this.userManager.getUser(target.getName());
+      if (targetUser) {
+        const raceManager = RaceManager.getInstance();
+        const classManager = ClassManager.getInstance();
+        const raceData = raceManager.getRace(targetUser.raceId ?? 'human');
+        const classData = classManager.getClass(targetUser.classId ?? 'adventurer');
+        return calculateUserDodgeChance(targetUser, raceData, classData);
+      }
+    }
+
+    return 5; // Base dodge
+  }
+
+  /**
+   * Calculate target's damage reduction
+   */
+  private calculateTargetDR(target: CombatEntity): number {
+    if (target instanceof NPC) {
+      // NPCs don't have explicit armor, estimate DR from experience value
+      // Higher level NPCs have more natural armor
+      return Math.floor(target.experienceValue / 50);
+    }
+
+    // For player targets, calculate from equipped armor
+    if (target.isUser()) {
+      const targetUser = this.userManager.getUser(target.getName());
+      if (targetUser && targetUser.equipment) {
+        const equippedArmor = this.getEquippedArmorItems(targetUser.equipment);
+        return calculateDamageReduction(equippedArmor);
+      }
+    }
+
+    return 0;
+  }
+
+  /**
+   * Get equipped armor items as GameItem array
+   */
+  private getEquippedArmorItems(equipment: Record<string, string | undefined>): GameItem[] {
+    const armorSlots = ['head', 'chest', 'arms', 'hands', 'legs', 'feet', 'offhand'];
+    const items: GameItem[] = [];
+
+    for (const slot of armorSlots) {
+      const instanceId = equipment[slot];
+      if (instanceId) {
+        const instance = this.itemManager.getItemInstance(instanceId);
+        if (instance) {
+          const template = this.itemManager.getItem(instance.templateId);
+          if (template) {
+            items.push(template as GameItem);
+          }
+        }
+      }
+    }
+
+    return items;
   }
 
   private triggerWeaponProc(player: ConnectedClient, target: CombatEntity, roomId: string): void {
@@ -436,62 +584,114 @@ export class Combat {
     // Any aggressive action from an NPC interrupts resting/meditating (silently)
     clearRestingMeditating(targetPlayer, 'damage', true);
 
-    // 50% chance to hit
-    const hit = secureRandom() >= 0.5;
-
     // Get the room for broadcasting
     const roomId = this.player.user.currentRoomId;
 
-    if (hit) {
-      const damage = npc.getAttackDamage();
-      targetPlayer.user.health -= damage;
+    // Get NPC stats for attack calculations
+    // NPCs don't have explicit stats, estimate from experience value
+    const npcExpValue = npc instanceof NPC ? npc.experienceValue : 50;
+    const npcLevel = Math.max(1, Math.floor(npcExpValue / 50));
+    const npcDex = Math.min(50, 10 + Math.floor(npcExpValue / 25));
+    const npcStr = Math.min(50, 10 + Math.floor(npcExpValue / 25));
 
-      // Ensure health doesn't go below 0
-      if (targetPlayer.user.health < 0) targetPlayer.user.health = 0;
+    // Get target player's dodge and DR
+    const targetUser = targetPlayer.user;
+    const raceManager = RaceManager.getInstance();
+    const classManager = ClassManager.getInstance();
+    const raceData = raceManager.getRace(targetUser.raceId ?? 'human');
+    const classData = classManager.getClass(targetUser.classId ?? 'adventurer');
+    const targetDodge = calculateUserDodgeChance(targetUser, raceData, classData);
+    const equippedArmor = this.getEquippedArmorItems(targetUser.equipment ?? {});
+    const targetDr = calculateDamageReduction(equippedArmor);
 
-      // Update the player's health
-      this.userManager.updateUserStats(targetPlayer.user.username, {
-        health: targetPlayer.user.health,
-      });
+    // Calculate hit chance
+    const hitChance = calculateHitChance(npcDex, npcLevel, targetDodge, targetUser.level);
 
-      // Format the target name for messages
-      const targetNameFormatted = formatUsername(targetPlayer.user.username);
+    // Format the target name for messages
+    const targetNameFormatted = formatUsername(targetUser.username);
 
-      // Send message to the targeted player
-      writeFormattedMessageToClient(
-        targetPlayer,
-        colorize(`The ${npc.name} ${npc.getAttackText('you')} for ${damage} damage.\r\n`, 'red')
-      );
-
-      // Broadcast to ALL players in room except the target
-      this.combatSystem.broadcastRoomCombatMessage(
-        roomId,
-        `The ${npc.name} ${npc.getAttackText(targetNameFormatted)} for ${damage} damage.\r\n`,
-        'red' as ColorType,
-        targetPlayer.user.username
-      );
-
-      // Check if player died
-      if (targetPlayer.user.health <= 0) {
-        this.handlePlayerDeath(targetPlayer);
-      }
-    } else {
-      // Format the target name for messages
-      const targetNameFormatted = formatUsername(targetPlayer.user.username);
-
-      // Send message to the targeted player
+    // Roll to hit
+    if (!rollToHit(hitChance)) {
+      // Miss
       writeFormattedMessageToClient(
         targetPlayer,
         colorize(`The ${npc.name} ${npc.getAttackText('you')} and misses!\r\n`, 'cyan')
       );
 
-      // Broadcast to ALL players in room except the target
       this.combatSystem.broadcastRoomCombatMessage(
         roomId,
         `The ${npc.name} ${npc.getAttackText(targetNameFormatted)} and misses!\r\n`,
         'cyan' as ColorType,
-        targetPlayer.user.username
+        targetUser.username
       );
+      return;
+    }
+
+    // Check if player dodges
+    if (rollToDodge(targetDodge)) {
+      writeFormattedMessageToClient(
+        targetPlayer,
+        colorize(`You dodge the ${npc.name}'s attack!\r\n`, 'cyan')
+      );
+
+      this.combatSystem.broadcastRoomCombatMessage(
+        roomId,
+        `${targetNameFormatted} dodges the ${npc.name}'s attack!\r\n`,
+        'cyan' as ColorType,
+        targetUser.username
+      );
+      return;
+    }
+
+    // Get NPC weapon damage range (or use base damage)
+    let npcMinDamage = 2;
+    let npcMaxDamage = 6;
+    if (npc instanceof NPC && npc.damage) {
+      [npcMinDamage, npcMaxDamage] = npc.damage;
+    }
+
+    // Calculate damage (NPCs don't crit by default)
+    const rawDamage = calculatePhysicalDamage(
+      npcStr,
+      npcMinDamage,
+      npcMaxDamage,
+      targetDr,
+      false,
+      false
+    );
+
+    // Apply damage
+    targetUser.health -= rawDamage;
+
+    // Ensure health doesn't go below 0
+    if (targetUser.health < 0) targetUser.health = 0;
+
+    // Update the player's health
+    this.userManager.updateUserStats(targetUser.username, {
+      health: targetUser.health,
+    });
+
+    // Trigger rage building for the target if applicable
+    const resourceManager = ResourceManager.getInstance();
+    resourceManager.onDamageTaken(targetUser, rawDamage);
+
+    // Send message to the targeted player
+    writeFormattedMessageToClient(
+      targetPlayer,
+      colorize(`The ${npc.name} ${npc.getAttackText('you')} for ${rawDamage} damage.\r\n`, 'red')
+    );
+
+    // Broadcast to ALL players in room except the target
+    this.combatSystem.broadcastRoomCombatMessage(
+      roomId,
+      `The ${npc.name} ${npc.getAttackText(targetNameFormatted)} for ${rawDamage} damage.\r\n`,
+      'red' as ColorType,
+      targetUser.username
+    );
+
+    // Check if player died
+    if (targetUser.health <= 0) {
+      this.handlePlayerDeath(targetPlayer);
     }
   }
 
@@ -635,6 +835,24 @@ export class Combat {
     // Remove all players from targeting this entity
     for (const playerName of targetingPlayers) {
       this.combatSystem.removeEntityTargeter(entityId, playerName);
+    }
+
+    // Clear combo points for all players who had combos built on this target
+    // Use the NPC's instanceId (which is used as the combo target)
+    if (npc instanceof NPC && npc.instanceId) {
+      const comboManager = ComboManager.getInstance();
+      const usersWithCombo: import('../types').User[] = [];
+
+      // Collect users who may have combo points on this target
+      for (const playerName of targetingPlayers) {
+        const user = this.userManager.getUser(playerName);
+        if (user) {
+          usersWithCombo.push(user);
+        }
+      }
+
+      // Clear combo points for all players targeting this NPC
+      comboManager.onTargetDeath(npc.instanceId, usersWithCombo);
     }
 
     // Remove the NPC from active combatants

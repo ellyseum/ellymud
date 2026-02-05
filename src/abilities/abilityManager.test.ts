@@ -112,6 +112,24 @@ jest.mock('../persistence/RepositoryFactory', () => ({
     saveAll: jest.fn().mockResolvedValue(undefined),
     delete: jest.fn().mockResolvedValue(undefined),
   }),
+  getClassRepository: jest.fn().mockReturnValue({
+    findAll: jest.fn().mockResolvedValue([]),
+    findById: jest.fn().mockResolvedValue(null),
+    save: jest.fn().mockResolvedValue(undefined),
+    saveAll: jest.fn().mockResolvedValue(undefined),
+    delete: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
+// Mock ClassAbilityService
+jest.mock('../class/classAbilityService', () => ({
+  ClassAbilityService: {
+    getInstance: jest.fn(() => ({
+      canClassUseAbility: jest.fn().mockReturnValue({ canUse: true }),
+      getAvailableAbilities: jest.fn().mockReturnValue([]),
+    })),
+    resetInstance: jest.fn(),
+  },
 }));
 
 // Mock EffectManager

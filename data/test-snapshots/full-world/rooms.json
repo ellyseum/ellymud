@@ -1,28 +1,11 @@
 [
   {
-    "id": "start",
-    "name": "Arrival Point",
-    "shortDescription": "Where new adventurers begin their journey",
-    "description": "You find yourself at the crossroads of destiny, a mystical waypoint where all new adventurers first arrive in this land. A gentle breeze carries the scent of wildflowers, and a wooden signpost points south toward Millbrook Village. The air shimmers faintly with residual teleportation magic.",
-    "exits": [
-      { "direction": "south", "roomId": "millbrook-village-square" }
-    ],
-    "flags": ["safe", "starting-room"],
-    "areaId": "millbrook-village",
-    "gridX": 0,
-    "gridY": 1,
-    "spawnItems": [],
-    "spawnNpcs": [],
-    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
-  },
-  {
     "id": "millbrook-village-square",
     "name": "Millbrook Village Square",
     "shortDescription": "A quaint village square with a central well",
-    "description": "You stand in the heart of Millbrook Village, a peaceful hamlet surrounded by rolling farmland. A stone well sits in the center of the square, its bucket hanging from a weathered rope. Simple wooden buildings line the square - a general store to the northeast, the village elder's cottage to the east, and the local tavern to the west. Colorful flowers bloom in window boxes, and the air smells of fresh bread from a nearby bakery. Villagers go about their daily routines, nodding friendly greetings to travelers. A shimmering portal to the north marks the arrival point for new adventurers.",
+    "description": "You stand in the heart of Millbrook Village, a peaceful hamlet surrounded by rolling farmland. A stone well sits in the center of the square, its bucket hanging from a weathered rope. Simple wooden buildings line the square - a general store to the north, the village elder's cottage to the east, and the local tavern to the west. Colorful flowers bloom in window boxes, and the air smells of fresh bread from a nearby bakery. Villagers go about their daily routines, nodding friendly greetings to travelers.",
     "exits": [
-      { "direction": "north", "roomId": "start" },
-      { "direction": "northeast", "roomId": "millbrook-general-store" },
+      { "direction": "north", "roomId": "millbrook-general-store" },
       { "direction": "east", "roomId": "millbrook-elder-cottage" },
       { "direction": "west", "roomId": "millbrook-tavern" },
       { "direction": "south", "roomId": "millbrook-south-road" }
@@ -41,7 +24,7 @@
     "shortDescription": "A cluttered but cozy general store",
     "description": "Rows of wooden shelves line the walls of this small shop, stacked with an assortment of practical goods. Bags of grain lean against barrels of salted fish, while farming tools hang from hooks near the ceiling. The shopkeeper's counter is cluttered with ledgers and a small brass scale. Dried herbs dangle from the rafters, filling the air with a pleasant earthy aroma. A hand-painted sign reads 'Honest Prices for Honest Folk.'",
     "exits": [
-      { "direction": "southwest", "roomId": "millbrook-village-square" }
+      { "direction": "south", "roomId": "millbrook-village-square" }
     ],
     "flags": ["safe", "shop"],
     "areaId": "millbrook-village",
@@ -404,10 +387,11 @@
     "id": "thornwood-training-hall",
     "name": "Warrior's Training Hall",
     "shortDescription": "A training facility for aspiring fighters",
-    "description": "The clash of practice weapons fills this spacious hall. Training dummies line one wall, bearing the marks of countless strikes. Weapon racks hold a variety of practice arms - wooden swords, padded staves, and blunted axes. Experienced trainers oversee novice warriors, correcting stances and demonstrating techniques. The floor is covered with sawdust to absorb sweat and blood. This is where Thornwood's defenders are forged.",
+    "description": "The clash of practice weapons fills this spacious hall. Training dummies line one wall, bearing the marks of countless strikes. Weapon racks hold a variety of practice arms - wooden swords, padded staves, and blunted axes. Experienced trainers oversee novice warriors, correcting stances and demonstrating techniques. The floor is covered with sawdust to absorb sweat and blood. This is where Thornwood's defenders are forged. A grand staircase in the east leads up to the Masters' Guildhall.",
     "exits": [
       { "direction": "west", "roomId": "thornwood-town-hall" },
-      { "direction": "north", "roomId": "thornwood-armor-shop" }
+      { "direction": "north", "roomId": "thornwood-armor-shop" },
+      { "direction": "east", "roomId": "masters-guildhall-entrance" }
     ],
     "flags": ["safe", "trainer"],
     "areaId": "thornwood-town",
@@ -1052,5 +1036,331 @@
     "spawnItems": ["ancient-seal-fragment"],
     "spawnNpcs": ["marsh-lord"],
     "spawnCurrency": { "gold": 50, "silver": 100, "copper": 0 }
+  },
+  {
+    "id": "masters-guildhall-entrance",
+    "name": "Masters' Guildhall - Grand Foyer",
+    "shortDescription": "The entrance to the legendary Masters' Guildhall",
+    "description": "You stand in the grand foyer of the Masters' Guildhall, where only the most accomplished adventurers may train. Marble pillars reach toward a vaulted ceiling painted with scenes of legendary heroes. Banners representing each advanced discipline hang from the walls - crossed swords for warriors, arcane symbols for mages, shadowed daggers for rogues, and divine light for healers. Four corridors branch off to different wings of the guildhall. A sense of history and power permeates this place.",
+    "exits": [
+      { "direction": "west", "roomId": "thornwood-training-hall" },
+      { "direction": "north", "roomId": "masters-warrior-wing" },
+      { "direction": "east", "roomId": "masters-arcane-wing" },
+      { "direction": "south", "roomId": "masters-shadow-wing" },
+      { "direction": "up", "roomId": "masters-divine-wing" }
+    ],
+    "flags": ["safe"],
+    "areaId": "masters-guildhall",
+    "gridX": 2,
+    "gridY": -7,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-warrior-wing",
+    "name": "Hall of Steel",
+    "shortDescription": "The warrior masters' training grounds",
+    "description": "This wing of the guildhall is dedicated to the martial disciplines. The walls are lined with legendary weapons and armor - trophies from famous battles throughout history. Three training chambers branch off from this hall, each dedicated to a different path of martial mastery. To the north, Lord Commander Aldric trains Paladins in the holy warrior arts. To the east, Grimjaw teaches the way of the Berserker. To the west, Dame Isolde instructs those who would become Knights.",
+    "exits": [
+      { "direction": "south", "roomId": "masters-guildhall-entrance" },
+      { "direction": "north", "roomId": "masters-paladin-chamber" },
+      { "direction": "east", "roomId": "masters-berserker-pit" },
+      { "direction": "west", "roomId": "masters-knight-quarters" }
+    ],
+    "flags": ["safe"],
+    "areaId": "masters-guildhall",
+    "gridX": 2,
+    "gridY": -6,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-paladin-chamber",
+    "name": "Chapel of the Divine Shield",
+    "shortDescription": "Where Paladins are forged in faith and steel",
+    "description": "Stained glass windows depicting holy warriors flood this chamber with multicolored light. An altar to the Divine Light stands at the far end, flanked by suits of blessed armor. The walls bear inscriptions of the Paladin's oath - to protect the innocent, smite evil, and never falter in the face of darkness. Lord Commander Aldric stands before the altar, ready to guide worthy Fighters onto the path of righteousness.",
+    "exits": [
+      { "direction": "south", "roomId": "masters-warrior-wing" }
+    ],
+    "flags": ["safe", "trainer", "sanctuary"],
+    "areaId": "masters-guildhall",
+    "gridX": 2,
+    "gridY": -5,
+    "spawnItems": [],
+    "spawnNpcs": ["paladin_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-berserker-pit",
+    "name": "The Blood Pit",
+    "shortDescription": "A brutal arena for aspiring Berserkers",
+    "description": "This chamber is less a training room and more a gladiatorial pit. The stone floor is permanently stained with old blood, and the walls bear deep gouges from savage weapons. Tribal totems and war banners decorate the space, honoring the primal fury of the Berserker tradition. Grimjaw the Bloodied paces the pit's edge like a caged beast, always ready to test those who think they can handle the rage.",
+    "exits": [
+      { "direction": "west", "roomId": "masters-warrior-wing" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "masters-guildhall",
+    "gridX": 3,
+    "gridY": -6,
+    "spawnItems": [],
+    "spawnNpcs": ["berserker_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-knight-quarters",
+    "name": "The Order's Garrison",
+    "shortDescription": "Training grounds for future Knights",
+    "description": "Military precision defines this chamber. Weapon racks are perfectly organized, training equipment is spotless, and everything has its proper place. Tactical maps cover one wall, showing famous battles and siege formations. The Royal Order's banner hangs prominently, a reminder that Knights serve something greater than themselves. Dame Isolde reviews formations at a large table covered with miniature soldiers.",
+    "exits": [
+      { "direction": "east", "roomId": "masters-warrior-wing" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "masters-guildhall",
+    "gridX": 1,
+    "gridY": -6,
+    "spawnItems": [],
+    "spawnNpcs": ["knight_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-arcane-wing",
+    "name": "The Arcanum",
+    "shortDescription": "Where the deepest magical secrets are taught",
+    "description": "Reality feels thinner here, magic saturating every surface. Floating crystals provide illumination, and arcane formulae are inscribed on every wall in glowing script. Three portals shimmer at the far end of the hall, each leading to a different magical discipline. The northern portal crackles with pure arcane energy - the Wizard's domain. The eastern portal swirls with darkness - the Necromancer's realm. The southern portal churns with elemental chaos - the Elementalist's sanctum.",
+    "exits": [
+      { "direction": "west", "roomId": "masters-guildhall-entrance" },
+      { "direction": "north", "roomId": "masters-wizard-sanctum" },
+      { "direction": "east", "roomId": "masters-necromancer-crypt" },
+      { "direction": "south", "roomId": "masters-elementalist-nexus" }
+    ],
+    "flags": ["safe"],
+    "areaId": "masters-guildhall",
+    "gridX": 3,
+    "gridY": -7,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-wizard-sanctum",
+    "name": "The Infinite Library",
+    "shortDescription": "A sanctum of pure arcane knowledge",
+    "description": "Bookshelves stretch impossibly high, disappearing into a ceiling that might not exist. Tomes float through the air on their own accord, organizing themselves by unknowable criteria. The space seems larger on the inside than should be possible, and you occasionally glimpse distant sections containing knowledge from other worlds entirely. Archmagus Thandril sits at a desk that exists in multiple dimensions simultaneously, studying texts written before the world was born.",
+    "exits": [
+      { "direction": "south", "roomId": "masters-arcane-wing" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "masters-guildhall",
+    "gridX": 3,
+    "gridY": -6,
+    "spawnItems": [],
+    "spawnNpcs": ["wizard_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-necromancer-crypt",
+    "name": "The Crypt of Whispers",
+    "shortDescription": "Where death's secrets are revealed",
+    "description": "Cold permeates this chamber, and shadows seem to move on their own. Stone sarcophagi line the walls, each containing the preserved remains of ancient practitioners. Ghostly whispers fill the air - the voices of the dead sharing their knowledge with those who can hear. Candles that burn with black flame provide dim illumination. The Pale Lady stands motionless in the center, her form flickering between solid and ethereal.",
+    "exits": [
+      { "direction": "west", "roomId": "masters-arcane-wing" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "masters-guildhall",
+    "gridX": 4,
+    "gridY": -7,
+    "spawnItems": [],
+    "spawnNpcs": ["necromancer_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-elementalist-nexus",
+    "name": "The Elemental Nexus",
+    "shortDescription": "Where primal forces converge",
+    "description": "This chamber exists at the intersection of the elemental planes. Fire roars in one corner, water cascades in another, wind howls through the third, and earth groans in the fourth. The central platform somehow provides calm in this chaos, protected by complex wards. Lightning arcs between floating crystals, and the very air tastes of ozone and possibility. Pyraxis Stormborn hovers at the center, elemental energies flowing through him like blood.",
+    "exits": [
+      { "direction": "north", "roomId": "masters-arcane-wing" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "masters-guildhall",
+    "gridX": 3,
+    "gridY": -8,
+    "spawnItems": [],
+    "spawnNpcs": ["elementalist_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-shadow-wing",
+    "name": "The Umbral Passage",
+    "shortDescription": "Where shadows teach their secrets",
+    "description": "Light seems unwelcome here - torches flicker weakly, and darkness presses in from every corner. The hall is deliberately confusing, with passages that seem to shift when you're not looking. Those who walk the shadow paths train here, learning to become one with the darkness. Three doorways are barely visible in the gloom - one to the Assassin's den, one to the Ranger's lodge, and one to the Shadow Dancer's void.",
+    "exits": [
+      { "direction": "north", "roomId": "masters-guildhall-entrance" },
+      { "direction": "east", "roomId": "masters-assassin-den" },
+      { "direction": "west", "roomId": "masters-ranger-lodge" },
+      { "direction": "south", "roomId": "masters-shadow-void" }
+    ],
+    "flags": ["safe"],
+    "areaId": "masters-guildhall",
+    "gridX": 2,
+    "gridY": -8,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-assassin-den",
+    "name": "The Silent Chamber",
+    "shortDescription": "Where killers are made",
+    "description": "This chamber is designed to absorb all sound - your footsteps make no noise, and even your heartbeat seems muffled. Target dummies are arrayed throughout, and weapons of assassination are displayed on felt-lined cases: garrotes, poison vials, throwing knives, hidden blades. The walls are covered with anatomical diagrams showing vital points. Whisper may or may not be here - you can never quite be sure.",
+    "exits": [
+      { "direction": "west", "roomId": "masters-shadow-wing" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "masters-guildhall",
+    "gridX": 3,
+    "gridY": -8,
+    "spawnItems": [],
+    "spawnNpcs": ["assassin_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-ranger-lodge",
+    "name": "The Wildwood Lodge",
+    "shortDescription": "A piece of wilderness within walls",
+    "description": "Somehow, a small forest grows inside this chamber. Real trees reach toward a ceiling painted like the sky, and grass carpets the floor. The sound of birdsong fills the air, and you can smell pine and wildflowers. Hunting trophies hang on wooden walls, and maps of every wilderness in the realm are spread across a table made from a massive tree trunk. Oakhart the Wild sits by a small pond, a wolf at his feet and a hawk on his shoulder.",
+    "exits": [
+      { "direction": "east", "roomId": "masters-shadow-wing" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "masters-guildhall",
+    "gridX": 1,
+    "gridY": -8,
+    "spawnItems": [],
+    "spawnNpcs": ["ranger_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-shadow-void",
+    "name": "The Void Between",
+    "shortDescription": "A space between worlds",
+    "description": "You're not sure you're entirely in the physical world anymore. This space exists between dimensions, where light has never reached. The floor beneath your feet feels solid but looks like nothing - just endless darkness. Faint stars glimmer in the distance, but they're not the stars you know. The Hooded One manifests from the void, more concept than creature, offering knowledge that comes at a price.",
+    "exits": [
+      { "direction": "north", "roomId": "masters-shadow-wing" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "masters-guildhall",
+    "gridX": 2,
+    "gridY": -9,
+    "spawnItems": [],
+    "spawnNpcs": ["shadow_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-divine-wing",
+    "name": "The Celestial Sanctum",
+    "shortDescription": "Where divine callings are answered",
+    "description": "This chamber seems to exist closer to the heavens than the earth. Soft golden light fills the space without any visible source, and the air carries the scent of incense and flowers. Three alcoves contain shrines to different aspects of divine power - the organized religion of the Cleric, the natural balance of the Druid, and the spiritual communion of the Shaman. Peace permeates this place, but also power.",
+    "exits": [
+      { "direction": "down", "roomId": "masters-guildhall-entrance" },
+      { "direction": "north", "roomId": "masters-cleric-shrine" },
+      { "direction": "east", "roomId": "masters-druid-grove" },
+      { "direction": "west", "roomId": "masters-shaman-circle" }
+    ],
+    "flags": ["safe", "sanctuary"],
+    "areaId": "masters-guildhall",
+    "gridX": 2,
+    "gridY": -7,
+    "gridZ": 1,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-cleric-shrine",
+    "name": "The High Temple",
+    "shortDescription": "A shrine to organized divine power",
+    "description": "This is a proper temple in miniature - marble columns, golden icons, ceremonial braziers, and a magnificent altar. The Divine Light's symbol dominates the space, radiating warmth and comfort to the faithful. Racks of sacred texts line the walls, containing prayers, rituals, and doctrines. High Priest Malachai conducts services at the altar, his voice carrying the weight of divine authority.",
+    "exits": [
+      { "direction": "south", "roomId": "masters-divine-wing" }
+    ],
+    "flags": ["safe", "trainer", "sanctuary"],
+    "areaId": "masters-guildhall",
+    "gridX": 2,
+    "gridY": -6,
+    "gridZ": 1,
+    "spawnItems": [],
+    "spawnNpcs": ["cleric_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-druid-grove",
+    "name": "The Sacred Grove",
+    "shortDescription": "Where nature's guardians are chosen",
+    "description": "An ancient grove exists within this chamber, defying all logic. Massive oaks form a canopy overhead, their branches intertwined in patterns that suggest deliberate design. A stone circle marks the center, covered with moss and lichen that seems to pulse with life. Animals move freely through the grove - deer, foxes, birds - none showing fear of humans. Elder Greenbough stands within the stone circle, more tree than person.",
+    "exits": [
+      { "direction": "west", "roomId": "masters-divine-wing" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "masters-guildhall",
+    "gridX": 3,
+    "gridY": -7,
+    "gridZ": 1,
+    "spawnItems": [],
+    "spawnNpcs": ["druid_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "masters-shaman-circle",
+    "name": "The Spirit Circle",
+    "shortDescription": "Where the veil between worlds is thin",
+    "description": "This chamber exists half in the spirit world. Ghostly figures drift through the air, some human, some animal, some things that were never alive. Totems carved from bone and wood stand at cardinal points, thrumming with spiritual energy. The floor is painted with an elaborate ritual circle, its symbols shifting subtly when you're not looking directly at them. Spirit Caller Nahara sits at the center, communing with beings you can barely perceive.",
+    "exits": [
+      { "direction": "east", "roomId": "masters-divine-wing" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "masters-guildhall",
+    "gridX": 1,
+    "gridY": -7,
+    "gridZ": 1,
+    "spawnItems": [],
+    "spawnNpcs": ["shaman_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-thieves-den",
+    "name": "The Rats' Nest",
+    "shortDescription": "A hidden den beneath Thornwood",
+    "description": "Behind a false wall in a forgotten alley, a ladder descends into this underground chamber. The Thieves' Guild of Thornwood operates from here, though officially it doesn't exist. Lockpicks, maps of wealthy estates, and stolen goods fill the space. A fence operates in one corner, no questions asked. In the deepest shadows, Shadow teaches those who wish to walk the path of the Thief - for a price, and a promise of loyalty.",
+    "exits": [
+      { "direction": "up", "roomId": "thornwood-back-alley" }
+    ],
+    "flags": ["safe", "trainer"],
+    "areaId": "thornwood-town",
+    "gridX": -2,
+    "gridY": -5,
+    "gridZ": -1,
+    "spawnItems": [],
+    "spawnNpcs": ["thief_trainer"],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
+  },
+  {
+    "id": "thornwood-back-alley",
+    "name": "Shadowy Back Alley",
+    "shortDescription": "A dark alley behind the market",
+    "description": "This narrow alley runs behind the market stalls, cluttered with crates and refuse. It's the kind of place respectable citizens avoid, where deals are made in whispers and coin changes hands for things not sold in proper shops. A suspicious-looking grate in one corner might lead somewhere... if you know the right knock. Occasionally, you notice figures moving through the shadows, but they vanish when you look directly at them.",
+    "exits": [
+      { "direction": "east", "roomId": "thornwood-market-square" },
+      { "direction": "down", "roomId": "thornwood-thieves-den" }
+    ],
+    "flags": ["safe"],
+    "areaId": "thornwood-town",
+    "gridX": -2,
+    "gridY": -5,
+    "spawnItems": [],
+    "spawnNpcs": [],
+    "spawnCurrency": { "gold": 0, "silver": 0, "copper": 0 }
   }
 ]

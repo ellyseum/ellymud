@@ -29,6 +29,9 @@ export interface NPCData {
   canMove?: boolean; // Whether NPC wanders between rooms
   movementTicks?: number; // Ticks between movement attempts (default: 30)
   staysInArea?: boolean; // If true, won't leave spawn area (default: true)
+  stationary?: boolean; // If true, NPC never moves (vendors, trainers)
+  // Dialogue settings
+  dialogue?: string; // Default greeting when talked to (for NPCs without quest dialogues)
 }
 
 export class NPC implements CombatEntity {
@@ -120,7 +123,19 @@ export class NPC implements CombatEntity {
     const drops: string[] = [];
     const itemManager = ItemManager.getInstance();
 
+    // Log inventory status for debugging
+    systemLogger.info(
+      `[NPC Drop] ${this.name} (${this.instanceId}) has ${this.inventory.length} items in inventory`
+    );
+
+    if (this.inventory.length === 0) {
+      systemLogger.debug(`[NPC Drop] ${this.name} has no inventory items to drop`);
+      return drops;
+    }
+
     for (const invItem of this.inventory) {
+      systemLogger.debug(`[NPC Drop] Processing inventory item: ${invItem.itemId}`);
+
       // Check spawn cooldown
       if (!this.canSpawnItem(invItem)) {
         systemLogger.debug(`Item ${invItem.itemId} is on cooldown for NPC ${this.name}`);
@@ -136,6 +151,10 @@ export class NPC implements CombatEntity {
         continue;
       }
 
+      systemLogger.info(
+        `[NPC Drop] ${this.name} roll passed for ${invItem.itemId} (${roll.toFixed(2)} <= ${invItem.spawnRate})`
+      );
+
       // Calculate how many to drop
       const count = this.calculateItemCount(invItem.itemCount);
 
@@ -143,7 +162,14 @@ export class NPC implements CombatEntity {
       for (let i = 0; i < count; i++) {
         // Check global limit before creating
         if (!itemManager.canCreateInstance(invItem.itemId)) {
-          systemLogger.debug(`Cannot create ${invItem.itemId}: global limit reached`);
+          const template = itemManager.getItem(invItem.itemId);
+          if (!template) {
+            systemLogger.warn(
+              `[NPC Drop] Cannot create ${invItem.itemId}: item template not found in ItemManager`
+            );
+          } else {
+            systemLogger.debug(`Cannot create ${invItem.itemId}: global limit reached`);
+          }
           break;
         }
 
@@ -154,8 +180,12 @@ export class NPC implements CombatEntity {
 
         if (instance) {
           drops.push(instance.instanceId);
-          systemLogger.debug(
-            `NPC ${this.name} dropped ${invItem.itemId} (instance: ${instance.instanceId})`
+          systemLogger.info(
+            `[NPC Drop] ${this.name} dropped ${invItem.itemId} (instance: ${instance.instanceId})`
+          );
+        } else {
+          systemLogger.warn(
+            `[NPC Drop] Failed to create instance for ${invItem.itemId} - createItemInstance returned null`
           );
         }
       }

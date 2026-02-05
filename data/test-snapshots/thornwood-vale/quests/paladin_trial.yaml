@@ -1,0 +1,128 @@
+# Class Trial Quest: The Paladin's Path
+# Unlocks the Paladin class for Fighters who have completed fighter training
+
+id: paladin_trial
+name: "The Paladin's Path"
+description: "Prove your worth and unlock the way of the Paladin."
+longDescription: |
+  The path of the Paladin is one of righteousness and devotion.
+  Only those who have proven themselves as skilled fighters
+  may seek this sacred calling. You must demonstrate your
+  commitment to justice and find the blessings of the Light.
+category: class_trial
+repeatable: false
+
+prerequisites:
+  level: 10
+  classId: fighter
+  questFlags:
+    - fighter_training_complete
+  questsNotCompleted:
+    - berserker_trial  # Can only choose one path
+
+steps:
+  - id: seek_temple
+    name: "Seek the Temple of Light"
+    description: "Find the Temple of Light to begin your trial."
+    objectives:
+      - type: enter_room
+        roomId: temple-of-light
+        description: "Enter the Temple of Light"
+    hint: "The Temple of Light is located in the holy district."
+    onComplete:
+      - action: message
+        text: "You feel a warm, peaceful energy as you enter the sacred temple."
+        color: cyan
+
+  - id: speak_high_priest
+    name: "Speak with the High Priest"
+    description: "The High Priest can tell you what is required."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: high_priest
+        description: "Consult the High Priest"
+    npcDialogues:
+      high_priest:
+        greeting: "Welcome, warrior. I sense the spark of righteousness within you."
+        options:
+          - text: "I wish to become a Paladin."
+            response: |
+              The path is not easy. You must first prove your devotion.
+              Seek the Sacred Relic in the Crypt of Shadows and return it here.
+              Only then can you receive the blessing of the Light.
+            actions:
+              - action: setQuestFlag
+                flag: paladin_trial_started
+              - action: message
+                text: "Quest updated: Find the Sacred Relic in the Crypt of Shadows."
+                color: yellow
+
+          - text: "Tell me more about the Paladin order."
+            response: |
+              Paladins are holy warriors, blessed by the Light.
+              They combine martial prowess with divine magic,
+              healing allies and smiting evil wherever it lurks.
+
+  - id: retrieve_relic
+    name: "Retrieve the Sacred Relic"
+    description: "Venture into the Crypt of Shadows and recover the relic."
+    objectives:
+      - type: enter_room
+        roomId: crypt-inner-sanctum
+        description: "Reach the inner sanctum"
+      - type: have_item
+        itemId: sacred_relic
+        description: "Obtain the Sacred Relic"
+    requireAllObjectives: true
+    onComplete:
+      - action: message
+        text: "The Sacred Relic glows warmly in your hands. Return to the High Priest!"
+        color: yellow
+
+  - id: return_relic
+    name: "Return to the High Priest"
+    description: "Bring the Sacred Relic back to the Temple of Light."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: high_priest
+        description: "Present the relic to the High Priest"
+    npcDialogues:
+      high_priest:
+        greeting: "You have returned. Do you bring the Sacred Relic?"
+        options:
+          - text: "I have the Sacred Relic."
+            requires:
+              items: [sacred_relic]
+            response: |
+              Magnificent! You have proven your worth, noble warrior.
+              Kneel before me and receive the blessing of the Light.
+              Rise now, Paladin!
+            actions:
+              - action: removeItem
+                itemId: sacred_relic
+              - action: completeQuest
+
+          - text: "Not yet. I'm still searching."
+            response: "The relic awaits in the Crypt of Shadows. May the Light guide your path."
+
+rewards:
+  experience: 5000
+  questFlags:
+    - paladin_class_unlocked
+  items:
+    - itemId: paladin_tabard
+      count: 1
+  message: |
+    You have been blessed by the Light!
+    The Paladin class is now available to you.
+    Visit a Paladin trainer to complete your transformation.
+
+questGiver: high_priest
+turnInNpc: high_priest
+
+recommendedLevel:
+  min: 10
+  max: 15
+
+chainId: class_advancement
+chainOrder: 1

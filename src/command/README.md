@@ -41,7 +41,7 @@ Each command implements:
 ## Command Categories
 
 - **Navigation**: look, move, north/south/east/west
-- **Combat**: attack, flee, defend
+- **Combat**: attack, defend (move to any exit to flee combat)
 - **Communication**: say, yell, whisper, tell
 - **Inventory**: inventory, get, drop, equip, unequip
 - **Character**: stats, score, level

@@ -1,0 +1,124 @@
+# Side Quest: The Wolf Hunt
+# Forest exploration side quest
+
+id: wolf_hunt
+name: "The Wolf Hunt"
+description: "Thin the wolf population in Thornwood Forest."
+longDescription: |
+  The wolves of Thornwood Forest have grown too numerous.
+  Their hunting grounds have expanded, threatening travelers
+  and even the outskirts of the town. Red Thorn at the
+  Thorny Rose is offering a bounty for wolf pelts.
+category: side
+repeatable: true
+repeatCooldown: 3600
+
+prerequisites:
+  level: 5
+  questFlags:
+    - recognized_by_thornwood
+
+steps:
+  - id: accept_bounty
+    name: "Accept the Bounty"
+    description: "Speak with Red Thorn about the wolf bounty."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thornwood-innkeeper
+        description: "Accept the bounty from Red Thorn"
+    npcDialogues:
+      thornwood-innkeeper:
+        greeting: "Looking for work, adventurer? I've got something that pays well."
+        options:
+          - text: "What kind of work?"
+            response: |
+              Wolf pelts. The forest is crawling with the beasts,
+              and they've been getting bold. I'll pay good coin
+              for quality pelts - the furriers can't get enough.
+              Bring me five pelts and I'll make it worth your while.
+            actions:
+              - action: setFlag
+                flag: wolf_bounty_accepted
+              - action: message
+                text: "Quest started: Collect 5 wolf pelts from Thornwood Forest."
+                color: yellow
+          - text: "Maybe later."
+            response: "Suit yourself. Offer's always open."
+    onComplete:
+      - action: message
+        text: "Hunt wolves in the forest and collect their pelts."
+        color: yellow
+
+  - id: hunt_wolves
+    name: "Hunt the Wolves"
+    description: "Kill wolves in Thornwood Forest."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: forest-wolf
+        count: 5
+        description: "Kill 5 Thornwood wolves"
+    onComplete:
+      - action: message
+        text: "Five wolves down. Collect their pelts."
+        color: green
+      - action: setFlag
+        flag: wolves_hunted
+
+  - id: collect_pelts
+    name: "Collect the Pelts"
+    description: "Gather wolf pelts from your kills."
+    objectives:
+      - type: have_item
+        itemId: wolf-pelt
+        count: 5
+        description: "Collect 5 wolf pelts"
+    onComplete:
+      - action: message
+        text: "You have enough pelts. Return to Red Thorn."
+        color: green
+
+  - id: claim_reward
+    name: "Claim Your Bounty"
+    description: "Turn in the wolf pelts."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thornwood-innkeeper
+        description: "Turn in pelts to Red Thorn"
+    npcDialogues:
+      thornwood-innkeeper:
+        greeting: "Back from the hunt? Let's see what you've got."
+        options:
+          - text: "Five pelts, as promised."
+            requires:
+              items: [wolf-pelt]
+              minCount: 5
+            response: |
+              *inspects the pelts*
+              Quality work! These'll fetch a good price. Here's your
+              payment - and have a drink on the house. You've earned it.
+            actions:
+              - action: removeItem
+                itemId: wolf-pelt
+                count: 5
+              - action: completeQuest
+          - text: "Still hunting."
+            response: "Get back out there then. Wolves won't hunt themselves."
+    onComplete:
+      - action: message
+        text: "Bounty complete!"
+        color: green
+
+rewards:
+  experience: 300
+  currency:
+    gold: 15
+    silver: 0
+    copper: 0
+  message: "The wolf population is under control - for now."
+
+questGiver: thornwood-innkeeper
+turnInNpc: thornwood-innkeeper
+
+recommendedLevel:
+  min: 5
+  max: 8

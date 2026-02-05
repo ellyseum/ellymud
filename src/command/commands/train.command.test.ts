@@ -233,12 +233,11 @@ describe('TrainCommand', () => {
         );
         expect(mockWriteToClient).toHaveBeenCalledWith(client, expect.stringContaining('level 2'));
         expect(user.level).toBe(2);
+        // Note: Adventurer class has resourceType 'none', so mana is not updated on level up
         expect(mockUserManager.updateUserStats).toHaveBeenCalledWith(user.username, {
           level: 2,
           maxHealth: 105,
           health: 105,
-          maxMana: 53,
-          mana: 53,
           unspentAttributePoints: 10,
         });
       });

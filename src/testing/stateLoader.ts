@@ -2,6 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { UserManager } from '../user/userManager';
 import { RoomManager } from '../room/roomManager';
+import { NPC, NPCData } from '../combat/npc';
+import { ItemManager } from '../utils/itemManager';
+import { GameItem } from '../types';
 import { systemLogger } from '../utils/logger';
 
 const SNAPSHOTS_DIR = path.join(__dirname, '../../data/test-snapshots');
@@ -93,12 +96,19 @@ export class StateLoader {
 
   /**
    * Load a named snapshot, replacing current state.
-   * This loads user and room data from the snapshot directory.
+   * This loads user, room, item, and NPC data from the snapshot directory.
    *
    * @param name - Snapshot name (e.g., "fresh", "combat-ready")
    * @throws Error if snapshot doesn't exist
    */
-  async loadSnapshot(name: string): Promise<{ usersLoaded: number; roomsLoaded: number }> {
+  async loadSnapshot(
+    name: string
+  ): Promise<{
+    usersLoaded: number;
+    roomsLoaded: number;
+    itemsLoaded: number;
+    npcsLoaded: number;
+  }> {
     const snapshotPath = this.getSnapshotPath(name);
 
     if (!fs.existsSync(snapshotPath)) {
@@ -109,6 +119,45 @@ export class StateLoader {
 
     let usersLoaded = 0;
     let roomsLoaded = 0;
+    let itemsLoaded = 0;
+    let npcsLoaded = 0;
+
+    // Load items FIRST (before rooms, since rooms may reference items)
+    const itemsPath = path.join(snapshotPath, 'items.json');
+    if (fs.existsSync(itemsPath)) {
+      try {
+        const itemData = JSON.parse(fs.readFileSync(itemsPath, 'utf8')) as GameItem[];
+        if (Array.isArray(itemData)) {
+          const itemManager = ItemManager.getInstance();
+          await itemManager.ensureInitialized();
+          itemManager.loadPrevalidatedItems(itemData);
+          itemsLoaded = itemData.length;
+          systemLogger.info(`[StateLoader] Loaded ${itemsLoaded} items from snapshot`);
+        }
+      } catch (error) {
+        systemLogger.error(`[StateLoader] Error loading items from snapshot:`, error);
+      }
+    }
+
+    // Load NPCs BEFORE rooms (rooms will instantiate NPCs from this cache)
+    const npcsPath = path.join(snapshotPath, 'npcs.json');
+    if (fs.existsSync(npcsPath)) {
+      try {
+        const npcData = JSON.parse(fs.readFileSync(npcsPath, 'utf8')) as NPCData[];
+        if (Array.isArray(npcData)) {
+          // Clear existing cache and load snapshot data
+          NPC.clearNpcDataCache();
+          NPC.loadPrevalidatedNPCData(npcData);
+          npcsLoaded = npcData.length;
+          systemLogger.info(`[StateLoader] Loaded ${npcsLoaded} NPCs from snapshot`);
+        }
+      } catch (error) {
+        systemLogger.error(`[StateLoader] Error loading NPCs from snapshot:`, error);
+      }
+    } else {
+      // No NPCs in snapshot, just clear cache
+      NPC.clearNpcDataCache();
+    }
 
     // Load users if file exists in snapshot
     const usersPath = path.join(snapshotPath, 'users.json');
@@ -119,7 +168,7 @@ export class StateLoader {
       systemLogger.info(`[StateLoader] Loaded ${usersLoaded} users from snapshot`);
     }
 
-    // Load rooms if file exists in snapshot
+    // Load rooms (will use the NPC cache we just populated)
     const roomsPath = path.join(snapshotPath, 'rooms.json');
     if (fs.existsSync(roomsPath)) {
       await this.roomManager.loadFromPath(roomsPath);
@@ -130,7 +179,7 @@ export class StateLoader {
 
     systemLogger.info(`[StateLoader] Snapshot '${name}' loaded successfully`);
 
-    return { usersLoaded, roomsLoaded };
+    return { usersLoaded, roomsLoaded, itemsLoaded, npcsLoaded };
   }
 
   /**
@@ -199,7 +248,12 @@ export class StateLoader {
    * Reset to clean state by loading the 'fresh' snapshot.
    * The 'fresh' snapshot contains minimal data for a clean game state.
    */
-  async resetToClean(): Promise<{ usersLoaded: number; roomsLoaded: number }> {
+  async resetToClean(): Promise<{
+    usersLoaded: number;
+    roomsLoaded: number;
+    itemsLoaded: number;
+    npcsLoaded: number;
+  }> {
     return this.loadSnapshot('fresh');
   }
 
@@ -212,6 +266,8 @@ export class StateLoader {
     files: string[];
     userCount?: number;
     roomCount?: number;
+    itemCount?: number;
+    npcCount?: number;
   } {
     const snapshotPath = this.getSnapshotPath(name);
     const exists = fs.existsSync(snapshotPath);
@@ -227,6 +283,8 @@ export class StateLoader {
       files: string[];
       userCount?: number;
       roomCount?: number;
+      itemCount?: number;
+      npcCount?: number;
     } = {
       exists: true,
       path: snapshotPath,
@@ -252,6 +310,28 @@ export class StateLoader {
         info.roomCount = Array.isArray(rooms) ? rooms.length : 0;
       } catch {
         info.roomCount = 0;
+      }
+    }
+
+    // Count items if items.json exists
+    const itemsPath = path.join(snapshotPath, 'items.json');
+    if (fs.existsSync(itemsPath)) {
+      try {
+        const items = JSON.parse(fs.readFileSync(itemsPath, 'utf8'));
+        info.itemCount = Array.isArray(items) ? items.length : 0;
+      } catch {
+        info.itemCount = 0;
+      }
+    }
+
+    // Count NPCs if npcs.json exists
+    const npcsPath = path.join(snapshotPath, 'npcs.json');
+    if (fs.existsSync(npcsPath)) {
+      try {
+        const npcs = JSON.parse(fs.readFileSync(npcsPath, 'utf8'));
+        info.npcCount = Array.isArray(npcs) ? npcs.length : 0;
+      } catch {
+        info.npcCount = 0;
       }
     }
 

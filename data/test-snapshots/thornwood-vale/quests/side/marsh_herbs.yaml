@@ -1,0 +1,126 @@
+# Side Quest: Marsh Herbs
+# High-level gathering quest in the marsh
+
+id: marsh_herbs
+name: "Herbs of Darkhollow"
+description: "Gather rare medicinal herbs from the marsh."
+longDescription: |
+  Sister Mercy needs rare herbs that only grow in Darkhollow
+  Marsh. These herbs are essential for brewing potent healing
+  potions, but the marsh is too dangerous for the temple's
+  acolytes. Will you brave the dangers to help the temple?
+category: side
+repeatable: true
+repeatCooldown: 7200
+
+prerequisites:
+  level: 10
+  questFlags:
+    - recognized_by_thornwood
+
+steps:
+  - id: accept_task
+    name: "Accept the Task"
+    description: "Speak with Sister Mercy about the herbs."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: healer_trainer
+        description: "Speak with Sister Mercy"
+    npcDialogues:
+      healer_trainer:
+        greeting: "Welcome to the temple. How may I help you?"
+        options:
+          - text: "I hear you need herbs from the marsh."
+            response: |
+              Yes! The Moonpetal grows only in the darkest parts of
+              Darkhollow Marsh. Its healing properties are remarkable,
+              but the danger... we've lost two acolytes already trying
+              to gather it. If you could bring me some, the temple
+              would be grateful.
+            actions:
+              - action: setFlag
+                flag: herb_quest_started
+              - action: message
+                text: "Quest started: Find marsh herbs in Darkhollow Marsh."
+                color: yellow
+          - text: "Perhaps another time."
+            response: "May the Light guide you, child."
+    onComplete:
+      - action: message
+        text: "Search the marsh for the rare herbs."
+        color: yellow
+
+  - id: enter_marsh
+    name: "Enter the Marsh"
+    description: "Brave the dangers of Darkhollow Marsh."
+    objectives:
+      - type: enter_room
+        roomId: marsh-bog-island
+        description: "Search the marsh for herbs"
+    hint: "The herbs grow on the islands in the marsh."
+    onComplete:
+      - action: message
+        text: "You can see herbs growing here! Gather them carefully."
+        color: yellow
+
+  - id: gather_herbs
+    name: "Gather the Herbs"
+    description: "Collect marsh herbs."
+    objectives:
+      - type: have_item
+        itemId: marsh-herb
+        count: 3
+        description: "Collect 3 marsh herbs"
+    onComplete:
+      - action: message
+        text: "You have enough herbs. Return to Sister Mercy."
+        color: green
+
+  - id: return_herbs
+    name: "Deliver the Herbs"
+    description: "Bring the herbs to Sister Mercy."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: healer_trainer
+        description: "Deliver herbs to Sister Mercy"
+    npcDialogues:
+      healer_trainer:
+        greeting: "You've returned! Were you successful?"
+        options:
+          - text: "I have the herbs you needed."
+            requires:
+              items: [marsh-herb]
+              minCount: 3
+            response: |
+              Praise the Light! These are perfect specimens. The
+              potions we can make from these will save many lives.
+              Please, accept this gift from the temple as thanks.
+            actions:
+              - action: removeItem
+                itemId: marsh-herb
+                count: 3
+              - action: completeQuest
+          - text: "Still searching."
+            response: "The marsh is treacherous. Be careful, and may the Light protect you."
+    onComplete:
+      - action: message
+        text: "The temple thanks you for your service."
+        color: green
+
+rewards:
+  experience: 400
+  currency:
+    gold: 20
+    silver: 0
+    copper: 0
+  items:
+    - itemId: greater-healing-potion
+      count: 3
+  message: "The temple is grateful for your service."
+
+questGiver: healer_trainer
+turnInNpc: healer_trainer
+
+recommendedLevel:
+  min: 10
+  max: 15

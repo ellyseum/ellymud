@@ -1,0 +1,116 @@
+# Side Quest: Undead Menace
+# Marsh combat quest
+
+id: undead_menace
+name: "Undead Menace"
+description: "The undead in Darkhollow Marsh grow more aggressive."
+longDescription: |
+  The undead wandering Darkhollow Marsh have been seen
+  venturing closer to the roads. Sister Mercy fears they
+  may soon threaten travelers. Someone must thin their
+  numbers before they become a true threat.
+category: side
+repeatable: true
+repeatCooldown: 3600
+
+prerequisites:
+  level: 10
+  questFlags:
+    - recognized_by_thornwood
+
+steps:
+  - id: accept_mission
+    name: "Accept the Mission"
+    description: "Speak with Sister Mercy about the undead."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: healer_trainer
+        description: "Learn about the undead threat"
+    npcDialogues:
+      healer_trainer:
+        greeting: "Child, I sense darkness growing in the marsh. Will you help?"
+        options:
+          - text: "What needs to be done?"
+            response: |
+              The marsh undead have grown restless. Their numbers
+              increase daily, and they wander further from the
+              swamp. I fear they'll soon threaten the roads.
+              Go to the marsh and destroy as many as you can.
+              The Light will guide your sword.
+            actions:
+              - action: setFlag
+                flag: undead_hunt_started
+              - action: message
+                text: "Quest started: Destroy marsh undead."
+                color: yellow
+          - text: "Perhaps later."
+            response: "The darkness will not wait, but I understand."
+    onComplete:
+      - action: message
+        text: "Enter the marsh and destroy the undead."
+        color: yellow
+
+  - id: kill_undead
+    name: "Destroy the Undead"
+    description: "Kill marsh zombies and drowned knights."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: marsh-zombie
+        count: 6
+        description: "Destroy 6 marsh zombies"
+      - type: kill_mob
+        npcTemplateId: drowned-knight
+        count: 2
+        description: "Destroy 2 drowned knights"
+    requireAllObjectives: true
+    onComplete:
+      - action: message
+        text: "The undead are thinned. Return to Sister Mercy."
+        color: green
+      - action: setFlag
+        flag: undead_destroyed
+
+  - id: return_to_temple
+    name: "Report Your Success"
+    description: "Return to Sister Mercy."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: healer_trainer
+        description: "Report to Sister Mercy"
+    npcDialogues:
+      healer_trainer:
+        greeting: "You've returned from the marsh. How fares your mission?"
+        options:
+          - text: "The undead have been destroyed."
+            requires:
+              flags: [undead_destroyed]
+            response: |
+              The Light shines brighter today because of you.
+              Those poor souls can rest easier now. Take this
+              blessing for your service to the temple.
+            actions:
+              - action: completeQuest
+          - text: "Still working on it."
+            response: "The Light protects you. Return when your mission is complete."
+    onComplete:
+      - action: message
+        text: "Mission complete!"
+        color: green
+
+rewards:
+  experience: 450
+  currency:
+    gold: 20
+    silver: 0
+    copper: 0
+  items:
+    - itemId: greater-healing-potion
+      count: 2
+  message: "The undead threat is contained - for now."
+
+questGiver: healer_trainer
+turnInNpc: healer_trainer
+
+recommendedLevel:
+  min: 10
+  max: 15

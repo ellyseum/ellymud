@@ -240,10 +240,15 @@ export const npcSchema = {
       name: { type: 'string' },
       description: { type: 'string' },
       dialogue: {
-        type: 'object',
-        additionalProperties: {
-          type: 'string',
-        },
+        oneOf: [
+          { type: 'string' },
+          {
+            type: 'object',
+            additionalProperties: {
+              type: 'string',
+            },
+          },
+        ],
       },
       inventory: {
         type: 'array',

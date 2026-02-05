@@ -18,6 +18,9 @@ import { ItemManager } from '../utils/itemManager';
 import { clearRestingMeditating } from '../utils/stateInterruption';
 import { getAbilityRepository } from '../persistence/RepositoryFactory';
 import { IAsyncAbilityRepository } from '../persistence/interfaces';
+import { ClassAbilityService } from '../class/classAbilityService';
+import { ComboManager } from '../combat/comboManager';
+import { ResourceManager } from '../resource/resourceManager';
 
 const abilityLogger = createMechanicsLogger('AbilityManager');
 
@@ -130,8 +133,38 @@ export class AbilityManager extends EventEmitter {
       return { ok: false, reason: 'User not found.' };
     }
 
-    if (user.mana < ability.mpCost) {
-      return { ok: false, reason: `Not enough mana. Need ${ability.mpCost}, have ${user.mana}.` };
+    // Check class restrictions
+    const classAbilityService = ClassAbilityService.getInstance();
+    const classCheck = classAbilityService.canClassUseAbility(user, ability);
+    if (!classCheck.canUse) {
+      return { ok: false, reason: classCheck.reason ?? 'Your class cannot use this ability.' };
+    }
+
+    // Check resource cost (multi-resource support)
+    if (ability.resourceCost) {
+      const resourceManager = ResourceManager.getInstance();
+      const currentResource = resourceManager.getCurrentResource(user);
+      if (currentResource < ability.resourceCost.amount) {
+        const resourceType = ability.resourceCost.type;
+        return {
+          ok: false,
+          reason: `Not enough ${resourceType}. Need ${ability.resourceCost.amount}, have ${currentResource}.`,
+        };
+      }
+    } else if (ability.mpCost > 0) {
+      // Legacy mana cost check
+      const userMana = user.mana ?? 0;
+      if (userMana < ability.mpCost) {
+        return { ok: false, reason: `Not enough mana. Need ${ability.mpCost}, have ${userMana}.` };
+      }
+    }
+
+    // Check combo points for finisher abilities
+    if (ability.comboPointsConsumed) {
+      const comboManager = ComboManager.getInstance();
+      if (!comboManager.hasComboPoints(user)) {
+        return { ok: false, reason: 'You have no combo points.' };
+      }
     }
 
     const cooldownRemaining = this.getCooldownRemaining(username, abilityId);
@@ -227,16 +260,17 @@ export class AbilityManager extends EventEmitter {
 
   public useMana(username: string, amount: number): boolean {
     const user = this.userManager.getUser(username);
-    if (!user || user.mana < amount) return false;
+    const userMana = user?.mana ?? 0;
+    if (!user || userMana < amount) return false;
 
     return this.userManager.updateUserStats(username, {
-      mana: user.mana - amount,
+      mana: userMana - amount,
     });
   }
 
   public hasMana(username: string, amount: number): boolean {
     const user = this.userManager.getUser(username);
-    return user !== undefined && user.mana >= amount;
+    return user !== undefined && (user.mana ?? 0) >= amount;
   }
 
   public onGameTick(): void {
@@ -443,7 +477,7 @@ export class AbilityManager extends EventEmitter {
     }
 
     const user = this.userManager.getUser(username);
-    if (!user || user.mana < ability.mpCost) {
+    if (!user || (user.mana ?? 0) < ability.mpCost) {
       writeFormattedMessageToClient(
         client,
         colorize(`Not enough mana to use ${template.name}.\r\n`, 'red')
@@ -526,21 +560,134 @@ export class AbilityManager extends EventEmitter {
       clearRestingMeditating(client, 'aggression');
     }
 
-    if (!this.useMana(username, ability.mpCost)) {
-      writeFormattedMessageToClient(client, colorize('Failed to use mana.\r\n', 'red'));
+    // Handle combo point consumption for finisher abilities
+    const comboManager = ComboManager.getInstance();
+    let consumedComboPoints = 0;
+
+    if (ability.comboPointsConsumed && resolvedTarget.type === 'npc') {
+      const consumeResult = comboManager.consumeComboPoints(client.user, resolvedTarget.id);
+      if (!consumeResult.success) {
+        writeFormattedMessageToClient(
+          client,
+          colorize(`Cannot use ${ability.name}: ${consumeResult.message}\r\n`, 'red')
+        );
+        return false;
+      }
+      consumedComboPoints = consumeResult.previousPoints;
+    }
+
+    // Spend resource (multi-resource or legacy mana)
+    if (!this.spendAbilityResource(client.user, ability)) {
+      writeFormattedMessageToClient(client, colorize('Failed to spend resource.\r\n', 'red'));
       return false;
     }
 
     this.startCooldown(username, abilityId);
-    this.applyAbilityEffects(client, ability, resolvedTarget);
 
-    writeFormattedMessageToClient(client, colorize(`You cast ${ability.name}!\r\n`, 'cyan'));
+    // Apply effects with combo point scaling if applicable
+    if (ability.comboScaling && consumedComboPoints > 0) {
+      this.applyComboScaledEffects(client, ability, resolvedTarget, consumedComboPoints);
+    } else {
+      this.applyAbilityEffects(client, ability, resolvedTarget);
+    }
+
+    // Generate combo points if ability generates them
+    if (
+      ability.comboPointsGenerated &&
+      ability.comboPointsGenerated > 0 &&
+      resolvedTarget.type === 'npc'
+    ) {
+      const result = comboManager.addComboPoints(
+        client.user,
+        resolvedTarget.id,
+        ability.comboPointsGenerated
+      );
+      writeFormattedMessageToClient(
+        client,
+        colorize(`You cast ${ability.name}! `, 'cyan') +
+          colorize(`(${result.newPoints} combo points)\r\n`, 'yellow')
+      );
+    } else if (ability.comboPointsConsumed && consumedComboPoints > 0) {
+      writeFormattedMessageToClient(
+        client,
+        colorize(`You use ${ability.name} with ${consumedComboPoints} combo points!\r\n`, 'cyan')
+      );
+    } else {
+      writeFormattedMessageToClient(client, colorize(`You cast ${ability.name}!\r\n`, 'cyan'));
+    }
 
     abilityLogger.info(
-      `${username} cast ${ability.name} on ${resolvedTarget.id} (${resolvedTarget.type})`
+      `${username} cast ${ability.name} on ${resolvedTarget.id} (${resolvedTarget.type})` +
+        (consumedComboPoints > 0 ? ` with ${consumedComboPoints} combo points` : '')
     );
 
     return true;
+  }
+
+  /**
+   * Spend the appropriate resource for an ability
+   */
+  private spendAbilityResource(user: import('../types').User, ability: AbilityTemplate): boolean {
+    // Use multi-resource cost if defined
+    if (ability.resourceCost) {
+      const resourceManager = ResourceManager.getInstance();
+      return resourceManager.spendResource(user, ability.resourceCost.amount, ability.id);
+    }
+
+    // Fall back to legacy mana cost
+    if (ability.mpCost > 0) {
+      return this.useMana(user.username, ability.mpCost);
+    }
+
+    return true; // No cost
+  }
+
+  /**
+   * Apply ability effects with combo point scaling for finisher abilities
+   */
+  private applyComboScaledEffects(
+    client: ConnectedClient,
+    ability: AbilityTemplate,
+    target: { id: string; type: 'player' | 'npc' },
+    comboPoints: number
+  ): void {
+    const isPlayer = target.type === 'player';
+
+    for (const effect of ability.effects) {
+      // Scale damage based on combo points
+      let scaledPayload = { ...effect.payload };
+
+      if (ability.comboScaling) {
+        const scaledDamage =
+          ability.comboScaling.baseDamage + ability.comboScaling.damagePerPoint * comboPoints;
+
+        if (effect.payload.damageAmount !== undefined) {
+          scaledPayload = { ...scaledPayload, damageAmount: scaledDamage };
+        }
+        if (effect.payload.damagePerTick !== undefined) {
+          // Scale DoT proportionally
+          const scaleFactor = scaledDamage / (ability.comboScaling.baseDamage || 1);
+          scaledPayload = {
+            ...scaledPayload,
+            damagePerTick: Math.round((effect.payload.damagePerTick ?? 0) * scaleFactor),
+          };
+        }
+      }
+
+      this.effectManager.addEffect(target.id, isPlayer, {
+        type: effect.effectType as import('../types/effects').EffectType,
+        name: effect.name ?? ability.name,
+        description: effect.description ?? ability.description,
+        durationTicks: effect.durationTicks,
+        tickInterval: effect.tickInterval,
+        payload: scaledPayload,
+        targetId: target.id,
+        isPlayerEffect: isPlayer,
+        sourceId: client.user!.username,
+        stackingBehavior: effect.stackingBehavior,
+        isTimeBased: false,
+      });
+    }
   }
 
   private resolveTarget(

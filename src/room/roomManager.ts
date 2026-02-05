@@ -230,8 +230,13 @@ export class RoomManager implements IRoomManager {
       }
 
       // Instantiate NPCs from templates after room is created
-      if (Array.isArray(roomData.npcs)) {
-        this.npcInteractionService.instantiateNpcsFromTemplates(room, roomData.npcs, npcData);
+      // First try roomData.npcs (saved NPC instances), then fall back to spawnNpcs (default spawns)
+      const npcTemplates =
+        Array.isArray(roomData.npcs) && roomData.npcs.length > 0
+          ? roomData.npcs
+          : roomData.spawnNpcs;
+      if (Array.isArray(npcTemplates) && npcTemplates.length > 0) {
+        this.npcInteractionService.instantiateNpcsFromTemplates(room, npcTemplates, npcData);
       }
     });
 

@@ -1,0 +1,126 @@
+# Side Quest: Lost Hunter
+# Investigation quest in the forest
+
+id: lost_hunter
+name: "The Lost Hunter"
+description: "A local hunter has gone missing in the forest."
+longDescription: |
+  Jed the hunter hasn't returned from his usual hunting
+  route through Thornwood Forest. His wife fears the
+  worst and is asking adventurers to search for him -
+  or at least find out what happened.
+category: side
+repeatable: false
+
+prerequisites:
+  level: 5
+  questFlags:
+    - recognized_by_thornwood
+
+steps:
+  - id: accept_quest
+    name: "Learn About Jed"
+    description: "Speak with Red Thorn about the missing hunter."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thornwood-innkeeper
+        description: "Ask about the missing hunter"
+    npcDialogues:
+      thornwood-innkeeper:
+        greeting: "Something troubling? You've got that look about you."
+        options:
+          - text: "I heard a hunter went missing?"
+            response: |
+              Jed. Good man, one of my regulars. Been hunting
+              these woods for twenty years. His wife came in
+              yesterday, worried sick. He always camps at the
+              same spot near the clearing. Maybe start there?
+            actions:
+              - action: setFlag
+                flag: searching_for_jed
+              - action: message
+                text: "Quest started: Find signs of Jed in the forest."
+                color: yellow
+          - text: "Nevermind."
+            response: "Sure. Come back if you need anything."
+    onComplete:
+      - action: message
+        text: "Search for Jed's camp in the forest."
+        color: yellow
+
+  - id: find_camp
+    name: "Find Jed's Camp"
+    description: "Locate Jed's usual camping spot."
+    objectives:
+      - type: enter_room
+        roomId: forest-hunters-camp
+        description: "Find the hunter's camp"
+    onComplete:
+      - action: message
+        text: "This is Jed's camp - but something terrible happened here."
+        color: yellow
+
+  - id: investigate
+    name: "Investigate the Camp"
+    description: "Search the camp for clues."
+    objectives:
+      - type: have_item
+        itemId: hunters-journal
+        count: 1
+        description: "Find Jed's journal"
+    hint: "Search the camp thoroughly for any clues."
+    onComplete:
+      - action: message
+        text: "The journal reveals Jed spotted bandits before being attacked."
+        color: yellow
+      - action: setFlag
+        flag: found_jeds_journal
+
+  - id: report_findings
+    name: "Report to Red Thorn"
+    description: "Bring the journal back to town."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thornwood-innkeeper
+        description: "Tell Red Thorn what you found"
+    npcDialogues:
+      thornwood-innkeeper:
+        greeting: "Any news about Jed?"
+        options:
+          - text: "I found his camp. The bandits got him."
+            requires:
+              flags: [found_jeds_journal]
+              items: [hunters-journal]
+            response: |
+              *takes the journal, reads it silently*
+              Damn those bandits. Jed was a good man. At least
+              now his wife will know what happened. I'll make
+              sure she gets this. Here - I know you didn't do
+              this for coin, but take it anyway.
+            actions:
+              - action: removeItem
+                itemId: hunters-journal
+              - action: completeQuest
+          - text: "Still looking."
+            response: "Please hurry. His wife needs answers."
+    onComplete:
+      - action: message
+        text: "A sad ending, but at least his family knows now."
+        color: yellow
+
+rewards:
+  experience: 250
+  currency:
+    gold: 10
+    silver: 0
+    copper: 0
+  flags:
+    - discovered_jeds_fate
+  message: "You've brought closure to a grieving family."
+
+questGiver: thornwood-innkeeper
+turnInNpc: thornwood-innkeeper
+
+recommendedLevel:
+  min: 5
+  max: 8

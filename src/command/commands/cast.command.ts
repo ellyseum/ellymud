@@ -6,6 +6,8 @@ import { AbilityManager } from '../../abilities/abilityManager';
 import { AbilityType } from '../../abilities/types';
 import { getPlayerLogger } from '../../utils/logger';
 import { CombatSystem } from '../../combat/combatSystem';
+import { ClassAbilityService } from '../../class/classAbilityService';
+import { getResourceDisplayAbbr } from '../../utils/statCalculator';
 
 export class CastCommand implements Command {
   name = 'cast';
@@ -46,10 +48,22 @@ export class CastCommand implements Command {
       return;
     }
 
-    if (ability.type !== AbilityType.STANDARD) {
+    // Check if ability type is castable
+    if (ability.type !== AbilityType.STANDARD && ability.type !== AbilityType.FINISHER) {
       writeFormattedMessageToClient(
         client,
         colorize(`${ability.name} cannot be cast directly.\r\n`, 'yellow')
+      );
+      return;
+    }
+
+    // Check class restrictions before any other checks
+    const classAbilityService = ClassAbilityService.getInstance();
+    const classCheck = classAbilityService.canClassUseAbility(client.user, ability);
+    if (!classCheck.canUse) {
+      writeFormattedMessageToClient(
+        client,
+        colorize(`Cannot cast ${ability.name}: ${classCheck.reason}\r\n`, 'red')
       );
       return;
     }
@@ -64,20 +78,49 @@ export class CastCommand implements Command {
   }
 
   private showAvailableAbilities(client: ConnectedClient): void {
-    const abilities = this.abilityManager.getAbilitiesByType(AbilityType.STANDARD);
-    if (abilities.length === 0) {
-      writeFormattedMessageToClient(client, colorize('No abilities available.\r\n', 'gray'));
+    if (!client.user) return;
+
+    const classAbilityService = ClassAbilityService.getInstance();
+    const availableAbilities = classAbilityService.getAvailableAbilities(
+      client.user,
+      this.abilityManager
+    );
+
+    // Filter to standard and finisher abilities only
+    const castableAbilities = availableAbilities.filter(
+      (a) => a.type === AbilityType.STANDARD || a.type === AbilityType.FINISHER
+    );
+
+    if (castableAbilities.length === 0) {
+      writeFormattedMessageToClient(
+        client,
+        colorize('You have no abilities to cast. Train to a class to learn some!\r\n', 'gray')
+      );
       return;
     }
 
-    writeFormattedMessageToClient(client, colorize('\r\nAvailable abilities:\r\n', 'white'));
-    for (const ability of abilities) {
-      writeFormattedMessageToClient(
-        client,
+    const lines: string[] = [];
+    lines.push(colorize('\r\nAvailable abilities:', 'white'));
+
+    for (const ability of castableAbilities) {
+      // Build cost string
+      let costStr: string;
+      if (ability.resourceCost) {
+        const abbr = getResourceDisplayAbbr(ability.resourceCost.type);
+        costStr = `${ability.resourceCost.amount} ${abbr}`;
+      } else if (ability.mpCost > 0) {
+        costStr = `${ability.mpCost} MP`;
+      } else {
+        costStr = 'Free';
+      }
+
+      lines.push(
         colorize(`  ${ability.id}`, 'cyan') +
           colorize(` - ${ability.description} `, 'gray') +
-          colorize(`(${ability.mpCost} MP)\r\n`, 'blue')
+          colorize(`(${costStr})`, 'blue')
       );
     }
+
+    writeFormattedMessageToClient(client, lines.join('\r\n') + '\r\n');
   }
 }

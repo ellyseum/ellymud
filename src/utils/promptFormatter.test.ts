@@ -16,6 +16,24 @@ jest.mock('../command/commands/sudo.command', () => ({
   },
 }));
 
+// Mock ClassManager to return appropriate resourceType for each class
+jest.mock('../class/classManager', () => ({
+  ClassManager: {
+    getInstance: jest.fn(() => ({
+      getClass: jest.fn((classId: string) => {
+        const classMap: Record<string, { resourceType: string }> = {
+          adventurer: { resourceType: 'none' },
+          magic_user: { resourceType: 'mana' },
+          healer: { resourceType: 'mana' },
+          fighter: { resourceType: 'none' },
+          thief: { resourceType: 'energy' },
+        };
+        return classMap[classId] || { resourceType: 'none' };
+      }),
+    })),
+  },
+}));
+
 // Import mocked modules for assertion
 import { colorize } from './colors';
 import { writeToClient } from './socketWriter';
@@ -58,9 +76,9 @@ describe('promptFormatter', () => {
         expect(colorize).toHaveBeenCalledWith('75/100', 'green');
       });
 
-      it('should format MP numbers with blue color', () => {
+      it('should format MP numbers with blue color for mana-using class', () => {
         const client = createMockClient({
-          user: createMockUser({ mana: 30, maxMana: 50 }),
+          user: createMockUser({ mana: 30, maxMana: 50, classId: 'magic_user' }),
         });
 
         getPromptText(client);
@@ -68,9 +86,9 @@ describe('promptFormatter', () => {
         expect(colorize).toHaveBeenCalledWith('30/50', 'blue');
       });
 
-      it('should include white-colored brackets and labels', () => {
+      it('should include white-colored brackets and labels with mana for mana-using class', () => {
         const client = createMockClient({
-          user: createMockUser(),
+          user: createMockUser({ classId: 'magic_user' }),
         });
 
         getPromptText(client);
@@ -80,45 +98,70 @@ describe('promptFormatter', () => {
         expect(colorize).toHaveBeenCalledWith(']', 'white');
         expect(colorize).toHaveBeenCalledWith(': ', 'white');
       });
+
+      it('should not include MP label for adventurer class', () => {
+        const client = createMockClient({
+          user: createMockUser({ classId: 'adventurer' }),
+        });
+
+        getPromptText(client);
+
+        expect(colorize).toHaveBeenCalledWith('[HP=', 'white');
+        expect(colorize).not.toHaveBeenCalledWith(' MP=', 'white');
+        expect(colorize).toHaveBeenCalledWith(']', 'white');
+        expect(colorize).toHaveBeenCalledWith(': ', 'white');
+      });
     });
 
     describe('mana stats handling', () => {
-      it('should display --/-- when mana is undefined', () => {
-        const client = createMockClient({
-          user: createMockUser({ mana: undefined as unknown as number, maxMana: 50 }),
-        });
-
-        getPromptText(client);
-
-        expect(colorize).toHaveBeenCalledWith('--/--', 'blue');
-      });
-
-      it('should display --/-- when maxMana is undefined', () => {
-        const client = createMockClient({
-          user: createMockUser({ mana: 50, maxMana: undefined as unknown as number }),
-        });
-
-        getPromptText(client);
-
-        expect(colorize).toHaveBeenCalledWith('--/--', 'blue');
-      });
-
-      it('should display --/-- when both mana and maxMana are undefined', () => {
+      it('should display 0/0 when mana is undefined for mana-using class', () => {
         const client = createMockClient({
           user: createMockUser({
-            mana: undefined as unknown as number,
-            maxMana: undefined as unknown as number,
+            mana: undefined,
+            maxMana: 50,
+            classId: 'magic_user', // resourceType: mana
           }),
         });
 
         getPromptText(client);
 
-        expect(colorize).toHaveBeenCalledWith('--/--', 'blue');
+        // When mana is undefined but class uses mana, display 0
+        expect(colorize).toHaveBeenCalledWith('0/50', 'blue');
       });
 
-      it('should display actual mana values when both are defined', () => {
+      it('should display 0/0 when maxMana is undefined for mana-using class', () => {
         const client = createMockClient({
-          user: createMockUser({ mana: 25, maxMana: 100 }),
+          user: createMockUser({
+            mana: 50,
+            maxMana: undefined,
+            classId: 'magic_user', // resourceType: mana
+          }),
+        });
+
+        getPromptText(client);
+
+        // When maxMana is undefined but class uses mana, display 0
+        expect(colorize).toHaveBeenCalledWith('50/0', 'blue');
+      });
+
+      it('should not display mana when class resourceType is none', () => {
+        const client = createMockClient({
+          user: createMockUser({
+            mana: 100,
+            maxMana: 100,
+            classId: 'adventurer', // resourceType: none
+          }),
+        });
+
+        getPromptText(client);
+
+        // For resourceType 'none', no mana section should be displayed
+        expect(colorize).not.toHaveBeenCalledWith(expect.stringContaining('MP='), 'white');
+      });
+
+      it('should display actual mana values when both are defined and class uses mana', () => {
+        const client = createMockClient({
+          user: createMockUser({ mana: 25, maxMana: 100, classId: 'magic_user' }),
         });
 
         getPromptText(client);
@@ -126,14 +169,25 @@ describe('promptFormatter', () => {
         expect(colorize).toHaveBeenCalledWith('25/100', 'blue');
       });
 
-      it('should display mana as 0 when mana is 0 (falsy but valid)', () => {
+      it('should display mana as 0 when mana is 0 (falsy but valid) and class uses mana', () => {
         const client = createMockClient({
-          user: createMockUser({ mana: 0, maxMana: 50 }),
+          user: createMockUser({ mana: 0, maxMana: 50, classId: 'magic_user' }),
         });
 
         getPromptText(client);
 
         expect(colorize).toHaveBeenCalledWith('0/50', 'blue');
+      });
+
+      it('should not display mana for Adventurer class (resourceType none)', () => {
+        const client = createMockClient({
+          user: createMockUser({ mana: 50, maxMana: 100, classId: 'adventurer' }),
+        });
+
+        getPromptText(client);
+
+        // Adventurer has resourceType 'none', so mana should not be displayed
+        expect(colorize).not.toHaveBeenCalledWith('50/100', 'blue');
       });
     });
 

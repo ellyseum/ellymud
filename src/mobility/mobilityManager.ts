@@ -78,6 +78,11 @@ export class MobilityManager {
 
     if (!template) return;
 
+    // Check if NPC is stationary (never moves - vendors, trainers, etc.)
+    const isStationary =
+      'stationary' in template && (template as { stationary?: boolean }).stationary === true;
+    if (isStationary) return;
+
     // Check if NPC can move (using template data or defaults)
     const canMove = 'canMove' in template && (template as { canMove?: boolean }).canMove === true;
     if (!canMove) return;

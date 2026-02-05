@@ -1,0 +1,10 @@
+{
+  "admins": [
+    {
+      "username": "admin",
+      "level": "super",
+      "addedBy": "system",
+      "addedOn": "2026-02-05T15:31:15.519Z"
+    }
+  ]
+}

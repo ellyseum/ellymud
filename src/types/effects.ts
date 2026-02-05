@@ -14,7 +14,26 @@ export enum EffectType {
   MOVEMENT_BLOCK = 'movement_block',
   INSTANT_DAMAGE = 'instant_damage',
   INSTANT_HEAL = 'instant_heal',
-  // Add more effect types as needed
+
+  // === Class Ability System Effects ===
+  /** Haste - Increases combat energy/attack speed */
+  HASTE = 'haste',
+  /** Damage Reduction - Flat damage reduction per hit */
+  DAMAGE_REDUCTION = 'damage_reduction',
+  /** Absorb Shield - Absorbs X damage before expiring */
+  ABSORB = 'absorb',
+  /** Taunt - Forces enemies to attack the taunter */
+  TAUNT = 'taunt',
+  /** Stealth - Hidden from enemies */
+  STEALTH = 'stealth',
+  /** Slow - Reduces combat energy/attack speed */
+  SLOW = 'slow',
+  /** Fear - Forces target to flee */
+  FEAR = 'fear',
+  /** Silence - Prevents spellcasting */
+  SILENCE = 'silence',
+  /** Bleed - Physical damage over time */
+  BLEED = 'bleed',
 }
 
 /**
@@ -93,5 +112,16 @@ export const effectStackingRules: { [key in EffectType]?: StackingBehavior } = {
   [EffectType.MOVEMENT_BLOCK]: StackingBehavior.REFRESH,
   [EffectType.INSTANT_DAMAGE]: StackingBehavior.STACK_INTENSITY, // Each cast applies damage
   [EffectType.INSTANT_HEAL]: StackingBehavior.STACK_INTENSITY, // Each cast applies healing
+
+  // === Class Ability System Effects ===
+  [EffectType.HASTE]: StackingBehavior.STRONGEST_WINS, // Only strongest haste applies
+  [EffectType.DAMAGE_REDUCTION]: StackingBehavior.STRONGEST_WINS, // Only strongest DR applies
+  [EffectType.ABSORB]: StackingBehavior.STACK_INTENSITY, // Multiple shields can stack
+  [EffectType.TAUNT]: StackingBehavior.REPLACE, // New taunt replaces old
+  [EffectType.STEALTH]: StackingBehavior.IGNORE, // Can't stack stealth
+  [EffectType.SLOW]: StackingBehavior.STRONGEST_WINS, // Only strongest slow applies
+  [EffectType.FEAR]: StackingBehavior.REFRESH, // Refresh duration
+  [EffectType.SILENCE]: StackingBehavior.REFRESH, // Refresh duration
+  [EffectType.BLEED]: StackingBehavior.STACK_INTENSITY, // Bleeds stack
   // Default: REFRESH if not specified in this map
 };

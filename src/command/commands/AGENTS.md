@@ -22,7 +22,7 @@ This directory contains 40+ command implementations. Each command is a single Ty
 | File                    | Purpose                              |
 | ----------------------- | ------------------------------------ |
 | `attack.command.ts`     | Initiate combat with NPC             |
-| `break.command.ts`      | Attempt to flee combat               |
+| `break.command.ts`      | Stop auto-attacking (move to flee)   |
 | `heal.command.ts`       | Restore health (testing)             |
 | `damage.command.ts`     | Take damage (testing)                |
 | `cast.command.ts`       | Cast spells and abilities at targets |

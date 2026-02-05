@@ -311,10 +311,18 @@ describe('DebugCommand', () => {
       });
 
       mockIsAuthorizedUser.mockReturnValue(true);
+      const npcsMap = new Map([['goblin-1', mockNpc]]);
       mockGetRoom.mockReturnValue({
         id: 'test-room',
         name: 'Test Room',
-        npcs: new Map([['goblin-1', mockNpc]]),
+        npcs: npcsMap,
+        getNPC: (id: string) => npcsMap.get(id),
+        findNPCsByTemplateId: (templateId: string) =>
+          Array.from(npcsMap.values()).filter(
+            (npc) =>
+              npc.templateId === templateId ||
+              npc.name.toLowerCase().includes(templateId.toLowerCase())
+          ),
       });
 
       debugCommand.execute(client, 'npc goblin');

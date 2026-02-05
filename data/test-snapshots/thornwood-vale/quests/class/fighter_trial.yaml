@@ -1,0 +1,122 @@
+# Class Trial: Fighter's Challenge
+# Unlocks Fighter class advancement
+
+id: fighter_trial
+name: "Fighter's Challenge"
+description: "Prove your martial prowess to advance as a Fighter."
+longDescription: |
+  Sir Bartholomew at the Training Hall believes you have
+  potential. To advance as a Fighter, you must prove your
+  strength and courage by defeating a powerful foe in combat.
+category: class_trial
+repeatable: false
+
+prerequisites:
+  level: 5
+  classId: fighter
+
+steps:
+  - id: speak_trainer
+    name: "Seek the Trial"
+    description: "Speak with Sir Bartholomew about advancing."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: fighter_trainer
+        description: "Request the Fighter's Trial"
+    npcDialogues:
+      fighter_trainer:
+        greeting: "You've come far, warrior. Ready to prove yourself?"
+        options:
+          - text: "I wish to advance as a Fighter."
+            response: |
+              Very well. Words mean nothing in battle - only deeds.
+              Deep in the goblin caves lurks a cave troll. The goblins
+              fear it. The townsfolk fear it. Kill it, and bring me
+              proof. Then I will know you are worthy.
+            actions:
+              - action: setQuestFlag
+                flag: fighter_trial_started
+              - action: message
+                text: "Quest started: Kill the cave troll in the Goblin Caves."
+                color: yellow
+          - text: "I need more training first."
+            response: "A wise warrior knows their limits. Return when you are ready."
+    onComplete:
+      - action: message
+        text: "The cave troll awaits in the goblin caves."
+        color: yellow
+
+  - id: kill_troll
+    name: "Defeat the Troll"
+    description: "Slay the cave troll."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: cave-troll
+        count: 1
+        description: "Kill the cave troll"
+    onComplete:
+      - action: message
+        text: "The troll is slain! Collect proof of your victory."
+        color: green
+      - action: setFlag
+        flag: troll_killed
+
+  - id: collect_proof
+    name: "Collect Your Trophy"
+    description: "Take the troll's hide as proof."
+    objectives:
+      - type: have_item
+        itemId: troll-hide
+        count: 1
+        description: "Obtain troll hide"
+    onComplete:
+      - action: message
+        text: "Return to Sir Bartholomew with the hide."
+        color: green
+
+  - id: complete_trial
+    name: "Claim Your Title"
+    description: "Return to Sir Bartholomew."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: fighter_trainer
+        description: "Complete the trial"
+    npcDialogues:
+      fighter_trainer:
+        greeting: "You've returned. What of the troll?"
+        options:
+          - text: "The beast is dead. Here is its hide."
+            requires:
+              flags: [troll_killed]
+              items: [troll-hide]
+            response: |
+              *examines the hide*
+              Impressive. Few warriors can claim such a trophy.
+              You have proven your worth on the field of battle.
+              From this day forward, you are no mere soldier -
+              you are a true Fighter. Your legend begins now.
+            actions:
+              - action: removeItem
+                itemId: troll-hide
+              - action: completeQuest
+          - text: "Still hunting."
+            response: "The trial awaits. Do not keep it waiting long."
+    onComplete:
+      - action: message
+        text: "You are now a true Fighter!"
+        color: green
+
+rewards:
+  experience: 500
+  questFlags:
+    - fighter_trial_complete
+  message: |
+    Congratulations! You have completed the Fighter's Trial.
+    New combat techniques are now available to you.
+
+questGiver: fighter_trainer
+turnInNpc: fighter_trainer
+
+recommendedLevel:
+  min: 5
+  max: 8

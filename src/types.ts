@@ -5,6 +5,89 @@ import { IConnection } from './connection/interfaces/connection.interface';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type StateData = Record<string, any>;
 
+// ============================================================================
+// Resource System Types
+// ============================================================================
+
+/**
+ * Resource types for different character classes.
+ * Tier 0 Adventurer has NONE, other classes use specific resource types.
+ */
+export enum ResourceType {
+  NONE = 'none', // Tier 0 Adventurer - no resource
+  MANA = 'mana', // Mage, Healer - traditional caster pool
+  RAGE = 'rage', // Berserker - builds on damage, decays out of combat
+  ENERGY = 'energy', // Thief/Rogue - fixed 100, fast regen, combo system
+  KI = 'ki', // Monk - balanced martial arts pool
+  HOLY = 'holy', // Paladin/Cleric - prayer/devotion mechanics
+  NATURE = 'nature', // Druid/Ranger - nature attunement
+}
+
+/**
+ * Configuration for resource-specific behaviors.
+ * Different resource types have different max formulas and regen patterns.
+ */
+export interface ResourceConfig {
+  maxFixed?: number; // Fixed max (e.g., rage = 100, energy = 100)
+  decayPerTick?: number; // Amount to decay per tick out of combat (rage)
+  gainOnHitDealt?: number; // Amount gained when dealing damage (rage)
+  gainOnHitTaken?: number; // Amount gained when taking damage (rage)
+  regenPerTick?: number; // Base regen per tick (energy = 25)
+  meditationMultiplier?: number; // Multiplier when meditating (mana = 2x, ki = 3x)
+}
+
+// ============================================================================
+// Armor and Weapon Types
+// ============================================================================
+
+/**
+ * Armor type categories for equipment restrictions
+ */
+export enum ArmorType {
+  CLOTH = 'cloth',
+  LEATHER = 'leather',
+  STUDDED = 'studded',
+  CHAIN = 'chain',
+  PLATE = 'plate',
+  SHIELD = 'shield',
+}
+
+/**
+ * Weapon type categories for equipment restrictions
+ */
+export enum WeaponType {
+  BLUNT = 'blunt', // Mace, Staff, Hammer
+  EDGED = 'edged', // Sword, Axe
+  PIERCING = 'piercing', // Dagger, Rapier, Spear
+  RANGED = 'ranged', // Bow, Crossbow
+}
+
+// ============================================================================
+// Combat State Types
+// ============================================================================
+
+/**
+ * Tracks per-combat state for energy-based attack speed system.
+ * Manages leftover energy that carries between rounds.
+ */
+export interface CombatEnergyState {
+  baseEnergy: number; // Base energy per round from stats
+  leftoverEnergy: number; // Carries over from previous round
+  isBashing: boolean; // True if using bash attack mode
+}
+
+/**
+ * Combat level determines attack speed multiplier.
+ * Higher combat level = more attacks per round.
+ */
+export enum CombatLevel {
+  CASTER = 1, // 1.0x - Mage, Healer (pure casters)
+  SEMI_COMBAT = 2, // 1.25x - Cleric, Druid (semi-combat)
+  HYBRID = 3, // 1.5x - Thief, Ranger, Bard (hybrid)
+  WARRIOR = 4, // 1.75x - Fighter, Paladin, Knight (warriors)
+  ELITE = 5, // 2.0x - Berserker, Witchhunter (elite combat)
+}
+
 // Minimal interface for admin monitor socket - only emit and connected are used
 export interface AdminMonitorSocket {
   emit(event: string, data: unknown): void;
@@ -114,6 +197,16 @@ export interface GameItem {
     strength?: number;
     dexterity?: number;
   };
+
+  // Weapon-specific fields
+  weaponType?: WeaponType; // blunt, edged, piercing, ranged
+  damage?: [number, number]; // [min, max] damage range
+  energyCost?: number; // Energy cost per swing (affects attack speed)
+
+  // Armor-specific fields
+  armorType?: ArmorType; // cloth, leather, studded, chain, plate, shield
+  acBonus?: number; // Armor Class bonus (harder to hit)
+  drBonus?: number; // Damage Reduction bonus (reduces damage taken)
 }
 
 // Define ItemTemplate interface (for item definitions)
@@ -142,6 +235,16 @@ export interface ItemTemplate {
     strength?: number;
     dexterity?: number;
   };
+
+  // Weapon-specific fields
+  weaponType?: WeaponType; // blunt, edged, piercing, ranged
+  damage?: [number, number]; // [min, max] damage range
+  energyCost?: number; // Energy cost per swing (affects attack speed)
+
+  // Armor-specific fields
+  armorType?: ArmorType; // cloth, leather, studded, chain, plate, shield
+  acBonus?: number; // Armor Class bonus (harder to hit)
+  drBonus?: number; // Damage Reduction bonus (reduces damage taken)
 }
 
 // Define ItemInstance interface (for specific item instances)
@@ -184,6 +287,8 @@ export interface Race {
   id: string;
   name: string;
   description: string;
+  // Stat modifiers (5x scale for meaningful impact)
+  // Base stat = 10, so Orc with +20 STR starts at 30 STR
   statModifiers: {
     strength: number;
     dexterity: number;
@@ -201,6 +306,10 @@ export interface Race {
     attack?: number; // Percentage bonus to attack damage
   };
   bonusDescription: string;
+
+  // New fields for stat overhaul
+  hpBonus?: number; // Flat HP bonus (Orc +10, Dwarf +5)
+  dodgeBonus?: number; // Flat dodge % bonus (Halfling +15%, Elf +5%)
 }
 
 // Class definition interface
@@ -215,6 +324,7 @@ export interface CharacterClass {
     questFlag: string | null;
     trainerType: string | null;
   };
+  // Legacy stat bonuses (kept for backward compatibility)
   statBonuses: {
     maxHealth: number;
     maxMana: number;
@@ -222,6 +332,37 @@ export interface CharacterClass {
     defense: number;
   };
   availableAdvancement: string[]; // Class IDs that can be advanced to
+
+  // New resource and combat system fields
+  resourceType?: ResourceType; // Class resource type (mana, rage, energy, etc.)
+  resourceConfig?: ResourceConfig; // Resource-specific config (decay rates, etc.)
+  combatLevel?: CombatLevel; // Combat proficiency level (affects attack speed)
+  hpBonus?: number; // Flat HP bonus from class
+  dodgeBonus?: number; // Flat dodge % bonus from class
+
+  // Class stat bonuses (applied at class selection)
+  classStatBonuses?: {
+    strength?: number;
+    dexterity?: number;
+    agility?: number;
+    constitution?: number;
+    intelligence?: number;
+    wisdom?: number;
+    charisma?: number;
+  };
+
+  // Equipment restrictions
+  allowedArmorTypes?: ArmorType[];
+  allowedWeaponTypes?: WeaponType[];
+
+  // Special class flags
+  flags?: string[]; // e.g., ['antimagic_aura'] for Witchhunter
+
+  // === Class Ability System ===
+  /** Ability IDs this class learns */
+  abilities?: string[];
+  /** If true, include abilities from parent class in advancement chain */
+  inheritedAbilities?: boolean;
 }
 
 export interface User {
@@ -231,8 +372,8 @@ export interface User {
   salt?: string;
   health: number;
   maxHealth: number;
-  mana: number;
-  maxMana: number;
+  mana?: number; // Optional - only set for classes with mana resourceType
+  maxMana?: number; // Optional - only set for classes with mana resourceType
   experience: number;
   level: number;
   // Race and class system
@@ -259,6 +400,10 @@ export interface User {
   wisdom: number;
   intelligence: number;
   charisma: number;
+
+  // Resource system - generic resource fields for any class resource type
+  resource?: number; // Current resource amount (rage, energy, ki, holy, nature)
+  maxResource?: number; // Maximum resource amount
   // Combat stats
   attack?: number; // Calculated from equipment
   defense?: number; // Calculated from equipment
@@ -293,6 +438,12 @@ export interface User {
   isHiding?: boolean; // Invisible to everyone in room, breaks on move
   flags?: string[]; // Array to store player flags for permissions, quests, etc.
   pendingAdminMessages?: Array<{ message: string; timestamp: string }>; // Store admin messages for offline users
+
+  // === Combo Point System (Thief/Rogue classes) ===
+  /** Current combo points (0 to MAX_COMBO_POINTS) */
+  comboPoints?: number;
+  /** NPC instance ID the combo points are built on */
+  comboTarget?: string;
 
   // Ban status fields
   banned?: boolean; // Whether the user is banned

@@ -155,6 +155,15 @@ export class TrainCommand implements Command {
   private showAvailableClasses(client: ConnectedClient): void {
     if (!client.user) return;
 
+    // Refresh user data from UserManager to ensure we have latest stats
+    const freshUser = this.userManager.getUser(client.user.username);
+    if (freshUser) {
+      // Sync critical fields that might be stale
+      client.user.level = freshUser.level;
+      client.user.classId = freshUser.classId;
+      client.user.classHistory = freshUser.classHistory;
+    }
+
     const currentClassId = client.user.classId ?? 'adventurer';
     const availableAdvancements = this.classManager.getAvailableAdvancements(currentClassId);
 
@@ -249,6 +258,14 @@ export class TrainCommand implements Command {
   ): void {
     if (!client.user) return;
 
+    // Refresh user data from UserManager to ensure we have latest stats
+    const freshUser = this.userManager.getUser(client.user.username);
+    if (freshUser) {
+      client.user.level = freshUser.level;
+      client.user.classId = freshUser.classId;
+      client.user.classHistory = freshUser.classHistory;
+    }
+
     // Find the class by name or ID
     const allClasses = this.classManager.getAllClasses();
     const targetClass = allClasses.find(
@@ -322,8 +339,9 @@ export class TrainCommand implements Command {
       client.user.health += bonuses.maxHealth;
     }
     if (bonuses.maxMana > 0) {
-      client.user.maxMana += bonuses.maxMana;
-      client.user.mana += bonuses.maxMana;
+      // Initialize mana fields if they don't exist (e.g., advancing from Adventurer to Magic User)
+      client.user.maxMana = (client.user.maxMana ?? 0) + bonuses.maxMana;
+      client.user.mana = (client.user.mana ?? 0) + bonuses.maxMana;
     }
 
     // Save the updated stats
@@ -412,20 +430,30 @@ export class TrainCommand implements Command {
 
     client.user.maxHealth += healthGain;
     client.user.health += healthGain;
-    client.user.maxMana += manaGain;
-    client.user.mana += manaGain;
+
+    // Only add mana for classes that use it
+    const classData = this.classManager.getClass(client.user.classId ?? 'adventurer');
+    const hasManaResource = classData?.resourceType === 'mana';
+    if (hasManaResource) {
+      client.user.maxMana = (client.user.maxMana ?? 0) + manaGain;
+      client.user.mana = (client.user.mana ?? 0) + manaGain;
+    }
+
     client.user.unspentAttributePoints =
       (client.user.unspentAttributePoints ?? 0) + attributePointGain;
 
     // Update in UserManager and save
-    this.userManager.updateUserStats(client.user.username, {
+    const statsToUpdate: Record<string, number | undefined> = {
       level: newLevel,
       maxHealth: client.user.maxHealth,
       health: client.user.health,
-      maxMana: client.user.maxMana,
-      mana: client.user.mana,
       unspentAttributePoints: client.user.unspentAttributePoints,
-    });
+    };
+    if (hasManaResource) {
+      statsToUpdate.maxMana = client.user.maxMana;
+      statsToUpdate.mana = client.user.mana;
+    }
+    this.userManager.updateUserStats(client.user.username, statsToUpdate);
 
     playerLogger.info(`Leveled up from ${currentLevel} to ${newLevel}`);
 

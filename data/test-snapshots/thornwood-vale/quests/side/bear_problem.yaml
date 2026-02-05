@@ -1,0 +1,133 @@
+# Side Quest: Bear Problem
+# Forest hunting side quest
+
+id: bear_problem
+name: "Bear Trouble"
+description: "A dangerous bear has been terrorizing the forest."
+longDescription: |
+  A massive brown bear has made its den too close to the
+  main forest path. It's attacked several travelers and
+  the town guard is offering a substantial bounty for
+  anyone brave enough to deal with it.
+category: side
+repeatable: false
+
+prerequisites:
+  level: 7
+  questFlags:
+    - recognized_by_thornwood
+
+steps:
+  - id: accept_bounty
+    name: "Accept the Hunt"
+    description: "Speak with the town guard about the bear."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: town-guard
+        description: "Learn about the dangerous bear"
+    npcDialogues:
+      town-guard:
+        greeting: "Halt! Looking for work? We've got a problem that needs solving."
+        options:
+          - text: "What's the problem?"
+            response: |
+              A big brown bear - biggest I've ever seen. Made its
+              den near the main path through the forest. Attacked
+              three merchants this month alone. We're authorized
+              to pay 30 gold to anyone who can kill it.
+            actions:
+              - action: setFlag
+                flag: bear_hunt_accepted
+              - action: message
+                text: "Quest started: Hunt the dangerous bear in Thornwood Forest."
+                color: yellow
+          - text: "Not interested."
+            response: "Your choice. Just watch yourself in the forest."
+    onComplete:
+      - action: message
+        text: "Find the bear's den in the dense woods."
+        color: yellow
+
+  - id: find_den
+    name: "Find the Den"
+    description: "Locate the bear's den."
+    objectives:
+      - type: enter_room
+        roomId: forest-bear-den
+        description: "Find the bear's den"
+    onComplete:
+      - action: message
+        text: "You've found the den. The bear is inside."
+        color: yellow
+
+  - id: kill_bear
+    name: "Slay the Bear"
+    description: "Kill the dangerous bear."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: brown-bear
+        count: 1
+        description: "Kill the brown bear"
+    onComplete:
+      - action: message
+        text: "The bear is dead! Take its pelt as proof."
+        color: green
+      - action: setFlag
+        flag: bear_killed
+
+  - id: collect_pelt
+    name: "Claim Your Trophy"
+    description: "Take the bear pelt."
+    objectives:
+      - type: have_item
+        itemId: bear-pelt
+        count: 1
+        description: "Collect the bear pelt"
+    onComplete:
+      - action: message
+        text: "Return to the guard to claim your bounty."
+        color: green
+
+  - id: claim_bounty
+    name: "Collect Bounty"
+    description: "Return to the town guard."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: town-guard
+        description: "Claim your bounty"
+    npcDialogues:
+      town-guard:
+        greeting: "Back from the hunt? What news?"
+        options:
+          - text: "The bear is dead. Here's its pelt."
+            requires:
+              flags: [bear_killed]
+              items: [bear-pelt]
+            response: |
+              By the gods, you actually did it! That beast was
+              a terror. Here's your bounty - well earned, hunter.
+            actions:
+              - action: removeItem
+                itemId: bear-pelt
+              - action: completeQuest
+          - text: "Still hunting."
+            response: "Be careful. That bear's killed stronger folk than you."
+    onComplete:
+      - action: message
+        text: "Bounty collected!"
+        color: green
+
+rewards:
+  experience: 350
+  currency:
+    gold: 30
+    silver: 0
+    copper: 0
+  message: "The forest path is safe once more."
+
+questGiver: town-guard
+turnInNpc: town-guard
+
+recommendedLevel:
+  min: 7
+  max: 10

@@ -1,0 +1,343 @@
+[
+  {
+    "id": "town-center",
+    "name": "Town Center",
+    "description": "The central hub of the town, with safe zones and shops",
+    "levelRange": { "min": 1, "max": 5 },
+    "flags": ["starter-zone", "safe"],
+    "combatConfig": {
+      "pvpEnabled": false,
+      "dangerLevel": 1,
+      "xpMultiplier": 1.0
+    },
+    "spawnConfig": [],
+    "defaultRoomFlags": ["safe"],
+    "created": "2026-01-10T00:00:00.000Z",
+    "modified": "2026-01-10T00:00:00.000Z"
+  },
+  {
+    "id": "forest-edge",
+    "name": "Forest Edge",
+    "description": "The outskirts of the dark forest, home to wolves and boars",
+    "levelRange": { "min": 3, "max": 10 },
+    "flags": ["wilderness"],
+    "combatConfig": {
+      "pvpEnabled": false,
+      "dangerLevel": 3,
+      "xpMultiplier": 1.2
+    },
+    "spawnConfig": [
+      {
+        "npcTemplateId": "wolf",
+        "maxInstances": 3,
+        "respawnTicks": 60
+      }
+    ],
+    "defaultRoomFlags": [],
+    "created": "2026-01-10T00:00:00.000Z",
+    "modified": "2026-01-10T00:00:00.000Z"
+  },
+  {
+    "id": "millbrook-village",
+    "name": "Millbrook Village",
+    "description": "A peaceful farming village nestled in the foothills of the Thornwood Vale. This quiet hamlet serves as a safe haven for new adventurers, with friendly villagers and gentle surroundings.",
+    "levelRange": { "min": 1, "max": 3 },
+    "flags": ["starter-zone", "safe", "tutorial"],
+    "combatConfig": {
+      "pvpEnabled": false,
+      "dangerLevel": 0,
+      "xpMultiplier": 1.0
+    },
+    "spawnConfig": [
+      {
+        "npcTemplateId": "village-elder-millbrook",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["millbrook-village-square"]
+      },
+      {
+        "npcTemplateId": "millbrook-shopkeeper",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["millbrook-general-store"]
+      },
+      {
+        "npcTemplateId": "millbrook-innkeeper",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["millbrook-tavern"]
+      },
+      {
+        "npcTemplateId": "shrine-priestess",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["millbrook-shrine"]
+      }
+    ],
+    "defaultRoomFlags": ["safe"],
+    "created": "2026-02-04T00:00:00.000Z",
+    "modified": "2026-02-04T00:00:00.000Z"
+  },
+  {
+    "id": "millbrook-outskirts",
+    "name": "Millbrook Outskirts",
+    "description": "The farmlands and meadows surrounding Millbrook Village. While mostly safe, occasional pests and small predators wander the fields, making this a suitable training ground for fledgling adventurers.",
+    "levelRange": { "min": 3, "max": 5 },
+    "flags": ["newbie-zone"],
+    "combatConfig": {
+      "pvpEnabled": false,
+      "dangerLevel": 1,
+      "xpMultiplier": 1.0
+    },
+    "spawnConfig": [
+      {
+        "npcTemplateId": "field-rat",
+        "maxInstances": 5,
+        "respawnTicks": 30
+      },
+      {
+        "npcTemplateId": "wild-boar",
+        "maxInstances": 3,
+        "respawnTicks": 45
+      },
+      {
+        "npcTemplateId": "giant-spider",
+        "maxInstances": 2,
+        "respawnTicks": 60
+      }
+    ],
+    "defaultRoomFlags": [],
+    "created": "2026-02-04T00:00:00.000Z",
+    "modified": "2026-02-04T00:00:00.000Z"
+  },
+  {
+    "id": "thornwood-town",
+    "name": "Thornwood Town",
+    "description": "The bustling market town at the heart of the Vale. Thornwood serves as the main hub for adventurers, featuring merchants, trainers, taverns, and the town guard. Most facilities new adventurers need can be found here.",
+    "levelRange": { "min": 5, "max": 10 },
+    "flags": ["hub", "safe", "shops"],
+    "combatConfig": {
+      "pvpEnabled": false,
+      "dangerLevel": 0,
+      "xpMultiplier": 1.0
+    },
+    "spawnConfig": [
+      {
+        "npcTemplateId": "town-guard",
+        "maxInstances": 4,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-north-gate", "thornwood-south-gate"]
+      },
+      {
+        "npcTemplateId": "thornwood-merchant",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-market-square"]
+      },
+      {
+        "npcTemplateId": "banker_1",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-market-square"]
+      },
+      {
+        "npcTemplateId": "thornwood-blacksmith",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-blacksmith"]
+      },
+      {
+        "npcTemplateId": "thornwood-supplier",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-general-goods"]
+      },
+      {
+        "npcTemplateId": "thornwood-mayor",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-town-hall"]
+      },
+      {
+        "npcTemplateId": "fighter_trainer",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-training-hall"]
+      },
+      {
+        "npcTemplateId": "trainer_1",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-training-hall"]
+      },
+      {
+        "npcTemplateId": "thornwood-armorer",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-armor-shop"]
+      },
+      {
+        "npcTemplateId": "healer_trainer",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-temple"]
+      },
+      {
+        "npcTemplateId": "thornwood-innkeeper",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-tavern"]
+      },
+      {
+        "npcTemplateId": "mage_trainer",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-mage-tower"]
+      },
+      {
+        "npcTemplateId": "thornwood-magic-vendor",
+        "maxInstances": 1,
+        "respawnTicks": 1,
+        "spawnRooms": ["thornwood-mage-tower"]
+      }
+    ],
+    "defaultRoomFlags": ["safe"],
+    "created": "2026-02-04T00:00:00.000Z",
+    "modified": "2026-02-04T00:00:00.000Z"
+  },
+  {
+    "id": "thornwood-forest",
+    "name": "Thornwood Forest",
+    "description": "The ancient forest that gives the Vale its name. Towering thorny oaks create a dark canopy, and the forest floor is home to wolves, bears, and stranger things. Adventurers seeking challenge and treasure venture here.",
+    "levelRange": { "min": 5, "max": 10 },
+    "flags": ["wilderness", "exploration"],
+    "combatConfig": {
+      "pvpEnabled": false,
+      "dangerLevel": 3,
+      "xpMultiplier": 1.2
+    },
+    "spawnConfig": [
+      {
+        "npcTemplateId": "forest-wolf",
+        "maxInstances": 4,
+        "respawnTicks": 50
+      },
+      {
+        "npcTemplateId": "thornwood-spider",
+        "maxInstances": 3,
+        "respawnTicks": 60
+      },
+      {
+        "npcTemplateId": "giant-thornwood-spider",
+        "maxInstances": 1,
+        "respawnTicks": 180,
+        "spawnRooms": ["forest-spider-nest"]
+      },
+      {
+        "npcTemplateId": "brown-bear",
+        "maxInstances": 2,
+        "respawnTicks": 90
+      },
+      {
+        "npcTemplateId": "forest-bandit",
+        "maxInstances": 3,
+        "respawnTicks": 75
+      },
+      {
+        "npcTemplateId": "bandit-leader",
+        "maxInstances": 1,
+        "respawnTicks": 180,
+        "spawnRooms": ["forest-bandit-camp"]
+      }
+    ],
+    "defaultRoomFlags": [],
+    "created": "2026-02-04T00:00:00.000Z",
+    "modified": "2026-02-04T00:00:00.000Z"
+  },
+  {
+    "id": "goblin-caves",
+    "name": "Goblin Caves",
+    "description": "A network of dank caverns carved into the hillside, infested with goblins and their foul kin. The caves are dangerous but hold treasures hoarded by the goblin tribes over generations. A goblin chieftain rules from the deepest chamber.",
+    "levelRange": { "min": 8, "max": 12 },
+    "flags": ["dungeon", "dangerous"],
+    "combatConfig": {
+      "pvpEnabled": false,
+      "dangerLevel": 5,
+      "xpMultiplier": 1.5
+    },
+    "spawnConfig": [
+      {
+        "npcTemplateId": "cave-goblin",
+        "maxInstances": 6,
+        "respawnTicks": 45
+      },
+      {
+        "npcTemplateId": "goblin-archer",
+        "maxInstances": 3,
+        "respawnTicks": 60
+      },
+      {
+        "npcTemplateId": "goblin-shaman",
+        "maxInstances": 2,
+        "respawnTicks": 90
+      },
+      {
+        "npcTemplateId": "cave-troll",
+        "maxInstances": 1,
+        "respawnTicks": 180
+      },
+      {
+        "npcTemplateId": "goblin-chieftain",
+        "maxInstances": 1,
+        "respawnTicks": 300,
+        "spawnRooms": ["goblin-chieftain-throne"]
+      }
+    ],
+    "defaultRoomFlags": [],
+    "created": "2026-02-04T00:00:00.000Z",
+    "modified": "2026-02-04T00:00:00.000Z"
+  },
+  {
+    "id": "darkhollow-marsh",
+    "name": "Darkhollow Marsh",
+    "description": "A treacherous swampland shrouded in perpetual mist. The marsh is home to undead horrors, poisonous creatures, and an ancient evil lurking in the depths. Only the bravest adventurers dare venture here.",
+    "levelRange": { "min": 10, "max": 15 },
+    "flags": ["dangerous", "endgame", "undead"],
+    "combatConfig": {
+      "pvpEnabled": false,
+      "dangerLevel": 7,
+      "xpMultiplier": 1.75
+    },
+    "spawnConfig": [
+      {
+        "npcTemplateId": "marsh-zombie",
+        "maxInstances": 5,
+        "respawnTicks": 60
+      },
+      {
+        "npcTemplateId": "bog-serpent",
+        "maxInstances": 3,
+        "respawnTicks": 75
+      },
+      {
+        "npcTemplateId": "swamp-hag",
+        "maxInstances": 2,
+        "respawnTicks": 120
+      },
+      {
+        "npcTemplateId": "drowned-knight",
+        "maxInstances": 2,
+        "respawnTicks": 150
+      },
+      {
+        "npcTemplateId": "marsh-lord",
+        "maxInstances": 1,
+        "respawnTicks": 600,
+        "spawnRooms": ["marsh-sunken-temple"]
+      }
+    ],
+    "defaultRoomFlags": [],
+    "created": "2026-02-04T00:00:00.000Z",
+    "modified": "2026-02-04T00:00:00.000Z"
+  }
+]

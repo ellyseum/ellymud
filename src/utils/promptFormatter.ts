@@ -1,7 +1,10 @@
-import { ConnectedClient } from '../types';
+import { ConnectedClient, ResourceType } from '../types';
 import { colorize } from './colors';
 import { writeToClient } from './socketWriter';
 import { SudoCommand } from '../command/commands/sudo.command';
+import { ClassManager } from '../class/classManager';
+import { getResourceDisplayAbbr } from './statCalculator';
+import { ComboManager } from '../combat/comboManager';
 
 /**
  * Writes a command prompt to the client based on their stats
@@ -11,6 +14,65 @@ export function writeCommandPrompt(client: ConnectedClient): void {
 
   const promptText = getPromptText(client);
   writeToClient(client, promptText);
+}
+
+/**
+ * Get the resource type for a user based on their class
+ * Returns NONE for tier 0 Adventurer
+ */
+function getUserResourceType(classId: string | undefined): ResourceType {
+  if (!classId) {
+    return ResourceType.NONE;
+  }
+
+  const classManager = ClassManager.getInstance();
+  const classData = classManager.getClass(classId);
+
+  if (!classData) {
+    return ResourceType.NONE;
+  }
+
+  return classData.resourceType ?? ResourceType.NONE;
+}
+
+/**
+ * Get the current resource value for a user
+ */
+function getCurrentResourceValue(
+  user: { mana?: number; resource?: number },
+  resourceType: ResourceType
+): number {
+  if (resourceType === ResourceType.NONE) {
+    return 0;
+  }
+
+  // For mana type, use existing mana field for backward compatibility
+  if (resourceType === ResourceType.MANA) {
+    return user.mana ?? 0;
+  }
+
+  // For other resource types, use the generic resource field
+  return user.resource ?? 0;
+}
+
+/**
+ * Get the max resource value for a user
+ */
+function getMaxResourceValue(
+  user: { maxMana?: number; maxResource?: number },
+  resourceType: ResourceType
+): number {
+  if (resourceType === ResourceType.NONE) {
+    return 0;
+  }
+
+  // For mana type, use existing maxMana field for backward compatibility
+  if (resourceType === ResourceType.MANA) {
+    return user.maxMana ?? 0;
+  }
+
+  // For other resource types, use the generic maxResource field
+  return user.maxResource ?? 0;
 }
 
 /**
@@ -25,19 +87,34 @@ export function getPromptText(client: ConnectedClient): string {
   // Format the HP numbers in green
   const hpNumbers = colorize(`${client.user.health}/${client.user.maxHealth}`, 'green');
 
-  // Format MP in blue when mana stats are available, otherwise show placeholders
-  const hasManaStats =
-    typeof client.user.mana === 'number' && typeof client.user.maxMana === 'number';
-  const mpDisplay = hasManaStats ? `${client.user.mana}/${client.user.maxMana}` : '--/--';
-  const mpNumbers = colorize(mpDisplay, 'blue');
+  // Get resource type from class
+  const resourceType = getUserResourceType(client.user.classId);
+  const resourceAbbr = getResourceDisplayAbbr(resourceType);
 
-  // Build the prompt with white base color and stat numbers
-  let prompt =
-    colorize(`[HP=`, 'white') +
-    hpNumbers +
-    colorize(` MP=`, 'white') +
-    mpNumbers +
-    colorize(`]`, 'white');
+  // Build the prompt with HP first
+  let prompt = colorize(`[HP=`, 'white') + hpNumbers;
+
+  // Only show resource if not NONE
+  if (resourceType !== ResourceType.NONE) {
+    const currentResource = getCurrentResourceValue(client.user, resourceType);
+    const maxResource = getMaxResourceValue(client.user, resourceType);
+    const resourceDisplay = `${currentResource}/${maxResource}`;
+    const resourceNumbers = colorize(resourceDisplay, 'blue');
+
+    prompt += colorize(` ${resourceAbbr}=`, 'white') + resourceNumbers;
+  }
+
+  // Show combo points for energy-class users (thief tree)
+  if (resourceType === ResourceType.ENERGY) {
+    const comboManager = ComboManager.getInstance();
+    const comboPoints = comboManager.getComboPoints(client.user);
+    if (comboPoints > 0) {
+      const comboDisplay = colorize(`${comboPoints}`, 'yellow');
+      prompt += colorize(` CP=`, 'white') + comboDisplay;
+    }
+  }
+
+  prompt += colorize(`]`, 'white');
 
   // Add combat indicator if in combat
   if (client.user.inCombat) {

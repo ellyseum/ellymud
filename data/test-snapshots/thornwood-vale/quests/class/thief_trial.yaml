@@ -1,0 +1,146 @@
+# Class Trial: Thief's Gambit
+# Unlocks Thief class advancement
+
+id: thief_trial
+name: "The Thief's Gambit"
+description: "Prove your cunning and stealth to advance as a Thief."
+longDescription: |
+  Shadow, the mysterious Thief trainer, has noticed your
+  potential. To advance in the shadow arts, you must
+  complete a task that requires cunning, not brute force.
+category: class_trial
+repeatable: false
+
+prerequisites:
+  level: 5
+  classId: thief
+
+steps:
+  - id: seek_trial
+    name: "Find Shadow"
+    description: "Locate Shadow and request the trial."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thief_trainer
+        description: "Find and speak with Shadow"
+    npcDialogues:
+      thief_trainer:
+        greeting: "*emerges from darkness* You came. Good. Ready for a real challenge?"
+        options:
+          - text: "I want to advance my skills."
+            response: |
+              Skills? This isn't about skills. It's about thinking.
+              Any fool can fight. The real challenge is getting
+              what you want without anyone knowing you were there.
+
+              The bandit leader, Scarface, had a key on him. A key
+              to his treasure stash. The town guards are too
+              honorable to search for it. You're not.
+
+              Get the key. Get the treasure. Don't get caught.
+              Simple... if you're good enough.
+            actions:
+              - action: setQuestFlag
+                flag: thief_trial_started
+              - action: message
+                text: "Quest started: Retrieve the bandit leader's key and find his treasure."
+                color: yellow
+          - text: "Not yet."
+            response: "*shrugs* Your loss. The shadows wait for no one."
+    onComplete:
+      - action: message
+        text: "Find the bandit leader's key and his hidden treasure."
+        color: yellow
+
+  - id: get_key
+    name: "Acquire the Key"
+    description: "Obtain the bandit leader's key."
+    objectives:
+      - type: have_item
+        itemId: bandit-leader-key
+        count: 1
+        description: "Obtain the bandit leader's key"
+    hint: "You'll need to deal with Scarface to get his key."
+    onComplete:
+      - action: message
+        text: "You have the key. Now find what it opens."
+        color: green
+      - action: setFlag
+        flag: has_bandit_key
+
+  - id: find_treasure
+    name: "Find the Treasure"
+    description: "Locate the bandit's hidden stash."
+    objectives:
+      - type: enter_room
+        roomId: forest-bandit-camp
+        description: "Search the bandit camp thoroughly"
+    onComplete:
+      - action: message
+        text: "There must be a hidden cache somewhere in this camp."
+        color: yellow
+
+  - id: loot_treasure
+    name: "Claim the Prize"
+    description: "Take the stolen jewelry from the stash."
+    objectives:
+      - type: have_item
+        itemId: stolen-jewelry
+        count: 1
+        description: "Retrieve the stolen jewelry"
+    onComplete:
+      - action: message
+        text: "You found the treasure! Return to Shadow."
+        color: green
+
+  - id: complete_trial
+    name: "Report to Shadow"
+    description: "Show Shadow what you've acquired."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: thief_trainer
+        description: "Complete the trial"
+    npcDialogues:
+      thief_trainer:
+        greeting: "*eyes the jewelry* Well, well. You actually did it."
+        options:
+          - text: "I got what you asked for."
+            requires:
+              flags: [has_bandit_key]
+              items: [stolen-jewelry]
+            response: |
+              *nods approvingly*
+              Not bad. Not bad at all. You can keep the jewelry -
+              I don't need it. What I needed to see was that you
+              could think, plan, and act without getting caught
+              or killed.
+
+              You've got potential. Real potential. There's more
+              I can teach you now. Welcome to the shadows.
+            actions:
+              - action: completeQuest
+          - text: "Still working on it."
+            response: "Tick tock. Opportunity doesn't wait."
+    onComplete:
+      - action: message
+        text: "Your skills in the shadow arts advance!"
+        color: green
+
+rewards:
+  experience: 500
+  questFlags:
+    - thief_trial_complete
+  items:
+    - itemId: dagger-steel
+      count: 1
+  message: |
+    Congratulations! You have completed the Thief's Trial.
+    New stealth and subtlety abilities are now available to you.
+    (Keep the jewelry - you earned it.)
+
+questGiver: thief_trainer
+turnInNpc: thief_trainer
+
+recommendedLevel:
+  min: 5
+  max: 8

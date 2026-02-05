@@ -1,4 +1,4 @@
-import { ConnectedClient } from '../../types';
+import { ConnectedClient, ResourceType } from '../../types';
 import { colorize } from '../../utils/colors';
 import { formatUsername } from '../../utils/formatters';
 import { ItemManager } from '../../utils/itemManager';
@@ -7,6 +7,8 @@ import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
 import { RaceManager } from '../../race/raceManager';
 import { ClassManager } from '../../class/classManager';
+import { ResourceManager } from '../../resource/resourceManager';
+import { getResourceDisplayAbbr } from '../../utils/statCalculator';
 
 /**
  * Calculate the experience required for a given level using exponential scaling.
@@ -64,8 +66,9 @@ export class StatsCommand implements Command {
     const currentLevel = user.level;
     const totalExpForCurrentLevel = getTotalExpForLevel(currentLevel);
     const expNeeded = getExpRequiredForLevel(currentLevel);
-    const expProgress = user.experience - totalExpForCurrentLevel;
-    const expPercentage = Math.floor((expProgress / expNeeded) * 100);
+    // Ensure progress is non-negative (handles edge cases where XP tracking is off)
+    const expProgress = Math.max(0, user.experience - totalExpForCurrentLevel);
+    const expPercentage = Math.min(100, Math.floor((expProgress / expNeeded) * 100));
 
     writeToClient(client, colorize('=== Your Character Stats ===\r\n', 'magenta'));
     writeToClient(client, colorize(`Username: ${formatUsername(user.username)}\r\n`, 'cyan'));
@@ -77,10 +80,20 @@ export class StatsCommand implements Command {
       colorize(`Class: ${className}`, 'yellow') + colorize(` (Tier ${classTier})\r\n`, 'dim')
     );
 
-    // Health and Mana
+    // Health and Resource
     writeToClient(client, colorize(`Health: ${user.health}/${user.maxHealth}\r\n`, 'green'));
-    if (typeof user.mana === 'number' && typeof user.maxMana === 'number') {
-      writeToClient(client, colorize(`Mana: ${user.mana}/${user.maxMana}\r\n`, 'blue'));
+
+    // Display resource if class uses one (via ResourceManager for consistency)
+    const resourceManager = ResourceManager.getInstance();
+    const resourceType = resourceManager.getResourceType(user);
+    if (resourceType !== ResourceType.NONE) {
+      const currentResource = resourceManager.getCurrentResource(user);
+      const maxResource = resourceManager.calculateMaxResource(user);
+      const resourceAbbr = getResourceDisplayAbbr(resourceType);
+      writeToClient(
+        client,
+        colorize(`${resourceAbbr}: ${currentResource}/${maxResource}\r\n`, 'blue')
+      );
     }
 
     // Level and XP Progress

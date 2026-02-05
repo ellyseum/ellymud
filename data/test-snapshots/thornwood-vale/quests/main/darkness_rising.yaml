@@ -1,0 +1,194 @@
+# Main Quest: Darkness Rising
+# The final main story quest - confronting the Marsh Lord
+
+id: darkness_rising
+name: "Darkness Rising"
+description: "Confront the ancient evil in Darkhollow Marsh."
+longDescription: |
+  An ancient evil stirs in Darkhollow Marsh. The undead grow
+  restless, and dark magic corrupts the land. The captured
+  goblin plans spoke of a "Marsh Lord" - a being of tremendous
+  power. You must venture into the heart of the marsh and
+  discover the truth of this threat.
+category: main
+repeatable: false
+
+prerequisites:
+  level: 12
+  questFlags:
+    - goblins_defeated
+    - marsh_warning_received
+
+steps:
+  - id: consult_healer
+    name: "Seek Guidance"
+    description: "Consult with Sister Mercy about the marsh darkness."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: healer_trainer
+        description: "Speak with Sister Mercy at the Temple"
+    npcDialogues:
+      healer_trainer:
+        greeting: "Welcome to the Temple of Divine Light. How may I serve you?"
+        options:
+          - text: "I need to know about the darkness in the marsh."
+            response: |
+              Ah... you've heard of it too. The corruption in Darkhollow
+              Marsh is ancient - older than Thornwood itself. Long ago,
+              a great evil was sealed beneath the marsh by holy knights.
+              But the seals are weakening.
+
+              The Marsh Lord guards the prison. He was once the noble
+              guardian of these lands, but the corruption twisted him.
+              If you truly mean to face him, take this blessing - and
+              may the Divine Light protect you.
+            actions:
+              - action: setFlag
+                flag: received_blessing
+              - action: giveItem
+                itemId: marsh-ward-amulet
+                count: 1
+              - action: message
+                text: "Received blessing and Marsh Ward Amulet!"
+                color: yellow
+          - text: "Just visiting."
+            response: "May the Light guide your path."
+    onComplete:
+      - action: message
+        text: "You are as prepared as you can be. Enter the marsh."
+        color: yellow
+
+  - id: enter_marsh
+    name: "Enter Darkhollow"
+    description: "Brave the dangers of Darkhollow Marsh."
+    objectives:
+      - type: enter_room
+        roomId: marsh-entrance
+        description: "Enter Darkhollow Marsh"
+    onComplete:
+      - action: message
+        text: "The air grows cold. Evil permeates this place."
+        color: yellow
+      - action: setFlag
+        flag: entered_marsh
+
+  - id: find_heart
+    name: "Find the Dark Heart"
+    description: "Navigate through the marsh to its corrupted center."
+    objectives:
+      - type: enter_room
+        roomId: marsh-dark-heart
+        description: "Reach the Heart of Darkhollow"
+    hint: "Follow the sunken road south through the marsh."
+    onComplete:
+      - action: message
+        text: "The standing stones pulse with dark energy. The temple awaits below."
+        color: yellow
+
+  - id: enter_temple
+    name: "Descend to the Temple"
+    description: "Enter the sunken temple beneath the marsh."
+    objectives:
+      - type: enter_room
+        roomId: marsh-sunken-temple
+        description: "Enter the Sunken Temple"
+    onComplete:
+      - action: message
+        text: "The Marsh Lord awaits. This is your greatest challenge."
+        color: red
+
+  - id: defeat_marsh_lord
+    name: "Defeat the Marsh Lord"
+    description: "Destroy the corrupted guardian."
+    objectives:
+      - type: kill_mob
+        npcTemplateId: marsh-lord
+        count: 1
+        description: "Defeat the Marsh Lord"
+    onComplete:
+      - action: message
+        text: "The Marsh Lord falls! But the sealed door remains..."
+        color: green
+      - action: setFlag
+        flag: marsh_lord_defeated
+
+  - id: seal_fragment
+    name: "Secure the Seal"
+    description: "Obtain the ancient seal fragment."
+    objectives:
+      - type: have_item
+        itemId: ancient-seal-fragment
+        count: 1
+        description: "Retrieve the Ancient Seal Fragment"
+    onComplete:
+      - action: message
+        text: "The seal must be reinforced. Return to Sister Mercy."
+        color: green
+
+  - id: return_to_temple
+    name: "Strengthen the Seal"
+    description: "Return the seal fragment to the Temple."
+    objectives:
+      - type: talk_to_npc
+        npcTemplateId: healer_trainer
+        description: "Return to Sister Mercy"
+    npcDialogues:
+      healer_trainer:
+        greeting: "You've returned! And you still live! Tell me what happened."
+        options:
+          - text: "The Marsh Lord is destroyed. I have the seal fragment."
+            requires:
+              flags: [marsh_lord_defeated]
+              items: [ancient-seal-fragment]
+            response: |
+              *gasps*
+              You've done it! You've actually done it! Give me the
+              fragment - we must reinforce the seal before whatever
+              lies within can escape.
+
+              *performs a ritual*
+
+              It is done. The seal will hold for another age. You have
+              saved not just Thornwood Vale, but perhaps the entire
+              world from an ancient terror. You are a true hero.
+            actions:
+              - action: removeItem
+                itemId: ancient-seal-fragment
+              - action: completeQuest
+          - text: "I need more time."
+            response: "Hurry! The seal weakens with every moment!"
+    onComplete:
+      - action: message
+        text: "The darkness is contained. Peace returns to Thornwood Vale."
+        color: green
+
+rewards:
+  experience: 2500
+  currency:
+    gold: 100
+    silver: 0
+    copper: 0
+  items:
+    - itemId: marsh-lord-crown
+      count: 1
+  questFlags:
+    - darkness_contained
+    - hero_of_thornwood
+  message: |
+    You have defeated the Marsh Lord and secured the ancient seal!
+    Thornwood Vale is safe once more.
+
+    You received the Crown of the Marsh Lord!
+
+    You are now recognized as the Hero of Thornwood Vale.
+    Your legend will be told for generations to come.
+
+questGiver: thornwood-mayor
+turnInNpc: healer_trainer
+
+recommendedLevel:
+  min: 12
+  max: 15
+
+chainId: vale_threats
+chainOrder: 3

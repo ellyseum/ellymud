@@ -42,6 +42,23 @@ jest.mock('../../utils/itemManager', () => ({
   },
 }));
 
+// Mock ResourceManager to return mana values from user object
+jest.mock('../../resource/resourceManager', () => ({
+  ResourceManager: {
+    getInstance: jest.fn().mockReturnValue({
+      getResourceType: (user: User) =>
+        user.mana !== undefined && user.maxMana !== undefined ? 'mana' : 'none',
+      getCurrentResource: (user: User) => user.mana ?? 0,
+      calculateMaxResource: (user: User) => user.maxMana ?? 0,
+    }),
+  },
+}));
+
+// Mock statCalculator
+jest.mock('../../utils/statCalculator', () => ({
+  getResourceDisplayAbbr: (resourceType: string) => (resourceType === 'mana' ? 'MP' : 'N/A'),
+}));
+
 import { writeToClient } from '../../utils/socketWriter';
 
 const mockWriteToClient = writeToClient as jest.MockedFunction<typeof writeToClient>;

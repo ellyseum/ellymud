@@ -94,12 +94,25 @@ export class TalkCommand implements Command {
       // Display quest dialogue
       displayQuestDialogue(client, targetNpc.name, dialogueResult);
     } else {
-      // No quest dialogue - show default NPC description
-      writeMessageToClient(client, colorize(`${targetNpc.name} looks at you.\r\n`, 'white'));
-      writeMessageToClient(
-        client,
-        colorize(`${targetNpc.name} doesn't have anything to say to you.\r\n`, 'gray')
-      );
+      // No quest dialogue - check for default dialogue from NPC template
+      const npcData = NPC.loadNPCData();
+      const template = npcData.get(targetNpc.templateId);
+      const defaultDialogue = template?.dialogue;
+
+      if (defaultDialogue) {
+        // Show the NPC's default greeting
+        writeMessageToClient(
+          client,
+          colorize(`\r\n${targetNpc.name} says, "${defaultDialogue}"\r\n\r\n`, 'cyan')
+        );
+      } else {
+        // No dialogue available
+        writeMessageToClient(client, colorize(`${targetNpc.name} looks at you.\r\n`, 'white'));
+        writeMessageToClient(
+          client,
+          colorize(`${targetNpc.name} doesn't have anything to say to you.\r\n`, 'gray')
+        );
+      }
 
       // Still emit the talked event (might satisfy simple talk objectives)
       questEventBus.emit('npc:talked', {

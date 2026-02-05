@@ -6,6 +6,7 @@ import { EffectManager } from '../effects/effectManager';
 import { SpawnManager } from '../spawn/spawnManager';
 import { MobilityManager } from '../mobility/mobilityManager';
 import { AreaManager } from '../area/areaManager';
+import { ResourceManager } from '../resource/resourceManager';
 import { createContextLogger } from '../utils/logger';
 import { drawCommandPrompt } from '../utils/socketWriter';
 import { IAsyncGameTimerConfigRepository, GameTimerConfig } from '../persistence/interfaces';
@@ -37,6 +38,7 @@ export class GameTimerManager extends EventEmitter {
   private effectManager: EffectManager;
   private spawnManager: SpawnManager;
   private mobilityManager: MobilityManager;
+  private resourceManager: ResourceManager;
   private initPromise: Promise<void> | null = null;
 
   private constructor(userManager: UserManager, roomManager: RoomManager) {
@@ -56,6 +58,8 @@ export class GameTimerManager extends EventEmitter {
     this.spawnManager = SpawnManager.getInstance(areaManager, roomManager);
     // Get the MobilityManager instance
     this.mobilityManager = MobilityManager.getInstance(roomManager);
+    // Get the ResourceManager instance
+    this.resourceManager = ResourceManager.getInstance();
     // Start async initialization
     this.initPromise = this.loadConfigFromRepository();
   }
@@ -233,6 +237,9 @@ export class GameTimerManager extends EventEmitter {
     // Process resting/meditating tick counters
     this.processRestMeditateTicks();
 
+    // Process class-specific resource ticks (energy regen, rage decay, etc.)
+    this.processResourceTicks();
+
     // Sub-regen ticks every 3 ticks (1/4 of 12) for players in full rest/meditate state
     if (this.tickCount % 3 === 0) {
       this.processSubRegeneration();
@@ -281,6 +288,37 @@ export class GameTimerManager extends EventEmitter {
   }
 
   /**
+   * Process class-specific resource ticks for all active players
+   * Handles energy regen, rage decay, mana regen, etc.
+   * Called every tick for resources that need frequent updates
+   */
+  private processResourceTicks(): void {
+    const activeUsers = this.userManager.getAllActiveUserSessions();
+
+    for (const [username, client] of activeUsers) {
+      if (!client.user) continue;
+
+      // Process resource tick through ResourceManager
+      // ResourceManager internally checks user.isMeditating for meditation bonuses
+      const resourceChanged = this.resourceManager.processResourceTick(
+        client.user,
+        client.user.inCombat || false
+      );
+
+      // Update user stats if resource changed
+      if (resourceChanged !== 0) {
+        this.userManager.updateUserStats(username, {
+          mana: client.user.mana,
+          resource: client.user.resource,
+        });
+
+        // Redraw prompt to show updated resource values
+        drawCommandPrompt(client);
+      }
+    }
+  }
+
+  /**
    * Process sub-regeneration for players in full rest/meditate state (4+ ticks)
    * Called every 3 ticks (1/4 of main regen cycle)
    */
@@ -309,14 +347,16 @@ export class GameTimerManager extends EventEmitter {
         client.user.health += hpGained;
       }
 
-      // Sub-regen MP while fully meditating
+      // Sub-regen MP while fully meditating (only for classes with mana)
       // Base: 4 MP, scaling with wisdom+intelligence (20-400 gives 1-20 bonus)
-      if (isFullyMeditating && client.user.mana < client.user.maxMana) {
+      const userMana = client.user.mana ?? 0;
+      const userMaxMana = client.user.maxMana ?? 0;
+      if (isFullyMeditating && userMaxMana > 0 && userMana < userMaxMana) {
         const wisdom = client.user.wisdom || 10;
         const intelligence = client.user.intelligence || 10;
         const subMpRegen = 4 + Math.floor((wisdom + intelligence) / 20);
-        mpGained = Math.min(subMpRegen, client.user.maxMana - client.user.mana);
-        client.user.mana += mpGained;
+        mpGained = Math.min(subMpRegen, userMaxMana - userMana);
+        client.user.mana = userMana + mpGained;
       }
 
       if (hpGained > 0 || mpGained > 0) {
@@ -366,20 +406,23 @@ export class GameTimerManager extends EventEmitter {
         client.user.health += hpGained;
       }
 
-      if (client.user.mana < client.user.maxMana) {
+      // Only regen mana for classes that have it
+      const currentMana = client.user.mana ?? 0;
+      const maxMana = client.user.maxMana ?? 0;
+      if (maxMana > 0 && currentMana < maxMana) {
         let mpRegen = baseMpRegen;
         if (client.user.isMeditating && (client.user.meditatingTicks || 0) >= 4) {
           mpRegen = Math.floor(mpRegen * 2);
           messages.push('meditating');
         }
-        mpGained = Math.min(mpRegen, client.user.maxMana - client.user.mana);
-        client.user.mana += mpGained;
+        mpGained = Math.min(mpRegen, maxMana - currentMana);
+        client.user.mana = currentMana + mpGained;
       }
 
       if (hpGained > 0 || mpGained > 0) {
         this.userManager.updateUserStats(username, {
           health: client.user.health,
-          mana: client.user.mana,
+          mana: client.user.mana, // Will be undefined for non-mana classes
         });
 
         // Silently redraw prompt with updated HP/MP values instead of sending a message

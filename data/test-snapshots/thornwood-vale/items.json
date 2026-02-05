@@ -1,0 +1,1267 @@
+[
+  {
+    "id": "sword-001",
+    "name": "iron sword",
+    "description": "A sturdy iron sword with a sharp edge.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 50,
+    "weight": 5,
+    "globalLimit": 10,
+    "stats": {
+      "attack": 5,
+      "strength": 2
+    },
+    "requirements": {
+      "level": 1,
+      "strength": 5
+    }
+  },
+  {
+    "id": "crystal ball",
+    "name": "crystal ball",
+    "description": "A shiny crystal ball that glows with a faint light.",
+    "type": "static",
+    "weight": 999
+  },
+  {
+    "id": "sword-002",
+    "name": "steel sword",
+    "description": "A sturdy steel sword with a sharp edge.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 50,
+    "weight": 5,
+    "stats": {
+      "attack": 5,
+      "strength": 2
+    },
+    "requirements": {
+      "level": 1,
+      "strength": 5
+    }
+  },
+  {
+    "id": "shield-001",
+    "name": "wooden shield",
+    "description": "A basic wooden shield that provides some protection.",
+    "type": "armor",
+    "slot": "offHand",
+    "value": 30,
+    "weight": 4,
+    "stats": {
+      "defense": 3,
+      "constitution": 1
+    }
+  },
+  {
+    "id": "helmet-001",
+    "name": "leather cap",
+    "description": "A simple leather cap that offers minimal protection.",
+    "type": "armor",
+    "slot": "head",
+    "value": 25,
+    "weight": 2,
+    "stats": {
+      "defense": 2
+    }
+  },
+  {
+    "id": "amulet-001",
+    "name": "copper amulet",
+    "description": "A simple amulet made of copper.",
+    "type": "armor",
+    "slot": "neck",
+    "value": 35,
+    "weight": 1,
+    "stats": {
+      "wisdom": 1,
+      "intelligence": 1
+    }
+  },
+  {
+    "id": "chest-001",
+    "name": "padded tunic",
+    "description": "A padded tunic that offers some protection.",
+    "type": "armor",
+    "slot": "chest",
+    "value": 45,
+    "weight": 6,
+    "stats": {
+      "defense": 4,
+      "constitution": 1
+    }
+  },
+  {
+    "id": "cloak-001",
+    "name": "traveler's cloak",
+    "description": "A warm cloak that keeps you dry in the rain.",
+    "type": "armor",
+    "slot": "back",
+    "value": 20,
+    "weight": 3,
+    "stats": {
+      "defense": 1,
+      "constitution": 1
+    }
+  },
+  {
+    "id": "arms-001",
+    "name": "leather bracers",
+    "description": "Protective bracers made of hardened leather.",
+    "type": "armor",
+    "slot": "arms",
+    "value": 30,
+    "weight": 2,
+    "stats": {
+      "defense": 2,
+      "dexterity": 1
+    }
+  },
+  {
+    "id": "gloves-001",
+    "name": "leather gloves",
+    "description": "Simple gloves that protect your hands.",
+    "type": "armor",
+    "slot": "hands",
+    "value": 15,
+    "weight": 1,
+    "stats": {
+      "defense": 1,
+      "dexterity": 1
+    }
+  },
+  {
+    "id": "ring-001",
+    "name": "silver ring",
+    "description": "A simple silver ring.",
+    "type": "armor",
+    "slot": "finger",
+    "value": 50,
+    "weight": 0.1,
+    "stats": {
+      "intelligence": 2
+    }
+  },
+  {
+    "id": "belt-001",
+    "name": "leather belt",
+    "description": "A sturdy leather belt with a brass buckle.",
+    "type": "armor",
+    "slot": "waist",
+    "value": 25,
+    "weight": 1,
+    "stats": {
+      "defense": 1,
+      "strength": 1
+    }
+  },
+  {
+    "id": "legs-001",
+    "name": "leather leggings",
+    "description": "Protective leggings made of leather.",
+    "type": "armor",
+    "slot": "legs",
+    "value": 35,
+    "weight": 3,
+    "stats": {
+      "defense": 3,
+      "agility": 1
+    }
+  },
+  {
+    "id": "boots-001",
+    "name": "leather boots",
+    "description": "Sturdy boots for long travels.",
+    "type": "armor",
+    "slot": "feet",
+    "value": 30,
+    "weight": 2,
+    "stats": {
+      "defense": 2,
+      "agility": 1
+    }
+  },
+  {
+    "id": "sword-poor",
+    "name": "broken rusty sword",
+    "description": "A severely damaged sword with a rusty blade. It looks like it might break with a few more hits.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 5,
+    "weight": 6,
+    "quality": "poor",
+    "stats": {
+      "attack": 2
+    },
+    "requirements": {
+      "level": 1,
+      "strength": 3
+    }
+  },
+  {
+    "id": "sword-common",
+    "name": "iron shortsword",
+    "description": "A standard-issue iron shortsword. Nothing special, but it gets the job done.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 25,
+    "weight": 4,
+    "quality": "common",
+    "stats": {
+      "attack": 5,
+      "strength": 1
+    },
+    "requirements": {
+      "level": 1,
+      "strength": 5
+    }
+  },
+  {
+    "id": "sword-uncommon",
+    "name": "fine steel longsword",
+    "description": "A well-crafted longsword made of quality steel. The edge is sharp and the balance is excellent.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 75,
+    "weight": 5,
+    "quality": "uncommon",
+    "stats": {
+      "attack": 8,
+      "strength": 2,
+      "dexterity": 1
+    },
+    "requirements": {
+      "level": 3,
+      "strength": 7
+    }
+  },
+  {
+    "id": "sword-rare",
+    "name": "enchanted elven blade",
+    "description": "A rare elven blade with faint blue runes etched along its length. The metal seems to shimmer in the light.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 250,
+    "weight": 3,
+    "quality": "rare",
+    "stats": {
+      "attack": 12,
+      "strength": 2,
+      "dexterity": 3,
+      "intelligence": 1
+    },
+    "requirements": {
+      "level": 6,
+      "strength": 8,
+      "dexterity": 5
+    }
+  },
+  {
+    "id": "sword-epic",
+    "name": "dragonfire greatsword",
+    "description": "A magnificent greatsword that radiates heat. The blade is forged from a dragon's tooth and enchanted with fire magic.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 750,
+    "weight": 7,
+    "quality": "epic",
+    "stats": {
+      "attack": 18,
+      "strength": 5,
+      "dexterity": 2,
+      "intelligence": 3
+    },
+    "requirements": {
+      "level": 12,
+      "strength": 12,
+      "intelligence": 8
+    }
+  },
+  {
+    "id": "sword-legendary",
+    "name": "worldender",
+    "description": "A legendary blade said to have been forged by the gods themselves. The very air around it seems to distort with power.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 2000,
+    "weight": 6,
+    "quality": "legendary",
+    "stats": {
+      "attack": 25,
+      "strength": 8,
+      "dexterity": 6,
+      "intelligence": 5,
+      "wisdom": 5,
+      "charisma": 3
+    },
+    "requirements": {
+      "level": 20,
+      "strength": 15,
+      "intelligence": 10
+    }
+  },
+  {
+    "id": "axe-poor",
+    "name": "chipped stone axe",
+    "description": "A primitive axe with a chipped stone head. Barely better than a rock tied to a stick.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 3,
+    "weight": 5,
+    "quality": "poor",
+    "stats": {
+      "attack": 3
+    },
+    "requirements": {
+      "level": 1,
+      "strength": 4
+    }
+  },
+  {
+    "id": "axe-common",
+    "name": "woodcutter's axe",
+    "description": "A simple axe designed for chopping wood, but it works well enough in combat.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 20,
+    "weight": 6,
+    "quality": "common",
+    "stats": {
+      "attack": 6,
+      "strength": 2
+    },
+    "requirements": {
+      "level": 1,
+      "strength": 6
+    }
+  },
+  {
+    "id": "axe-uncommon",
+    "name": "fine dwarven handaxe",
+    "description": "A well-balanced handaxe of dwarven make. The edge gleams with sharpness.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 90,
+    "weight": 4,
+    "quality": "uncommon",
+    "stats": {
+      "attack": 9,
+      "strength": 3
+    },
+    "requirements": {
+      "level": 4,
+      "strength": 8
+    }
+  },
+  {
+    "id": "axe-rare",
+    "name": "frostbite battleaxe",
+    "description": "A rare battleaxe that glistens with frost. The edge seems to freeze the air around it.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 275,
+    "weight": 7,
+    "quality": "rare",
+    "stats": {
+      "attack": 14,
+      "strength": 4,
+      "constitution": 2
+    },
+    "requirements": {
+      "level": 7,
+      "strength": 10
+    }
+  },
+  {
+    "id": "axe-epic",
+    "name": "thunderlord's cleaver",
+    "description": "A massive axe that crackles with lightning. Each swing sounds like distant thunder.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 800,
+    "weight": 9,
+    "quality": "epic",
+    "stats": {
+      "attack": 20,
+      "strength": 6,
+      "constitution": 3,
+      "wisdom": 2
+    },
+    "requirements": {
+      "level": 14,
+      "strength": 14
+    }
+  },
+  {
+    "id": "axe-legendary",
+    "name": "godcleaver",
+    "description": "A legendary axe rumored to have once cleaved a mountain in two. It pulses with divine energy.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 1800,
+    "weight": 10,
+    "quality": "legendary",
+    "stats": {
+      "attack": 28,
+      "strength": 10,
+      "constitution": 6,
+      "wisdom": 4,
+      "charisma": 2
+    },
+    "requirements": {
+      "level": 22,
+      "strength": 18
+    }
+  },
+  {
+    "id": "venom-dagger",
+    "name": "venom dagger",
+    "description": "A dagger coated in deadly poison.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 150,
+    "weight": 2,
+    "stats": { "attack": 6, "dexterity": 2 },
+    "requirements": { "level": 5 },
+    "procAbility": "venomous_strike"
+  },
+  {
+    "id": "shock-mace",
+    "name": "shock mace",
+    "description": "A mace crackling with electrical energy.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 200,
+    "weight": 8,
+    "stats": { "attack": 10, "strength": 3 },
+    "requirements": { "level": 8 },
+    "procAbility": "shocking_touch"
+  },
+  {
+    "id": "healing-potion",
+    "name": "healing potion",
+    "description": "A red potion that restores health.",
+    "type": "consumable",
+    "value": 25,
+    "weight": 0.5,
+    "ability": "healing_potion_effect"
+  },
+  {
+    "id": "mana-potion",
+    "name": "mana potion",
+    "description": "A blue potion that restores mana.",
+    "type": "consumable",
+    "value": 30,
+    "weight": 0.5,
+    "ability": "mana_potion_effect"
+  },
+  {
+    "id": "potion_healing_1",
+    "name": "Healing Potion",
+    "description": "A small vial of red liquid.",
+    "type": "consumable",
+    "ability": "healing_potion_effect",
+    "value": 10,
+    "weight": 0.5
+  },
+  {
+    "id": "sword_iron_1",
+    "name": "Iron Sword",
+    "description": "A standard iron sword.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 50,
+    "weight": 5,
+    "globalLimit": 5,
+    "stats": {
+      "attack": 5
+    }
+  },
+  {
+    "id": "the_one_ring",
+    "name": "The One Ring",
+    "description": "A plain gold ring that seems to whisper dark secrets. One ring to rule them all.",
+    "type": "armor",
+    "slot": "finger",
+    "value": 10000,
+    "weight": 0.1,
+    "globalLimit": 1,
+    "stats": {
+      "strength": 10,
+      "dexterity": 10,
+      "intelligence": 10,
+      "wisdom": -5,
+      "charisma": -10
+    }
+  },
+  {
+    "id": "torch-basic",
+    "name": "wooden torch",
+    "description": "A simple torch wrapped in oil-soaked cloth. Provides light in dark places.",
+    "type": "misc",
+    "value": 2,
+    "weight": 1
+  },
+  {
+    "id": "rope-hemp",
+    "name": "hemp rope",
+    "description": "A coil of sturdy hemp rope, useful for climbing or tying things.",
+    "type": "misc",
+    "value": 5,
+    "weight": 3
+  },
+  {
+    "id": "rations-trail",
+    "name": "trail rations",
+    "description": "Dried meat, hard bread, and nuts packed for travel. Enough for several days.",
+    "type": "consumable",
+    "value": 3,
+    "weight": 2
+  },
+  {
+    "id": "ale-mug",
+    "name": "mug of ale",
+    "description": "A frothy mug of brown ale. It might not heal you, but it makes everything seem better.",
+    "type": "consumable",
+    "value": 1,
+    "weight": 1
+  },
+  {
+    "id": "rat-tail",
+    "name": "rat tail",
+    "description": "A severed rat tail. Gross, but some alchemists pay for these.",
+    "type": "misc",
+    "value": 1,
+    "weight": 0.1
+  },
+  {
+    "id": "boar-tusk",
+    "name": "boar tusk",
+    "description": "A sharp tusk from a wild boar. Could be crafted into a weapon or sold.",
+    "type": "misc",
+    "value": 5,
+    "weight": 0.5
+  },
+  {
+    "id": "raw-meat",
+    "name": "raw meat",
+    "description": "A chunk of raw meat. Best cooked before eating.",
+    "type": "misc",
+    "value": 2,
+    "weight": 2
+  },
+  {
+    "id": "spider-silk",
+    "name": "spider silk",
+    "description": "A bundle of strong spider silk. Valuable for crafting and alchemy.",
+    "type": "misc",
+    "value": 8,
+    "weight": 0.2
+  },
+  {
+    "id": "spider-venom",
+    "name": "spider venom",
+    "description": "A vial of potent spider venom, carefully extracted. Handle with care.",
+    "type": "misc",
+    "value": 25,
+    "weight": 0.3
+  },
+  {
+    "id": "bone-fragment",
+    "name": "bone fragment",
+    "description": "A piece of old bone, bleached white by time.",
+    "type": "misc",
+    "value": 1,
+    "weight": 0.2
+  },
+  {
+    "id": "old-cellar-key",
+    "name": "old cellar key",
+    "description": "A rusty iron key that once opened a cellar door.",
+    "type": "key",
+    "value": 5,
+    "weight": 0.1
+  },
+  {
+    "id": "wolf-pelt",
+    "name": "wolf pelt",
+    "description": "A thick gray wolf pelt, perfect for crafting warm clothing or armor.",
+    "type": "misc",
+    "value": 15,
+    "weight": 3
+  },
+  {
+    "id": "wolf-fang",
+    "name": "wolf fang",
+    "description": "A sharp fang from a Thornwood wolf. Popular with hunters as trophies.",
+    "type": "misc",
+    "value": 5,
+    "weight": 0.1
+  },
+  {
+    "id": "spider-eye-gem",
+    "name": "spider eye gem",
+    "description": "A crystallized spider eye that gleams with an inner light. Rare and valuable.",
+    "type": "misc",
+    "value": 100,
+    "weight": 0.1
+  },
+  {
+    "id": "bear-pelt",
+    "name": "bear pelt",
+    "description": "A massive brown bear pelt. Heavy but incredibly warm and valuable.",
+    "type": "misc",
+    "value": 50,
+    "weight": 10
+  },
+  {
+    "id": "bear-claw",
+    "name": "bear claw",
+    "description": "A curved claw from a brown bear. Prized by warriors as a trophy.",
+    "type": "misc",
+    "value": 10,
+    "weight": 0.2
+  },
+  {
+    "id": "bandit-mask",
+    "name": "bandit mask",
+    "description": "A cloth mask worn by forest bandits to hide their identity.",
+    "type": "misc",
+    "value": 3,
+    "weight": 0.1
+  },
+  {
+    "id": "hunters-journal",
+    "name": "hunter's journal",
+    "description": "A blood-stained journal belonging to an unfortunate hunter. Contains notes about forest dangers.",
+    "type": "misc",
+    "value": 10,
+    "weight": 0.5
+  },
+  {
+    "id": "scattered-arrows",
+    "name": "scattered arrows",
+    "description": "A bundle of arrows salvaged from the abandoned camp. Some are still usable.",
+    "type": "misc",
+    "value": 5,
+    "weight": 1
+  },
+  {
+    "id": "stolen-goods",
+    "name": "bundle of stolen goods",
+    "description": "Various items stolen by bandits - cloth, tools, and trinkets.",
+    "type": "misc",
+    "value": 25,
+    "weight": 5
+  },
+  {
+    "id": "stolen-jewelry",
+    "name": "stolen jewelry",
+    "description": "Jewelry taken from unlucky travelers. Some pieces are quite valuable.",
+    "type": "misc",
+    "value": 50,
+    "weight": 0.5
+  },
+  {
+    "id": "bandit-leader-key",
+    "name": "bandit leader's key",
+    "description": "A key that Scarface kept on his person. It probably opens something valuable.",
+    "type": "key",
+    "value": 0,
+    "weight": 0.1
+  },
+  {
+    "id": "goblin-ear",
+    "name": "goblin ear",
+    "description": "A severed goblin ear. The bounty office pays for these.",
+    "type": "misc",
+    "value": 2,
+    "weight": 0.1
+  },
+  {
+    "id": "bone-shiv",
+    "name": "bone shiv",
+    "description": "A crude weapon made from sharpened bone. Primitive but effective.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 5,
+    "weight": 1,
+    "quality": "poor",
+    "stats": {
+      "attack": 3
+    }
+  },
+  {
+    "id": "crude-arrows",
+    "name": "crude arrows",
+    "description": "Poorly made arrows with stone tips. They fly crooked but can still hurt.",
+    "type": "misc",
+    "value": 1,
+    "weight": 0.5
+  },
+  {
+    "id": "shortbow-goblin",
+    "name": "goblin shortbow",
+    "description": "A small bow made from scavenged materials. Sized for goblin hands but usable by others.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 15,
+    "weight": 2,
+    "quality": "poor",
+    "stats": {
+      "attack": 4,
+      "dexterity": 1
+    }
+  },
+  {
+    "id": "shaman-totem",
+    "name": "shaman's totem",
+    "description": "A bone totem carved with dark symbols. It pulses with residual magic.",
+    "type": "misc",
+    "value": 35,
+    "weight": 1
+  },
+  {
+    "id": "dark-essence",
+    "name": "dark essence",
+    "description": "A vial of pure dark energy. Dangerous to handle but valuable to the right buyer.",
+    "type": "misc",
+    "value": 75,
+    "weight": 0.2
+  },
+  {
+    "id": "troll-blood",
+    "name": "troll blood",
+    "description": "Thick, regenerative blood harvested from a cave troll. Alchemists prize this.",
+    "type": "misc",
+    "value": 100,
+    "weight": 0.5
+  },
+  {
+    "id": "troll-hide",
+    "name": "troll hide",
+    "description": "A section of tough troll hide. Nearly impossible to cut with ordinary weapons.",
+    "type": "misc",
+    "value": 75,
+    "weight": 8
+  },
+  {
+    "id": "crude-club",
+    "name": "troll's club",
+    "description": "A tree trunk used as a weapon by the cave troll. Too heavy for most to wield.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 50,
+    "weight": 25,
+    "stats": {
+      "attack": 15,
+      "strength": 5
+    },
+    "requirements": {
+      "level": 10,
+      "strength": 18
+    }
+  },
+  {
+    "id": "goblin-crown",
+    "name": "Grulkak's Crown",
+    "description": "A macabre crown fashioned from a human skull, decorated with crude gems. A symbol of goblin authority.",
+    "type": "armor",
+    "slot": "head",
+    "value": 150,
+    "weight": 2,
+    "quality": "rare",
+    "stats": {
+      "defense": 4,
+      "charisma": -2,
+      "strength": 3
+    },
+    "requirements": {
+      "level": 8
+    }
+  },
+  {
+    "id": "chieftain-key",
+    "name": "chieftain's key",
+    "description": "An ornate key worn by the goblin chieftain. Opens the tribe's treasure vault.",
+    "type": "key",
+    "value": 0,
+    "weight": 0.1
+  },
+  {
+    "id": "goblin-treasure-key",
+    "name": "goblin treasure key",
+    "description": "A key to one of the goblin storage chests. Might contain something valuable.",
+    "type": "key",
+    "value": 0,
+    "weight": 0.1
+  },
+  {
+    "id": "shaman-staff",
+    "name": "goblin shaman's staff",
+    "description": "A gnarled staff topped with feathers and bones. It hums with dark magic.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 120,
+    "weight": 3,
+    "quality": "uncommon",
+    "stats": {
+      "attack": 6,
+      "intelligence": 4,
+      "wisdom": 2
+    },
+    "requirements": {
+      "level": 6
+    }
+  },
+  {
+    "id": "chieftain-crown",
+    "name": "goblin chieftain's crown",
+    "description": "The skull crown worn by Grulkak. A gruesome trophy of victory.",
+    "type": "armor",
+    "slot": "head",
+    "value": 200,
+    "weight": 2,
+    "quality": "rare",
+    "stats": {
+      "defense": 5,
+      "strength": 4,
+      "charisma": -3
+    }
+  },
+  {
+    "id": "rotting-flesh",
+    "name": "rotting flesh",
+    "description": "Decomposing flesh from an undead creature. Disgusting but useful in necromancy.",
+    "type": "misc",
+    "value": 3,
+    "weight": 1
+  },
+  {
+    "id": "tarnished-coin",
+    "name": "tarnished coin",
+    "description": "An ancient coin, so corroded its origin is unreadable. Still has some value.",
+    "type": "misc",
+    "value": 1,
+    "weight": 0.1
+  },
+  {
+    "id": "serpent-scale",
+    "name": "bog serpent scale",
+    "description": "A large, iridescent scale from a bog serpent. Used in armor crafting.",
+    "type": "misc",
+    "value": 20,
+    "weight": 0.3
+  },
+  {
+    "id": "serpent-venom",
+    "name": "bog serpent venom",
+    "description": "Potent paralytic venom from a bog serpent. Extremely dangerous.",
+    "type": "misc",
+    "value": 75,
+    "weight": 0.2
+  },
+  {
+    "id": "serpent-fang",
+    "name": "serpent fang",
+    "description": "A long, curved fang from a bog serpent. Could make a deadly dagger.",
+    "type": "misc",
+    "value": 15,
+    "weight": 0.2
+  },
+  {
+    "id": "abandoned-supplies",
+    "name": "abandoned supplies",
+    "description": "Supplies left behind by someone who didn't make it out of the marsh.",
+    "type": "misc",
+    "value": 15,
+    "weight": 5
+  },
+  {
+    "id": "hag-eye",
+    "name": "swamp hag's eye",
+    "description": "A preserved eye from a swamp hag. It seems to follow your movements.",
+    "type": "misc",
+    "value": 150,
+    "weight": 0.1
+  },
+  {
+    "id": "cursed-pendant",
+    "name": "cursed pendant",
+    "description": "A pendant radiating dark energy. Powerful but potentially dangerous to wear.",
+    "type": "armor",
+    "slot": "neck",
+    "value": 200,
+    "weight": 0.3,
+    "quality": "rare",
+    "stats": {
+      "intelligence": 6,
+      "wisdom": -2,
+      "constitution": -1
+    },
+    "requirements": {
+      "level": 10
+    }
+  },
+  {
+    "id": "potion-of-dark-vision",
+    "name": "potion of dark vision",
+    "description": "A murky potion that grants the ability to see in complete darkness.",
+    "type": "consumable",
+    "value": 50,
+    "weight": 0.5
+  },
+  {
+    "id": "knight-sigil",
+    "name": "knight's sigil",
+    "description": "A tarnished sigil from a drowned knight. It bears an ancient noble crest.",
+    "type": "misc",
+    "value": 50,
+    "weight": 0.2
+  },
+  {
+    "id": "rusted-sword",
+    "name": "rusted longsword",
+    "description": "An ancient longsword, badly rusted but still recognizable as quality work.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 30,
+    "weight": 5,
+    "quality": "poor",
+    "stats": {
+      "attack": 4
+    }
+  },
+  {
+    "id": "spectral-essence",
+    "name": "spectral essence",
+    "description": "Ethereal energy captured from an undead spirit. Glows with ghostly light.",
+    "type": "misc",
+    "value": 100,
+    "weight": 0.1
+  },
+  {
+    "id": "marsh-lord-crown",
+    "name": "Crown of the Marsh Lord",
+    "description": "A tarnished crown of ancient make, encrusted with dark gems. It pulses with corrupted power.",
+    "type": "armor",
+    "slot": "head",
+    "value": 500,
+    "weight": 3,
+    "quality": "epic",
+    "stats": {
+      "defense": 8,
+      "strength": 5,
+      "constitution": 4,
+      "wisdom": 3
+    },
+    "requirements": {
+      "level": 12
+    }
+  },
+  {
+    "id": "ancient-seal-fragment",
+    "name": "ancient seal fragment",
+    "description": "A piece of the seal that keeps something terrible imprisoned. Handle with extreme care.",
+    "type": "quest",
+    "value": 0,
+    "weight": 0.5
+  },
+  {
+    "id": "greater-healing-potion",
+    "name": "greater healing potion",
+    "description": "A large vial of bright red liquid. Restores significantly more health than a normal potion.",
+    "type": "consumable",
+    "value": 75,
+    "weight": 0.5,
+    "ability": "greater_healing_potion_effect"
+  },
+  {
+    "id": "greater-mana-potion",
+    "name": "greater mana potion",
+    "description": "A large vial of bright blue liquid. Restores significantly more mana than a normal potion.",
+    "type": "consumable",
+    "value": 85,
+    "weight": 0.5,
+    "ability": "greater_mana_potion_effect"
+  },
+  {
+    "id": "antidote-basic",
+    "name": "antidote",
+    "description": "A green potion that cures poison. Essential for exploring dangerous areas.",
+    "type": "consumable",
+    "value": 35,
+    "weight": 0.5,
+    "ability": "antidote_effect"
+  },
+  {
+    "id": "scroll-fireball",
+    "name": "scroll of fireball",
+    "description": "A magical scroll containing the fireball spell. Burns up after use.",
+    "type": "consumable",
+    "value": 100,
+    "weight": 0.2,
+    "ability": "fireball"
+  },
+  {
+    "id": "scroll-heal",
+    "name": "scroll of healing",
+    "description": "A magical scroll containing a healing spell. Burns up after use.",
+    "type": "consumable",
+    "value": 75,
+    "weight": 0.2,
+    "ability": "heal_spell"
+  },
+  {
+    "id": "wand-basic",
+    "name": "apprentice wand",
+    "description": "A simple wand of polished wood. Channels magical energy for novice spellcasters.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 80,
+    "weight": 1,
+    "quality": "common",
+    "stats": {
+      "attack": 3,
+      "intelligence": 3,
+      "wisdom": 1
+    },
+    "requirements": {
+      "level": 1
+    }
+  },
+  {
+    "id": "staff-apprentice",
+    "name": "apprentice staff",
+    "description": "A wooden staff topped with a small crystal. Standard equipment for magic students.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 60,
+    "weight": 3,
+    "quality": "common",
+    "stats": {
+      "attack": 4,
+      "intelligence": 2,
+      "wisdom": 2
+    },
+    "requirements": {
+      "level": 1
+    }
+  },
+  {
+    "id": "dagger-steel",
+    "name": "steel dagger",
+    "description": "A well-balanced steel dagger. Quick and deadly in skilled hands.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 35,
+    "weight": 1,
+    "quality": "common",
+    "stats": {
+      "attack": 4,
+      "dexterity": 2
+    },
+    "requirements": {
+      "level": 1
+    }
+  },
+  {
+    "id": "mace-iron",
+    "name": "iron mace",
+    "description": "A heavy iron mace designed to crush armor and bone alike.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 40,
+    "weight": 6,
+    "quality": "common",
+    "stats": {
+      "attack": 6,
+      "strength": 2
+    },
+    "requirements": {
+      "level": 2,
+      "strength": 6
+    }
+  },
+  {
+    "id": "shield-iron",
+    "name": "iron shield",
+    "description": "A sturdy iron shield bearing no heraldry. Reliable protection.",
+    "type": "armor",
+    "slot": "offHand",
+    "value": 60,
+    "weight": 8,
+    "quality": "common",
+    "stats": {
+      "defense": 5,
+      "constitution": 1
+    },
+    "requirements": {
+      "level": 3,
+      "strength": 8
+    }
+  },
+  {
+    "id": "chainmail-chest",
+    "name": "chainmail hauberk",
+    "description": "A shirt of interlocking iron rings. Good protection with reasonable mobility.",
+    "type": "armor",
+    "slot": "chest",
+    "value": 120,
+    "weight": 15,
+    "quality": "uncommon",
+    "stats": {
+      "defense": 8,
+      "constitution": 2
+    },
+    "requirements": {
+      "level": 5,
+      "strength": 10
+    }
+  },
+  {
+    "id": "backpack-leather",
+    "name": "leather backpack",
+    "description": "A sturdy leather backpack with multiple pouches. Essential for adventuring.",
+    "type": "misc",
+    "value": 25,
+    "weight": 2
+  },
+  {
+    "id": "thornwood-ring",
+    "name": "Thornwood signet ring",
+    "description": "A ring bearing the seal of Thornwood Town. Given to those who perform great services for the community.",
+    "type": "armor",
+    "slot": "finger",
+    "value": 100,
+    "weight": 0.1,
+    "quality": "uncommon",
+    "stats": {
+      "charisma": 2,
+      "wisdom": 1
+    }
+  },
+  {
+    "id": "millbrook-pendant",
+    "name": "pendant of Aelindra",
+    "description": "A wooden pendant carved with the symbol of Aelindra, goddess of the harvest. Blessed by the village shrine.",
+    "type": "armor",
+    "slot": "neck",
+    "value": 30,
+    "weight": 0.2,
+    "quality": "common",
+    "stats": {
+      "wisdom": 2,
+      "constitution": 1
+    }
+  },
+  {
+    "id": "forest-cloak",
+    "name": "cloak of the forest",
+    "description": "A green and brown cloak that helps the wearer blend into forest environments.",
+    "type": "armor",
+    "slot": "back",
+    "value": 75,
+    "weight": 2,
+    "quality": "uncommon",
+    "stats": {
+      "defense": 2,
+      "dexterity": 3
+    },
+    "requirements": {
+      "level": 5
+    }
+  },
+  {
+    "id": "swamp-boots",
+    "name": "swamp strider boots",
+    "description": "Waterproof boots designed for traveling through marshy terrain.",
+    "type": "armor",
+    "slot": "feet",
+    "value": 90,
+    "weight": 3,
+    "quality": "uncommon",
+    "stats": {
+      "defense": 3,
+      "constitution": 2,
+      "agility": 1
+    },
+    "requirements": {
+      "level": 8
+    }
+  },
+  {
+    "id": "goblin-slayer-sword",
+    "name": "goblin slayer",
+    "description": "A sword inscribed with runes that glow faintly in the presence of goblins. The edge never seems to dull.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 200,
+    "weight": 4,
+    "quality": "rare",
+    "stats": {
+      "attack": 10,
+      "strength": 2,
+      "dexterity": 2
+    },
+    "requirements": {
+      "level": 8
+    }
+  },
+  {
+    "id": "marsh-ward-amulet",
+    "name": "marsh ward amulet",
+    "description": "An amulet that offers protection against the foul miasma of the marsh.",
+    "type": "armor",
+    "slot": "neck",
+    "value": 150,
+    "weight": 0.3,
+    "quality": "rare",
+    "stats": {
+      "defense": 2,
+      "constitution": 3,
+      "wisdom": 2
+    },
+    "requirements": {
+      "level": 10
+    }
+  },
+  {
+    "id": "tutorial-sword",
+    "name": "training sword",
+    "description": "A basic sword given to new adventurers. It's not much, but it's a start.",
+    "type": "weapon",
+    "slot": "mainHand",
+    "value": 10,
+    "weight": 3,
+    "quality": "poor",
+    "stats": {
+      "attack": 3
+    }
+  },
+  {
+    "id": "elder-letter",
+    "name": "letter from Elder Tobias",
+    "description": "A sealed letter of introduction from the village elder of Millbrook.",
+    "type": "quest",
+    "value": 0,
+    "weight": 0.1
+  },
+  {
+    "id": "goblin-battle-plan",
+    "name": "goblin battle plans",
+    "description": "Crude maps and scrawled plans showing goblin raid targets. The mayor needs to see this.",
+    "type": "quest",
+    "value": 0,
+    "weight": 0.2
+  },
+  {
+    "id": "marsh-herb",
+    "name": "marsh herb",
+    "description": "A rare medicinal herb that only grows in the darkest parts of the marsh.",
+    "type": "quest",
+    "value": 0,
+    "weight": 0.1
+  }
+]

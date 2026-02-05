@@ -17,6 +17,7 @@ import { systemLogger, getPlayerLogger, createMechanicsLogger } from '../utils/l
 const combatLogger = createMechanicsLogger('CombatSystem');
 import { AbilityManager } from '../abilities/abilityManager';
 import { secureRandom } from '../utils/secureRandom';
+import { ComboManager } from './comboManager';
 
 // Import our new components
 import { EntityTracker } from './components/EntityTracker';
@@ -27,6 +28,7 @@ import { CombatEventBus } from './components/CombatEventBus';
 import { CombatState, ActiveCombatState, FleeingCombatState } from './components/CombatState';
 import { CombatCommandFactory } from './components/CombatCommand';
 import { ColorType } from '../utils/colors';
+import { CombatEnergyTracker } from './attackSpeed';
 
 /**
  * Core combat system that orchestrates combat interactions
@@ -50,6 +52,9 @@ export class CombatSystem {
 
   // Ability manager for combat abilities
   private abilityManager: AbilityManager | null = null;
+
+  // Energy trackers for attack speed system
+  private energyTrackers: Map<string, CombatEnergyTracker> = new Map();
 
   private constructor(
     private userManager: UserManager,
@@ -179,6 +184,8 @@ export class CombatSystem {
         combat.setAbilityManager(this.abilityManager);
       }
       this.combats.set(player.user.username, combat);
+      // Create energy tracker for attack speed system
+      this.createEnergyTracker(player.user.username);
 
       player.user.inCombat = true;
       this.userManager.updateUserStats(player.user.username, { inCombat: true });
@@ -375,6 +382,16 @@ export class CombatSystem {
 
     // Remove the player's combat state
     this.playerCombatStates.delete(username);
+
+    // Remove the energy tracker
+    this.removeEnergyTracker(username);
+
+    // Clear combo points when combat ends
+    const user = this.userManager.getUser(username);
+    if (user) {
+      const comboManager = ComboManager.getInstance();
+      comboManager.onCombatEnd(user);
+    }
 
     // Clean up entity targeters for this player
     const entitiesToCheck: string[] = [];
@@ -647,6 +664,39 @@ export class CombatSystem {
       `[findAllClientsByUsername] Found ${results.length} clients for ${username}`
     );
     return results;
+  }
+
+  /**
+   * Get or create an energy tracker for a player
+   */
+  public getEnergyTracker(username: string): CombatEnergyTracker | undefined {
+    // Only return tracker if player is in combat
+    if (!this.combats.has(username)) {
+      return undefined;
+    }
+
+    let tracker = this.energyTrackers.get(username);
+    if (!tracker) {
+      tracker = new CombatEnergyTracker(username);
+      this.energyTrackers.set(username, tracker);
+    }
+    return tracker;
+  }
+
+  /**
+   * Create an energy tracker for a player when entering combat
+   */
+  private createEnergyTracker(username: string): CombatEnergyTracker {
+    const tracker = new CombatEnergyTracker(username);
+    this.energyTrackers.set(username, tracker);
+    return tracker;
+  }
+
+  /**
+   * Remove an energy tracker when combat ends
+   */
+  private removeEnergyTracker(username: string): void {
+    this.energyTrackers.delete(username);
   }
 
   /**

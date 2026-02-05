@@ -20,6 +20,8 @@ import {
 } from '../persistence/interfaces';
 import { getUserRepository, getSnakeScoreRepository } from '../persistence/RepositoryFactory';
 import { getPasswordService } from '../persistence/passwordService';
+import { calculateMaxHP } from '../utils/statCalculator';
+import { ClassManager } from '../class/classManager';
 
 export class UserManager {
   private users: User[] = [];
@@ -699,14 +701,28 @@ export class UserManager {
     const passwordHash = this.hashPassword(password, salt);
 
     const now = new Date();
+    // Calculate initial HP using the stat system formula
+    // HP = 20 + (CON * 2) + (Level * 5) + ClassBonus + RacialBonus
+    // For new adventurer: 20 + (10 * 2) + (1 * 5) + 0 + 0 = 45 HP
+    const initialConstitution = 10;
+    const initialLevel = 1;
+    const classHpBonus = 0; // Adventurer has no HP bonus
+    const racialHpBonus = 0; // No race selected yet
+    const initialMaxHealth = calculateMaxHP(
+      initialConstitution,
+      initialLevel,
+      classHpBonus,
+      racialHpBonus
+    );
+
     const newUser: User = {
       username: standardized,
       passwordHash,
       salt,
-      health: 100,
-      maxHealth: 100,
-      mana: 100,
-      maxMana: 100,
+      health: initialMaxHealth,
+      maxHealth: initialMaxHealth,
+      // Note: Adventurer class has resourceType 'none', so no mana/resource set
+      // Mana/resource will be set when player advances to a class that uses them
       experience: 0,
       level: 1,
       // Race and class (race will be set during race selection)
@@ -1137,16 +1153,33 @@ export class UserManager {
     user.intelligence += modifiers.intelligence;
     user.charisma += modifiers.charisma;
 
-    // Apply race bonuses to max health/mana
-    if (race.bonuses.maxHealth) {
-      const healthBonus = Math.floor(user.maxHealth * race.bonuses.maxHealth);
-      user.maxHealth += healthBonus;
-      user.health += healthBonus; // Also increase current health
+    // Get class HP bonus (adventurer has 0)
+    const classManager = ClassManager.getInstance();
+    const classData = classManager.getClass(user.classId ?? 'adventurer');
+    const classHpBonus = classData?.hpBonus ?? 0;
+
+    // Recalculate max HP using the new formula with racial bonus
+    // HP = 20 + (CON * 2) + (Level * 5) + ClassBonus + RacialBonus
+    const newMaxHealth = calculateMaxHP(
+      user.constitution,
+      user.level,
+      classHpBonus,
+      race.hpBonus ?? 0
+    );
+    const healthDiff = newMaxHealth - user.maxHealth;
+    user.maxHealth = newMaxHealth;
+    user.health = Math.min(user.health + healthDiff, user.maxHealth);
+
+    // Legacy percentage bonuses from race.bonuses (additional on top of formula)
+    if (race.bonuses?.maxHealth) {
+      const percentBonus = Math.floor(user.maxHealth * race.bonuses.maxHealth);
+      user.maxHealth += percentBonus;
+      user.health = Math.min(user.health + percentBonus, user.maxHealth);
     }
-    if (race.bonuses.maxMana) {
-      const manaBonus = Math.floor(user.maxMana * race.bonuses.maxMana);
-      user.maxMana += manaBonus;
-      user.mana += manaBonus; // Also increase current mana
+    if (race.bonuses?.maxMana && user.maxMana !== undefined) {
+      const manaBonus = Math.floor((user.maxMana ?? 0) * race.bonuses.maxMana);
+      user.maxMana = (user.maxMana ?? 0) + manaBonus;
+      user.mana = (user.mana ?? 0) + manaBonus;
     }
 
     this.saveUsers();

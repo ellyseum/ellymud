@@ -477,8 +477,8 @@ export class TesterAgent {
     return {
       health: user.health,
       maxHealth: user.maxHealth,
-      mana: user.mana,
-      maxMana: user.maxMana,
+      mana: user.mana ?? 0,
+      maxMana: user.maxMana ?? 0,
       gold: user.inventory.currency.gold,
       experience: user.experience,
       level: user.level,

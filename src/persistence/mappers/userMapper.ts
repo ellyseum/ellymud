@@ -79,8 +79,8 @@ export function userToDbRow(user: User): UsersTable {
     salt: user.salt ?? '',
     health: user.health,
     max_health: user.maxHealth,
-    mana: user.mana,
-    max_mana: user.maxMana,
+    mana: user.mana ?? 0, // Default to 0 for classes without mana
+    max_mana: user.maxMana ?? 0, // Default to 0 for classes without mana
     experience: user.experience,
     level: user.level,
     strength: user.strength,

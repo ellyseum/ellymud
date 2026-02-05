@@ -78,6 +78,7 @@ import { QuestCommand } from './commands/quest.command';
 import { TalkCommand, ReplyCommand } from './commands/talk.command';
 import { MapCommand } from './commands/map.command';
 import { WalkCommand } from './commands/walk.command';
+import { BashCommand } from './commands/bash.command';
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -186,6 +187,7 @@ export class CommandRegistry {
       new YellCommand(this.clients),
       new HistoryCommand(),
       new AttackCommand(this.combatSystem, this.roomManager, this.abilityManager),
+      new BashCommand(this.combatSystem, this.roomManager),
       new BreakCommand(this.combatSystem, this.userManager),
       new SpawnCommand(this.roomManager),
       new EquipCommand(),
@@ -278,6 +280,7 @@ export class CommandRegistry {
     this.aliases.set('hist', { commandName: 'history' });
     this.aliases.set('take', { commandName: 'pickup' });
     this.aliases.set('a', { commandName: 'attack' });
+    this.aliases.set('b', { commandName: 'bash' });
     this.aliases.set('br', { commandName: 'break' });
     this.aliases.set('sp', { commandName: 'spawn' });
     this.aliases.set('st', { commandName: 'stats' });
