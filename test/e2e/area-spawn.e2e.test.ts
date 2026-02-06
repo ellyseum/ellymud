@@ -138,14 +138,14 @@ describe('Area Spawn System', () => {
       const wolfSpawn = await agent.sendCommand(sessionId, 'spawn wolf');
       expect(wolfSpawn).toContain('spawned');
 
-      const catSpawn = await agent.sendCommand(sessionId, 'spawn cat');
-      expect(catSpawn).toContain('spawned');
+      const ratSpawn = await agent.sendCommand(sessionId, 'spawn rat');
+      expect(ratSpawn).toContain('spawned');
 
       // Verify all are in room
       const look = await agent.sendCommand(sessionId, 'look');
       expect(look.toLowerCase()).toContain('goblin');
       expect(look.toLowerCase()).toContain('wolf');
-      expect(look.toLowerCase()).toContain('cat');
+      expect(look.toLowerCase()).toContain('rat');
     });
   });
 });

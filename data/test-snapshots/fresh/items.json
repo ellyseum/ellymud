@@ -1,1 +1,35 @@
-[]
+[
+  {
+    "id": "potion_healing_1",
+    "name": "Minor Healing Potion",
+    "description": "A small vial of red liquid that restores health.",
+    "type": "consumable",
+    "slot": "none",
+    "value": 25,
+    "rarity": "common",
+    "effect": {
+      "type": "heal",
+      "amount": 20
+    }
+  },
+  {
+    "id": "sword_iron_1",
+    "name": "Iron Sword",
+    "description": "A basic iron sword.",
+    "type": "weapon",
+    "slot": "mainhand",
+    "value": 50,
+    "rarity": "common",
+    "damage": [3, 6]
+  },
+  {
+    "id": "shield_wooden_1",
+    "name": "Wooden Shield",
+    "description": "A simple wooden shield.",
+    "type": "armor",
+    "slot": "offhand",
+    "value": 30,
+    "rarity": "common",
+    "armor": 2
+  }
+]

@@ -1,1 +1,69 @@
-[]
+[
+  {
+    "id": "goblin",
+    "name": "goblin",
+    "description": "A small, green-skinned creature with a wicked grin.",
+    "health": 25,
+    "maxHealth": 25,
+    "damage": [2, 5],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 150,
+    "attackTexts": ["stabs at $TARGET$ with a rusty dagger"],
+    "deathMessages": ["screams in agony and falls to the ground"],
+    "canMove": true,
+    "movementTicks": 20,
+    "staysInArea": true,
+    "inventory": [
+      { "itemId": "potion_healing_1", "itemCount": 1, "spawnRate": 0.3 }
+    ]
+  },
+  {
+    "id": "wolf",
+    "name": "wolf",
+    "description": "A large gray wolf with gleaming yellow eyes.",
+    "health": 30,
+    "maxHealth": 30,
+    "damage": [3, 6],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 200,
+    "attackTexts": ["bites $TARGET$ with powerful jaws"],
+    "deathMessages": ["snarls defiantly one last time before collapsing"],
+    "canMove": true,
+    "movementTicks": 15,
+    "staysInArea": true
+  },
+  {
+    "id": "merchant_1",
+    "name": "Marcus the Merchant",
+    "description": "A friendly merchant selling basic goods.",
+    "health": 100,
+    "maxHealth": 100,
+    "damage": [1, 2],
+    "isHostile": false,
+    "isPassive": true,
+    "experienceValue": 0,
+    "attackTexts": ["Marcus slaps you!"],
+    "deathMessages": ["Marcus runs away!"],
+    "merchant": true,
+    "stationary": true,
+    "dialogue": "Welcome, traveler! Browse my wares.",
+    "inventory": [
+      { "itemId": "potion_healing_1", "itemCount": 5, "spawnRate": 1.0 }
+    ]
+  },
+  {
+    "id": "rat",
+    "name": "rat",
+    "description": "A small, dirty rat with beady eyes.",
+    "health": 10,
+    "maxHealth": 10,
+    "damage": [1, 2],
+    "isHostile": true,
+    "isPassive": false,
+    "experienceValue": 50,
+    "attackTexts": ["bites $TARGET$"],
+    "deathMessages": ["squeaks and dies"]
+  }
+]

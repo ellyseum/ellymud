@@ -60,7 +60,8 @@ describe('Combat E2E', () => {
       expect(stats.health).toBeGreaterThan(0);
       expect(stats.maxHealth).toBeGreaterThan(0);
       expect(stats.mana).toBeGreaterThanOrEqual(0);
-      expect(stats.maxMana).toBeGreaterThan(0);
+      // maxMana can be 0 for non-magical classes (fighters, thieves, etc.)
+      expect(stats.maxMana).toBeGreaterThanOrEqual(0);
     });
 
     it('should allow setting health for testing', async () => {
