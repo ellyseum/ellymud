@@ -24,7 +24,6 @@ describe('NPC Data E2E', () => {
   });
 
   beforeEach(async () => {
-    // Reset to clean state before each test
     await agent.resetToClean();
   });
 
