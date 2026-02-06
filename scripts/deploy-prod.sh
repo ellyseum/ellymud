@@ -130,6 +130,11 @@ sed -i '/^stream {/,/^# }/s/^# //' "$PROJECT_DIR/nginx/nginx.conf"
 rm -f "$PROJECT_DIR/nginx/conf.d/default.conf.tmp"
 rm -f "$PROJECT_DIR/nginx/conf.d/default.conf.bak"
 
+# Fix permissions for Docker container (runs as uid 1001)
+echo "Fixing data/logs permissions for container..."
+$SUDO chown -R 1001:1001 "$PROJECT_DIR/data" 2>/dev/null || true
+$SUDO chown -R 1001:1001 "$PROJECT_DIR/logs" 2>/dev/null || true
+
 # Start all services
 echo "Starting EllyMUD..."
 docker compose -f "$PROJECT_DIR/docker-compose.prod.yml" --env-file "$PROJECT_DIR/.env.prod" up -d

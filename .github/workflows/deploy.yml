@@ -39,6 +39,10 @@ jobs:
             # Pull latest code
             git pull origin main
 
+            # Fix permissions for Docker container (runs as uid 1001)
+            # This ensures the app can read/write data and log files
+            sudo chown -R 1001:1001 data/ logs/ 2>/dev/null || true
+
             # Rebuild and restart containers
             docker compose -f docker-compose.prod.yml up -d --build
 
