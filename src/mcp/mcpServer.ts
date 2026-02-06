@@ -1,5 +1,10 @@
 // MCP server uses dynamic typing for flexible API responses
 import express, { Request, Response } from 'express';
+
+// Extend Express Request to track API key authentication
+interface AuthenticatedRequest extends Request {
+  apiKeyAuthenticated?: boolean;
+}
 import cors from 'cors';
 import { Server as HttpServer } from 'http';
 import { UserManager } from '../user/userManager';
@@ -181,17 +186,20 @@ export class MCPServer {
         });
       }
 
+      // Mark request as API-key authenticated (grants full access including test commands)
+      (req as AuthenticatedRequest).apiKeyAuthenticated = true;
       next();
     });
 
-    // Block test-only REST endpoints when not in test mode
+    // Block test-only REST endpoints when not in test mode (unless API-key authenticated)
     this.app.use((req, res, next) => {
       // Allow read-only test endpoints (tick-count, snapshots list)
       const readOnlyTestPaths = ['/api/test/tick-count', '/api/test/snapshots'];
       if (
         req.path.startsWith('/api/test/') &&
         !readOnlyTestPaths.includes(req.path) &&
-        !TEST_MODE
+        !TEST_MODE &&
+        !(req as AuthenticatedRequest).apiKeyAuthenticated
       ) {
         mcpLogger.warn(`Blocked test endpoint '${req.path}' - server not in test mode`);
         return res.status(403).json({
@@ -285,7 +293,7 @@ export class MCPServer {
 
       if (method === 'tools/call') {
         mcpLogger.info(`Handling MCP tools/call request: ${params?.name}`);
-        this.handleToolCall(params, id, res);
+        this.handleToolCall(params, id, req as AuthenticatedRequest, res);
         return;
       }
 
@@ -1683,13 +1691,19 @@ export class MCPServer {
   /**
    * Handle MCP tool call
    */
-  private async handleToolCall(params: MCPToolCallParams, id: MCPRequestId, res: Response) {
+  private async handleToolCall(
+    params: MCPToolCallParams,
+    id: MCPRequestId,
+    req: AuthenticatedRequest,
+    res: Response
+  ) {
     const { name, arguments: args } = params;
     // Cast args to Record for accessing properties by key
     const toolArgs = args as Record<string, string | number | boolean | undefined>;
 
-    // Block test-only commands when not in test mode
-    if (TEST_ONLY_COMMANDS.has(name) && !TEST_MODE) {
+    // Block test-only commands when not in test mode AND not API-key authenticated
+    // API key authentication grants full access (allows test commands in production)
+    if (TEST_ONLY_COMMANDS.has(name) && !TEST_MODE && !req.apiKeyAuthenticated) {
       mcpLogger.warn(`Blocked test-only command '${name}' - server not in test mode`);
       return res.json({
         jsonrpc: '2.0',
