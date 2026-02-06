@@ -160,3 +160,4 @@ todos/*.md
 .claude/
 data/quest-progress.json
 data/merchant-state.json
+.claude/mcp-prod.json
