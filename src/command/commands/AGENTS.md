@@ -64,12 +64,13 @@ This directory contains 40+ command implementations. Each command is a single Ty
 
 ### Communication Commands
 
-| File                | Purpose                      |
-| ------------------- | ---------------------------- |
-| `say.command.ts`    | Talk to current room         |
-| `yell.command.ts`   | Shout to adjacent rooms      |
-| `wave.command.ts`   | Wave gesture to room         |
-| `laugh.command.ts`  | Laugh at target or room      |
+| File                   | Purpose                                |
+| ---------------------- | -------------------------------------- |
+| `say.command.ts`       | Talk to current room                   |
+| `yell.command.ts`      | Shout to adjacent rooms                |
+| `wave.command.ts`      | Wave gesture to room                   |
+| `laugh.command.ts`     | Laugh at target or room                |
+| `whisper.command.ts`   | Private message to player (any location) |
 
 ### Admin Commands
 

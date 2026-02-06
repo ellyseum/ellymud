@@ -79,6 +79,7 @@ import { TalkCommand, ReplyCommand } from './commands/talk.command';
 import { MapCommand } from './commands/map.command';
 import { WalkCommand } from './commands/walk.command';
 import { BashCommand } from './commands/bash.command';
+import { WhisperCommand } from './commands/whisper.command';
 
 // Function to calculate Levenshtein distance between two strings
 function levenshteinDistance(a: string, b: string): number {
@@ -237,6 +238,7 @@ export class CommandRegistry {
       new ReplyCommand(),
       new MapCommand(this.clients),
       new WalkCommand(this.clients),
+      new WhisperCommand(this.clients),
     ];
 
     // Register all commands
@@ -360,6 +362,10 @@ export class CommandRegistry {
     // Add aliases for walk command
     this.aliases.set('goto', { commandName: 'walk' });
     this.aliases.set('autowalk', { commandName: 'walk' });
+    // Whisper/Tell aliases - whisper is a slash command, so these
+    // require '/' prefix: /t, /tell (note: /w also works but bare 'w' goes to west)
+    this.aliases.set('t', { commandName: 'whisper' });
+    this.aliases.set('tell', { commandName: 'whisper' });
   }
 
   private registerDirectionCommands(): void {
@@ -451,15 +457,35 @@ export class CommandRegistry {
     return directions.includes(name) || shortDirections.includes(name);
   }
 
+  /**
+   * Get a command by name, respecting slash command rules.
+   * @param name The command name (may include '/' prefix for slash commands)
+   * @returns The command if found and prefix rules match, undefined otherwise
+   */
   public getCommand(name: string): Command | undefined {
+    const hasSlashPrefix = name.startsWith('/');
+    const lookupName = hasSlashPrefix ? name.substring(1) : name;
+
     // First try to get the command directly
-    let command = this.commands.get(name);
+    let command = this.commands.get(lookupName);
 
     // If not found, check aliases
-    if (!command && this.aliases.has(name)) {
-      const aliasedName = this.aliases.get(name)?.commandName;
+    if (!command && this.aliases.has(lookupName)) {
+      const aliasedName = this.aliases.get(lookupName)?.commandName;
       if (aliasedName) {
         command = this.commands.get(aliasedName);
+      }
+    }
+
+    // Enforce slash command rules
+    if (command) {
+      // Slash command requires '/' prefix
+      if (command.isSlashCommand && !hasSlashPrefix) {
+        return undefined;
+      }
+      // Non-slash command should NOT have '/' prefix
+      if (!command.isSlashCommand && hasSlashPrefix) {
+        return undefined;
       }
     }
 
@@ -512,6 +538,18 @@ export class CommandRegistry {
     }
 
     writeToClient(client, colorize(`==========================\n`, 'boldCyan'));
+  }
+
+  /**
+   * Get the command that an alias points to (without enforcing slash rules).
+   * Used internally to check if a command exists regardless of prefix.
+   */
+  private getCommandFromAlias(aliasName: string): Command | undefined {
+    const alias = this.aliases.get(aliasName);
+    if (alias) {
+      return this.commands.get(alias.commandName);
+    }
+    return undefined;
   }
 
   /**
@@ -570,12 +608,18 @@ export class CommandRegistry {
       }
     }
 
-    // Handle regular commands
+    // Handle regular commands (getCommand handles both direct commands and aliases,
+    // and enforces slash command rules)
     const command = this.getCommand(lowercaseCommand);
 
     if (command) {
       try {
-        command.execute(client, args.join(' '));
+        // Check if this was an alias with predefined args
+        const hasSlashPrefix = lowercaseCommand.startsWith('/');
+        const lookupName = hasSlashPrefix ? lowercaseCommand.substring(1) : lowercaseCommand;
+        const alias = this.aliases.get(lookupName);
+        const finalArgs = alias?.args ? alias.args : args.join(' ');
+        command.execute(client, finalArgs.trim());
       } catch (err: unknown) {
         commandLogger.error(`Error executing command ${commandName}:`, err);
         if (err instanceof Error) {
@@ -587,27 +631,37 @@ export class CommandRegistry {
       return;
     }
 
-    const alias = this.aliases.get(lowercaseCommand);
-    if (alias) {
-      const aliasCommand = this.commands.get(alias.commandName);
-      if (aliasCommand) {
-        try {
-          const aliasArgs = alias.args ? alias.args : args.join(' ');
-          aliasCommand.execute(client, aliasArgs.trim());
-        } catch (err: unknown) {
-          commandLogger.error(`Error executing alias ${commandName}:`, err);
-          if (err instanceof Error) {
-            writeToClient(client, colorize(`Error executing command: ${err.message}\r\n`, 'red'));
-          } else {
-            writeToClient(client, colorize(`Error executing command\r\n`, 'red'));
-          }
-        }
+    // If we got here, the command wasn't found
+    const hasSlashPrefix = lowercaseCommand.startsWith('/');
+    const lookupName = hasSlashPrefix ? lowercaseCommand.substring(1) : lowercaseCommand;
+
+    // Check if user typed a command without '/' but it requires '/' prefix
+    if (!hasSlashPrefix) {
+      const slashCommand = this.commands.get(lookupName) || this.getCommandFromAlias(lookupName);
+      if (slashCommand?.isSlashCommand) {
+        // Command exists but requires '/' prefix - suggest the correct form
+        const correctForm = `/${lookupName}`;
+        let message = colorize(`Command '`, 'red');
+        message += colorize(commandName, 'bright');
+        message += colorize(`' not recognized. Did you mean '`, 'red');
+        message += colorize(correctForm, 'bright');
+        message += colorize(`'?\r\n`, 'red');
+        writeToClient(client, message);
         return;
       }
     }
 
-    // If we got here, the command wasn't found
-    // Find the closest command suggestion
+    // For slash commands that don't exist, don't suggest alternatives
+    // Just report the invalid command directly
+    if (hasSlashPrefix) {
+      let message = colorize(`Invalid command '`, 'red');
+      message += colorize(commandName, 'bright');
+      message += colorize(`'.\r\n`, 'red');
+      writeToClient(client, message);
+      return;
+    }
+
+    // For regular commands, find the closest suggestion using Levenshtein distance
     const suggestion = this.findClosestCommand(lowercaseCommand);
 
     let message = colorize(`Command '`, 'red');

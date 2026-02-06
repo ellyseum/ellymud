@@ -210,6 +210,7 @@ export class AdminOnlyCommand implements Command {
 - ⚠️ **Async Commands**: If command needs async, use `async execute()` but handle errors
 - ⚠️ **Registration**: Commands must be imported in registry to be active
 - ⚠️ **Aliases**: Ensure aliases don't conflict with other commands
+- ⚠️ **Slash Commands**: Commands with `isSlashCommand = true` require the `/` prefix to invoke. This avoids conflicts with direction shortcuts (e.g., `w` for west).
 
 ## Related Context
 

@@ -42,7 +42,7 @@ Each command implements:
 
 - **Navigation**: look, move, north/south/east/west
 - **Combat**: attack, defend (move to any exit to flee combat)
-- **Communication**: say, yell, whisper, tell
+- **Communication**: say, yell, /whisper (also: /tell, /t)
 - **Inventory**: inventory, get, drop, equip, unequip
 - **Character**: stats, score, level
 - **Admin**: teleport, spawn, kick, ban
