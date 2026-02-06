@@ -159,3 +159,4 @@ todos/*.md
 # Claude settings
 .claude/
 data/quest-progress.json
+data/merchant-state.json
