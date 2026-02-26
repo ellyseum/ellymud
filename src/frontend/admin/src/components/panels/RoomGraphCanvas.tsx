@@ -245,6 +245,19 @@ export const RoomGraphCanvas = forwardRef<RoomGraphCanvasRef, RoomGraphCanvasPro
     resetView
   }), [resetView]);
 
+  // Auto-center view when rooms change (new area selected) or on mount
+  useEffect(() => {
+    // Use requestAnimationFrame to ensure DOM is painted and has correct dimensions
+    const frame = requestAnimationFrame(() => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect && rect.width > 0 && rect.height > 0) {
+        setPan({ x: rect.width / 2, y: rect.height / 2 });
+        setZoom(1);
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [rooms]); // Re-center when rooms array changes (area selection)
+
   // Convert grid coordinates to pixel coordinates (0,0 is at center)
   const gridToPixel = (gridX: number, gridY: number) => ({
     x: gridX * GRID_SIZE,
