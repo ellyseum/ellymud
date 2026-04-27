@@ -106,8 +106,9 @@ backups/
 
 pull_request_description.md
 
-# Claude settings — directory contents ignored except CLAUDE.md (canonical project context)
-.claude/*
-!.claude/CLAUDE.md
+# Claude — track project config, ignore secrets + per-developer state
+.claude/mcp.json
+.claude/mcp-prod.json
+.claude/settings.local.json
 data/quest-progress.json
 data/merchant-state.json
