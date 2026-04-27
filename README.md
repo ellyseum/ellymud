@@ -86,7 +86,7 @@ For contributor conventions, build commands, and architecture in detail, read [`
 npm run dev      # hot-reload server
 npm test         # full test suite
 npm run build    # tsc + vite build
-make help        # everything else
+npm run          # list all scripts
 ```
 
 ## License

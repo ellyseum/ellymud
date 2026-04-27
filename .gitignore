@@ -106,8 +106,8 @@ backups/
 
 pull_request_description.md
 
-# Claude settings
-.claude/
+# Claude settings — directory contents ignored except CLAUDE.md (canonical project context)
+.claude/*
+!.claude/CLAUDE.md
 data/quest-progress.json
 data/merchant-state.json
-.claude/mcp-prod.json
