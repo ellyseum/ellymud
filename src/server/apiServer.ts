@@ -202,27 +202,6 @@ export class APIServer {
     this.app.get('/api/admin/mud-config', AdminApi.validateToken, AdminApi.getMUDConfig());
     this.app.post('/api/admin/mud-config', AdminApi.validateToken, AdminApi.updateMUDConfig());
 
-    // Pipeline metrics endpoint
-    this.app.get(
-      '/api/admin/pipeline-metrics',
-      AdminApi.validateToken,
-      AdminApi.getPipelineMetrics()
-    );
-
-    // Stage reports endpoints
-    this.app.get(
-      '/api/admin/stage-reports/:stage',
-      AdminApi.validateToken,
-      AdminApi.getStageReports()
-    );
-
-    // Report file viewer endpoint
-    this.app.get(
-      '/api/admin/report-file/:stage/:filename',
-      AdminApi.validateToken,
-      AdminApi.getReportFile()
-    );
-
     // Area routes (World Builder)
     this.app.get('/api/admin/areas', AdminApi.validateToken, AdminApi.getAllAreas());
     this.app.get('/api/admin/areas/:id', AdminApi.validateToken, AdminApi.getAreaById());

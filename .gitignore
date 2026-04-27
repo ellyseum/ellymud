@@ -104,57 +104,7 @@ backups/
 # Misc
 .cache/
 
-# Agent pipeline outputs (user-specific, not committed)
-# Keep README.md and AGENTS.md in each directory
-.github/agents/research/*.md
-!.github/agents/research/README.md
-!.github/agents/research/AGENTS.md
-.github/agents/planning/*.md
-!.github/agents/planning/README.md
-!.github/agents/planning/AGENTS.md
-.github/agents/implementation/*.md
-!.github/agents/implementation/README.md
-!.github/agents/implementation/AGENTS.md
-.github/agents/validation/*.md
-!.github/agents/validation/README.md
-!.github/agents/validation/AGENTS.md
-.github/agents/suggestions/*.md
-!.github/agents/suggestions/README.md
-!.github/agents/suggestions/AGENTS.md
-.github/agents/summaries/*.md
-!.github/agents/summaries/README.md
-!.github/agents/summaries/AGENTS.md
-.github/agents/metrics/*.json
-.github/agents/metrics/*.md
-!.github/agents/metrics/README.md
-!.github/agents/metrics/AGENTS.md
-!.github/agents/metrics/pipeline-metrics-schema.json
-!.github/agents/metrics/stage-stats-schema.json
-.github/agents/metrics/executions/
-.github/agents/metrics/stats/*.json
-.github/agents/metrics/stats/*.md
-!.github/agents/metrics/stats/README.md
-!.github/agents/metrics/stats/AGENTS.md
-.github/agents/metrics/pipeline-report.md
-.github/agents/documentation/*.md
-!.github/agents/documentation/README.md
-!.github/agents/documentation/AGENTS.md
-.github/agents/updates/*.md
-!.github/agents/updates/README.md
-!.github/agents/updates/AGENTS.md
-.github/agents/unit-test-generation/*.md
-!.github/agents/unit-test-generation/README.md
-!.github/agents/unit-test-generation/AGENTS.md
-.github/agents/grounding/*.md
-!.github/agents/grounding/README.md
-!.github/agents/grounding/AGENTS.md
 pull_request_description.md
-# Todos (session-based planning, not committed)
-todos/*.md
-!todos/README.md
-!todos/AGENTS.md
-# Agent test results
-.github/agents/agent-tests/results/
 
 # Claude settings
 .claude/

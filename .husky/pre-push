@@ -17,10 +17,6 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 echo "📌 Pushing branch: $BRANCH"
 
-# Check paired documentation
-echo "📝 Checking paired documentation..."
-./scripts/check-paired-docs.sh --all
-
 # Always run formatting/lint checks
 echo "🔍 Checking formatting..."
 npx prettier --check 'src/**/*.ts'

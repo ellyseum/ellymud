@@ -310,7 +310,6 @@ print_step "Creating directory structure..."
 mkdir -p data
 mkdir -p logs/{system,players,error,mcp,raw-sessions,audit,exceptions,rejections}
 mkdir -p backups
-mkdir -p .github/agents/metrics/executions
 
 # Initialize data files if missing
 if [ ! -f "data/users.json" ]; then

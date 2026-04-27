@@ -5,9 +5,6 @@ import {
   Player,
   PlayerDetails,
   MUDConfig,
-  PipelineMetrics,
-  StageReportsResponse,
-  ReportFileResponse,
   Area,
   RoomData,
 } from '../types';
@@ -210,33 +207,6 @@ class ApiClient {
       headers: this.getHeaders(),
       body: JSON.stringify(config),
     });
-    return this.handleResponse(response);
-  }
-
-  // Pipeline Metrics
-  async getPipelineMetrics(): Promise<ApiResponse<PipelineMetrics>> {
-    const response = await fetch(`${API_BASE}/pipeline-metrics`, {
-      headers: this.getHeaders(),
-    });
-    return this.handleResponse(response);
-  }
-
-  // Stage Reports
-  async getStageReports(stage: string): Promise<ApiResponse<StageReportsResponse>> {
-    const response = await fetch(`${API_BASE}/stage-reports/${stage}`, {
-      headers: this.getHeaders(),
-    });
-    return this.handleResponse(response);
-  }
-
-  // Report File Viewer
-  async getReportFile(stage: string, filename: string): Promise<ApiResponse<ReportFileResponse>> {
-    const response = await fetch(
-      `${API_BASE}/report-file/${stage}/${encodeURIComponent(filename)}`,
-      {
-        headers: this.getHeaders(),
-      }
-    );
     return this.handleResponse(response);
   }
 

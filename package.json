@@ -13,8 +13,6 @@
     "build:frontend": "vite build",
     "build:server": "tsc --build --verbose",
     "build-watch": "tsc --build --watch",
-    "check-paired-docs": "./scripts/check-paired-docs.sh --all",
-    "check-paired-docs-staged": "./scripts/check-paired-docs.sh --staged",
     "ci": "npm run lint && npm run typecheck && npm run validate && npm run build",
     "clean": "rm -rf dist",
     "clean-all": "rm -rf dist node_modules",

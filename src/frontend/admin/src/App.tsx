@@ -8,10 +8,9 @@ import { OverviewPanel } from './components/panels/OverviewPanel';
 import { PlayersPanel } from './components/panels/PlayersPanel';
 import { MonitorPanel } from './components/panels/MonitorPanel';
 import { ConfigPanel } from './components/panels/ConfigPanel';
-import { PipelinePanel } from './components/panels/PipelinePanel';
 import { WorldBuilderPanel } from './components/panels/WorldBuilderPanel';
 
-type TabId = 'dashboard' | 'client' | 'players' | 'config' | 'pipeline' | 'worldbuilder';
+type TabId = 'dashboard' | 'client' | 'players' | 'config' | 'worldbuilder';
 
 function Dashboard() {
   const { isAuthenticated, requiresPasswordChange, logout } = useAuth();
@@ -21,7 +20,7 @@ function Dashboard() {
     // Handle hash routing
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '').replace('-tab', '');
-      const validTabs: TabId[] = ['dashboard', 'client', 'players', 'config', 'pipeline', 'worldbuilder'];
+      const validTabs: TabId[] = ['dashboard', 'client', 'players', 'config', 'worldbuilder'];
       if (validTabs.includes(hash as TabId)) {
         setActiveTab(hash as TabId);
       }
@@ -56,8 +55,6 @@ function Dashboard() {
         return <PlayersPanel />;
       case 'config':
         return <ConfigPanel />;
-      case 'pipeline':
-        return <PipelinePanel />;
       case 'worldbuilder':
         return <WorldBuilderPanel />;
       default:
