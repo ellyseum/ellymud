@@ -106,9 +106,7 @@ backups/
 
 pull_request_description.md
 
-# Claude — track project config, ignore secrets + per-developer state
-.claude/mcp.json
-.claude/mcp-prod.json
+# Claude — track project config; only per-developer state is ignored
 .claude/settings.local.json
 data/quest-progress.json
 data/merchant-state.json

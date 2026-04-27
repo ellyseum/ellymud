@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ellymud-mcp-server": {
+      "type": "http",
+      "url": "http://localhost:3100",
+      "headers": {
+        "X-API-Key": "${ELLYMUD_MCP_API_KEY}"
+      }
+    }
+  }
+}

@@ -53,6 +53,7 @@
     "data:switch": "npx ts-node scripts/data-migrate.ts switch",
     "convert": "ts-node scripts/convert-data.ts",
     "audit:data": "npx ts-node scripts/audit-data.ts",
+    "mcp:regen-key": "npx ts-node scripts/regenerate-mcp-key.ts",
     "convert:dry-run": "ts-node scripts/convert-data.ts --dry-run",
     "docker:build": "docker build -t ellymud:latest .",
     "docker:up": "npm run docker:dev",

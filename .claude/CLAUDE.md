@@ -82,10 +82,6 @@ Async init via `initPromise` + `ensureInitialized()`. Single source of truth for
 - Pre-commit: lint-staged (ESLint + prettier)
 - Pre-push: prettier + ESLint, plus the full test suite when pushing to `main`/`master`
 
-### Daily commit budget
-
-Per global rule, ≤50 commits/day across `~/projects`. Check before bulk operations.
-
 ## Critical safety
 
 ### Don't kill all node processes
@@ -148,7 +144,17 @@ Current baseline: 151 suites, 3,502 tests, ~35s.
 
 ## MCP server / test mode
 
-Port 3100, API key at `MCP_API_KEY`. Used by:
+Port 3100, API key from `ELLYMUD_MCP_API_KEY` env var. The committed `.claude/mcp.json` uses `${ELLYMUD_MCP_API_KEY}` substitution — never hard-code the key. The actual value lives in `.env` (gitignored).
+
+To rotate the key:
+
+```bash
+npm run mcp:regen-key       # writes new key to .env, prints it
+set -a; source .env; set +a # reload env in current shell
+# restart MCP server + Claude Code so both pick up the new value
+```
+
+Used by:
 
 - AI agents to query game state and drive virtual sessions
 - E2E tests via virtual sessions

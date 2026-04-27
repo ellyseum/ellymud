@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ellymud-prod": {
+      "type": "http",
+      "url": "https://ellymud.com/api/",
+      "headers": {
+        "X-API-Key": "${ELLYMUD_MCP_PROD_API_KEY}"
+      }
+    }
+  }
+}
