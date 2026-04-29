@@ -540,8 +540,9 @@ export class Combat {
   private processCounterAttack(npc: CombatEntity): void {
     if (!this.player.user || !this.player.user.currentRoomId) return;
 
-    // Get the entity ID
-    const entityId = this.combatSystem.getEntityId(this.player.user.currentRoomId, npc.name);
+    // Same instanceId-keyed lookup as engageCombat / handleNpcDeath.
+    const entityKey = npc instanceof NPC ? npc.instanceId : npc.name;
+    const entityId = this.combatSystem.getEntityId(this.player.user.currentRoomId, entityKey);
 
     // Check if this entity has already attacked in this round
     if (this.combatSystem.hasEntityAttackedThisRound(entityId)) {
@@ -700,28 +701,23 @@ export class Combat {
 
     const roomId = this.player.user.currentRoomId;
 
-    // Get the entity ID
-    const entityId = this.combatSystem.getEntityId(roomId, npc.name);
+    // Combat tracks targeters by NPC instanceId in combatSystem.engageCombat,
+    // so the death lookup must use the same key. Using npc.name here produces
+    // a stale entityId that never matches engagement records — silently
+    // breaking party XP splits (other targeters get 0). Fall back to npc.name
+    // only for non-NPC entities.
+    const entityKey = npc instanceof NPC ? npc.instanceId : npc.name;
+    const entityId = this.combatSystem.getEntityId(roomId, entityKey);
 
     // Get all players targeting this entity
     const targetingPlayers = [...this.combatSystem.getEntityTargeters(entityId)];
 
-    // Diagnostic logging for the playtest-reported "admin-spawn gives half XP"
-    // bug. engageCombat keys targeters by instanceId for NPCs, but this lookup
-    // uses npc.name — a known mismatch. Log enough context to reproduce.
-    const entityIdByInstance =
-      npc instanceof NPC ? this.combatSystem.getEntityId(roomId, npc.instanceId) : entityId;
-    const targetersByInstance =
-      npc instanceof NPC ? [...this.combatSystem.getEntityTargeters(entityIdByInstance)] : [];
     mcpLogger.debug(
       `[xp-debug] handleNpcDeath: ` +
         `npc.name=${JSON.stringify(npc.name)}, ` +
-        `npc.instanceId=${npc instanceof NPC ? JSON.stringify(npc.instanceId) : 'N/A'}, ` +
+        `entityKey=${JSON.stringify(entityKey)}, ` +
         `experienceValue=${npc.experienceValue}, ` +
-        `entityId(byName)=${JSON.stringify(entityId)}, ` +
-        `targetersByName=${JSON.stringify(targetingPlayers)}, ` +
-        `entityId(byInstance)=${JSON.stringify(entityIdByInstance)}, ` +
-        `targetersByInstance=${JSON.stringify(targetersByInstance)}`
+        `targeters=${JSON.stringify(targetingPlayers)}`
     );
 
     // Ensure at least the player who killed the NPC gets experience
@@ -734,11 +730,6 @@ export class Combat {
     // Ensure we always have at least 1 participant to avoid dividing by zero
     const numParticipants = Math.max(1, targetingPlayers.length);
     const experiencePerPlayer = Math.floor(npc.experienceValue / numParticipants);
-
-    mcpLogger.debug(
-      `[xp-debug] award: numParticipants=${numParticipants}, ` +
-        `experiencePerPlayer=${experiencePerPlayer}, killer=${this.player.user.username}`
-    );
 
     // Award experience to all participating players
     for (const playerName of targetingPlayers) {
@@ -779,8 +770,9 @@ export class Combat {
       );
     }
 
-    // NEW: Remove the entity from active combat in the room
-    this.combatSystem['removeEntityFromCombatForRoom'](roomId, npc.name);
+    // Remove the entity from active combat in the room (instanceId-keyed
+    // to match how engageCombat / addEntityToCombatForRoom registered it).
+    this.combatSystem['removeEntityFromCombatForRoom'](roomId, entityKey);
 
     // Clear aggression from the dead entity
     npc.clearAllAggression();
@@ -852,8 +844,8 @@ export class Combat {
       });
     }
 
-    // Clean up the shared entity reference
-    this.combatSystem.cleanupDeadEntity(roomId, npc.name);
+    // Clean up the shared entity reference (also instanceId-keyed).
+    this.combatSystem.cleanupDeadEntity(roomId, entityKey);
 
     // Remove all players from targeting this entity
     for (const playerName of targetingPlayers) {
