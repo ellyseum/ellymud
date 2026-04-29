@@ -64,10 +64,19 @@ export class Room {
   spawnNpcs?: string[];
   spawnCurrency?: Currency;
 
+  // Preserve the original short/long-description strings from the source data
+  // so they survive a load → save round trip. The constructor used to fold
+  // them into name/description, dropping the originals; persistence then
+  // re-emitted name/description and the field was lost.
+  shortDescription?: string;
+  longDescription?: string;
+
   constructor(room: RoomConstructorData) {
     this.id = room.id;
     this.name = room.name || room.shortDescription || 'Unknown Room';
     this.description = room.description || room.longDescription || '';
+    this.shortDescription = room.shortDescription;
+    this.longDescription = room.longDescription;
     this.exits = room.exits || [];
     this.players = room.players || [];
     this.areaId = room.areaId;

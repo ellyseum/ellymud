@@ -348,6 +348,11 @@ export class RoomManager implements IRoomManager {
           id: room.id,
           name: room.name,
           description: room.description,
+          // Preserve original short/long-description if the source had them
+          // (constructor stores them separately so a round trip doesn't lose
+          // distinct wording).
+          shortDescription: room.shortDescription,
+          longDescription: room.longDescription,
           exits: room.exits,
           flags: room.flags,
           areaId: room.areaId,

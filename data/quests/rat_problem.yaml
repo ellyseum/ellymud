@@ -21,10 +21,10 @@ steps:
     description: "Find the innkeeper and learn about the rat problem."
     objectives:
       - type: talk_to_npc
-        npcTemplateId: innkeeper
+        npcTemplateId: millbrook-innkeeper
         description: "Talk to the innkeeper"
     npcDialogues:
-      innkeeper:
+      millbrook-innkeeper:
         greeting: "Oh, thank goodness you're here! I've got a terrible rat problem in my cellar."
         options:
           - text: "I can help with your rat problem."
@@ -63,10 +63,10 @@ steps:
     description: "Return to the innkeeper to collect your reward."
     objectives:
       - type: talk_to_npc
-        npcTemplateId: innkeeper
+        npcTemplateId: millbrook-innkeeper
         description: "Return to the innkeeper"
     npcDialogues:
-      innkeeper:
+      millbrook-innkeeper:
         greeting: "You're back! Did you take care of those rats?"
         options:
           - text: "The cellar is clear."
@@ -87,8 +87,8 @@ rewards:
     copper: 0
   message: "The innkeeper thanks you profusely for your help!"
 
-questGiver: innkeeper
-turnInNpc: innkeeper
+questGiver: millbrook-innkeeper
+turnInNpc: millbrook-innkeeper
 
 recommendedLevel:
   min: 1
