@@ -26,6 +26,7 @@ import {
   clearActiveConversation,
 } from '../../quest/questDialogue';
 import { questEventBus } from '../../quest/questEventHandler';
+import { getQuestManager } from '../../quest/questManager';
 
 export class TalkCommand implements Command {
   name = 'talk';
@@ -84,7 +85,7 @@ export class TalkCommand implements Command {
       return;
     }
 
-    // Check for quest dialogues
+    // Check for quest dialogues for an active quest
     const dialogueResult = await getQuestDialoguesForNpc(client.user, targetNpc.templateId);
 
     if (dialogueResult.hasQuestDialogue) {
@@ -94,24 +95,62 @@ export class TalkCommand implements Command {
       // Display quest dialogue
       displayQuestDialogue(client, targetNpc.name, dialogueResult);
     } else {
-      // No quest dialogue - check for default dialogue from NPC template
-      const npcData = NPC.loadNPCData();
-      const template = npcData.get(targetNpc.templateId);
-      const defaultDialogue = template?.dialogue;
+      // No active quest dialogue. Before falling back to flavor, check whether
+      // this NPC is the giver of any AVAILABLE quest. If so, auto-offer it —
+      // saves the player from having to discover `quest available` /
+      // `quest accept <id>` on their own.
+      const questManager = getQuestManager();
+      const available = await questManager.getAvailableQuests(client.user);
+      const offered = available.find((q) => q.questGiver === targetNpc.templateId);
 
-      if (defaultDialogue) {
-        // Show the NPC's default greeting
-        writeMessageToClient(
-          client,
-          colorize(`\r\n${targetNpc.name} says, "${defaultDialogue}"\r\n\r\n`, 'cyan')
-        );
+      if (offered) {
+        // Auto-accept and skip the first step if it's a `talk_to_npc` step
+        // pointing at this same NPC (otherwise the player would have to
+        // immediately re-talk to advance — bad UX).
+        const firstStep = offered.steps[0];
+        const firstObjective = firstStep?.objectives?.[0];
+        const isFirstStepRedundantTalk =
+          firstObjective?.type === 'talk_to_npc' &&
+          (firstObjective as { npcTemplateId?: string }).npcTemplateId === targetNpc.templateId;
+        const startingStep = isFirstStepRedundantTalk ? offered.steps[1]?.id : undefined;
+
+        const result = await questManager.startQuest(client.user, offered.id, { startingStep });
+        if (result.success) {
+          writeMessageToClient(
+            client,
+            colorize(`\r\n${targetNpc.name} explains: "${offered.description}"\r\n`, 'cyan')
+          );
+          writeMessageToClient(
+            client,
+            colorize(`Quest accepted: ${offered.name}\r\n`, 'brightYellow')
+          );
+        } else if (result.error) {
+          writeMessageToClient(
+            client,
+            colorize(
+              `\r\n${targetNpc.name} would offer you a quest, but: ${result.error}\r\n`,
+              'yellow'
+            )
+          );
+        }
       } else {
-        // No dialogue available
-        writeMessageToClient(client, colorize(`${targetNpc.name} looks at you.\r\n`, 'white'));
-        writeMessageToClient(
-          client,
-          colorize(`${targetNpc.name} doesn't have anything to say to you.\r\n`, 'gray')
-        );
+        // No quest dialogue and no quest to offer — show NPC's default flavor.
+        const npcData = NPC.loadNPCData();
+        const template = npcData.get(targetNpc.templateId);
+        const defaultDialogue = template?.dialogue;
+
+        if (defaultDialogue) {
+          writeMessageToClient(
+            client,
+            colorize(`\r\n${targetNpc.name} says, "${defaultDialogue}"\r\n\r\n`, 'cyan')
+          );
+        } else {
+          writeMessageToClient(client, colorize(`${targetNpc.name} looks at you.\r\n`, 'white'));
+          writeMessageToClient(
+            client,
+            colorize(`${targetNpc.name} doesn't have anything to say to you.\r\n`, 'gray')
+          );
+        }
       }
 
       // Still emit the talked event (might satisfy simple talk objectives)
