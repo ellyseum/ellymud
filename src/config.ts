@@ -16,6 +16,9 @@ export const TELNET_PORT = cliConfig.port;
 export const HTTP_PORT = cliConfig.httpPort || cliConfig.wsPort;
 export const WS_PORT = cliConfig.wsPort;
 
+// MCP server port: CLI flag > MCP_PORT env > 3100 default
+export const MCP_PORT = cliConfig.mcpPort ?? (Number(process.env.MCP_PORT) || 3100);
+
 // Authentication
 // In production, JWT_SECRET must be explicitly set for security.
 // In development, auto-generate a random secret for convenience (sessions won't persist across restarts).
@@ -210,6 +213,7 @@ export default {
   TELNET_PORT,
   WS_PORT,
   HTTP_PORT,
+  MCP_PORT,
   JWT_SECRET,
   MIN_PASSWORD_LENGTH,
   maxPasswordAttempts,

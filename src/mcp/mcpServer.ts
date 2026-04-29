@@ -108,7 +108,7 @@ export class MCPServer {
     roomManager: RoomManager,
     clientManager: ClientManager,
     gameTimerManager: GameTimerManager,
-    port: number = 3100
+    port: number = Number(process.env.MCP_PORT) || 3100
   ) {
     this.userManager = userManager;
     this.roomManager = roomManager;

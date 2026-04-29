@@ -32,6 +32,7 @@ const createMockConfig = (overrides: Partial<CLIConfig> = {}): CLIConfig => ({
   port: 3000,
   wsPort: 8080,
   httpPort: null,
+  mcpPort: null,
   logLevel: 'info',
   noColor: false,
   silent: false,

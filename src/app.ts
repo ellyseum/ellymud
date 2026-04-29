@@ -223,7 +223,7 @@ export class GameServer {
         this.roomManager,
         this.clientManager,
         this.gameTimerManager,
-        portConfig?.mcpPort
+        portConfig?.mcpPort ?? config.MCP_PORT
       );
 
       // Setup keyboard listeners for console commands after server is started

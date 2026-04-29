@@ -70,6 +70,7 @@ export interface CLIConfig {
   port: number;
   wsPort: number;
   httpPort: number | null; // New option for HTTP server port
+  mcpPort: number | null;
   logLevel: string;
   noColor: boolean;
   silent: boolean;
@@ -182,6 +183,11 @@ export function parseCommandLineArgs(): CLIConfig {
       type: 'number',
       description: 'HTTP server port',
     })
+    .option('mcpPort', {
+      type: 'number',
+      description: 'MCP server port (default 3100, overridable via MCP_PORT env)',
+      alias: 'mcp',
+    })
     .option('logLevel', {
       type: 'string',
       description: 'Log level (debug, info, warn, error)',
@@ -269,6 +275,7 @@ export function parseCommandLineArgs(): CLIConfig {
     port: argv.port,
     wsPort: argv.wsPort,
     httpPort: argv.httpPort || null,
+    mcpPort: argv.mcpPort ?? null,
     logLevel: argv.logLevel,
     noColor: argv.noColor || isTestMode, // Auto-disable colors in test mode
     // Auto-enable silent and noConsole if an auto-session is requested OR in test mode
