@@ -110,3 +110,4 @@ pull_request_description.md
 .claude/settings.local.json
 data/quest-progress.json
 data/merchant-state.json
+.claude/scheduled_tasks.lock
