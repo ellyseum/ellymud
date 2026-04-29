@@ -355,6 +355,67 @@ describe('QuestManager', () => {
       expect(available.some((q) => q.id === 'repeatable-daily')).toBe(true);
     });
 
+    it('should exclude completed repeatable quests still on cooldown', async () => {
+      // Inject a repeatCooldown into the test fixture for this case
+      const quest = questManager.getQuest('repeatable-daily');
+      if (!quest) throw new Error('fixture missing repeatable-daily');
+      const originalCooldown = quest.repeatCooldown;
+      quest.repeatCooldown = 3600; // 1 hour
+
+      try {
+        const progress: QuestProgressData = {
+          username: mockUser.username,
+          activeQuests: [],
+          completedQuests: [
+            {
+              questId: 'repeatable-daily',
+              // 5 minutes ago — well within the 1-hour cooldown
+              completedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+              completionCount: 1,
+            },
+          ],
+          failedQuests: [],
+          updatedAt: new Date().toISOString(),
+        };
+        mockRepository.findByUsername.mockResolvedValue(progress);
+
+        const available = await questManager.getAvailableQuests(mockUser);
+        expect(available.some((q) => q.id === 'repeatable-daily')).toBe(false);
+      } finally {
+        quest.repeatCooldown = originalCooldown;
+      }
+    });
+
+    it('should re-include repeatable quests after cooldown elapses', async () => {
+      const quest = questManager.getQuest('repeatable-daily');
+      if (!quest) throw new Error('fixture missing repeatable-daily');
+      const originalCooldown = quest.repeatCooldown;
+      quest.repeatCooldown = 60; // 1 minute
+
+      try {
+        const progress: QuestProgressData = {
+          username: mockUser.username,
+          activeQuests: [],
+          completedQuests: [
+            {
+              questId: 'repeatable-daily',
+              // 2 minutes ago — past the 1-minute cooldown
+              completedAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+              completionCount: 1,
+            },
+          ],
+          failedQuests: [],
+          updatedAt: new Date().toISOString(),
+        };
+        mockRepository.findByUsername.mockResolvedValue(progress);
+
+        const available = await questManager.getAvailableQuests(mockUser);
+        expect(available.some((q) => q.id === 'repeatable-daily')).toBe(true);
+      } finally {
+        quest.repeatCooldown = originalCooldown;
+      }
+    });
+
     it('should check questsCompleted prerequisites', async () => {
       // chain-quest-2 requires chain-quest-1 to be completed
       const progress: QuestProgressData = {

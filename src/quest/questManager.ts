@@ -144,10 +144,11 @@ export class QuestManager extends EventEmitter {
         continue;
       }
 
-      // Skip if completed and not repeatable
+      // Skip if completed and not repeatable, or still on cooldown.
       const completed = progress.completedQuests.find((q) => q.questId === quest.id);
-      if (completed && !quest.repeatable) {
-        continue;
+      if (completed) {
+        if (!quest.repeatable) continue;
+        if (isWithinRepeatCooldown(quest, completed.completedAt)) continue;
       }
 
       // Check prerequisites
@@ -234,10 +235,21 @@ export class QuestManager extends EventEmitter {
       return { can: false, reason: 'Quest is already active.' };
     }
 
-    // Check if completed and not repeatable
+    // Check if completed and not repeatable / still on cooldown.
     const completed = progress.completedQuests.find((q) => q.questId === questId);
-    if (completed && !quest.repeatable) {
-      return { can: false, reason: 'Quest already completed.' };
+    if (completed) {
+      if (!quest.repeatable) {
+        return { can: false, reason: 'Quest already completed.' };
+      }
+      if (isWithinRepeatCooldown(quest, completed.completedAt)) {
+        const remainingMs =
+          (quest.repeatCooldown ?? 0) * 1000 - (Date.now() - Date.parse(completed.completedAt));
+        const remainingSec = Math.max(1, Math.ceil(remainingMs / 1000));
+        return {
+          can: false,
+          reason: `Quest on cooldown — try again in ${remainingSec}s.`,
+        };
+      }
     }
 
     // Check prerequisites
@@ -751,6 +763,23 @@ export class QuestManager extends EventEmitter {
 // Export singleton getter
 export function getQuestManager(): QuestManager {
   return QuestManager.getInstance();
+}
+
+/**
+ * Has a repeatable quest's cooldown elapsed since its last completion?
+ *
+ * Returns true if the cooldown is still in force. Defensive against bad
+ * timestamps (treats them as "not on cooldown" so a corrupt completedAt
+ * doesn't permanently lock the player out).
+ */
+function isWithinRepeatCooldown(
+  quest: { repeatCooldown?: number },
+  completedAtIso: string | undefined
+): boolean {
+  if (!quest.repeatCooldown || !completedAtIso) return false;
+  const completedMs = Date.parse(completedAtIso);
+  if (!Number.isFinite(completedMs)) return false;
+  return Date.now() - completedMs < quest.repeatCooldown * 1000;
 }
 
 /**
