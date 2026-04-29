@@ -15,20 +15,7 @@
 import { ConnectedClient } from '../types';
 import { writeMessageToClient } from './socketWriter';
 import { colorize } from './colors';
-
-/** Mirror of getExpRequiredForLevel in train.command.ts. */
-function expRequiredForLevel(level: number): number {
-  return Math.floor(1000 * Math.pow(1.5, level - 1));
-}
-
-/** Mirror of getTotalExpForLevel in train.command.ts. */
-function totalExpForLevel(level: number): number {
-  let total = 0;
-  for (let i = 1; i < level; i++) {
-    total += expRequiredForLevel(i);
-  }
-  return total;
-}
+import { getTotalExpForLevel } from './expCurve';
 
 /**
  * If awarding `gainedAmount` XP just pushed the user past the threshold for
@@ -45,7 +32,7 @@ export function maybeAnnounceReadyToTrain(
   newExp: number
 ): void {
   if (!client.user) return;
-  const threshold = totalExpForLevel(client.user.level + 1);
+  const threshold = getTotalExpForLevel(client.user.level + 1);
   if (previousExp < threshold && newExp >= threshold) {
     writeMessageToClient(
       client,

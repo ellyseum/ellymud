@@ -10,23 +10,7 @@ import { ClassManager } from '../../class/classManager';
 import { ResourceManager } from '../../resource/resourceManager';
 import { getResourceDisplayAbbr } from '../../utils/statCalculator';
 
-/**
- * Calculate the experience required for a given level using exponential scaling.
- */
-function getExpRequiredForLevel(level: number): number {
-  return Math.floor(1000 * Math.pow(1.5, level - 1));
-}
-
-/**
- * Calculate total experience needed to reach a given level from level 1.
- */
-function getTotalExpForLevel(level: number): number {
-  let total = 0;
-  for (let i = 1; i < level; i++) {
-    total += getExpRequiredForLevel(i);
-  }
-  return total;
-}
+import { getExpRequiredForLevel, getTotalExpForLevel } from '../../utils/expCurve';
 
 export class StatsCommand implements Command {
   name = 'stats';
