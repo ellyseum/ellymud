@@ -24,9 +24,13 @@ import {
   setActiveConversation,
   getActiveConversation,
   clearActiveConversation,
+  setActiveQuestOffer,
+  getActiveQuestOffer,
+  clearActiveQuestOffer,
 } from '../../quest/questDialogue';
 import { questEventBus } from '../../quest/questEventHandler';
 import { getQuestManager } from '../../quest/questManager';
+import { QuestDefinition } from '../../quest/types';
 
 export class TalkCommand implements Command {
   name = 'talk';
@@ -96,43 +100,38 @@ export class TalkCommand implements Command {
       displayQuestDialogue(client, targetNpc.name, dialogueResult);
     } else {
       // No active quest dialogue. Before falling back to flavor, check whether
-      // this NPC is the giver of any AVAILABLE quest. If so, auto-offer it —
-      // saves the player from having to discover `quest available` /
-      // `quest accept <id>` on their own.
+      // this NPC is the giver of any AVAILABLE quest(s). If exactly one, auto-
+      // accept (existing behavior). If multiple, show a numbered menu and
+      // accept on `reply <n>`.
       const questManager = getQuestManager();
       const available = await questManager.getAvailableQuests(client.user);
-      const offered = available.find((q) => q.questGiver === targetNpc.templateId);
+      const offers = available.filter((q) => q.questGiver === targetNpc.templateId);
 
-      if (offered) {
-        // Auto-accept and skip the first step if it's a `talk_to_npc` step
-        // pointing at this same NPC (otherwise the player would have to
-        // immediately re-talk to advance — bad UX).
-        const firstStep = offered.steps[0];
-        const firstObjective = firstStep?.objectives?.[0];
-        const isFirstStepRedundantTalk =
-          firstObjective?.type === 'talk_to_npc' &&
-          (firstObjective as { npcTemplateId?: string }).npcTemplateId === targetNpc.templateId;
-        const startingStep = isFirstStepRedundantTalk ? offered.steps[1]?.id : undefined;
-
-        const result = await questManager.startQuest(client.user, offered.id, { startingStep });
-        if (result.success) {
+      if (offers.length === 1) {
+        await acceptQuestOffer(client, targetNpc.templateId, offers[0]);
+      } else if (offers.length > 1) {
+        // Multi-quest offer — render menu, stash state, ReplyCommand handles selection.
+        clearActiveConversation(client.user.username);
+        setActiveQuestOffer(
+          client.user.username,
+          offers.map((q) => q.id),
+          targetNpc.templateId,
+          targetNpc.name
+        );
+        writeMessageToClient(
+          client,
+          colorize(`\r\n${targetNpc.name} has several things you could help with:\r\n`, 'cyan')
+        );
+        offers.forEach((q, i) => {
           writeMessageToClient(
             client,
-            colorize(`\r\n${targetNpc.name} explains: "${offered.description}"\r\n`, 'cyan')
+            colorize(`  ${i + 1}. ${q.name} — ${q.description}\r\n`, 'white')
           );
-          writeMessageToClient(
-            client,
-            colorize(`Quest accepted: ${offered.name}\r\n`, 'brightYellow')
-          );
-        } else if (result.error) {
-          writeMessageToClient(
-            client,
-            colorize(
-              `\r\n${targetNpc.name} would offer you a quest, but: ${result.error}\r\n`,
-              'yellow'
-            )
-          );
-        }
+        });
+        writeMessageToClient(
+          client,
+          colorize('\r\nUse "reply <number>" to accept one.\r\n', 'dim')
+        );
       } else {
         // No quest dialogue and no quest to offer — show NPC's default flavor.
         const npcData = NPC.loadNPCData();
@@ -163,9 +162,41 @@ export class TalkCommand implements Command {
 }
 
 /**
+ * Accept a single offered quest, skipping a redundant first-step talk_to_npc
+ * objective when it points at the same NPC the player just talked to. Shared
+ * between the single-offer path in TalkCommand and the menu-selection path
+ * in ReplyCommand.
+ */
+async function acceptQuestOffer(
+  client: ConnectedClient,
+  npcTemplateId: string,
+  quest: QuestDefinition
+): Promise<void> {
+  if (!client.user) return;
+  const firstStep = quest.steps[0];
+  const firstObjective = firstStep?.objectives?.[0];
+  const isFirstStepRedundantTalk =
+    firstObjective?.type === 'talk_to_npc' &&
+    (firstObjective as { npcTemplateId?: string }).npcTemplateId === npcTemplateId;
+  const startingStep = isFirstStepRedundantTalk ? quest.steps[1]?.id : undefined;
+
+  const result = await getQuestManager().startQuest(client.user, quest.id, { startingStep });
+  if (result.success) {
+    writeMessageToClient(client, colorize(`\r\n"${quest.description}"\r\n`, 'cyan'));
+    writeMessageToClient(client, colorize(`Quest accepted: ${quest.name}\r\n`, 'brightYellow'));
+  } else if (result.error) {
+    writeMessageToClient(
+      client,
+      colorize(`\r\nCan't accept ${quest.name}: ${result.error}\r\n`, 'yellow')
+    );
+  }
+}
+
+/**
  * Reply Command
  *
- * Select a dialogue option in an active conversation.
+ * Select a dialogue option in an active conversation OR pick a quest from a
+ * multi-quest offer menu.
  *
  * Usage:
  *   reply <number>          - Select option by number
@@ -178,21 +209,43 @@ export class ReplyCommand implements Command {
     if (!client.user) return;
 
     const argString = args.trim();
+    const optionNum = parseInt(argString, 10);
+    if (isNaN(optionNum) || optionNum < 1) {
+      writeMessageToClient(client, colorize('Usage: reply <number>\r\n', 'red'));
+      return;
+    }
 
-    // Check for active conversation
+    // Quest-offer menu has priority: if the player just saw a multi-quest
+    // menu (talk command set this), the next reply is a quest selection.
+    const offer = getActiveQuestOffer(client.user.username);
+    if (offer) {
+      const idx = optionNum - 1;
+      if (idx < 0 || idx >= offer.questIds.length) {
+        writeMessageToClient(
+          client,
+          colorize(`Pick a number between 1 and ${offer.questIds.length}.\r\n`, 'red')
+        );
+        return;
+      }
+      const questId = offer.questIds[idx];
+      const quest = getQuestManager().getQuest(questId);
+      if (!quest) {
+        writeMessageToClient(client, colorize(`That offer is no longer available.\r\n`, 'yellow'));
+        clearActiveQuestOffer(client.user.username);
+        return;
+      }
+      clearActiveQuestOffer(client.user.username);
+      await acceptQuestOffer(client, offer.npcTemplateId, quest);
+      return;
+    }
+
+    // Otherwise: standard active-conversation flow
     const active = getActiveConversation(client.user.username);
     if (!active) {
       writeMessageToClient(
         client,
         colorize('You are not in a conversation. Use "talk <npc>" first.\r\n', 'yellow')
       );
-      return;
-    }
-
-    // Parse the option number
-    const optionNum = parseInt(argString, 10);
-    if (isNaN(optionNum) || optionNum < 1) {
-      writeMessageToClient(client, colorize('Usage: reply <number>\r\n', 'red'));
       return;
     }
 

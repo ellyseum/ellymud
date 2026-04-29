@@ -243,6 +243,47 @@ export function clearActiveConversation(username: string): void {
 }
 
 /**
+ * Active quest-offer menu state for users who are mid-decision when an
+ * NPC has multiple available quests. Parallel to activeConversations
+ * (a player can only be in one mode at a time — the talk command clears
+ * one when entering the other).
+ */
+const activeQuestOffers = new Map<
+  string,
+  { questIds: string[]; npcTemplateId: string; npcName: string; timestamp: number }
+>();
+
+export function setActiveQuestOffer(
+  username: string,
+  questIds: string[],
+  npcTemplateId: string,
+  npcName: string
+): void {
+  activeQuestOffers.set(username.toLowerCase(), {
+    questIds,
+    npcTemplateId,
+    npcName,
+    timestamp: Date.now(),
+  });
+}
+
+export function getActiveQuestOffer(
+  username: string
+): { questIds: string[]; npcTemplateId: string; npcName: string } | null {
+  const offer = activeQuestOffers.get(username.toLowerCase());
+  if (!offer) return null;
+  if (Date.now() - offer.timestamp > CONVERSATION_TIMEOUT) {
+    activeQuestOffers.delete(username.toLowerCase());
+    return null;
+  }
+  return { questIds: offer.questIds, npcTemplateId: offer.npcTemplateId, npcName: offer.npcName };
+}
+
+export function clearActiveQuestOffer(username: string): void {
+  activeQuestOffers.delete(username.toLowerCase());
+}
+
+/**
  * Cleanup old conversations periodically
  */
 export function cleanupOldConversations(): void {
@@ -250,6 +291,11 @@ export function cleanupOldConversations(): void {
   for (const [username, conversation] of activeConversations) {
     if (now - conversation.timestamp > CONVERSATION_TIMEOUT) {
       activeConversations.delete(username);
+    }
+  }
+  for (const [username, offer] of activeQuestOffers) {
+    if (now - offer.timestamp > CONVERSATION_TIMEOUT) {
+      activeQuestOffers.delete(username);
     }
   }
 }
