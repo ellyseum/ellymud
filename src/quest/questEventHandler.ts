@@ -258,11 +258,14 @@ export async function executeDialogueActions(
     await executeActions(option.actions, context);
   }
 
-  // Emit talked event to update objective progress
+  // Emit talked event to update objective progress. Prefer the option's
+  // stable id when present so YAMLs can match on something edit-resistant
+  // (text strings drift over time and break objectives silently). Falls
+  // back to text for options that haven't opted into ids yet.
   questEventBus.emit('npc:talked', {
     client,
     npcTemplateId,
-    dialogueOption: option.text,
+    dialogueOption: option.id ?? option.text,
   });
 }
 

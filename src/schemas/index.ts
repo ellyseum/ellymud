@@ -484,6 +484,7 @@ const dialogueOptionSchema = {
   type: 'object',
   required: ['text', 'response'],
   properties: {
+    id: { type: 'string' },
     text: { type: 'string' },
     response: { type: 'string' },
     requires: dialogueRequirementsSchema,

@@ -323,6 +323,13 @@ export interface DialogueRequirements {
  * A single dialogue option the player can select
  */
 export interface DialogueOption {
+  /**
+   * Stable identifier for this option. Optional. When set, quest objectives
+   * with `dialogueOption` should match against this id rather than the
+   * (translatable, edit-prone) `text`. Falls back to `text` when omitted
+   * for backwards-compat.
+   */
+  id?: string;
   /** Text shown to the player for this choice */
   text: string;
   /** NPC's response when this option is selected */

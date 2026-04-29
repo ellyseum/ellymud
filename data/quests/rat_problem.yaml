@@ -22,12 +22,16 @@ steps:
     objectives:
       - type: talk_to_npc
         npcTemplateId: millbrook-innkeeper
+        # Only the explicit "accept" reply advances this step — the decline
+        # option below shouldn't satisfy the objective.
+        dialogueOption: accept
         description: "Talk to the innkeeper"
     npcDialogues:
       millbrook-innkeeper:
         greeting: "Oh, thank goodness you're here! I've got a terrible rat problem in my cellar."
         options:
-          - text: "I can help with your rat problem."
+          - id: accept
+            text: "I can help with your rat problem."
             response: "Bless you! Head down to the cellar and clear out those vermin. There should be about 3 of them. Come back when you're done."
             actions:
               - action: setFlag
@@ -36,7 +40,8 @@ steps:
                 text: "Quest objective updated: Kill 3 rats in the cellar."
                 color: yellow
 
-          - text: "Not my problem."
+          - id: decline
+            text: "Not my problem."
             response: "Oh... I understand. If you change your mind, please come back."
     onComplete:
       - action: message
