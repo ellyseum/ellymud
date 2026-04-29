@@ -477,6 +477,27 @@ export class ItemManager {
   }
 
   /**
+   * Count the number of items of a given template id that the user holds
+   * in their inventory. Stacks share the same templateId across distinct
+   * instanceIds, so we walk the user's instance list and count matches.
+   *
+   * @param user The user whose inventory to inspect
+   * @param templateId The item template ID to count
+   * @returns The number of matching instances in the user's inventory
+   */
+  public countUserItemsByTemplate(user: User, templateId: string): number {
+    if (!user.inventory?.items?.length) return 0;
+    let count = 0;
+    for (const instanceId of user.inventory.items) {
+      const instance = this.getItemInstance(instanceId);
+      if (instance?.templateId === templateId) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
    * Check if creating a new instance of the template would exceed the global limit
    * @param templateId The item template ID to check
    * @returns true if the item can be created, false if at global limit

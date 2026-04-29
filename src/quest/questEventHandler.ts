@@ -13,6 +13,7 @@ import { executeActions, ActionContext, applyRewards } from './questActions';
 import { ConnectedClient, User } from '../types';
 import { createContextLogger } from '../utils/logger';
 import { writeMessageToClient } from '../utils/socketWriter';
+import { ItemManager } from '../utils/itemManager';
 import { colorize } from '../utils/colors';
 
 const logger = createContextLogger('questEventHandler');
@@ -282,6 +283,7 @@ export function meetsDialogueRequirements(
         classId?: string;
         raceId?: string;
         items?: string[];
+        minCount?: number;
         activeStep?: string;
       }
     | undefined,
@@ -322,14 +324,21 @@ export function meetsDialogueRequirements(
     return false;
   }
 
-  // Check items
-  if (requires.items) {
-    // TODO: Implement proper item checking via ItemManager
-    // For now, just check if instanceIds are in inventory
-    for (const itemId of requires.items) {
-      // This would need to check templateId, not instanceId
-      // Simplified check for now
-      logger.debug(`Item requirement check not fully implemented: ${itemId}`);
+  // Check items — every templateId in requires.items must be present in
+  // the user's inventory. When `minCount` is supplied, the FIRST item is
+  // gated by that count (consistent with how the YAMLs use the field —
+  // requires.items is single-element with minCount where it appears).
+  if (requires.items && requires.items.length > 0) {
+    const itemManager = ItemManager.getInstance();
+    const minCount = requires.minCount ?? 1;
+    for (let i = 0; i < requires.items.length; i++) {
+      const templateId = requires.items[i];
+      const have = itemManager.countUserItemsByTemplate(user, templateId);
+      // Apply minCount only to the first item; subsequent items just need ≥1.
+      const needed = i === 0 ? minCount : 1;
+      if (have < needed) {
+        return false;
+      }
     }
   }
 
