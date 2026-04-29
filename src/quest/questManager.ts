@@ -23,7 +23,9 @@ import {
   QuestRewards,
   NpcDialogue,
 } from './types';
-import { loadQuests, getDefaultQuestsDir } from './questLoader';
+import { loadQuests, getDefaultQuestsDir, LoadQuestsOptions } from './questLoader';
+import { NPC } from '../combat/npc';
+import { getRoomRepository } from '../persistence/RepositoryFactory';
 import { getQuestProgressRepository } from '../persistence/RepositoryFactory';
 import { IAsyncQuestProgressRepository } from '../persistence/interfaces';
 import { createContextLogger } from '../utils/logger';
@@ -82,8 +84,10 @@ export class QuestManager extends EventEmitter {
    */
   private async initialize(): Promise<void> {
     try {
-      // Load quest definitions
-      this.quests = await loadQuests(getDefaultQuestsDir());
+      // Load quest definitions with cross-reference validation against the
+      // current NPC/room data. Validation logs warnings but does not throw,
+      // so a typo in one quest doesn't fail the boot.
+      this.quests = await loadQuests(getDefaultQuestsDir(), await buildValidatorRefs());
       logger.info(`Quest manager initialized with ${this.quests.size} quests`);
       this.initialized = true;
       this.initPromise = null;
@@ -97,7 +101,7 @@ export class QuestManager extends EventEmitter {
    * Reload quests from disk (for development)
    */
   public async reloadQuests(): Promise<void> {
-    this.quests = await loadQuests(getDefaultQuestsDir());
+    this.quests = await loadQuests(getDefaultQuestsDir(), await buildValidatorRefs());
     logger.info(`Reloaded ${this.quests.size} quests`);
   }
 
@@ -747,4 +751,25 @@ export class QuestManager extends EventEmitter {
 // Export singleton getter
 export function getQuestManager(): QuestManager {
   return QuestManager.getInstance();
+}
+
+/**
+ * Build the NPC + room id sets the quest validator should treat as valid.
+ * Pulled from existing data sources so the validator runs against current
+ * world state — not a stale snapshot. Errors here degrade to "no validation"
+ * (return undefined fields) rather than failing the load.
+ */
+async function buildValidatorRefs(): Promise<LoadQuestsOptions> {
+  try {
+    const npcData = await NPC.loadNPCDataAsync();
+    const npcIds = new Set(npcData.keys());
+    const roomData = await getRoomRepository().findAll();
+    const roomIds = new Set(roomData.map((r) => r.id));
+    return { npcIds, roomIds };
+  } catch (error) {
+    logger.warn(
+      `Could not build validator reference sets — quest cross-ref validation skipped: ${error}`
+    );
+    return {};
+  }
 }

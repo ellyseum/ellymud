@@ -12,8 +12,16 @@ import { loadDataDirectory } from '../data/dataLoader';
 import { validateQuest } from '../schemas';
 import { QuestDefinition } from './types';
 import { createContextLogger } from '../utils/logger';
+import { validateQuestReferences } from './questValidator';
 
 const logger = createContextLogger('questLoader');
+
+export interface LoadQuestsOptions {
+  /** NPC template ids the validator should treat as valid references. */
+  npcIds?: Set<string>;
+  /** Room ids the validator should treat as valid references. */
+  roomIds?: Set<string>;
+}
 
 const DEFAULT_QUESTS_DIR = path.join(__dirname, '..', '..', 'data', 'quests');
 
@@ -34,9 +42,13 @@ export interface QuestValidationResult {
  * @returns Map of quest ID to quest definition
  */
 export async function loadQuests(
-  questsDir: string = DEFAULT_QUESTS_DIR
+  questsDir: string = DEFAULT_QUESTS_DIR,
+  opts: LoadQuestsOptions = {}
 ): Promise<Map<string, QuestDefinition>> {
   const quests = new Map<string, QuestDefinition>();
+  const refs =
+    opts.npcIds && opts.roomIds ? { npcIds: opts.npcIds, roomIds: opts.roomIds } : undefined;
+  let warningCount = 0;
 
   logger.info(`Loading quests from ${questsDir}`);
 
@@ -55,6 +67,20 @@ export async function loadQuests(
           continue;
         }
 
+        // Cross-reference validation. Warnings only — a quest with bad refs
+        // still loads so hot-reload can fix it; failing the boot for a typo
+        // would be worse.
+        if (refs) {
+          const issues = validateQuestReferences(validation.quest, refs, filePath);
+          for (const issue of issues) {
+            warningCount++;
+            logger.warn(
+              `[validator] ${issue.questId} (${issue.filePath ?? '?'}): ` +
+                `${issue.field} — ${issue.message}`
+            );
+          }
+        }
+
         quests.set(validation.quest.id, validation.quest);
         logger.debug(`Loaded quest: ${validation.quest.id} (${validation.quest.name})`);
       } else {
@@ -62,6 +88,11 @@ export async function loadQuests(
       }
     }
 
+    if (refs && warningCount > 0) {
+      logger.warn(
+        `Quest validator emitted ${warningCount} warning(s) — quests still loaded; fix YAMLs and hot-reload.`
+      );
+    }
     logger.info(`Loaded ${quests.size} quest(s)`);
   } catch (error) {
     logger.error(`Failed to load quests from ${questsDir}:`, error);
