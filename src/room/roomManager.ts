@@ -269,6 +269,11 @@ export class RoomManager implements IRoomManager {
       const roomDataArray = await this.repository.findAll();
 
       if (roomDataArray.length > 0) {
+        // Make sure NPC templates are fully loaded before instantiating room
+        // NPCs — the sync NPC.loadNPCData() inside loadPrevalidatedRooms
+        // returns an empty cache if the async load hasn't completed yet,
+        // and every NPC in every room then gets fall-back-defaulted.
+        await NPC.loadNPCDataAsync();
         this.loadPrevalidatedRooms(roomDataArray);
       } else {
         // No rooms found, save initial empty state
