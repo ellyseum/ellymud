@@ -41,6 +41,9 @@ describe('NPC Mobility System', () => {
     });
 
     it('should allow spawning mobile NPCs', async () => {
+      // Move out of the safe town square first — the safe-zone invariant
+      // rejects hostile NPC spawns in safe rooms.
+      await agent.sendCommand(sessionId, 'north');
       // Spawn a wolf (which has canMove: true)
       const spawnOutput = await agent.sendCommand(sessionId, 'spawn wolf');
       expect(spawnOutput).toContain('spawned');
@@ -51,6 +54,8 @@ describe('NPC Mobility System', () => {
     });
 
     it('should process ticks with mobile NPCs without errors', async () => {
+      // Move out of the safe town square first.
+      await agent.sendCommand(sessionId, 'north');
       // Spawn a mobile NPC
       await agent.sendCommand(sessionId, 'spawn goblin');
 
@@ -83,6 +88,8 @@ describe('NPC Mobility System', () => {
     });
 
     it('should not move NPCs in combat', async () => {
+      // Move out of safe zone before spawning a hostile.
+      await agent.sendCommand(sessionId, 'north');
       // Spawn a wolf
       await agent.sendCommand(sessionId, 'spawn wolf');
 
@@ -117,6 +124,8 @@ describe('NPC Mobility System', () => {
     });
 
     it('should handle multiple mobile NPCs', async () => {
+      // Move out of safe zone before spawning hostiles.
+      await agent.sendCommand(sessionId, 'north');
       // Spawn multiple mobile NPCs
       await agent.sendCommand(sessionId, 'spawn wolf');
       await agent.sendCommand(sessionId, 'spawn goblin');

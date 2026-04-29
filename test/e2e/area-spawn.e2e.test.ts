@@ -59,6 +59,10 @@ describe('Area Spawn System', () => {
       // This test verifies spawn caps work correctly
       // We spawn multiple NPCs manually, then verify the spawn system respects limits
 
+      // Move out of the safe town square first — hostile spawns are
+      // refused in safe rooms by the safe-zone invariant.
+      await agent.sendCommand(sessionId, 'north');
+
       // Spawn a wolf manually
       const spawnOutput1 = await agent.sendCommand(sessionId, 'spawn wolf');
       expect(spawnOutput1).toContain('spawned');
@@ -82,6 +86,9 @@ describe('Area Spawn System', () => {
 
       // Re-login after reset
       sessionId = await agent.directLogin('statustest');
+
+      // Move out of safe town square first — hostile spawns refused there.
+      await agent.sendCommand(sessionId, 'north');
 
       // Manually spawn an NPC to verify tracking
       await agent.sendCommand(sessionId, 'spawn goblin');
@@ -131,6 +138,8 @@ describe('Area Spawn System', () => {
     });
 
     it('should support different NPC types in spawn config', async () => {
+      // Move out of safe town square — hostile spawns refused in safe rooms.
+      await agent.sendCommand(sessionId, 'north');
       // Spawn different NPC types to verify they all work
       const goblinSpawn = await agent.sendCommand(sessionId, 'spawn goblin');
       expect(goblinSpawn).toContain('spawned');
