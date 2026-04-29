@@ -25,7 +25,7 @@ import {
 } from './types';
 import { loadQuests, getDefaultQuestsDir, LoadQuestsOptions } from './questLoader';
 import { NPC } from '../combat/npc';
-import { getRoomRepository } from '../persistence/RepositoryFactory';
+import { getRoomRepository, getItemRepository } from '../persistence/RepositoryFactory';
 import { getQuestProgressRepository } from '../persistence/RepositoryFactory';
 import { IAsyncQuestProgressRepository } from '../persistence/interfaces';
 import { createContextLogger } from '../utils/logger';
@@ -794,7 +794,19 @@ async function buildValidatorRefs(): Promise<LoadQuestsOptions> {
     const npcIds = new Set(npcData.keys());
     const roomData = await getRoomRepository().findAll();
     const roomIds = new Set(roomData.map((r) => r.id));
-    return { npcIds, roomIds };
+
+    // Items are best-effort — the item repo can be slower to spin up than
+    // npcs/rooms, so degrade gracefully on failure rather than blocking
+    // the whole validator.
+    let itemIds: Set<string> | undefined;
+    try {
+      const itemData = await getItemRepository().findAllTemplates();
+      itemIds = new Set(itemData.map((i) => i.id));
+    } catch (itemErr) {
+      logger.warn(`Item refs unavailable — item validation skipped: ${itemErr}`);
+    }
+
+    return { npcIds, roomIds, itemIds };
   } catch (error) {
     logger.warn(
       `Could not build validator reference sets — quest cross-ref validation skipped: ${error}`

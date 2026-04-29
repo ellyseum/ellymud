@@ -21,6 +21,8 @@ export interface LoadQuestsOptions {
   npcIds?: Set<string>;
   /** Room ids the validator should treat as valid references. */
   roomIds?: Set<string>;
+  /** Item template ids — when supplied, item refs are checked too. */
+  itemIds?: Set<string>;
 }
 
 const DEFAULT_QUESTS_DIR = path.join(__dirname, '..', '..', 'data', 'quests');
@@ -47,10 +49,20 @@ export async function loadQuests(
 ): Promise<Map<string, QuestDefinition>> {
   const quests = new Map<string, QuestDefinition>();
   const refs =
-    opts.npcIds && opts.roomIds ? { npcIds: opts.npcIds, roomIds: opts.roomIds } : undefined;
+    opts.npcIds && opts.roomIds
+      ? { npcIds: opts.npcIds, roomIds: opts.roomIds, itemIds: opts.itemIds }
+      : undefined;
   let warningCount = 0;
 
   logger.info(`Loading quests from ${questsDir}`);
+  if (refs) {
+    const itemPart = refs.itemIds ? `, ${refs.itemIds.size} item ids` : '';
+    logger.info(
+      `Quest validator armed (${refs.npcIds.size} NPC ids, ${refs.roomIds.size} room ids${itemPart})`
+    );
+  } else {
+    logger.info(`Quest validator skipped — no reference sets supplied`);
+  }
 
   try {
     const results = await loadDataDirectory<QuestDefinition>(questsDir, { recursive: true });
