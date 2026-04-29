@@ -262,6 +262,37 @@ describe('TrainCommand', () => {
         expect(user.level).toBe(3);
       });
 
+      it('should pop multiple levels in a single train when banked XP allows', () => {
+        const room = createMockRoom('training-room', 'Training Room', {
+          flags: ['trainer'],
+        });
+        mockRoomManager.getRoom.mockReturnValue(room);
+
+        // Curve: L1->L2 = 1000, L2->L3 = 1500, L3->L4 = 2250, L4->L5 = 3375.
+        // 1000+1500+2250 = 4750 takes a level-1 character to level 4 in one train.
+        const user = createMockUser({
+          currentRoomId: 'training-room',
+          level: 1,
+          experience: 4800,
+          maxHealth: 100,
+          health: 100,
+          unspentAttributePoints: 0,
+        });
+
+        const client = createMockClient({ user });
+        trainCommand.execute(client, '');
+
+        expect(user.level).toBe(4);
+        // 3 levels * +5 HP = +15, * +10 AP = +30
+        expect(user.maxHealth).toBe(115);
+        expect(user.unspentAttributePoints).toBe(30);
+        // Summary line for >1 level
+        expect(mockWriteToClient).toHaveBeenCalledWith(
+          client,
+          expect.stringContaining('You gained 3 levels')
+        );
+      });
+
       it('should notify other players in the same room', () => {
         const room = createMockRoom('training-room', 'Training Room', {
           flags: ['trainer'],

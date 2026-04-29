@@ -66,9 +66,11 @@ export class StatsCommand implements Command {
     const currentLevel = user.level;
     const totalExpForCurrentLevel = getTotalExpForLevel(currentLevel);
     const expNeeded = getExpRequiredForLevel(currentLevel);
-    // Ensure progress is non-negative (handles edge cases where XP tracking is off)
+    // Ensure progress is non-negative (handles edge cases where XP tracking is off).
+    // No upper clamp — XP can exceed expNeeded if the player hasn't trained yet.
     const expProgress = Math.max(0, user.experience - totalExpForCurrentLevel);
-    const expPercentage = Math.min(100, Math.floor((expProgress / expNeeded) * 100));
+    const expPercentage = Math.floor((expProgress / expNeeded) * 100);
+    const readyToTrain = expProgress >= expNeeded;
 
     writeToClient(client, colorize('=== Your Character Stats ===\r\n', 'magenta'));
     writeToClient(client, colorize(`Username: ${formatUsername(user.username)}\r\n`, 'cyan'));
@@ -98,16 +100,20 @@ export class StatsCommand implements Command {
 
     // Level and XP Progress
     writeToClient(client, colorize(`Level: ${user.level}\r\n`, 'yellow'));
+    const trainHint = readyToTrain ? colorize(' — ready to train!', 'brightYellow') : '';
     writeToClient(
       client,
       colorize(`Experience: ${user.experience} `, 'blue') +
         colorize(
-          `(${expProgress}/${expNeeded} to level ${currentLevel + 1} - ${expPercentage}%)\r\n`,
+          `(${expProgress}/${expNeeded} to level ${currentLevel + 1} - ${expPercentage}%)`,
           'dim'
-        )
+        ) +
+        trainHint +
+        '\r\n'
     );
 
-    // Create XP progress bar
+    // Create XP progress bar — bar visually clamps at 1.0, but the percentage
+    // text above shows the truth (can exceed 100% before training).
     const barLength = 20;
     const progressRatio = Math.max(0, Math.min(1, expProgress / expNeeded));
     const filledLength = Math.floor(progressRatio * barLength);

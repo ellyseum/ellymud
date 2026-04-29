@@ -413,14 +413,12 @@ export class TrainCommand implements Command {
   ): void {
     if (!client.user) return;
 
-    const currentLevel = client.user.level;
-    const currentExp = client.user.experience;
-    const expNeeded = getExpRequiredForLevel(currentLevel);
-    const totalExpForCurrentLevel = getTotalExpForLevel(currentLevel);
-    const expProgress = currentExp - totalExpForCurrentLevel;
+    const startLevel = client.user.level;
+    const expNeededForNext = getExpRequiredForLevel(startLevel);
+    const expProgress = client.user.experience - getTotalExpForLevel(startLevel);
 
-    // Check if player has enough experience to level up
-    if (expProgress < expNeeded) {
+    // Not enough XP to advance even one level — bail with the existing message.
+    if (expProgress < expNeededForNext) {
       writeToClient(
         client,
         colorize('You do not have enough experience for training!\r\n', 'brightRed')
@@ -428,79 +426,91 @@ export class TrainCommand implements Command {
       writeToClient(
         client,
         colorize(
-          `Progress: ${expProgress}/${expNeeded} XP needed for level ${currentLevel + 1}\r\n`,
+          `Progress: ${expProgress}/${expNeededForNext} XP needed for level ${startLevel + 1}\r\n`,
           'yellow'
         )
       );
       return;
     }
 
-    // Level up!
-    const newLevel = currentLevel + 1;
-    client.user.level = newLevel;
-
-    // Add stat gains from leveling up
+    // Pop as many levels as the banked XP allows.
     const healthGain = 5;
-    const manaGain = 3;
     const attributePointGain = 10;
+    const currentClassId = client.user.classId ?? 'adventurer';
+    const availableAdvancements = this.classManager.getAvailableAdvancements(currentClassId);
 
-    client.user.maxHealth += healthGain;
-    client.user.health += healthGain;
+    let level = startLevel;
+    let levelsGained = 0;
+    const newClassUnlocks: typeof availableAdvancements = [];
 
-    // Only add mana for classes that use it
-    const classData = this.classManager.getClass(client.user.classId ?? 'adventurer');
-    const hasManaResource = classData?.resourceType === 'mana';
-    if (hasManaResource) {
-      client.user.maxMana = (client.user.maxMana ?? 0) + manaGain;
-      client.user.mana = (client.user.mana ?? 0) + manaGain;
+    while (client.user.experience >= getTotalExpForLevel(level + 1)) {
+      level += 1;
+      levelsGained += 1;
+
+      // HP grant is kept manual: calculateMaxHP also adds level*HP_PER_LEVEL,
+      // so this stays in sync with the formula. UserManager.recalculateStats
+      // (called on race/class/equipment changes) re-derives from level so the
+      // stored value isn't authoritative — but the manual += keeps stats.command
+      // and the prompt accurate between recalcs.
+      client.user.maxHealth += healthGain;
+      client.user.health += healthGain;
+      client.user.unspentAttributePoints =
+        (client.user.unspentAttributePoints ?? 0) + attributePointGain;
+
+      // No mana increment: ResourceManager.calculateMaxResource derives mana
+      // from INT/WIS only (no level term). Any manual user.maxMana += would
+      // be erased on the next regen tick / resource read, so granting it
+      // here is a silent no-op. Mana scaling needs to live in the formula,
+      // not the level-up grant. (See src/utils/statCalculator.ts:calculateMaxMana.)
+
+      // Collect class unlocks for this level (dedupe across the run).
+      for (const adv of availableAdvancements) {
+        if (adv.requirements.level === level && !newClassUnlocks.find((c) => c.id === adv.id)) {
+          newClassUnlocks.push(adv);
+        }
+      }
     }
 
-    client.user.unspentAttributePoints =
-      (client.user.unspentAttributePoints ?? 0) + attributePointGain;
+    client.user.level = level;
 
-    // Update in UserManager and save
-    const statsToUpdate: Record<string, number | undefined> = {
-      level: newLevel,
+    this.userManager.updateUserStats(client.user.username, {
+      level,
       maxHealth: client.user.maxHealth,
       health: client.user.health,
       unspentAttributePoints: client.user.unspentAttributePoints,
-    };
-    if (hasManaResource) {
-      statsToUpdate.maxMana = client.user.maxMana;
-      statsToUpdate.mana = client.user.mana;
+    });
+
+    playerLogger.info(`Leveled up from ${startLevel} to ${level} (+${levelsGained})`);
+
+    // One ding per level.
+    for (let lv = startLevel + 1; lv <= level; lv++) {
+      writeToClient(
+        client,
+        colorize(`\r\nYou feel stronger and are now level ${lv}!\r\n`, 'brightWhite')
+      );
+      writeToClient(client, colorize(`  +${healthGain} Max Health\r\n`, 'green'));
+      writeToClient(
+        client,
+        colorize(`  +${attributePointGain} Attribute Points (use "attrib" to allocate)\r\n`, 'cyan')
+      );
     }
-    this.userManager.updateUserStats(client.user.username, statsToUpdate);
 
-    playerLogger.info(`Leveled up from ${currentLevel} to ${newLevel}`);
+    if (levelsGained > 1) {
+      writeToClient(client, colorize(`\r\nYou gained ${levelsGained} levels!\r\n`, 'brightGreen'));
+    }
 
-    // Message to the player
-    writeToClient(
-      client,
-      colorize(`\r\nYou feel stronger and are now level ${newLevel}!\r\n`, 'brightWhite')
-    );
-    writeToClient(client, colorize(`  +${healthGain} Max Health\r\n`, 'green'));
-    writeToClient(client, colorize(`  +${manaGain} Max Mana\r\n`, 'blue'));
-    writeToClient(
-      client,
-      colorize(`  +${attributePointGain} Attribute Points (use "attrib" to allocate)\r\n`, 'cyan')
-    );
-
-    // Check if class advancement is now available
-    const currentClassId = client.user.classId ?? 'adventurer';
-    const availableAdvancements = this.classManager.getAvailableAdvancements(currentClassId);
-    const unlockedClass = availableAdvancements.find((c) => c.requirements.level === newLevel);
-
-    if (unlockedClass) {
+    // One notice per unique class unlock crossed during the level range.
+    for (const adv of newClassUnlocks) {
       writeToClient(
         client,
         colorize(
-          `\r\nNew class available: ${unlockedClass.name}! Use "train class" to learn more.\r\n`,
+          `\r\nNew class available: ${adv.name}! Use "train class" to learn more.\r\n`,
           'brightYellow'
         )
       );
     }
 
-    // Broadcast to others in the room
+    // Single room broadcast — don't spam once per level.
     const username = formatUsername(client.user.username);
     const currentRoomId = client.user.currentRoomId;
 
