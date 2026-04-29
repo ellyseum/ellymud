@@ -14,6 +14,7 @@ import { formatUsername } from '../utils/formatters';
 import { CombatSystem } from './combatSystem';
 import { ItemManager } from '../utils/itemManager';
 import { createMechanicsLogger, mcpLogger } from '../utils/logger';
+import { maybeAnnounceReadyToTrain } from '../utils/levelUpHint';
 import { AbilityManager } from '../abilities/abilityManager';
 import { clearRestingMeditating } from '../utils/stateInterruption';
 import { handleNpcDrops } from './npcDeathHandler';
@@ -736,6 +737,7 @@ export class Combat {
       const client = this.combatSystem.findClientByUsername(playerName);
       if (client && client.user) {
         // Award experience to this player
+        const expBefore = client.user.experience;
         client.user.experience += experiencePerPlayer;
 
         // Update the player's experience
@@ -748,6 +750,10 @@ export class Combat {
           client,
           colorize(`You gain ${experiencePerPlayer} experience from the ${npc.name}!\r\n`, 'bright')
         );
+
+        // If this kill just pushed them past the next-level threshold,
+        // surface a one-shot "find a trainer" hint.
+        maybeAnnounceReadyToTrain(client, expBefore, client.user.experience);
       }
     }
 

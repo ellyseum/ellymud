@@ -29,6 +29,7 @@ import { colorize } from '../utils/colors';
 import { createContextLogger } from '../utils/logger';
 import { UserManager } from '../user/userManager';
 import { ItemManager } from '../utils/itemManager';
+import { maybeAnnounceReadyToTrain } from '../utils/levelUpHint';
 import { getQuestManager } from './questManager';
 import type { MerchantData } from '../combat/merchant';
 
@@ -274,13 +275,16 @@ async function executeRemoveItem(action: RemoveItemAction, context: ActionContex
 async function executeGiveXp(action: GiveXpAction, context: ActionContext): Promise<void> {
   const { client, user } = context;
 
+  const expBefore = user.experience;
   user.experience += action.amount;
   await saveUser(user);
 
   writeMessageToClient(client, colorize(`You gained ${action.amount} experience!\r\n`, 'yellow'));
   logger.debug(`Gave ${action.amount} XP to ${user.username}`);
 
-  // TODO: Check for level up and handle it
+  // Quest XP doesn't auto-level (`train` is the gate); surface the hint
+  // when this grant pushes the player past the next-level threshold.
+  maybeAnnounceReadyToTrain(client, expBefore, user.experience);
 }
 
 async function executeGiveCurrency(
