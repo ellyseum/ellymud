@@ -577,15 +577,23 @@ export class Room {
     }
 
     // Add exits (classic MUD style: cyan for exits)
-    if (this.exits.length > 0) {
-      const directions = this.exits.map((exit) => exit.direction);
-      description +=
-        colorize('Obvious exits: ', 'white') + colorize(directions.join(', '), 'cyan') + '.\r\n';
-    } else {
-      description += colorize('There are no obvious exits.', 'cyan') + '\r\n';
-    }
+    description += this.getExitsLine();
 
     return description;
+  }
+
+  /**
+   * Format the room's exits as a single line with trailing CRLF.
+   * "Obvious exits: north, east, west.\r\n" or "There are no obvious exits.\r\n"
+   */
+  getExitsLine(): string {
+    if (this.exits.length > 0) {
+      const directions = this.exits.map((exit) => exit.direction);
+      return (
+        colorize('Obvious exits: ', 'white') + colorize(directions.join(', '), 'cyan') + '.\r\n'
+      );
+    }
+    return colorize('There are no obvious exits.', 'cyan') + '\r\n';
   }
 
   getExit(direction: string): string | null {

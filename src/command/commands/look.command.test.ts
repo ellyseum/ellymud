@@ -71,11 +71,6 @@ describe('LookCommand', () => {
       expect(lookCommand.name).toBe('look');
     });
 
-    it('should have aliases', () => {
-      expect(lookCommand.aliases).toContain('l');
-      expect(lookCommand.aliases).toContain('examine');
-    });
-
     it('should have a description', () => {
       expect(lookCommand.description).toBeDefined();
     });

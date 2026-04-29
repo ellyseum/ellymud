@@ -9,7 +9,6 @@ import { getPlayerLogger } from '../../utils/logger';
 export class LookCommand implements Command {
   name = 'look';
   description = 'Look at your surroundings, in a direction, or at a specific object';
-  aliases = ['l', 'examine', 'ex'];
   private roomManager: RoomManager;
 
   constructor(private clients: Map<string, ConnectedClient>) {

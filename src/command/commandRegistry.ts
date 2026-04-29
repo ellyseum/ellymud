@@ -22,6 +22,7 @@ import { EffectCommand } from './commands/effect.command'; // Import our new Eff
 import { HelpCommand } from './commands/help.command';
 import { QuitCommand } from './commands/quit.command';
 import { LookCommand } from './commands/look.command';
+import { ExitsCommand } from './commands/exits.command';
 import { MoveCommand } from './commands/move.command';
 import { InventoryCommand } from './commands/inventory.command';
 import { PickupCommand } from './commands/pickup.command';
@@ -180,6 +181,7 @@ export class CommandRegistry {
       new EffectCommand(this.userManager, this.roomManager), // Add our new Effect command
       new QuitCommand(this.userManager, this.clients),
       new LookCommand(this.clients),
+      new ExitsCommand(this.clients),
       new MoveCommand(this.clients),
       new InventoryCommand(),
       new PickupCommand(this.clients, this.userManager),
