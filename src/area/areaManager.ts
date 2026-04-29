@@ -36,7 +36,9 @@ export class AreaManager {
    */
   public async initialize(): Promise<void> {
     if (this.initialized) {
-      logger.warn('AreaManager already initialized');
+      // Idempotent — multiple init calls are expected (defensive
+      // pre-initialization in GameTimerManager, etc.). Debug-level only.
+      logger.debug('AreaManager already initialized — skipping');
       return;
     }
 
