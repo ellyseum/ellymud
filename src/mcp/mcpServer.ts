@@ -698,7 +698,9 @@ export class MCPServer {
       try {
         const { sessionId, command, waitMs } = req.body;
 
-        if (!sessionId || !command) {
+        // sessionId is always required; command may be empty string to poll for
+        // buffered output without sending input. Reject only undefined/null.
+        if (!sessionId || command === undefined || command === null) {
           return res.status(400).json({
             success: false,
             error: 'sessionId and command are required',
@@ -713,8 +715,11 @@ export class MCPServer {
           });
         }
 
-        // Send the command
-        session.sendCommand(command);
+        // Empty command = poll mode: just wait + drain buffer, don't send input.
+        // (Sending '' would emit a bare CRLF that the prompt would redraw over.)
+        if (command !== '') {
+          session.sendCommand(command);
+        }
 
         // Wait a bit for the response (default 100ms, max 5000ms)
         // Use predefined safe delay values to prevent resource exhaustion (CWE-400)
