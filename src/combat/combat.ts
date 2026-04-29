@@ -13,7 +13,7 @@ import { Room } from '../room/room';
 import { formatUsername } from '../utils/formatters';
 import { CombatSystem } from './combatSystem';
 import { ItemManager } from '../utils/itemManager';
-import { createMechanicsLogger } from '../utils/logger';
+import { createMechanicsLogger, mcpLogger } from '../utils/logger';
 import { AbilityManager } from '../abilities/abilityManager';
 import { clearRestingMeditating } from '../utils/stateInterruption';
 import { handleNpcDrops } from './npcDeathHandler';
@@ -706,6 +706,24 @@ export class Combat {
     // Get all players targeting this entity
     const targetingPlayers = [...this.combatSystem.getEntityTargeters(entityId)];
 
+    // Diagnostic logging for the playtest-reported "admin-spawn gives half XP"
+    // bug. engageCombat keys targeters by instanceId for NPCs, but this lookup
+    // uses npc.name — a known mismatch. Log enough context to reproduce.
+    const entityIdByInstance =
+      npc instanceof NPC ? this.combatSystem.getEntityId(roomId, npc.instanceId) : entityId;
+    const targetersByInstance =
+      npc instanceof NPC ? [...this.combatSystem.getEntityTargeters(entityIdByInstance)] : [];
+    mcpLogger.debug(
+      `[xp-debug] handleNpcDeath: ` +
+        `npc.name=${JSON.stringify(npc.name)}, ` +
+        `npc.instanceId=${npc instanceof NPC ? JSON.stringify(npc.instanceId) : 'N/A'}, ` +
+        `experienceValue=${npc.experienceValue}, ` +
+        `entityId(byName)=${JSON.stringify(entityId)}, ` +
+        `targetersByName=${JSON.stringify(targetingPlayers)}, ` +
+        `entityId(byInstance)=${JSON.stringify(entityIdByInstance)}, ` +
+        `targetersByInstance=${JSON.stringify(targetersByInstance)}`
+    );
+
     // Ensure at least the player who killed the NPC gets experience
     // by adding them to the list if they're not already included
     if (!targetingPlayers.includes(this.player.user.username)) {
@@ -716,6 +734,11 @@ export class Combat {
     // Ensure we always have at least 1 participant to avoid dividing by zero
     const numParticipants = Math.max(1, targetingPlayers.length);
     const experiencePerPlayer = Math.floor(npc.experienceValue / numParticipants);
+
+    mcpLogger.debug(
+      `[xp-debug] award: numParticipants=${numParticipants}, ` +
+        `experiencePerPlayer=${experiencePerPlayer}, killer=${this.player.user.username}`
+    );
 
     // Award experience to all participating players
     for (const playerName of targetingPlayers) {
