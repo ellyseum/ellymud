@@ -33,7 +33,7 @@ steps:
     description: "Explore further and find the town square."
     objectives:
       - type: enter_room
-        roomId: millbrook-square
+        roomId: millbrook-village-square
         description: "Visit Millbrook's town square"
     hint: "Explore the village. The square is usually central to any settlement."
     onComplete:

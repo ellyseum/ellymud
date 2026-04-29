@@ -48,7 +48,7 @@ steps:
     description: "Kill the rats in the cellar."
     objectives:
       - type: kill_mob
-        npcTemplateId: rat
+        npcTemplateId: field-rat
         count: 3
         description: "Kill 3 rats"
     onComplete:
