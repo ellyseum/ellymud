@@ -302,6 +302,12 @@ export type QuestAction =
 /**
  * Requirements for a dialogue option to be visible/selectable
  */
+/**
+ * Conditions a dialog option can require before becoming available.
+ *
+ * Note: items[] enforcement is a TODO (see questEventHandler.ts). minCount
+ * is parsed for forward-compat but not yet acted upon.
+ */
 export interface DialogueRequirements {
   /** Required user flags */
   flags?: string[];
@@ -315,6 +321,11 @@ export interface DialogueRequirements {
   raceId?: string;
   /** Required items in inventory */
   items?: string[];
+  /**
+   * Minimum count for items[] (e.g. items: [goblin-ear], minCount: 8).
+   * Currently parsed but not yet enforced by meetsDialogueRequirements.
+   */
+  minCount?: number;
   /** Step must be active for this option to show */
   activeStep?: string;
 }

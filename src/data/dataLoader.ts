@@ -114,7 +114,8 @@ export function findDataFileSync(basePath: string): string | null {
  * @returns Array of parsed data objects with their source file paths
  */
 export async function loadDataDirectory<T>(
-  dirPath: string
+  dirPath: string,
+  opts: { recursive?: boolean } = {}
 ): Promise<Array<{ data: T; filePath: string }>> {
   const results: Array<{ data: T; filePath: string }> = [];
   const extensions = new Set(['.toml', '.yaml', '.yml', '.json']);
@@ -127,17 +128,26 @@ export async function loadDataDirectory<T>(
   const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
 
   for (const entry of entries) {
+    const fullPath = path.join(dirPath, entry.name);
+
+    if (entry.isDirectory()) {
+      if (opts.recursive) {
+        const sub = await loadDataDirectory<T>(fullPath, opts);
+        results.push(...sub);
+      }
+      continue;
+    }
+
     if (!entry.isFile()) continue;
 
     const ext = path.extname(entry.name).toLowerCase();
     if (!extensions.has(ext)) continue;
 
-    const filePath = path.join(dirPath, entry.name);
     try {
-      const data = await loadDataFile<T>(filePath);
-      results.push({ data, filePath });
+      const data = await loadDataFile<T>(fullPath);
+      results.push({ data, filePath: fullPath });
     } catch (error) {
-      logger.error(`Failed to load data file: ${filePath}`, error);
+      logger.error(`Failed to load data file: ${fullPath}`, error);
       // Continue loading other files
     }
   }

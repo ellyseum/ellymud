@@ -474,6 +474,12 @@ const dialogueRequirementsSchema = {
     classId: { type: 'string' },
     raceId: { type: 'string' },
     items: { type: 'array', items: { type: 'string' } },
+    /**
+     * Minimum count for items[] (e.g. items: [goblin-ear], minCount: 8 →
+     * "must have at least 8 goblin-ears"). Currently parsed but not yet
+     * enforced — see the matching TODO in questEventHandler's item check.
+     */
+    minCount: { type: 'integer', minimum: 1 },
     activeStep: { type: 'string' },
   },
   additionalProperties: false,

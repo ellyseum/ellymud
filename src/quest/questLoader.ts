@@ -53,7 +53,7 @@ export async function loadQuests(
   logger.info(`Loading quests from ${questsDir}`);
 
   try {
-    const results = await loadDataDirectory<QuestDefinition>(questsDir);
+    const results = await loadDataDirectory<QuestDefinition>(questsDir, { recursive: true });
 
     for (const { data, filePath } of results) {
       const validation = validateQuestDefinition(data, filePath);
@@ -84,7 +84,15 @@ export async function loadQuests(
         quests.set(validation.quest.id, validation.quest);
         logger.debug(`Loaded quest: ${validation.quest.id} (${validation.quest.name})`);
       } else {
-        logger.error(`Invalid quest in ${filePath}:`, validation.errors);
+        // Spell out each schema error inline — winston's metadata arg is
+        // visible only at debug level, so a multi-error array gets dropped.
+        const errors = validation.errors ?? ['unknown validation error'];
+        logger.error(
+          `Invalid quest in ${filePath} (${errors.length} schema error${errors.length === 1 ? '' : 's'}):`
+        );
+        for (const err of errors) {
+          logger.error(`  - ${err}`);
+        }
       }
     }
 
