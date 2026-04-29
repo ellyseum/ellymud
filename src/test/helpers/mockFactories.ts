@@ -196,7 +196,7 @@ export const createMockRoom = (
     currency: createDefaultCurrency(),
     addPlayer: jest.fn(),
     removePlayer: jest.fn(),
-    addNPC: jest.fn(),
+    addNPC: jest.fn().mockReturnValue(true),
     removeNPC: jest.fn(),
     addItem: jest.fn(),
     removeItem: jest.fn(),

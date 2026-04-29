@@ -214,13 +214,25 @@ export class MobilityManager {
   ): Array<{ direction: string; roomId: string }> {
     const validExits: Array<{ direction: string; roomId: string }> = [];
 
+    // Look up the actual NPC instance to check hostility — MobileNPC tracker
+    // doesn't carry that flag.
+    const npcInstance = room.getNPC(mobile.instanceId);
+    const isHostile = npcInstance?.isHostile === true;
+
     for (const exit of room.exits) {
-      // Check if destination is in the same area (if staysInArea is true)
-      if (mobile.staysInArea && mobile.spawnAreaId) {
-        const destRoom = this.roomManager.getRoom(exit.roomId);
-        if (!destRoom || destRoom.areaId !== mobile.spawnAreaId) {
-          continue;
-        }
+      const destRoom = this.roomManager.getRoom(exit.roomId);
+      if (!destRoom) continue;
+
+      // Stay-in-area constraint
+      if (mobile.staysInArea && mobile.spawnAreaId && destRoom.areaId !== mobile.spawnAreaId) {
+        continue;
+      }
+
+      // Refuge invariant: hostile NPCs do not wander into safe rooms.
+      // Room.addNPC also rejects this on actual entry; pre-filtering here
+      // avoids generating a noisy reject + wasted move attempt.
+      if (isHostile && destRoom.flags?.includes('safe')) {
+        continue;
       }
 
       validExits.push({ direction: exit.direction, roomId: exit.roomId });

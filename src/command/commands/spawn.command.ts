@@ -131,8 +131,19 @@ export class SpawnCommand implements Command {
         );
       }
 
-      // Add the NPC to the room with the proper object
-      room.addNPC(npc);
+      // Add the NPC to the room with the proper object. Room.addNPC enforces
+      // the safe-zone invariant (rejects hostile NPCs in safe rooms).
+      const added = room.addNPC(npc);
+      if (!added) {
+        writeToClient(
+          client,
+          colorize(
+            `Cannot spawn ${npcType} here — this is a safe zone and the NPC is hostile.\r\n`,
+            'yellow'
+          )
+        );
+        return;
+      }
     }
 
     // Notify the player

@@ -124,10 +124,21 @@ export class Room {
   }
 
   /**
-   * Add an NPC to the room
+   * Add an NPC to the room.
+   *
+   * Returns true on success, false if the NPC was rejected because it would
+   * be a hostile NPC inside a 'safe' room (refuge invariant: nothing hostile
+   * lives inside a safe zone). All entry paths — wandering, admin spawn,
+   * scripted spawn, quest actions — go through here, so the safe-room
+   * invariant is enforced once at the boundary rather than scattered across
+   * each caller.
    */
-  addNPC(npc: NPC): void {
+  addNPC(npc: NPC): boolean {
+    if (npc.isHostile && this.flags?.includes('safe')) {
+      return false;
+    }
     this.npcs.set(npc.instanceId, npc);
+    return true;
   }
 
   /**

@@ -260,6 +260,22 @@ export class PlayerMovementService implements IPlayerMovementService {
       // NOW update user's current room
       client.user.currentRoomId = nextRoomId;
 
+      // Refuge invariant: when a player enters a safe room, clear any
+      // hostile NPC aggression toward them in the room they just left.
+      // Without this, hostile NPCs that were chasing the player keep them
+      // in their aggressor list and re-engage the moment the player steps
+      // back out — making safe rooms speed-bumps rather than refuges.
+      if (nextRoom.flags?.includes('safe') && client.user.username) {
+        const previousRoom = this.roomManager.getRoom(currentRoomId);
+        if (previousRoom) {
+          for (const npc of previousRoom.npcs.values()) {
+            if (npc.hasAggression(client.user.username)) {
+              npc.removeAggression(client.user.username);
+            }
+          }
+        }
+      }
+
       // Log the player's movement
       const playerLogger = getPlayerLogger(client.user.username);
       playerLogger.info(`Moved to room ${nextRoomId}: ${nextRoom.name}`);
