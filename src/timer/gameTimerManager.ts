@@ -56,8 +56,12 @@ export class GameTimerManager extends EventEmitter {
     // Get the SpawnManager instance
     const areaManager = AreaManager.getInstance();
     this.spawnManager = SpawnManager.getInstance(areaManager, roomManager);
-    // Get the MobilityManager instance
+    // Get the MobilityManager instance and wire it to CombatSystem so the
+    // dispersal pass can detect mobs that are mid-engagement (targeters
+    // are set immediately by engageCombat, before aggression damage
+    // exchange would set npc.aggressors).
     this.mobilityManager = MobilityManager.getInstance(roomManager);
+    this.mobilityManager.setCombatSystem(this.combatSystem);
     // Get the ResourceManager instance
     this.resourceManager = ResourceManager.getInstance();
     // Start async initialization

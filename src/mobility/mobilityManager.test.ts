@@ -102,12 +102,14 @@ describe('MobilityManager', () => {
               templateId: 'wolf',
               name: 'wolf',
               isMerchant: () => false,
+              isAlive: () => true,
               getAllAggressors: () => [],
             } as unknown as NPC,
           ],
         ]),
         exits: [],
         players: [],
+        effectiveMaxMobs: () => null,
       } as unknown as Room;
 
       mockRoomManager.getAllRooms.mockReturnValue([mockRoom]);
@@ -138,6 +140,7 @@ describe('MobilityManager', () => {
         ]),
         exits: [],
         players: [],
+        effectiveMaxMobs: () => null,
       } as unknown as Room;
 
       mockRoomManager.getAllRooms.mockReturnValue([mockRoom]);
@@ -168,6 +171,7 @@ describe('MobilityManager', () => {
         templateId: 'wolf',
         name: 'wolf',
         isMerchant: () => false,
+        isAlive: () => true,
         getAllAggressors: () => [],
       } as unknown as NPC;
 
@@ -195,6 +199,7 @@ describe('MobilityManager', () => {
         templateId: 'wolf',
         name: 'wolf',
         isMerchant: () => false,
+        isAlive: () => true,
       } as unknown as NPC;
 
       const mockRoom = {
@@ -217,6 +222,7 @@ describe('MobilityManager', () => {
         templateId: 'wolf',
         name: 'wolf',
         isMerchant: () => false,
+        isAlive: () => true,
         getAllAggressors: () => [],
       } as unknown as NPC;
 
@@ -228,6 +234,7 @@ describe('MobilityManager', () => {
         removeNPC: jest.fn(),
         exits: [{ direction: 'north', roomId: 'forest-2' }],
         players: [],
+        effectiveMaxMobs: () => null,
       } as unknown as Room;
 
       mockRoomManager.getAllRooms.mockReturnValue([mockRoom]);
@@ -248,6 +255,7 @@ describe('MobilityManager', () => {
         templateId: 'wolf',
         name: 'wolf',
         isMerchant: () => false,
+        isAlive: () => true,
         getAllAggressors: () => [],
       } as unknown as NPC;
 
@@ -260,6 +268,7 @@ describe('MobilityManager', () => {
         addNPC: jest.fn(),
         exits: [{ direction: 'north', roomId: 'forest-2' }],
         players: [],
+        effectiveMaxMobs: () => null,
       } as unknown as Room;
 
       const mockRoom2 = {
@@ -271,6 +280,7 @@ describe('MobilityManager', () => {
         addNPC: jest.fn(),
         exits: [{ direction: 'south', roomId: 'forest-1' }],
         players: [],
+        effectiveMaxMobs: () => null,
       } as unknown as Room;
 
       mockRoomManager.getAllRooms.mockReturnValue([mockRoom1]);
@@ -296,6 +306,7 @@ describe('MobilityManager', () => {
         templateId: 'wolf',
         name: 'wolf',
         isMerchant: () => false,
+        isAlive: () => true,
         getAllAggressors: () => ['player1'], // Has an aggressor
       } as unknown as NPC;
 
@@ -307,6 +318,7 @@ describe('MobilityManager', () => {
         removeNPC: jest.fn(),
         exits: [{ direction: 'north', roomId: 'forest-2' }],
         players: [],
+        effectiveMaxMobs: () => null,
       } as unknown as Room;
 
       mockRoomManager.getAllRooms.mockReturnValue([mockRoom]);
@@ -325,6 +337,7 @@ describe('MobilityManager', () => {
         templateId: 'wolf',
         name: 'wolf',
         isMerchant: () => false,
+        isAlive: () => true,
         getAllAggressors: () => [],
       } as unknown as NPC;
 
@@ -336,6 +349,7 @@ describe('MobilityManager', () => {
         removeNPC: jest.fn(),
         exits: [{ direction: 'north', roomId: 'town-1' }], // Exit leads to different area
         players: [],
+        effectiveMaxMobs: () => null,
       } as unknown as Room;
 
       const mockTownRoom = {
@@ -343,6 +357,7 @@ describe('MobilityManager', () => {
         areaId: 'town', // Different area
         npcs: new Map(),
         players: [],
+        effectiveMaxMobs: () => null,
       } as unknown as Room;
 
       mockRoomManager.getAllRooms.mockReturnValue([mockRoom1]);
@@ -368,6 +383,180 @@ describe('MobilityManager', () => {
       mobilityManager.reload();
 
       expect(mockRoomManager.getAllRooms).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('processOverflow (population cap dispersal)', () => {
+    /** Build N inline mock NPCs with the minimum surface processOverflow + executeNpcMove rely on. */
+    const makeNpcs = (count: number, prefix = 'rat'): NPC[] =>
+      Array.from(
+        { length: count },
+        (_, i) =>
+          ({
+            instanceId: `${prefix}-${i}`,
+            templateId: prefix,
+            name: prefix,
+            isMerchant: () => false,
+            isAlive: () => true,
+            getAllAggressors: () => [] as string[],
+          }) as unknown as NPC
+      );
+
+    const makeRoom = (
+      id: string,
+      npcs: NPC[],
+      cap: number | null,
+      exits: { direction: string; roomId: string }[] = []
+    ): Room =>
+      ({
+        id,
+        areaId: 'forest',
+        npcs: new Map(npcs.map((n) => [n.instanceId, n])),
+        getNPC: jest.fn((iid: string) => npcs.find((n) => n.instanceId === iid)),
+        addNPC: jest.fn().mockReturnValue(true),
+        removeNPC: jest.fn(function (this: { npcs: Map<string, NPC> }, iid: string) {
+          this.npcs.delete(iid);
+        }),
+        exits,
+        players: [],
+        flags: [],
+        effectiveMaxMobs: () => cap,
+      }) as unknown as Room;
+
+    /** Register N NPCs on the manager so getCountableNpcs picks them up. */
+    const registerAll = (npcs: NPC[], room: Room): void => {
+      // Bypass normal registerNPC (requires loadNPCData lookup) by reaching into the
+      // private field directly — same pattern other unit tests use elsewhere.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const m = (mobilityManager as any).mobileNPCs as Map<string, unknown>;
+      for (const npc of npcs) {
+        m.set(npc.instanceId, {
+          instanceId: npc.instanceId,
+          templateId: npc.templateId,
+          lastMoveTick: 0,
+          movementTicks: 1000, // unreasonably high so processNormalMovement never picks them
+          staysInArea: true,
+          currentRoomId: room.id,
+          spawnAreaId: room.areaId,
+        });
+      }
+    };
+
+    it('disperses overflow when room is over cap', () => {
+      const npcs = makeNpcs(4); // 4 in the room, cap 2
+      const overflowRoom = makeRoom('a', npcs, 2, [{ direction: 'north', roomId: 'b' }]);
+      const calmRoom = makeRoom('b', [], 5);
+
+      mockRoomManager.getAllRooms.mockReturnValue([overflowRoom, calmRoom]);
+      mockRoomManager.getRoom.mockImplementation((id) =>
+        id === 'a' ? overflowRoom : id === 'b' ? calmRoom : undefined
+      );
+
+      mobilityManager.initialize();
+      registerAll(npcs, overflowRoom);
+
+      mobilityManager.processTick(1);
+
+      // 2 of the 4 should be removed and re-added at neighbor.
+      expect((overflowRoom.removeNPC as jest.Mock).mock.calls.length).toBe(2);
+      expect((calmRoom.addNPC as jest.Mock).mock.calls.length).toBe(2);
+    });
+
+    it('exempts mobs in combat from dispersal', () => {
+      const npcs = makeNpcs(4);
+      // 2 of the 4 are in combat (have aggressors)
+      (npcs[0] as unknown as { getAllAggressors: () => string[] }).getAllAggressors = () => [
+        'admin',
+      ];
+      (npcs[1] as unknown as { getAllAggressors: () => string[] }).getAllAggressors = () => [
+        'admin',
+      ];
+
+      const room = makeRoom('a', npcs, 2, [{ direction: 'north', roomId: 'b' }]);
+      const dest = makeRoom('b', [], 5);
+
+      mockRoomManager.getAllRooms.mockReturnValue([room, dest]);
+      mockRoomManager.getRoom.mockImplementation((id) =>
+        id === 'a' ? room : id === 'b' ? dest : undefined
+      );
+
+      mobilityManager.initialize();
+      registerAll(npcs, room);
+
+      mobilityManager.processTick(1);
+
+      // Only the 2 non-combat mobs are eligible. Overflow is also 2, so both
+      // get evicted. The 2 in-combat mobs stay.
+      const removedIds = (room.removeNPC as jest.Mock).mock.calls.map((c) => c[0]);
+      expect(removedIds).not.toContain('rat-0');
+      expect(removedIds).not.toContain('rat-1');
+      expect(removedIds.length).toBe(2);
+    });
+
+    it('stays put when no neighbor has capacity', () => {
+      const npcs = makeNpcs(3);
+      const room = makeRoom('a', npcs, 1, [{ direction: 'north', roomId: 'b' }]);
+      const fullRoom = makeRoom('b', makeNpcs(5, 'wolf'), 5); // already at cap
+
+      mockRoomManager.getAllRooms.mockReturnValue([room, fullRoom]);
+      mockRoomManager.getRoom.mockImplementation((id) =>
+        id === 'a' ? room : id === 'b' ? fullRoom : undefined
+      );
+
+      mobilityManager.initialize();
+      registerAll(npcs, room);
+      registerAll(makeNpcs(5, 'wolf'), fullRoom);
+
+      mobilityManager.processTick(1);
+
+      // Source is over cap but the only neighbor is also full → nobody moves.
+      expect((room.removeNPC as jest.Mock).mock.calls.length).toBe(0);
+    });
+
+    it('skips dispersal when no cap is configured', () => {
+      const npcs = makeNpcs(10);
+      const room = makeRoom('a', npcs, null, [{ direction: 'north', roomId: 'b' }]);
+      const dest = makeRoom('b', [], null);
+
+      mockRoomManager.getAllRooms.mockReturnValue([room, dest]);
+      mockRoomManager.getRoom.mockImplementation((id) =>
+        id === 'a' ? room : id === 'b' ? dest : undefined
+      );
+
+      mobilityManager.initialize();
+      registerAll(npcs, room);
+
+      mobilityManager.processTick(1);
+
+      expect((room.removeNPC as jest.Mock).mock.calls.length).toBe(0);
+    });
+
+    it('updates virtual occupancy across dispersals so the same neighbor does not get overloaded', () => {
+      const npcs = makeNpcs(5); // 5 mobs in source, cap 1, overflow 4
+      const room = makeRoom('a', npcs, 1, [
+        { direction: 'north', roomId: 'b' },
+        { direction: 'south', roomId: 'c' },
+      ]);
+      // Two neighbors, slack of 2 each — cap should let exactly 2 each
+      const destB = makeRoom('b', [], 2);
+      const destC = makeRoom('c', [], 2);
+
+      mockRoomManager.getAllRooms.mockReturnValue([room, destB, destC]);
+      mockRoomManager.getRoom.mockImplementation((id) =>
+        id === 'a' ? room : id === 'b' ? destB : id === 'c' ? destC : undefined
+      );
+
+      mobilityManager.initialize();
+      registerAll(npcs, room);
+
+      mobilityManager.processTick(1);
+
+      const bCount = (destB.addNPC as jest.Mock).mock.calls.length;
+      const cCount = (destC.addNPC as jest.Mock).mock.calls.length;
+      // Total dispersed should be 4, and neither neighbor gets all of them.
+      expect(bCount + cCount).toBe(4);
+      expect(bCount).toBeLessThanOrEqual(2);
+      expect(cCount).toBeLessThanOrEqual(2);
     });
   });
 });

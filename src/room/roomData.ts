@@ -42,4 +42,10 @@ export interface RoomData {
   spawnNpcs?: string[];
   /** Starting currency when room is reset */
   spawnCurrency?: Currency;
+  /**
+   * Per-room override of area.maxRoomMobs — cap on mobile NPC population.
+   * Excess mobs auto-disperse via MobilityManager. Falls back to area
+   * default when unset; null/undefined at both levels = no cap.
+   */
+  maxMobs?: number;
 }

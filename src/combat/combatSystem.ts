@@ -125,6 +125,23 @@ export class CombatSystem {
   }
 
   /**
+   * Is the given NPC instance currently being engaged by any player?
+   *
+   * Targeters are populated by engageCombat the moment the attack command
+   * lands — earlier than the aggressors map (which only fills on actual
+   * damage exchange). Use this when the caller needs to know "is anyone
+   * fighting this NPC right now" without missing the engage→first-swing
+   * window.
+   *
+   * Pass the NPC's instanceId (NOT name); engageCombat keys targeters by
+   * instanceId since commit 9002405.
+   */
+  isEntityInCombat(roomId: string, instanceId: string): boolean {
+    const entityId = this.getEntityId(roomId, instanceId);
+    return this.entityTracker.getEntityTargeters(entityId).length > 0;
+  }
+
+  /**
    * Engage a player in combat with a target
    */
   engageCombat(player: ConnectedClient, target: CombatEntity): boolean {

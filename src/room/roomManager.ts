@@ -368,6 +368,8 @@ export class RoomManager implements IRoomManager {
           spawnItems: room.spawnItems,
           spawnNpcs: room.spawnNpcs,
           spawnCurrency: room.spawnCurrency,
+          // Population cap override (auto-dispersal floor — see MobilityManager)
+          maxMobs: room.maxMobs,
         };
       });
 

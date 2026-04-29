@@ -56,6 +56,17 @@ export interface Area {
   spawnConfig: AreaSpawnConfig[];
   /** Flags applied to new rooms in this area */
   defaultRoomFlags?: string[];
+  /**
+   * Default cap on the number of MOBILE NPCs per room in this area.
+   * Stationary NPCs (vendors, trainers) don't count. Excess mobile NPCs
+   * are auto-dispersed by MobilityManager next tick.
+   *
+   * Distinct from combatConfig.maxNpcsPerRoom — that one gates fresh
+   * spawns from SpawnManager and counts ALL NPCs (mobile + stationary).
+   *
+   * Per-room override available via Room.maxMobs. Unset = no cap.
+   */
+  maxRoomMobs?: number;
   /** ISO timestamp of creation */
   created: string;
   /** ISO timestamp of last modification */

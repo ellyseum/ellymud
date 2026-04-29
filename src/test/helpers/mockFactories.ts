@@ -198,6 +198,8 @@ export const createMockRoom = (
     removePlayer: jest.fn(),
     addNPC: jest.fn().mockReturnValue(true),
     removeNPC: jest.fn(),
+    // Population cap helper (returns null = no cap by default; override per-test if needed)
+    effectiveMaxMobs: jest.fn().mockReturnValue(null),
     addItem: jest.fn(),
     removeItem: jest.fn(),
     getDescription: jest.fn().mockReturnValue(`A test room called ${name}.`),

@@ -5,6 +5,7 @@ import { Currency, Exit, Item } from '../types';
 import { ItemManager } from '../utils/itemManager';
 import { NPC } from '../combat/npc';
 import { colorizeItemName } from '../utils/itemNameColorizer';
+import { AreaManager } from '../area/areaManager';
 
 /** Data structure for constructing a Room */
 interface RoomConstructorData {
@@ -31,6 +32,8 @@ interface RoomConstructorData {
   spawnItems?: string[];
   spawnNpcs?: string[];
   spawnCurrency?: Currency;
+  // --- Population caps ---
+  maxMobs?: number;
 }
 
 export class Room {
@@ -71,6 +74,13 @@ export class Room {
   shortDescription?: string;
   longDescription?: string;
 
+  /**
+   * Per-room cap on the number of MOBILE NPCs allowed before MobilityManager
+   * starts auto-dispersing the overflow. Falls back to area.maxRoomMobs
+   * when unset; null at both levels = no cap. See effectiveMaxMobs().
+   */
+  maxMobs?: number;
+
   constructor(room: RoomConstructorData) {
     this.id = room.id;
     this.name = room.name || room.shortDescription || 'Unknown Room';
@@ -88,6 +98,7 @@ export class Room {
     // Initialize spawn defaults
     this.spawnItems = room.spawnItems;
     this.spawnNpcs = room.spawnNpcs;
+    this.maxMobs = room.maxMobs;
     this.spawnCurrency = room.spawnCurrency;
 
     // Initialize itemInstances
@@ -616,6 +627,23 @@ export class Room {
     return colorize('There are no obvious exits.', 'cyan') + '\r\n';
   }
 
+  /**
+   * Resolve the effective mobile-NPC cap for this room.
+   *
+   * Precedence: room.maxMobs (override) > area.maxRoomMobs (default) >
+   * null (no cap). Caller decides what to do with null — typically skip
+   * the overflow check entirely.
+   *
+   * Note: this is a runtime lookup against AreaManager.getInstance().
+   * For hot-loop usage prefer caching the result per tick.
+   */
+  effectiveMaxMobs(): number | null {
+    if (typeof this.maxMobs === 'number') return this.maxMobs;
+    if (!this.areaId) return null;
+    const area = AreaManager.getInstance().getById(this.areaId);
+    return area?.maxRoomMobs ?? null;
+  }
+
   getExit(direction: string): string | null {
     const exit = this.exits.find(
       (e) =>
@@ -680,6 +708,7 @@ export class Room {
       gridX: this.gridX,
       gridY: this.gridY,
       gridZ: this.gridZ,
+      maxMobs: this.maxMobs,
     };
   }
 }

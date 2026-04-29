@@ -10,8 +10,17 @@ import { NPC } from '../combat/npc';
 import { createContextLogger } from '../utils/logger';
 import { ClientManager } from '../client/clientManager';
 import { writeMessageToClient } from '../utils/socketWriter';
+import { CombatSystem } from '../combat/combatSystem';
 
 const mobilityLogger = createContextLogger('MobilityManager');
+
+/** In-place Fisher-Yates shuffle. */
+function shuffle<T>(arr: T[]): void {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
 
 interface MobileNPC {
   /** NPC instance ID */
@@ -36,6 +45,13 @@ export class MobilityManager {
   private mobileNPCs: Map<string, MobileNPC> = new Map();
   private initialized: boolean = false;
 
+  /**
+   * Optional ref to CombatSystem for the in-combat check during dispersal.
+   * Wired in via setCombatSystem(); if absent, the dispersal pass falls
+   * back to the npc.aggressors check (less precise but safe).
+   */
+  private combatSystem: CombatSystem | null = null;
+
   private constructor(roomManager: RoomManager) {
     this.roomManager = roomManager;
   }
@@ -45,6 +61,46 @@ export class MobilityManager {
       MobilityManager.instance = new MobilityManager(roomManager);
     }
     return MobilityManager.instance;
+  }
+
+  /**
+   * Inject the live CombatSystem for combat-aware dispersal. Optional —
+   * MobilityManager works without it but can't catch the engage→first-swing
+   * window on its own.
+   */
+  public setCombatSystem(combatSystem: CombatSystem): void {
+    this.combatSystem = combatSystem;
+  }
+
+  public isMobile(instanceId: string): boolean {
+    return this.mobileNPCs.has(instanceId);
+  }
+
+  /**
+   * Count of NPCs in the room that count toward the population cap:
+   * mobile (registered here), and not merchants. Stationary NPCs (vendors,
+   * trainers) are never registered, so they're excluded automatically.
+   */
+  public getCountableNpcs(room: Room): NPC[] {
+    const result: NPC[] = [];
+    for (const npc of room.npcs.values()) {
+      if (this.mobileNPCs.has(npc.instanceId) && !npc.isMerchant()) {
+        result.push(npc);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Is this NPC currently engaged in combat? Prefers the targeter set
+   * (set immediately at engage time), falls back to the NPC's aggressor
+   * list if combatSystem isn't wired.
+   */
+  private isInCombat(npc: NPC, roomId: string): boolean {
+    if (this.combatSystem) {
+      return this.combatSystem.isEntityInCombat(roomId, npc.instanceId);
+    }
+    return npc.getAllAggressors().length > 0;
   }
 
   public static resetInstance(): void {
@@ -124,6 +180,14 @@ export class MobilityManager {
   public processTick(currentTick: number): void {
     if (!this.initialized) return;
 
+    this.processNormalMovement(currentTick);
+    this.processOverflow(currentTick);
+  }
+
+  /**
+   * Per-NPC random-walk movement subject to per-mob cooldowns.
+   */
+  private processNormalMovement(currentTick: number): void {
     for (const [instanceId, mobile] of this.mobileNPCs) {
       // Check movement cooldown
       const ticksSinceLastMove = currentTick - mobile.lastMoveTick;
@@ -145,7 +209,7 @@ export class MobilityManager {
       }
 
       // Don't move NPCs that are in combat
-      if (npc.getAllAggressors().length > 0) {
+      if (this.isInCombat(npc, currentRoom.id)) {
         continue;
       }
 
@@ -163,46 +227,148 @@ export class MobilityManager {
   }
 
   /**
-   * Move an NPC to an adjacent room
+   * Population-cap overflow pass — auto-disperses excess mobile NPCs to
+   * neighboring rooms with available capacity. Combat-engaged mobs and
+   * merchants are exempt. Backpressure-aware: maintains a per-tick
+   * occupancy map so multiple dispersals don't pile into the same neighbor.
+   */
+  private processOverflow(currentTick: number): void {
+    // Snapshot countable populations once per tick — we mutate this map as
+    // dispersals execute so subsequent decisions see updated load.
+    const virtualLoad = new Map<string, number>();
+    const allRooms = this.roomManager.getAllRooms();
+    for (const r of allRooms) {
+      virtualLoad.set(r.id, this.getCountableNpcs(r).length);
+    }
+
+    for (const room of allRooms) {
+      const cap = room.effectiveMaxMobs();
+      if (cap === null) continue;
+      const present = virtualLoad.get(room.id) ?? 0;
+      if (present <= cap) continue;
+
+      // Snapshot current NPC list AFTER any earlier dispersals already
+      // mutated this room (re-read instead of using the pre-loop list).
+      const candidates = this.getCountableNpcs(room).filter(
+        (npc) => !this.isInCombat(npc, room.id)
+      );
+      if (candidates.length === 0) continue;
+
+      shuffle(candidates);
+      const overflow = present - cap;
+      const toDisperse = candidates.slice(0, overflow);
+
+      for (const npc of toDisperse) {
+        const mobile = this.mobileNPCs.get(npc.instanceId);
+        if (!mobile) continue;
+        this.disperseMobile(mobile, npc, room, virtualLoad, currentTick);
+      }
+    }
+  }
+
+  /**
+   * Move an overcrowded mob toward the neighbor with the most slack.
+   * Returns false (mob stays) if no neighbor has positive slack — we
+   * never push into a room that's already at-or-over its own cap.
+   */
+  private disperseMobile(
+    mobile: MobileNPC,
+    npc: NPC,
+    room: Room,
+    virtualLoad: Map<string, number>,
+    currentTick: number
+  ): boolean {
+    const exits = this.getValidExits(mobile, room);
+    if (exits.length === 0) return false;
+
+    type Ranked = {
+      exit: { direction: string; roomId: string };
+      dest: Room;
+      slack: number;
+    };
+
+    const ranked: Ranked[] = [];
+    for (const exit of exits) {
+      const dest = this.roomManager.getRoom(exit.roomId);
+      if (!dest) continue;
+      const destCap = dest.effectiveMaxMobs();
+      const destLoad = virtualLoad.get(dest.id) ?? this.getCountableNpcs(dest).length;
+      const slack = destCap === null ? Infinity : destCap - destLoad;
+      if (slack > 0) ranked.push({ exit, dest, slack });
+    }
+
+    if (ranked.length === 0) return false; // honor stay-put when neighbors are full
+
+    // Pick the highest-slack exit; random tie-break among the tied subset.
+    ranked.sort((a, b) => b.slack - a.slack);
+    const topSlack = ranked[0].slack;
+    const tied = ranked.filter((r) => r.slack === topSlack);
+    shuffle(tied);
+    const chosen = tied[0];
+
+    const moved = this.executeNpcMove(mobile, npc, room, chosen.exit, chosen.dest, currentTick);
+    if (moved) {
+      virtualLoad.set(room.id, (virtualLoad.get(room.id) ?? 1) - 1);
+      virtualLoad.set(chosen.dest.id, (virtualLoad.get(chosen.dest.id) ?? 0) + 1);
+    }
+    return moved;
+  }
+
+  /**
+   * Execute a single NPC move from one room to another. Re-validates at
+   * execution time (NPC still in source, alive, not in combat) since
+   * selection and execution can happen at different points in a tick.
+   * Honors the safe-zone invariant via Room.addNPC's boolean return —
+   * if the destination rejects, the NPC is restored to the source room.
+   */
+  private executeNpcMove(
+    mobile: MobileNPC,
+    npc: NPC,
+    fromRoom: Room,
+    exit: { direction: string; roomId: string },
+    toRoom: Room,
+    currentTick: number
+  ): boolean {
+    if (!fromRoom.npcs.has(npc.instanceId)) return false;
+    if (!npc.isAlive()) return false;
+    if (this.isInCombat(npc, fromRoom.id)) return false;
+
+    fromRoom.removeNPC(npc.instanceId);
+    this.broadcastToRoom(fromRoom, `A ${npc.name} leaves ${exit.direction}.`);
+
+    const added = toRoom.addNPC(npc);
+    if (!added) {
+      // Refuge invariant rejected the entry — put the mob back where it was.
+      fromRoom.addNPC(npc);
+      mobilityLogger.debug(
+        `Move from ${fromRoom.id} to ${toRoom.id} rejected by addNPC (likely safe-zone refusal); ${npc.name} stays.`
+      );
+      return false;
+    }
+
+    const oppositeDirection = this.getOppositeDirection(exit.direction);
+    this.broadcastToRoom(toRoom, `A ${npc.name} arrives from the ${oppositeDirection}.`);
+    mobile.currentRoomId = toRoom.id;
+    mobile.lastMoveTick = currentTick;
+    return true;
+  }
+
+  /**
+   * Move an NPC to a random adjacent room (the regular wandering path).
+   * Caller is the per-tick movement loop, which has already filtered for
+   * cooldown / combat / merchant. Population-cap dispersal goes through
+   * disperseMobile → executeNpcMove instead.
    */
   private moveNPC(mobile: MobileNPC, npc: NPC, currentRoom: Room): boolean {
-    // Get valid exits
     const validExits = this.getValidExits(mobile, currentRoom);
-    if (validExits.length === 0) {
-      return false;
-    }
+    if (validExits.length === 0) return false;
 
-    // Pick a random exit
     const exitIndex = Math.floor(Math.random() * validExits.length);
     const chosenExit = validExits[exitIndex];
-
-    // Get destination room
     const destRoom = this.roomManager.getRoom(chosenExit.roomId);
-    if (!destRoom) {
-      return false;
-    }
+    if (!destRoom) return false;
 
-    // Remove from current room
-    currentRoom.removeNPC(npc.instanceId);
-
-    // Broadcast departure message to current room
-    this.broadcastToRoom(currentRoom, `A ${npc.name} leaves ${chosenExit.direction}.`);
-
-    // Add to destination room
-    destRoom.addNPC(npc);
-
-    // Broadcast arrival message to destination room
-    const oppositeDirection = this.getOppositeDirection(chosenExit.direction);
-    this.broadcastToRoom(destRoom, `A ${npc.name} arrives from the ${oppositeDirection}.`);
-
-    // Update tracking
-    mobile.currentRoomId = destRoom.id;
-
-    mobilityLogger.debug(
-      `NPC ${npc.name} (${npc.instanceId}) moved from ${currentRoom.id} to ${destRoom.id}`
-    );
-
-    return true;
+    return this.executeNpcMove(mobile, npc, currentRoom, chosenExit, destRoom, mobile.lastMoveTick);
   }
 
   /**
