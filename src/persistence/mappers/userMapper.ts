@@ -66,17 +66,9 @@ export function dbRowToUser(row: UsersTable): User {
     intelligence: readStat(jsonStats, row.intelligence, 'intelligence'),
     charisma: readStat(jsonStats, row.charisma, 'charisma'),
     stats: statsRecord,
-    allocatedStats: jsonAllocated
-      ? {
-          strength: jsonAllocated.strength ?? 0,
-          dexterity: jsonAllocated.dexterity ?? 0,
-          agility: jsonAllocated.agility ?? 0,
-          constitution: jsonAllocated.constitution ?? 0,
-          wisdom: jsonAllocated.wisdom ?? 0,
-          intelligence: jsonAllocated.intelligence ?? 0,
-          charisma: jsonAllocated.charisma ?? 0,
-        }
-      : undefined,
+    // Pass the JSON record through directly so ruleset-declared stats
+    // beyond the seven fantasy attributes survive the round-trip.
+    allocatedStats: jsonAllocated ?? undefined,
     equipment: safeJsonParse(row.equipment, undefined),
     joinDate: new Date(row.join_date),
     lastLogin: new Date(row.last_login),

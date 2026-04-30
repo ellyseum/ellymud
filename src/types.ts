@@ -382,16 +382,10 @@ export interface User {
   classHistory?: string[]; // Track progression path through classes
   questFlags?: string[]; // For tier 2 class requirements
   unspentAttributePoints?: number; // Points to allocate on level up
-  // Track how many points player has allocated to each stat (for cost scaling)
-  allocatedStats?: {
-    strength: number;
-    dexterity: number;
-    agility: number;
-    constitution: number;
-    wisdom: number;
-    intelligence: number;
-    charisma: number;
-  };
+  // Track how many points player has allocated to each stat (for cost scaling).
+  // Keyed by stat id so ruleset-declared stats beyond the seven fantasy
+  // attributes flow through naturally.
+  allocatedStats?: Record<string, number>;
   // Add character statistics
   // Per-stat fields are kept in sync with `stats` for backwards compatibility
   // during the engine refactor; new code should read via getStat() and rulesets
