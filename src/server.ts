@@ -15,6 +15,8 @@ import { JsonValidationError } from './utils/jsonUtils';
 import { systemLogger } from './utils/logger';
 import { ensureMCPApiKey } from './utils/mcpKeySetup';
 import { GlobalWithSkipMCP } from './types';
+import { RulesetRegistry } from './ruleset/rulesetRegistry';
+import { defaultFantasyRulesetConfig } from './ruleset/defaultFantasyRulesetConfig';
 
 // This file now acts as a simple entry point that creates and starts the game server
 let gameServer: GameServer;
@@ -33,6 +35,10 @@ async function main() {
 
     // Store whether to start MCP server
     (global as GlobalWithSkipMCP).__SKIP_MCP_SERVER = !hasMCPKey;
+
+    // Load the active ruleset before any manager touches user data.
+    // Subsequent stat reads go through the registry; this must happen first.
+    RulesetRegistry.getInstance().loadConfig(defaultFantasyRulesetConfig);
 
     // Create the game server - wrap this in try/catch to handle construction errors
     gameServer = new GameServer();
