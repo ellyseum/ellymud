@@ -393,6 +393,10 @@ export interface User {
     charisma: number;
   };
   // Add character statistics
+  // Per-stat fields are kept in sync with `stats` for backwards compatibility
+  // during the engine refactor; new code should read via getStat() and rulesets
+  // can declare stats beyond the seven via the `stats` record. They will be
+  // removed in a follow-up phase once all consumers have migrated.
   strength: number;
   dexterity: number;
   agility: number;
@@ -400,6 +404,14 @@ export interface User {
   wisdom: number;
   intelligence: number;
   charisma: number;
+
+  /**
+   * Ruleset-driven stat record. Source of truth for a ruleset that declares
+   * stats beyond the seven fantasy attributes. Populated by the mapper on read,
+   * by user creation paths, and by stat-modifier application. Kept in sync
+   * with the legacy flat fields above for one transition phase.
+   */
+  stats: Record<string, number>;
 
   // Resource system - generic resource fields for any class resource type
   resource?: number; // Current resource amount (rage, energy, ki, holy, nature)

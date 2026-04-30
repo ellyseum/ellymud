@@ -22,6 +22,7 @@ import { getUserRepository, getSnakeScoreRepository } from '../persistence/Repos
 import { getPasswordService } from '../persistence/passwordService';
 import { calculateMaxHP } from '../utils/statCalculator';
 import { ClassManager } from '../class/classManager';
+import { addToStat, ensureStatsRecord } from './syncStats';
 
 export class UserManager {
   private users: User[] = [];
@@ -216,6 +217,11 @@ export class UserManager {
       } else {
         user.mana = Math.max(0, Math.min(user.mana, user.maxMana));
       }
+
+      // Ensure the ruleset stats record is populated and synchronized with the
+      // legacy flat fields. Legacy users.json predating the engine refactor
+      // won't have user.stats; this builds it on demand.
+      ensureStatsRecord(user as User);
 
       // Add user to collection - at this point all required fields have been validated
       this.users.push(user as User);
@@ -739,6 +745,17 @@ export class UserManager {
       wisdom: 10,
       intelligence: 10,
       charisma: 10,
+      // Ruleset-driven stat record. Mirrors the flat fields above during the
+      // transition phase; new ruleset stats land here too.
+      stats: {
+        strength: 10,
+        dexterity: 10,
+        agility: 10,
+        constitution: 10,
+        wisdom: 10,
+        intelligence: 10,
+        charisma: 10,
+      },
       // Track allocated points (for cost scaling - separate from race bonuses)
       allocatedStats: {
         strength: 0,
@@ -1143,15 +1160,15 @@ export class UserManager {
     // Set the race ID
     user.raceId = raceId;
 
-    // Apply stat modifiers
+    // Apply stat modifiers (kept in sync with the new stats record)
     const modifiers = race.statModifiers;
-    user.strength += modifiers.strength;
-    user.dexterity += modifiers.dexterity;
-    user.agility += modifiers.agility;
-    user.constitution += modifiers.constitution;
-    user.wisdom += modifiers.wisdom;
-    user.intelligence += modifiers.intelligence;
-    user.charisma += modifiers.charisma;
+    addToStat(user, 'strength', modifiers.strength);
+    addToStat(user, 'dexterity', modifiers.dexterity);
+    addToStat(user, 'agility', modifiers.agility);
+    addToStat(user, 'constitution', modifiers.constitution);
+    addToStat(user, 'wisdom', modifiers.wisdom);
+    addToStat(user, 'intelligence', modifiers.intelligence);
+    addToStat(user, 'charisma', modifiers.charisma);
 
     // Get class HP bonus (adventurer has 0)
     const classManager = ClassManager.getInstance();

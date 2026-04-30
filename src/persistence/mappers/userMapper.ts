@@ -36,6 +36,18 @@ function readStat(jsonStats: Record<string, number> | null, legacy: number, id: 
 export function dbRowToUser(row: UsersTable): User {
   const jsonStats = safeJsonParse<Record<string, number> | null>(row.stats, null);
   const jsonAllocated = safeJsonParse<Record<string, number> | null>(row.allocated_stats, null);
+  // Build the canonical stats record. Source of truth: the JSON column when
+  // populated; otherwise reconstructed from the legacy per-stat columns. This
+  // is what consumers should reach via getStat().
+  const statsRecord: Record<string, number> = jsonStats ?? {
+    strength: row.strength,
+    dexterity: row.dexterity,
+    agility: row.agility,
+    constitution: row.constitution,
+    wisdom: row.wisdom,
+    intelligence: row.intelligence,
+    charisma: row.charisma,
+  };
   return {
     username: row.username,
     passwordHash: row.password_hash,
@@ -53,6 +65,7 @@ export function dbRowToUser(row: UsersTable): User {
     wisdom: readStat(jsonStats, row.wisdom, 'wisdom'),
     intelligence: readStat(jsonStats, row.intelligence, 'intelligence'),
     charisma: readStat(jsonStats, row.charisma, 'charisma'),
+    stats: statsRecord,
     allocatedStats: jsonAllocated
       ? {
           strength: jsonAllocated.strength ?? 0,
@@ -114,17 +127,21 @@ export function userToDbRow(user: User): UsersTable {
     wisdom: user.wisdom,
     intelligence: user.intelligence,
     charisma: user.charisma,
-    // Bridge writes (C3): emit the JSON columns alongside the legacy per-stat
-    // columns. Reads still come from the legacy columns until C4.
-    stats: JSON.stringify({
-      strength: user.strength,
-      dexterity: user.dexterity,
-      agility: user.agility,
-      constitution: user.constitution,
-      wisdom: user.wisdom,
-      intelligence: user.intelligence,
-      charisma: user.charisma,
-    }),
+    // Bridge writes: emit the JSON columns alongside the legacy per-stat
+    // columns. The stats record (populated and kept in sync via syncStats)
+    // is the source of truth for ruleset-declared stats; flat columns
+    // continue receiving the seven fantasy values for one transition phase.
+    stats: JSON.stringify(
+      user.stats ?? {
+        strength: user.strength,
+        dexterity: user.dexterity,
+        agility: user.agility,
+        constitution: user.constitution,
+        wisdom: user.wisdom,
+        intelligence: user.intelligence,
+        charisma: user.charisma,
+      }
+    ),
     allocated_stats: user.allocatedStats ? JSON.stringify(user.allocatedStats) : null,
     equipment: user.equipment ? JSON.stringify(user.equipment) : null,
     join_date: user.joinDate.toISOString(),
