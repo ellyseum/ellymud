@@ -90,10 +90,18 @@ export function userToDbRow(user: User): UsersTable {
     wisdom: user.wisdom,
     intelligence: user.intelligence,
     charisma: user.charisma,
-    // C2 placeholder: schema migration v1 added these JSON columns. The mapper
-    // starts populating them in C3 (bridge writes) and reads them in C4.
-    stats: null,
-    allocated_stats: null,
+    // Bridge writes (C3): emit the JSON columns alongside the legacy per-stat
+    // columns. Reads still come from the legacy columns until C4.
+    stats: JSON.stringify({
+      strength: user.strength,
+      dexterity: user.dexterity,
+      agility: user.agility,
+      constitution: user.constitution,
+      wisdom: user.wisdom,
+      intelligence: user.intelligence,
+      charisma: user.charisma,
+    }),
+    allocated_stats: user.allocatedStats ? JSON.stringify(user.allocatedStats) : null,
     equipment: user.equipment ? JSON.stringify(user.equipment) : null,
     join_date: user.joinDate.toISOString(),
     last_login: user.lastLogin.toISOString(),
