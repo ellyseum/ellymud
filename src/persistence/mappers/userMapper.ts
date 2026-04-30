@@ -20,9 +20,22 @@ function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
 }
 
 /**
+ * Read a stat from the JSON `stats` column, falling back to the per-stat
+ * legacy column. The JSON column is the source of truth post-C4; the
+ * fallback exists for rows written before the bridge populated the JSON
+ * (i.e., before the v1 schema migration ran on this DB).
+ */
+function readStat(jsonStats: Record<string, number> | null, legacy: number, id: string): number {
+  const v = jsonStats?.[id];
+  return typeof v === 'number' && Number.isFinite(v) ? v : legacy;
+}
+
+/**
  * Convert a database row to a User domain object
  */
 export function dbRowToUser(row: UsersTable): User {
+  const jsonStats = safeJsonParse<Record<string, number> | null>(row.stats, null);
+  const jsonAllocated = safeJsonParse<Record<string, number> | null>(row.allocated_stats, null);
   return {
     username: row.username,
     passwordHash: row.password_hash,
@@ -33,13 +46,24 @@ export function dbRowToUser(row: UsersTable): User {
     maxMana: row.max_mana,
     experience: row.experience,
     level: row.level,
-    strength: row.strength,
-    dexterity: row.dexterity,
-    agility: row.agility,
-    constitution: row.constitution,
-    wisdom: row.wisdom,
-    intelligence: row.intelligence,
-    charisma: row.charisma,
+    strength: readStat(jsonStats, row.strength, 'strength'),
+    dexterity: readStat(jsonStats, row.dexterity, 'dexterity'),
+    agility: readStat(jsonStats, row.agility, 'agility'),
+    constitution: readStat(jsonStats, row.constitution, 'constitution'),
+    wisdom: readStat(jsonStats, row.wisdom, 'wisdom'),
+    intelligence: readStat(jsonStats, row.intelligence, 'intelligence'),
+    charisma: readStat(jsonStats, row.charisma, 'charisma'),
+    allocatedStats: jsonAllocated
+      ? {
+          strength: jsonAllocated.strength ?? 0,
+          dexterity: jsonAllocated.dexterity ?? 0,
+          agility: jsonAllocated.agility ?? 0,
+          constitution: jsonAllocated.constitution ?? 0,
+          wisdom: jsonAllocated.wisdom ?? 0,
+          intelligence: jsonAllocated.intelligence ?? 0,
+          charisma: jsonAllocated.charisma ?? 0,
+        }
+      : undefined,
     equipment: safeJsonParse(row.equipment, undefined),
     joinDate: new Date(row.join_date),
     lastLogin: new Date(row.last_login),

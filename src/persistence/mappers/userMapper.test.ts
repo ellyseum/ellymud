@@ -76,10 +76,66 @@ describe('userMapper bridge writes (C3)', () => {
     expect(row.allocated_stats).toBeNull();
   });
 
-  it('dbRowToUser still reads from legacy stat columns (C3 reads unchanged)', () => {
+  it('dbRowToUser reads stats from JSON column (C4 read path)', () => {
     const row = userToDbRow(makeUser());
     const user = dbRowToUser(row);
     expect(user.strength).toBe(14);
     expect(user.dexterity).toBe(12);
+  });
+
+  it('dbRowToUser falls back to legacy column when JSON column is null', () => {
+    const row = userToDbRow(makeUser());
+    row.stats = null; // simulate a row written before bridge/migration ran
+    const user = dbRowToUser(row);
+    expect(user.strength).toBe(14);
+    expect(user.dexterity).toBe(12);
+  });
+
+  it('dbRowToUser prefers JSON column over legacy column when both populated', () => {
+    const row = userToDbRow(makeUser());
+    row.stats = JSON.stringify({
+      strength: 99,
+      dexterity: 99,
+      agility: 99,
+      constitution: 99,
+      wisdom: 99,
+      intelligence: 99,
+      charisma: 99,
+    });
+    const user = dbRowToUser(row);
+    expect(user.strength).toBe(99);
+  });
+
+  it('dbRowToUser falls back per-stat for partial JSON', () => {
+    const row = userToDbRow(makeUser());
+    row.stats = JSON.stringify({ strength: 99 }); // only one key
+    const user = dbRowToUser(row);
+    expect(user.strength).toBe(99);
+    expect(user.dexterity).toBe(12); // falls back to legacy column
+  });
+
+  it('dbRowToUser populates allocatedStats from JSON column', () => {
+    const user = makeUser({
+      allocatedStats: {
+        strength: 4,
+        dexterity: 0,
+        agility: 0,
+        constitution: 3,
+        wisdom: 0,
+        intelligence: 0,
+        charisma: 0,
+      },
+    });
+    const row = userToDbRow(user);
+    const decoded = dbRowToUser(row);
+    expect(decoded.allocatedStats?.strength).toBe(4);
+    expect(decoded.allocatedStats?.constitution).toBe(3);
+  });
+
+  it('dbRowToUser leaves allocatedStats undefined when allocated_stats column is null', () => {
+    const row = userToDbRow(makeUser());
+    expect(row.allocated_stats).toBeNull();
+    const user = dbRowToUser(row);
+    expect(user.allocatedStats).toBeUndefined();
   });
 });
