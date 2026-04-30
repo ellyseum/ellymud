@@ -37,7 +37,8 @@ import { getPromptText } from './utils/promptFormatter'; // Import the getPrompt
 import { TestModeOptions, getDefaultTestModeOptions } from './testing/testMode';
 import { StateLoader } from './testing/stateLoader';
 import { checkAndAutoMigrate } from './data/autoMigrate';
-import { ensureInitialized as ensureDatabaseInitialized } from './data/db';
+import { ensureInitialized as ensureDatabaseInitialized, getDb } from './data/db';
+import { ensureSchemaUpToDate } from './data/schemaMigrations';
 import { isUsingDatabase } from './config';
 import { AreaManager } from './area/areaManager';
 import { IAsyncMUDConfigRepository, MUDConfig } from './persistence/interfaces';
@@ -376,6 +377,8 @@ export class GameServer {
       // Only initialize database if using sqlite, postgres, or auto storage backend
       if (isUsingDatabase()) {
         await ensureDatabaseInitialized();
+        // Apply versioned schema migrations after the base schema exists.
+        await ensureSchemaUpToDate(getDb());
       }
 
       // Wait for all managers to finish loading data before proceeding

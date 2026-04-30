@@ -7,6 +7,7 @@
 import { Kysely, SqliteDialect } from 'kysely';
 import Database from 'better-sqlite3';
 import { Database as DatabaseSchema } from '../data/schema';
+import { ensureSchemaUpToDate } from '../data/schemaMigrations';
 
 let testDb: Kysely<DatabaseSchema> | null = null;
 
@@ -166,5 +167,6 @@ export async function destroyTestDb(): Promise<void> {
 export async function setupTestDb(): Promise<Kysely<DatabaseSchema>> {
   const db = createTestDb();
   await initializeTestDb(db);
+  await ensureSchemaUpToDate(db);
   return db;
 }

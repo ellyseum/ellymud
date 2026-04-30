@@ -23,6 +23,10 @@ export interface UsersTable {
   wisdom: number;
   intelligence: number;
   charisma: number;
+  /** JSON: Record<string, number> — populated by schema migration v1. */
+  stats: string | null;
+  /** JSON: Record<string, number> — populated by schema migration v1. */
+  allocated_stats: string | null;
   equipment: string | null;
   join_date: string;
   last_login: string;
