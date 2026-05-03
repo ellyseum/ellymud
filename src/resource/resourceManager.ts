@@ -282,14 +282,17 @@ export class ResourceManager {
   ): number {
     const rule = pool.regen[cadence];
     if (!rule) return 0;
-    return evaluateRegenRule(user, rule, this.cadenceProgressKey(user, pool, cadence));
+    const max = computeMaxFromPool(user, pool);
+    return evaluateRegenRule(user, rule, this.cadenceProgressKey(user, pool, cadence), max);
   }
 
   private evaluateTickRegen(user: User, pool: ResourcePoolDefinition): number {
+    const max = computeMaxFromPool(user, pool);
     const base = evaluateRegenRule(
       user,
       pool.regen.tickRegen!,
-      this.cadenceProgressKey(user, pool, 'tickRegen')
+      this.cadenceProgressKey(user, pool, 'tickRegen'),
+      max
     );
     if (user.isMeditating && typeof pool.meditationMultiplier === 'number') {
       return base * pool.meditationMultiplier;
@@ -410,21 +413,19 @@ function computeMaxFromPool(user: User, pool: ResourcePoolDefinition): number {
 /**
  * Compute the per-fire amount of a regen rule. `progress` is provided by the
  * caller for `every_n_ticks` rules so the accumulator can be persisted per
- * (user, pool, cadence) tuple. Other regen kinds ignore it.
+ * (user, pool, cadence) tuple. `max` is the pool's current max for the user;
+ * percent rules scale against it.
  */
 function evaluateRegenRule(
   user: User,
   rule: NonNullable<ResourcePoolDefinition['regen']['tickRegen']>,
-  progress: { get: () => number; set: (v: number) => void }
+  progress: { get: () => number; set: (v: number) => void },
+  max: number
 ): number {
   if (rule.kind === 'none') return 0;
 
   if (rule.kind === 'percent') {
-    // The pool max isn't known here without circular access; the caller is
-    // expected to scale by max separately if needed. For now `percent` returns
-    // the fractional rate and callers multiply by max — currently unused by
-    // the default fantasy ruleset.
-    return rule.perTickPct;
+    return Math.floor(max * rule.perTickPct);
   }
 
   if (rule.kind === 'flat') {

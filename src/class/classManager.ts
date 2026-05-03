@@ -69,15 +69,20 @@ export class ClassManager {
   private async loadClasses(): Promise<void> {
     try {
       const classList = await this.repository.findAll();
-      this.classes.clear();
+      // Validate every class against the active ruleset BEFORE touching the
+      // registry; a single bad record otherwise wipes the existing registry
+      // (clear() runs first) and replaces it with a partial set up to the
+      // failure point.
       for (const cls of classList) {
         this.validateClassResource(cls);
+      }
+      this.classes.clear();
+      for (const cls of classList) {
         this.classes.set(cls.id, cls);
       }
       classLogger.info(`Loaded ${this.classes.size} classes`);
     } catch (error) {
       classLogger.error('Error loading classes:', error);
-      this.classes.clear();
     }
   }
 

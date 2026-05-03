@@ -177,9 +177,45 @@ export class RulesetRegistry {
         if (typeof pool.abbreviation !== 'string' || pool.abbreviation.length === 0) {
           violations.push(`resource pool "${pool.id}" abbreviation must be a non-empty string`);
         }
+        validatePoolSizing(pool, violations);
+        validatePoolRegen(pool, violations);
       }
     }
 
     return violations;
+  }
+}
+
+function validatePoolSizing(pool: ResourcePoolDefinition, violations: string[]): void {
+  const s = pool.sizing as { kind?: unknown };
+  if (!s || (s.kind !== 'fixed' && s.kind !== 'derived')) {
+    violations.push(`resource pool "${pool.id}" sizing.kind must be 'fixed' or 'derived'`);
+    return;
+  }
+  if (s.kind === 'fixed') {
+    if (typeof (s as { value?: unknown }).value !== 'number') {
+      violations.push(`resource pool "${pool.id}" fixed sizing requires a numeric value`);
+    }
+  } else {
+    const ds = s as { base?: unknown; terms?: unknown };
+    if (typeof ds.base !== 'number') {
+      violations.push(`resource pool "${pool.id}" derived sizing requires a numeric base`);
+    }
+    if (!Array.isArray(ds.terms) || ds.terms.length === 0) {
+      violations.push(`resource pool "${pool.id}" derived sizing requires a non-empty terms array`);
+    }
+  }
+}
+
+function validatePoolRegen(pool: ResourcePoolDefinition, violations: string[]): void {
+  const ALLOWED_KINDS = new Set(['percent', 'flat', 'every_n_ticks', 'none']);
+  for (const cadence of ['tickRegen', 'subRegen', 'fullRegen'] as const) {
+    const rule = pool.regen[cadence] as { kind?: string } | undefined;
+    if (!rule) continue;
+    if (typeof rule.kind !== 'string' || !ALLOWED_KINDS.has(rule.kind)) {
+      violations.push(
+        `resource pool "${pool.id}" ${cadence}.kind must be one of ${[...ALLOWED_KINDS].join(', ')}`
+      );
+    }
   }
 }

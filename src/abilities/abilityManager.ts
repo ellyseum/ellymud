@@ -94,8 +94,12 @@ export class AbilityManager extends EventEmitter {
   private async loadAbilities(): Promise<void> {
     try {
       const abilities = await this.repository.findAll();
+      // Validate every ability against the active ruleset before touching the
+      // registry so a single bad record can't leave a partially-loaded state
+      // that mixes new and stale entries.
+      abilities.forEach((ability) => this.validateAbilityResource(ability));
+      this.abilities.clear();
       abilities.forEach((ability) => {
-        this.validateAbilityResource(ability);
         this.abilities.set(ability.id, ability);
         abilityLogger.debug(`Loaded ability: ${ability.id}`);
       });
