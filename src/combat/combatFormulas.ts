@@ -9,6 +9,7 @@
  */
 
 import { User, GameItem, Race, CharacterClass, ArmorType } from '../types';
+import { getStat } from '../ruleset/safeAccess';
 
 // ============================================================================
 // Constants
@@ -432,7 +433,7 @@ export function calculateUserDodgeChance(
   const racialDodge = getRacialDodgeBonus(user.raceId ?? 'human', raceData);
   const classBonus = classData?.dodgeBonus ?? 0;
 
-  return calculateDodgeChance(user.agility, racialDodge, classBonus);
+  return calculateDodgeChance(getStat(user, 'agility'), racialDodge, classBonus);
 }
 
 /**
@@ -445,5 +446,10 @@ export function calculateUserCritChance(
 ): number {
   const racialCritBonus = raceData?.bonuses?.critChance ? raceData.bonuses.critChance * 100 : 0;
 
-  return calculateCritChance(user.dexterity, user.intelligence, isSpell, racialCritBonus);
+  return calculateCritChance(
+    getStat(user, 'dexterity'),
+    getStat(user, 'intelligence'),
+    isSpell,
+    racialCritBonus
+  );
 }
