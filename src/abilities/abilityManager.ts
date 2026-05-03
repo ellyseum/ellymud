@@ -16,6 +16,7 @@ import { writeFormattedMessageToClient } from '../utils/socketWriter';
 import { colorize } from '../utils/colors';
 import { ItemManager } from '../utils/itemManager';
 import { getStat } from '../ruleset/safeAccess';
+import { RulesetRegistry } from '../ruleset/rulesetRegistry';
 import { clearRestingMeditating } from '../utils/stateInterruption';
 import { getAbilityRepository } from '../persistence/RepositoryFactory';
 import { IAsyncAbilityRepository } from '../persistence/interfaces';
@@ -94,12 +95,31 @@ export class AbilityManager extends EventEmitter {
     try {
       const abilities = await this.repository.findAll();
       abilities.forEach((ability) => {
+        this.validateAbilityResource(ability);
         this.abilities.set(ability.id, ability);
         abilityLogger.debug(`Loaded ability: ${ability.id}`);
       });
       abilityLogger.info(`Loaded ${this.abilities.size} abilities`);
     } catch (error) {
       abilityLogger.error('Failed to load abilities:', error);
+    }
+  }
+
+  /**
+   * Verify the ability's resourceCost.type names a registered pool. Stops a
+   * typo from silently spending whatever resource the player's class happens
+   * to use at runtime — current execution reads getCurrentResource(user)
+   * regardless of the ability's declared cost type.
+   */
+  private validateAbilityResource(ability: AbilityTemplate): void {
+    const cost = ability.resourceCost;
+    if (!cost) return;
+    const reg = RulesetRegistry.getInstance();
+    if (!reg.isLoaded()) return;
+    if (!reg.hasResourcePool(cost.type)) {
+      throw new Error(
+        `Ability "${ability.id}" declares unknown resource cost type "${cost.type}" — register the pool in the active ruleset.`
+      );
     }
   }
 

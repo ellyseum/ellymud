@@ -8,6 +8,8 @@ import { CharacterClass, User } from '../types';
 import { getClassRepository } from '../persistence/RepositoryFactory';
 import { IAsyncClassRepository } from '../persistence/interfaces';
 import { createContextLogger } from '../utils/logger';
+import { RulesetRegistry } from '../ruleset/rulesetRegistry';
+import { NO_RESOURCE } from '../ruleset/resourceTypes';
 
 const classLogger = createContextLogger('ClassManager');
 
@@ -69,12 +71,30 @@ export class ClassManager {
       const classList = await this.repository.findAll();
       this.classes.clear();
       for (const cls of classList) {
+        this.validateClassResource(cls);
         this.classes.set(cls.id, cls);
       }
       classLogger.info(`Loaded ${this.classes.size} classes`);
     } catch (error) {
       classLogger.error('Error loading classes:', error);
       this.classes.clear();
+    }
+  }
+
+  /**
+   * Verify a class's `resourceType` is registered with the active ruleset.
+   * Treats `undefined` as the no-resource sentinel because existing class
+   * data and many tests omit the field entirely; `?? NO_RESOURCE` was the
+   * accepted shape before this guard.
+   */
+  private validateClassResource(cls: CharacterClass): void {
+    const id = cls.resourceType ?? NO_RESOURCE;
+    const reg = RulesetRegistry.getInstance();
+    if (!reg.isLoaded()) return; // pre-boot test paths can run before the registry is wired
+    if (!reg.hasResourcePool(id)) {
+      throw new Error(
+        `Class "${cls.id}" declares unknown resource type "${id}" — register the pool in the active ruleset or use NO_RESOURCE.`
+      );
     }
   }
 
