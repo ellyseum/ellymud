@@ -8,6 +8,7 @@ import { MobilityManager } from '../mobility/mobilityManager';
 import { AreaManager } from '../area/areaManager';
 import { ResourceManager } from '../resource/resourceManager';
 import { createContextLogger } from '../utils/logger';
+import { getStat } from '../ruleset/safeAccess';
 import { drawCommandPrompt } from '../utils/socketWriter';
 import { IAsyncGameTimerConfigRepository, GameTimerConfig } from '../persistence/interfaces';
 import { getGameTimerConfigRepository } from '../persistence/RepositoryFactory';
@@ -345,7 +346,7 @@ export class GameTimerManager extends EventEmitter {
       // Sub-regen HP while fully resting
       // Base: 4 HP, scaling with constitution (10-200 gives 1-20 bonus)
       if (isFullyResting && client.user.health < client.user.maxHealth) {
-        const constitution = client.user.constitution || 10;
+        const constitution = getStat(client.user, 'constitution');
         const subHpRegen = 4 + Math.floor(constitution / 10);
         hpGained = Math.min(subHpRegen, client.user.maxHealth - client.user.health);
         client.user.health += hpGained;
@@ -356,8 +357,8 @@ export class GameTimerManager extends EventEmitter {
       const userMana = client.user.mana ?? 0;
       const userMaxMana = client.user.maxMana ?? 0;
       if (isFullyMeditating && userMaxMana > 0 && userMana < userMaxMana) {
-        const wisdom = client.user.wisdom || 10;
-        const intelligence = client.user.intelligence || 10;
+        const wisdom = getStat(client.user, 'wisdom');
+        const intelligence = getStat(client.user, 'intelligence');
         const subMpRegen = 4 + Math.floor((wisdom + intelligence) / 20);
         mpGained = Math.min(subMpRegen, userMaxMana - userMana);
         client.user.mana = userMana + mpGained;
@@ -392,12 +393,12 @@ export class GameTimerManager extends EventEmitter {
       const messages: string[] = [];
 
       // Base HP regen: 4 HP, scaling with constitution (10-200 gives 1-20 bonus)
-      const constitution = client.user.constitution || 10;
+      const constitution = getStat(client.user, 'constitution');
       const baseHpRegen = 4 + Math.floor(constitution / 10);
 
       // Base MP regen: 4 MP, scaling with wisdom+intelligence (20-400 gives 1-20 bonus)
-      const wisdom = client.user.wisdom || 10;
-      const intelligence = client.user.intelligence || 10;
+      const wisdom = getStat(client.user, 'wisdom');
+      const intelligence = getStat(client.user, 'intelligence');
       const baseMpRegen = 4 + Math.floor((wisdom + intelligence) / 20);
 
       if (client.user.health < client.user.maxHealth) {

@@ -21,6 +21,8 @@ import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
 import { UserManager } from '../../user/userManager';
+import { getStat } from '../../ruleset/safeAccess';
+import { setStat } from '../../user/syncStats';
 
 /** Attribute abbreviations to full names */
 const ATTR_MAP: Record<string, string> = {
@@ -156,49 +158,49 @@ export class AttribCommand implements Command {
         name: 'Strength',
         abbr: 'STR',
         key: 'strength' as const,
-        value: user.strength,
+        value: getStat(user, 'strength'),
         desc: 'Physical power, melee damage',
       },
       {
         name: 'Dexterity',
         abbr: 'DEX',
         key: 'dexterity' as const,
-        value: user.dexterity,
+        value: getStat(user, 'dexterity'),
         desc: 'Accuracy, ranged damage',
       },
       {
         name: 'Agility',
         abbr: 'AGI',
         key: 'agility' as const,
-        value: user.agility,
+        value: getStat(user, 'agility'),
         desc: 'Speed, dodge chance',
       },
       {
         name: 'Constitution',
         abbr: 'CON',
         key: 'constitution' as const,
-        value: user.constitution,
+        value: getStat(user, 'constitution'),
         desc: 'Health, physical resistance',
       },
       {
         name: 'Wisdom',
         abbr: 'WIS',
         key: 'wisdom' as const,
-        value: user.wisdom,
+        value: getStat(user, 'wisdom'),
         desc: 'Mana, magic resistance',
       },
       {
         name: 'Intelligence',
         abbr: 'INT',
         key: 'intelligence' as const,
-        value: user.intelligence,
+        value: getStat(user, 'intelligence'),
         desc: 'Spell power, mana regen',
       },
       {
         name: 'Charisma',
         abbr: 'CHA',
         key: 'charisma' as const,
-        value: user.charisma,
+        value: getStat(user, 'charisma'),
         desc: 'Prices, NPC reactions',
       },
     ];
@@ -234,7 +236,7 @@ export class AttribCommand implements Command {
 
   private addToAttribute(client: ConnectedClient, stat: AttributeName, amount: number): void {
     const user = client.user!;
-    const currentValue = user[stat] as number;
+    const currentValue = getStat(user, stat);
     const unspent = user.unspentAttributePoints ?? 0;
 
     // Get current allocated points for this stat (race bonuses don't count)
@@ -278,25 +280,16 @@ export class AttribCommand implements Command {
     const newUnspent = unspent - totalCost;
     const newAllocated = allocatedToStat + amount;
 
-    // Update user object
-    user[stat] = newValue;
+    setStat(user, stat, newValue);
     user.unspentAttributePoints = newUnspent;
     if (!user.allocatedStats) {
-      user.allocatedStats = {
-        strength: 0,
-        dexterity: 0,
-        agility: 0,
-        constitution: 0,
-        wisdom: 0,
-        intelligence: 0,
-        charisma: 0,
-      };
+      user.allocatedStats = {};
     }
     user.allocatedStats[stat] = newAllocated;
 
-    // Persist to userManager
+    // Persist via the user manager. The stat itself is already on user.stats
+    // (setStat above); only the bookkeeping fields need to flow through here.
     this.userManager.updateUserStats(user.username, {
-      [stat]: newValue,
       unspentAttributePoints: newUnspent,
       allocatedStats: user.allocatedStats,
     });

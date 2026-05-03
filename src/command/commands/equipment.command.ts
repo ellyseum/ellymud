@@ -3,6 +3,7 @@ import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
 import { ItemManager } from '../../utils/itemManager';
+import { getStat } from '../../ruleset/safeAccess';
 import { colorizeItemName } from '../../utils/itemNameColorizer';
 import { getPlayerLogger } from '../../utils/logger';
 
@@ -69,9 +70,11 @@ export class EquipmentCommand implements Command {
     }
 
     // Show attack and defense provided by equipment
-    const attackFromEquipment = user.attack ? user.attack - Math.floor(user.strength / 2) : 0;
+    const attackFromEquipment = user.attack
+      ? user.attack - Math.floor(getStat(user, 'strength') / 2)
+      : 0;
     const defenseFromEquipment = user.defense
-      ? user.defense - Math.floor(user.constitution / 2)
+      ? user.defense - Math.floor(getStat(user, 'constitution') / 2)
       : 0;
 
     writeToClient(client, colorize('\r\n=== Combat Stats from Equipment ===\r\n', 'magenta'));

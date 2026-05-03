@@ -13,6 +13,7 @@ import { UserManager } from '../user/userManager';
 import { CombatSystem } from '../combat/combatSystem';
 import { CommandHandler } from '../utils/commandHandler';
 import { ItemManager } from '../utils/itemManager';
+import { getStat } from '../ruleset/safeAccess';
 import { CommandRegistry } from '../command/commandRegistry';
 import { StateMachine } from '../state/stateMachine'; // Add StateMachine import
 import { createContextLogger } from '../utils/logger';
@@ -139,11 +140,11 @@ export class AuthenticatedState implements ClientState {
 
       // Initialize combat stats based on character attributes
       if (client.user.attack === undefined) {
-        defaultCombatStats.attack = Math.floor(client.user.strength / 2);
+        defaultCombatStats.attack = Math.floor(getStat(client.user, 'strength') / 2);
       }
 
       if (client.user.defense === undefined) {
-        defaultCombatStats.defense = Math.floor(client.user.constitution / 2);
+        defaultCombatStats.defense = Math.floor(getStat(client.user, 'constitution') / 2);
       }
 
       if (client.user.equipment === undefined) {

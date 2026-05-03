@@ -12,6 +12,7 @@ import { getPlayerLogger } from '../../utils/logger';
 import { CommandHandler } from '../../command/commandHandler';
 import { UserManager } from '../../user/userManager';
 import { RoomManager, EMERGENCY_ROOM_ID } from '../roomManager';
+import { getStat } from '../../ruleset/safeAccess';
 import { StateMachine } from '../../state/stateMachine';
 import { movementEventBus } from './movementEventBus';
 
@@ -149,8 +150,7 @@ export class PlayerMovementService implements IPlayerMovementService {
     }
 
     // Calculate movement delay based on agility
-    // Default to 10 if agility is undefined
-    const agility = client.user.agility || 10;
+    const agility = getStat(client.user, 'agility');
     const delay = this.calculateMovementDelay(agility);
 
     // Inform player they're moving - use writeToClient instead of writeFormattedMessageToClient

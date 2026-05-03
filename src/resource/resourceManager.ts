@@ -18,6 +18,7 @@ import {
   ENERGY_MAX,
 } from '../utils/statCalculator';
 import { createContextLogger } from '../utils/logger';
+import { getStat } from '../ruleset/safeAccess';
 
 const resourceLogger = createContextLogger('ResourceManager');
 
@@ -129,7 +130,7 @@ export class ResourceManager {
         return 0;
 
       case ResourceType.MANA:
-        return calculateMaxMana(user.intelligence, user.wisdom);
+        return calculateMaxMana(getStat(user, 'intelligence'), getStat(user, 'wisdom'));
 
       case ResourceType.RAGE:
         return classData?.resourceConfig?.maxFixed ?? RAGE_MAX;
@@ -138,13 +139,13 @@ export class ResourceManager {
         return classData?.resourceConfig?.maxFixed ?? ENERGY_MAX;
 
       case ResourceType.KI:
-        return calculateMaxKi(user.wisdom);
+        return calculateMaxKi(getStat(user, 'wisdom'));
 
       case ResourceType.HOLY:
         return classData?.resourceConfig?.maxFixed ?? 5;
 
       case ResourceType.NATURE:
-        return calculateMaxNature(user.wisdom);
+        return calculateMaxNature(getStat(user, 'wisdom'));
 
       default:
         return 0;
@@ -313,7 +314,8 @@ export class ResourceManager {
    */
   private calculateManaRegen(user: User): number {
     const baseRegen = RESOURCE_REGEN_RATES.MANA_BASE_REGEN;
-    const intBonus = Math.floor(user.intelligence / 10) * RESOURCE_REGEN_RATES.MANA_INT_BONUS;
+    const intBonus =
+      Math.floor(getStat(user, 'intelligence') / 10) * RESOURCE_REGEN_RATES.MANA_INT_BONUS;
 
     let totalRegen = baseRegen + intBonus;
 
@@ -330,7 +332,7 @@ export class ResourceManager {
    */
   private calculateKiRegen(user: User): number {
     const baseRegen = RESOURCE_REGEN_RATES.KI_BASE_REGEN;
-    const wisBonus = Math.floor(user.wisdom / 10) * RESOURCE_REGEN_RATES.KI_WIS_BONUS;
+    const wisBonus = Math.floor(getStat(user, 'wisdom') / 10) * RESOURCE_REGEN_RATES.KI_WIS_BONUS;
 
     let totalRegen = baseRegen + wisBonus;
 
@@ -348,7 +350,8 @@ export class ResourceManager {
    */
   private calculateNatureRegen(user: User, _inCombat: boolean): number {
     const baseRegen = RESOURCE_REGEN_RATES.NATURE_BASE_REGEN;
-    const wisBonus = Math.floor(user.wisdom / 10) * RESOURCE_REGEN_RATES.NATURE_WIS_BONUS;
+    const wisBonus =
+      Math.floor(getStat(user, 'wisdom') / 10) * RESOURCE_REGEN_RATES.NATURE_WIS_BONUS;
 
     // TODO: Add bonus for outdoor rooms when room flags are implemented
     return baseRegen + wisBonus;

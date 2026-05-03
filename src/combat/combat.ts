@@ -13,6 +13,7 @@ import { Room } from '../room/room';
 import { formatUsername } from '../utils/formatters';
 import { CombatSystem } from './combatSystem';
 import { ItemManager } from '../utils/itemManager';
+import { getStat } from '../ruleset/safeAccess';
 import { createMechanicsLogger, mcpLogger } from '../utils/logger';
 import { maybeAnnounceReadyToTrain } from '../utils/levelUpHint';
 import { AbilityManager } from '../abilities/abilityManager';
@@ -306,7 +307,12 @@ export class Combat {
     const raceData = raceManager.getRace(user.raceId ?? 'human');
 
     // Calculate hit chance
-    const hitChance = calculateHitChance(user.dexterity, user.level, targetDodge, targetLevel);
+    const hitChance = calculateHitChance(
+      getStat(user, 'dexterity'),
+      user.level,
+      targetDodge,
+      targetLevel
+    );
 
     // Roll to hit
     if (!rollToHit(hitChance)) {
@@ -353,7 +359,7 @@ export class Combat {
 
     // Calculate damage
     const totalDamage = calculatePhysicalDamage(
-      user.strength,
+      getStat(user, 'strength'),
       weaponMinDamage,
       weaponMaxDamage,
       targetDr,

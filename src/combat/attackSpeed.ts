@@ -12,6 +12,7 @@
 
 import { User, CombatLevel, CombatEnergyState, GameItem } from '../types';
 import { getCombatLevelMultiplier } from '../utils/statCalculator';
+import { getStat } from '../ruleset/safeAccess';
 
 // ============================================================================
 // Constants
@@ -191,7 +192,7 @@ export function calculateUserBaseEnergy(
   combatLevel: CombatLevel,
   hasteBonus: number = 0
 ): number {
-  return calculateBaseEnergy(user.level, user.agility, combatLevel, hasteBonus);
+  return calculateBaseEnergy(user.level, getStat(user, 'agility'), combatLevel, hasteBonus);
 }
 
 /**

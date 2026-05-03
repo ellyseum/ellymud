@@ -15,6 +15,7 @@ import { createMechanicsLogger } from '../utils/logger';
 import { writeFormattedMessageToClient } from '../utils/socketWriter';
 import { colorize } from '../utils/colors';
 import { ItemManager } from '../utils/itemManager';
+import { getStat } from '../ruleset/safeAccess';
 import { clearRestingMeditating } from '../utils/stateInterruption';
 import { getAbilityRepository } from '../persistence/RepositoryFactory';
 import { IAsyncAbilityRepository } from '../persistence/interfaces';
@@ -182,8 +183,7 @@ export class AbilityManager extends EventEmitter {
       }
       if (ability.requirements.stats) {
         for (const [stat, required] of Object.entries(ability.requirements.stats)) {
-          const userStat = (user as unknown as Record<string, unknown>)[stat] ?? 0;
-          if (typeof userStat === 'number' && userStat < required) {
+          if (getStat(user, stat) < required) {
             return { ok: false, reason: `Requires ${stat} ${required}.` };
           }
         }

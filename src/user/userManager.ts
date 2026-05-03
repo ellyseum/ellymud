@@ -23,6 +23,7 @@ import { getPasswordService } from '../persistence/passwordService';
 import { calculateMaxHP } from '../utils/statCalculator';
 import { ClassManager } from '../class/classManager';
 import { addToStat, ensureStatsRecord } from './syncStats';
+import { getStat } from '../ruleset/safeAccess';
 
 export class UserManager {
   private users: User[] = [];
@@ -1178,7 +1179,7 @@ export class UserManager {
     // Recalculate max HP using the new formula with racial bonus
     // HP = 20 + (CON * 2) + (Level * 5) + ClassBonus + RacialBonus
     const newMaxHealth = calculateMaxHP(
-      user.constitution,
+      getStat(user, 'constitution'),
       user.level,
       classHpBonus,
       race.hpBonus ?? 0

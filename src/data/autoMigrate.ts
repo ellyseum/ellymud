@@ -126,13 +126,13 @@ async function importJsonToDatabase(): Promise<void> {
               max_mana: user.maxMana ?? 100,
               experience: user.experience ?? 0,
               level: user.level ?? 1,
-              strength: user.strength ?? 10,
-              dexterity: user.dexterity ?? 10,
-              agility: user.agility ?? 10,
-              constitution: user.constitution ?? 10,
-              wisdom: user.wisdom ?? 10,
-              intelligence: user.intelligence ?? 10,
-              charisma: user.charisma ?? 10,
+              strength: user.stats?.strength ?? user.strength ?? 10,
+              dexterity: user.stats?.dexterity ?? user.dexterity ?? 10,
+              agility: user.stats?.agility ?? user.agility ?? 10,
+              constitution: user.stats?.constitution ?? user.constitution ?? 10,
+              wisdom: user.stats?.wisdom ?? user.wisdom ?? 10,
+              intelligence: user.stats?.intelligence ?? user.intelligence ?? 10,
+              charisma: user.stats?.charisma ?? user.charisma ?? 10,
               equipment: JSON.stringify(user.equipment ?? {}),
               join_date: user.joinDate ?? new Date().toISOString(),
               last_login: user.lastLogin ?? new Date().toISOString(),
@@ -335,6 +335,22 @@ async function exportDatabaseToJson(sourceBackend: 'sqlite' | 'postgres'): Promi
         wisdom: row.wisdom,
         intelligence: row.intelligence,
         charisma: row.charisma,
+        // Preserve the canonical stats record so ruleset-declared stats
+        // beyond the seven fantasy ids survive the export. Falls back to
+        // an object built from the flat columns when the JSON column is
+        // absent (rows from databases predating the schema migration).
+        stats: row.stats
+          ? JSON.parse(row.stats)
+          : {
+              strength: row.strength,
+              dexterity: row.dexterity,
+              agility: row.agility,
+              constitution: row.constitution,
+              wisdom: row.wisdom,
+              intelligence: row.intelligence,
+              charisma: row.charisma,
+            },
+        allocatedStats: row.allocated_stats ? JSON.parse(row.allocated_stats) : undefined,
         equipment: JSON.parse(row.equipment || '{}'),
         joinDate: row.join_date,
         lastLogin: row.last_login,

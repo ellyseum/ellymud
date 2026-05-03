@@ -6,6 +6,7 @@ import { Command } from '../command.interface';
 import { RoomManager } from '../../room/roomManager';
 import { Room } from '../../room/room';
 import { NPC, NPCData } from '../../combat/npc';
+import { getStat } from '../../ruleset/safeAccess';
 import { UserManager } from '../../user/userManager';
 import { SudoCommand } from './sudo.command';
 import { CombatSystem } from '../../combat/combatSystem';
@@ -1322,13 +1323,19 @@ export class DebugCommand implements Command {
 
     // Stats
     writeToClient(client, colorize(`\r\nStats:\r\n`, 'yellow'));
-    writeToClient(client, colorize(`  Strength: ${user.strength}\r\n`, 'white'));
-    writeToClient(client, colorize(`  Dexterity: ${user.dexterity}\r\n`, 'white'));
-    writeToClient(client, colorize(`  Agility: ${user.agility}\r\n`, 'white'));
-    writeToClient(client, colorize(`  Constitution: ${user.constitution}\r\n`, 'white'));
-    writeToClient(client, colorize(`  Intelligence: ${user.intelligence}\r\n`, 'white'));
-    writeToClient(client, colorize(`  Wisdom: ${user.wisdom}\r\n`, 'white'));
-    writeToClient(client, colorize(`  Charisma: ${user.charisma}\r\n`, 'white'));
+    writeToClient(client, colorize(`  Strength: ${getStat(user, 'strength')}\r\n`, 'white'));
+    writeToClient(client, colorize(`  Dexterity: ${getStat(user, 'dexterity')}\r\n`, 'white'));
+    writeToClient(client, colorize(`  Agility: ${getStat(user, 'agility')}\r\n`, 'white'));
+    writeToClient(
+      client,
+      colorize(`  Constitution: ${getStat(user, 'constitution')}\r\n`, 'white')
+    );
+    writeToClient(
+      client,
+      colorize(`  Intelligence: ${getStat(user, 'intelligence')}\r\n`, 'white')
+    );
+    writeToClient(client, colorize(`  Wisdom: ${getStat(user, 'wisdom')}\r\n`, 'white'));
+    writeToClient(client, colorize(`  Charisma: ${getStat(user, 'charisma')}\r\n`, 'white'));
 
     // Combat stats
     writeToClient(client, colorize(`\r\nCombat Stats:\r\n`, 'yellow'));

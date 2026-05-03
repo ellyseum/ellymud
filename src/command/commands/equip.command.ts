@@ -3,6 +3,7 @@ import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
 import { ItemManager } from '../../utils/itemManager';
+import { getStat } from '../../ruleset/safeAccess';
 import { UserManager } from '../../user/userManager';
 import { colorizeItemName, stripColorCodes } from '../../utils/itemNameColorizer';
 import { getPlayerLogger } from '../../utils/logger';
@@ -264,11 +265,11 @@ export class EquipCommand implements Command {
       return false;
     }
 
-    if (item.requirements.strength && user.strength < item.requirements.strength) {
+    if (item.requirements.strength && getStat(user, 'strength') < item.requirements.strength) {
       return false;
     }
 
-    if (item.requirements.dexterity && user.dexterity < item.requirements.dexterity) {
+    if (item.requirements.dexterity && getStat(user, 'dexterity') < item.requirements.dexterity) {
       return false;
     }
 

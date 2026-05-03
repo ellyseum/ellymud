@@ -66,22 +66,15 @@ export const createDefaultCurrency = (overrides: Partial<Currency> = {}): Curren
  * @param overrides - Partial user property overrides
  * @returns A User object
  */
-export const createMockUser = (overrides: Partial<User> = {}): User => ({
-  username: 'testuser',
-  health: 100,
-  maxHealth: 100,
-  mana: 50,
-  maxMana: 50,
-  experience: 0,
-  level: 1,
-  strength: 10,
-  dexterity: 10,
-  agility: 10,
-  constitution: 10,
-  wisdom: 10,
-  intelligence: 10,
-  charisma: 10,
-  stats: {
+export const createMockUser = (overrides: Partial<User> = {}): User => {
+  const merged: User = {
+    username: 'testuser',
+    health: 100,
+    maxHealth: 100,
+    mana: 50,
+    maxMana: 50,
+    experience: 0,
+    level: 1,
     strength: 10,
     dexterity: 10,
     agility: 10,
@@ -89,17 +82,40 @@ export const createMockUser = (overrides: Partial<User> = {}): User => ({
     wisdom: 10,
     intelligence: 10,
     charisma: 10,
-  },
-  joinDate: new Date(),
-  lastLogin: new Date(),
-  currentRoomId: 'town-square',
-  inventory: {
-    items: [],
-    currency: createDefaultCurrency(),
-  },
-  inCombat: false,
-  ...overrides,
-});
+    stats: {
+      strength: 10,
+      dexterity: 10,
+      agility: 10,
+      constitution: 10,
+      wisdom: 10,
+      intelligence: 10,
+      charisma: 10,
+    },
+    joinDate: new Date(),
+    lastLogin: new Date(),
+    currentRoomId: 'town-square',
+    inventory: {
+      items: [],
+      currency: createDefaultCurrency(),
+    },
+    inCombat: false,
+    ...overrides,
+  };
+  // Mirror per-stat overrides into the stats record so getStat() and direct
+  // flat reads agree. Tests can pass either shape; the helper reconciles.
+  merged.stats = {
+    ...merged.stats,
+    strength: merged.strength,
+    dexterity: merged.dexterity,
+    agility: merged.agility,
+    constitution: merged.constitution,
+    wisdom: merged.wisdom,
+    intelligence: merged.intelligence,
+    charisma: merged.charisma,
+    ...(overrides.stats ?? {}),
+  };
+  return merged;
+};
 
 /**
  * Creates a mock ConnectedClient

@@ -11,6 +11,7 @@ import { ResourceManager } from '../../resource/resourceManager';
 import { getResourceDisplayAbbr } from '../../utils/statCalculator';
 
 import { getExpRequiredForLevel, getTotalExpForLevel } from '../../utils/expCurve';
+import { getStat } from '../../ruleset/safeAccess';
 
 export class StatsCommand implements Command {
   name = 'stats';
@@ -142,49 +143,49 @@ export class StatsCommand implements Command {
     writeToClient(
       client,
       colorize(
-        `Strength: ${user.strength}${statBonuses.strength ? ` (+${statBonuses.strength})` : ''}\r\n`,
+        `Strength: ${getStat(user, 'strength')}${statBonuses.strength ? ` (+${statBonuses.strength})` : ''}\r\n`,
         'white'
       )
     );
     writeToClient(
       client,
       colorize(
-        `Dexterity: ${user.dexterity}${statBonuses.dexterity ? ` (+${statBonuses.dexterity})` : ''}\r\n`,
+        `Dexterity: ${getStat(user, 'dexterity')}${statBonuses.dexterity ? ` (+${statBonuses.dexterity})` : ''}\r\n`,
         'white'
       )
     );
     writeToClient(
       client,
       colorize(
-        `Agility: ${user.agility}${statBonuses.agility ? ` (+${statBonuses.agility})` : ''}\r\n`,
+        `Agility: ${getStat(user, 'agility')}${statBonuses.agility ? ` (+${statBonuses.agility})` : ''}\r\n`,
         'white'
       )
     );
     writeToClient(
       client,
       colorize(
-        `Constitution: ${user.constitution}${statBonuses.constitution ? ` (+${statBonuses.constitution})` : ''}\r\n`,
+        `Constitution: ${getStat(user, 'constitution')}${statBonuses.constitution ? ` (+${statBonuses.constitution})` : ''}\r\n`,
         'white'
       )
     );
     writeToClient(
       client,
       colorize(
-        `Wisdom: ${user.wisdom}${statBonuses.wisdom ? ` (+${statBonuses.wisdom})` : ''}\r\n`,
+        `Wisdom: ${getStat(user, 'wisdom')}${statBonuses.wisdom ? ` (+${statBonuses.wisdom})` : ''}\r\n`,
         'white'
       )
     );
     writeToClient(
       client,
       colorize(
-        `Intelligence: ${user.intelligence}${statBonuses.intelligence ? ` (+${statBonuses.intelligence})` : ''}\r\n`,
+        `Intelligence: ${getStat(user, 'intelligence')}${statBonuses.intelligence ? ` (+${statBonuses.intelligence})` : ''}\r\n`,
         'white'
       )
     );
     writeToClient(
       client,
       colorize(
-        `Charisma: ${user.charisma}${statBonuses.charisma ? ` (+${statBonuses.charisma})` : ''}\r\n`,
+        `Charisma: ${getStat(user, 'charisma')}${statBonuses.charisma ? ` (+${statBonuses.charisma})` : ''}\r\n`,
         'white'
       )
     );
