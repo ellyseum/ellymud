@@ -10,6 +10,9 @@ import { CombatNotifier } from './CombatNotifier';
 import { formatUsername } from '../../utils/formatters';
 import { clearRestingMeditating } from '../../utils/stateInterruption';
 import { secureRandom, secureRandomIndex } from '../../utils/secureRandom';
+import { RulesetRegistry } from '../../ruleset/rulesetRegistry';
+import { CombatContext } from '../../ruleset/combatTypes';
+import { NPC } from '../npc';
 
 /**
  * Responsible for processing attack logic and combat rounds
@@ -215,8 +218,21 @@ export class CombatProcessor {
     // Any aggressive action from an NPC interrupts resting/meditating (silently)
     clearRestingMeditating(player, 'damage', true);
 
-    // 50% chance to hit
-    const hit = secureRandom() >= 0.5;
+    // Hit chance comes from the active ruleset's combat hooks. The default
+    // fantasy ruleset preserves the historical 50% NPC-aggro hit chance via
+    // the attackKind discriminator; alternate rulesets can substitute their
+    // own math without touching engine code.
+    const npcLevel = npc instanceof NPC ? Math.max(1, Math.floor(npc.experienceValue / 50)) : 1;
+    const ctx: CombatContext = {
+      attacker: npc as unknown as CombatContext['attacker'],
+      defender: player.user,
+      attackerLevel: npcLevel,
+      defenderLevel: player.user.level,
+      weaponDamageRange: { min: 0, max: 0 },
+      attackKind: 'npc-aggro',
+    };
+    const hitChance = RulesetRegistry.getInstance().getCombatHooks().hitChance(ctx);
+    const hit = secureRandom() * 100 < hitChance;
 
     if (hit) {
       const damage = npc.getAttackDamage();
