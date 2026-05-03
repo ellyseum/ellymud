@@ -71,20 +71,20 @@ export const defaultFantasyCombatHooks: CombatHooks = {
     );
   },
 
-  armorClass(ctx) {
-    // Default fantasy AC is computed by the engine via itemManager + the
-    // calculateArmorClass primitive at attack time; this hook's value is
-    // currently consulted for parity by Phase D ability tooling. Returning
-    // a base 10 here matches the formula's BASE_AC; rulesets that want
-    // hook-driven AC can override.
-    if (!isUser(ctx.defender)) return 10;
+  armorClass(_ctx) {
+    // Engine still owns AC calculation via itemManager + calculateArmorClass
+    // because the formula consumes the player's equipped armor list, which
+    // isn't on the CombatContext today. Default fantasy returns the formula
+    // base (BASE_AC) so a ruleset that wires this hook into combat.ts gets
+    // a consistent floor; the engine bypasses it for player attacks.
     return 10;
   },
 
-  damageReduction(ctx) {
-    // Same shape as armorClass — engine-side calculation in combat.ts is
-    // unchanged; ruleset override hook lives here for future consumers.
-    if (!isUser(ctx.defender)) return 0;
+  damageReduction(_ctx) {
+    // Same shape: equipment-derived DR is computed by the engine; this hook
+    // returns the formula floor (0). Wiring DR fully through the hook
+    // requires putting equipped armor on the context, scheduled with the
+    // ability handler work in Phase D.
     return 0;
   },
 

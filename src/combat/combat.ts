@@ -316,7 +316,9 @@ export class Combat {
       attackKind: 'player-melee',
     };
 
-    // Calculate hit chance
+    // Calculate hit chance via the active ruleset's hook. The default
+    // fantasy implementation reproduces calculateHitChance; alternative
+    // rulesets can substitute their own without engine changes.
     const hitChance = hooks.hitChance(ctx);
 
     // Roll to hit
@@ -360,13 +362,14 @@ export class Combat {
       return;
     }
 
-    // Compute damage end-to-end (rolls weapon, decides crit, applies DR, clamps).
-    const damage = hooks.computeDamage(ctx);
-    const isCrit = damage.isCrit;
-    // The engine still calls calculatePhysicalDamage directly with the
-    // engine-side targetDr to honor armor data; the hook computes a
-    // ruleset-aware base, and the engine applies its own DR last so that
-    // equipment numbers stay authoritative.
+    // Crit check goes through the hook so a ruleset can replace the
+    // formula. Damage itself still flows through calculatePhysicalDamage
+    // for now because the engine path consults equipment-derived DR via
+    // itemManager — wiring DR through the hook surface waits until the
+    // default fantasy hook can read armor (Phase D will fold this in
+    // alongside ability handlers, where item effect math is centralized).
+    const critChance = hooks.critChance(ctx);
+    const isCrit = Math.random() * 100 < critChance;
     const totalDamage = calculatePhysicalDamage(
       getStat(user, 'strength'),
       weaponMinDamage,
@@ -375,7 +378,6 @@ export class Combat {
       isCrit,
       false
     );
-    void damage; // ruleset-side computed amount kept available for future log paths
 
     const actualDamage = target.takeDamage(totalDamage);
     target.addAggression(user.username, actualDamage);
