@@ -50,11 +50,23 @@ function buildStatsFromLegacy(raw: Record<string, unknown>): Record<string, numb
 /**
  * Ensure `user.stats` is populated. If the record is missing, build it from
  * any legacy top-level fields the raw record carried into the User object.
- * Idempotent.
+ * Also merges in any historical fantasy ids that exist as legacy top-level
+ * fields but are missing or non-numeric in an existing partial record so a
+ * file with both shapes doesn't lose data on first load. Idempotent.
  */
 export function ensureStatsRecord(user: User): void {
-  if (user.stats) return;
-  user.stats = buildStatsFromLegacy(user as unknown as Record<string, unknown>);
+  const legacy = buildStatsFromLegacy(user as unknown as Record<string, unknown>);
+  if (!user.stats) {
+    user.stats = legacy;
+    return;
+  }
+  for (const id of LEGACY_FANTASY_IDS) {
+    const current = user.stats[id];
+    if (typeof current !== 'number' || !Number.isFinite(current)) {
+      const fromLegacy = legacy[id];
+      if (typeof fromLegacy === 'number') user.stats[id] = fromLegacy;
+    }
+  }
 }
 
 /**

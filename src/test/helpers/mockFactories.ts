@@ -108,18 +108,12 @@ export const createMockUser = (overrides: Partial<User> & LegacyStatOverrides = 
     ...legacyStatOverrides,
     ...(overrides.stats ?? {}),
   };
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {
-    strength,
-    dexterity,
-    agility,
-    constitution,
-    wisdom,
-    intelligence,
-    charisma,
-    stats: _s,
-    ...rest
-  } = overrides as Partial<User> & LegacyStatOverrides;
+  // Strip the legacy per-stat keys (folded into `stats` above) and the
+  // explicit `stats` override so the spread below only carries the
+  // non-stat overrides forward.
+  const rest: Record<string, unknown> = { ...(overrides as Record<string, unknown>) };
+  for (const k of legacyKeys) delete rest[k];
+  delete rest.stats;
   return {
     username: 'testuser',
     health: 100,

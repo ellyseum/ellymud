@@ -25,24 +25,19 @@ function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
 export function dbRowToUser(row: UsersTable): User {
   const jsonStats = safeJsonParse<Record<string, number> | null>(row.stats, null);
   const jsonAllocated = safeJsonParse<Record<string, number> | null>(row.allocated_stats, null);
-  // Build the canonical stats record per-key: prefer JSON-column values, fall
-  // back to the legacy per-stat columns for the seven historical ids. This
-  // tolerates rows written before the schema migration backfilled the JSON
-  // column or when JSON is partial.
-  const statsRecord: Record<string, number> = { ...(jsonStats ?? {}) };
-  for (const [id, fallback] of [
-    ['strength', row.strength],
-    ['dexterity', row.dexterity],
-    ['agility', row.agility],
-    ['constitution', row.constitution],
-    ['wisdom', row.wisdom],
-    ['intelligence', row.intelligence],
-    ['charisma', row.charisma],
-  ] as const) {
-    if (typeof statsRecord[id] !== 'number' || !Number.isFinite(statsRecord[id])) {
-      statsRecord[id] = fallback;
-    }
-  }
+  // Prefer the canonical JSON column. Reconstruct from the legacy per-stat
+  // columns only when the JSON column is entirely absent (rows from databases
+  // that predate the schema migration). Per-key fallback would otherwise
+  // fabricate stats a ruleset deliberately omitted from its schema.
+  const statsRecord: Record<string, number> = jsonStats ?? {
+    strength: row.strength,
+    dexterity: row.dexterity,
+    agility: row.agility,
+    constitution: row.constitution,
+    wisdom: row.wisdom,
+    intelligence: row.intelligence,
+    charisma: row.charisma,
+  };
   return {
     username: row.username,
     passwordHash: row.password_hash,

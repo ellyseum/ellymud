@@ -24,6 +24,7 @@ import { calculateMaxHP } from '../utils/statCalculator';
 import { ClassManager } from '../class/classManager';
 import { addToStat, ensureStatsRecord } from './syncStats';
 import { getStat } from '../ruleset/safeAccess';
+import { RulesetRegistry } from '../ruleset/rulesetRegistry';
 
 export class UserManager {
   private users: User[] = [];
@@ -1247,6 +1248,12 @@ export class UserManager {
   public spendAttributePoint(username: string, stat: string): boolean {
     const user = this.getUser(username);
     if (!user) return false;
+
+    // Reject typos and unknown ids so an attribute point isn't silently spent
+    // creating a stale `user.stats` key the active ruleset doesn't recognize.
+    if (!RulesetRegistry.getInstance().getStat(stat)) {
+      return false;
+    }
 
     if ((user.unspentAttributePoints ?? 0) <= 0) {
       return false;

@@ -108,12 +108,15 @@ describe('userMapper bridge writes (C3)', () => {
     expect(user.stats.strength).toBe(99);
   });
 
-  it('dbRowToUser falls back per-stat for partial JSON', () => {
+  it('dbRowToUser preserves a partial JSON record without injecting omitted ids', () => {
+    // A ruleset can deliberately omit some of the seven historical ids; the
+    // mapper must not fabricate them from the legacy columns when the JSON
+    // column is present.
     const row = userToDbRow(makeUser());
-    row.stats = JSON.stringify({ strength: 99 }); // only one key
+    row.stats = JSON.stringify({ strength: 99 });
     const user = dbRowToUser(row);
     expect(user.stats.strength).toBe(99);
-    expect(user.stats.dexterity).toBe(12); // falls back to legacy column
+    expect(user.stats.dexterity).toBeUndefined();
   });
 
   it('dbRowToUser populates allocatedStats from JSON column', () => {

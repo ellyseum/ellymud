@@ -133,6 +133,10 @@ async function importJsonToDatabase(): Promise<void> {
               wisdom: user.stats?.wisdom ?? user.wisdom ?? 10,
               intelligence: user.stats?.intelligence ?? user.intelligence ?? 10,
               charisma: user.stats?.charisma ?? user.charisma ?? 10,
+              // Round-trip the canonical stats record so ruleset-defined stats
+              // beyond the seven historical ids survive a JSON->DB import.
+              stats: JSON.stringify(user.stats ?? {}),
+              allocated_stats: user.allocatedStats ? JSON.stringify(user.allocatedStats) : null,
               equipment: JSON.stringify(user.equipment ?? {}),
               join_date: user.joinDate ?? new Date().toISOString(),
               last_login: user.lastLogin ?? new Date().toISOString(),
