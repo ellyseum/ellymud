@@ -2,7 +2,7 @@ import { ConnectedClient } from '../../types';
 import { colorize } from '../../utils/colors';
 import { writeToClient } from '../../utils/socketWriter';
 import { Command } from '../command.interface';
-import { getExpRequiredForLevel, getTotalExpForLevel } from '../../utils/expCurve';
+import { expRequiredForLevel, totalExpForLevel } from '../../ruleset/progressionAccess';
 
 export class ExpCommand implements Command {
   name = 'exp';
@@ -16,8 +16,8 @@ export class ExpCommand implements Command {
 
     const currentLevel = client.user.level;
     const currentExp = client.user.experience;
-    const expNeededForNextLevel = getExpRequiredForLevel(currentLevel);
-    const totalExpForCurrentLevel = getTotalExpForLevel(currentLevel);
+    const expNeededForNextLevel = expRequiredForLevel(currentLevel);
+    const totalExpForCurrentLevel = totalExpForLevel(currentLevel);
     const expProgress = currentExp - totalExpForCurrentLevel;
     const expRemaining = expNeededForNextLevel - expProgress;
 

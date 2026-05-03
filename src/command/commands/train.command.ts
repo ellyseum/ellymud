@@ -9,7 +9,7 @@ import { RoomManager } from '../../room/roomManager';
 import { ClassManager } from '../../class/classManager';
 import { NPC } from '../../combat/npc';
 
-import { getExpRequiredForLevel, getTotalExpForLevel } from '../../utils/expCurve';
+import { expRequiredForLevel, totalExpForLevel } from '../../ruleset/progressionAccess';
 
 /**
  * Trainer NPC type mapping based on their template ID
@@ -393,8 +393,8 @@ export class TrainCommand implements Command {
     if (!client.user) return;
 
     const startLevel = client.user.level;
-    const expNeededForNext = getExpRequiredForLevel(startLevel);
-    const expProgress = client.user.experience - getTotalExpForLevel(startLevel);
+    const expNeededForNext = expRequiredForLevel(startLevel);
+    const expProgress = client.user.experience - totalExpForLevel(startLevel);
 
     // Not enough XP to advance even one level — bail with the existing message.
     if (expProgress < expNeededForNext) {
@@ -422,7 +422,7 @@ export class TrainCommand implements Command {
     let levelsGained = 0;
     const newClassUnlocks: typeof availableAdvancements = [];
 
-    while (client.user.experience >= getTotalExpForLevel(level + 1)) {
+    while (client.user.experience >= totalExpForLevel(level + 1)) {
       level += 1;
       levelsGained += 1;
 

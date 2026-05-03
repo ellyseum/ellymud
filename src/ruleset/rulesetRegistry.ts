@@ -20,6 +20,7 @@ import { RESERVED_STAT_IDS } from './reservedStatIds';
 import { NO_RESOURCE, ResourcePoolDefinition } from './resourceTypes';
 import { CombatHooks } from './combatTypes';
 import { AbilityHooks } from './abilityHandlerTypes';
+import { ProgressionHooks } from './progressionTypes';
 
 const STAT_ID_PATTERN = /^[a-z][a-z0-9_]*$/;
 const VALID_COST_CURVES = new Set(['linear', 'tier-10']);
@@ -44,6 +45,7 @@ export class RulesetRegistry {
   private resourcePoolById = new Map<string, ResourcePoolDefinition>();
   private combatHooks: CombatHooks | null = null;
   private abilityHooks: AbilityHooks | null = null;
+  private progressionHooks: ProgressionHooks | null = null;
   private loaded = false;
 
   private constructor() {}
@@ -76,7 +78,18 @@ export class RulesetRegistry {
     this.resourcePoolById = new Map(this.resourcePools.map((p) => [p.id, p]));
     this.combatHooks = config.combatHooks ?? null;
     this.abilityHooks = config.abilityHooks ?? null;
+    this.progressionHooks = config.progressionHooks ?? null;
     this.loaded = true;
+  }
+
+  /**
+   * Returns the active progression hook bundle, or undefined when the
+   * active ruleset doesn't supply one. Engine-side `progressionAccess`
+   * helpers handle the undefined case by falling back to the bundled
+   * default curve.
+   */
+  getProgressionHooks(): ProgressionHooks | undefined {
+    return this.progressionHooks ?? undefined;
   }
 
   /**

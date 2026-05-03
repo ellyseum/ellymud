@@ -10,7 +10,7 @@ import { ClassManager } from '../../class/classManager';
 import { ResourceManager } from '../../resource/resourceManager';
 import { getResourceDisplayAbbr } from '../../utils/statCalculator';
 
-import { getExpRequiredForLevel, getTotalExpForLevel } from '../../utils/expCurve';
+import { expRequiredForLevel, totalExpForLevel } from '../../ruleset/progressionAccess';
 import { getStat } from '../../ruleset/safeAccess';
 
 export class StatsCommand implements Command {
@@ -49,8 +49,8 @@ export class StatsCommand implements Command {
 
     // Calculate XP progress
     const currentLevel = user.level;
-    const totalExpForCurrentLevel = getTotalExpForLevel(currentLevel);
-    const expNeeded = getExpRequiredForLevel(currentLevel);
+    const totalExpForCurrentLevel = totalExpForLevel(currentLevel);
+    const expNeeded = expRequiredForLevel(currentLevel);
     // Ensure progress is non-negative (handles edge cases where XP tracking is off).
     // No upper clamp — XP can exceed expNeeded if the player hasn't trained yet.
     const expProgress = Math.max(0, user.experience - totalExpForCurrentLevel);

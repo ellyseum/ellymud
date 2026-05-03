@@ -15,7 +15,7 @@
 import { ConnectedClient } from '../types';
 import { writeMessageToClient } from './socketWriter';
 import { colorize } from './colors';
-import { getTotalExpForLevel } from './expCurve';
+import { totalExpForLevel } from '../ruleset/progressionAccess';
 
 /**
  * If awarding `gainedAmount` XP just pushed the user past the threshold for
@@ -32,7 +32,7 @@ export function maybeAnnounceReadyToTrain(
   newExp: number
 ): void {
   if (!client.user) return;
-  const threshold = getTotalExpForLevel(client.user.level + 1);
+  const threshold = totalExpForLevel(client.user.level + 1);
   if (previousExp < threshold && newExp >= threshold) {
     writeMessageToClient(
       client,

@@ -27,6 +27,7 @@ export interface StatDefinition {
 import { ResourcePoolDefinition } from './resourceTypes';
 import { CombatHooks } from './combatTypes';
 import { AbilityHooks } from './abilityHandlerTypes';
+import { ProgressionHooks } from './progressionTypes';
 
 export interface RulesetConfig {
   stats: StatDefinition[];
@@ -49,4 +50,10 @@ export interface RulesetConfig {
    * the registry without changing the config shape again.
    */
   abilityHooks?: AbilityHooks;
+  /**
+   * Progression curve hooks. Optional; engine helpers fall back to the
+   * bundled fantasy curve when missing so non-fantasy rulesets don't have
+   * to provide one if they don't change progression math.
+   */
+  progressionHooks?: ProgressionHooks;
 }
