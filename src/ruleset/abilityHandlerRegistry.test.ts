@@ -1,5 +1,5 @@
 import { RulesetRegistry } from './rulesetRegistry';
-import { defaultFantasyRulesetConfig } from './defaultFantasyRulesetConfig';
+import { defaultFantasyRulesetConfig } from '../rulesets/fantasy';
 import { createAbilityHooks } from './abilityHandlerTypes';
 
 describe('RulesetRegistry ability hooks', () => {

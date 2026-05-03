@@ -1,6 +1,6 @@
 import { getStat } from './safeAccess';
 import { RulesetRegistry } from './rulesetRegistry';
-import { defaultFantasyRulesetConfig } from './defaultFantasyRulesetConfig';
+import { defaultFantasyRulesetConfig } from '../rulesets/fantasy';
 import { User } from '../types';
 
 describe('getStat', () => {

@@ -1,5 +1,5 @@
 import { RulesetRegistry, RulesetValidationError } from './rulesetRegistry';
-import { defaultFantasyRulesetConfig } from './defaultFantasyRulesetConfig';
+import { defaultFantasyRulesetConfig } from '../rulesets/fantasy';
 import { NO_RESOURCE } from './resourceTypes';
 
 describe('RulesetRegistry resource pools', () => {

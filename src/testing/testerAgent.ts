@@ -8,7 +8,7 @@ import { TestModeOptions, getDefaultTestModeOptions } from './testMode';
 import { NPC, NPCData } from '../combat/npc';
 import { RoomManager } from '../room/roomManager';
 import { RulesetRegistry } from '../ruleset/rulesetRegistry';
-import { defaultFantasyRulesetConfig } from '../ruleset/defaultFantasyRulesetConfig';
+import { loadActiveRuleset } from '../ruleset/pluginLoader';
 
 /**
  * Player stats interface for test manipulation
@@ -131,7 +131,7 @@ export class TesterAgent {
     // testerAgent ensures the registry is populated before any manager runs
     // its load-time validation.
     if (!RulesetRegistry.getInstance().isLoaded()) {
-      RulesetRegistry.getInstance().loadConfig(defaultFantasyRulesetConfig);
+      loadActiveRuleset();
     }
 
     // Create server with test ports

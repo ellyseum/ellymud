@@ -1,5 +1,5 @@
 import { RulesetRegistry, RulesetValidationError } from './rulesetRegistry';
-import { defaultFantasyRulesetConfig } from './defaultFantasyRulesetConfig';
+import { defaultFantasyRulesetConfig } from '../rulesets/fantasy';
 import { RESERVED_STAT_IDS } from './reservedStatIds';
 
 describe('RulesetRegistry', () => {

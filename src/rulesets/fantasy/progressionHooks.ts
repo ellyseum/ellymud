@@ -13,8 +13,8 @@
  * @module ruleset/defaultFantasyProgressionHooks
  */
 
-import { getExpRequiredForLevel, getTotalExpForLevel } from '../utils/expCurve';
-import { ProgressionHooks } from './progressionTypes';
+import { getExpRequiredForLevel, getTotalExpForLevel } from '../../utils/expCurve';
+import { ProgressionHooks } from '../../ruleset/progressionTypes';
 
 export const defaultFantasyProgressionHooks: ProgressionHooks = {
   expRequiredForLevel: getExpRequiredForLevel,

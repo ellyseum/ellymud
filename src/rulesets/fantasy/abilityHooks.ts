@@ -15,6 +15,6 @@
  * @module ruleset/defaultFantasyAbilityHooks
  */
 
-import { AbilityHooks, createAbilityHooks } from './abilityHandlerTypes';
+import { AbilityHooks, createAbilityHooks } from '../../ruleset/abilityHandlerTypes';
 
 export const defaultFantasyAbilityHooks: AbilityHooks = createAbilityHooks({});

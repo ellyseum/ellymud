@@ -14,11 +14,11 @@
  * @module ruleset/defaultFantasyRulesetConfig
  */
 
-import { RulesetConfig } from './types';
-import { ResourcePoolDefinition } from './resourceTypes';
-import { defaultFantasyCombatHooks } from './defaultFantasyCombatHooks';
-import { defaultFantasyAbilityHooks } from './defaultFantasyAbilityHooks';
-import { defaultFantasyProgressionHooks } from './defaultFantasyProgressionHooks';
+import { RulesetConfig } from '../../ruleset/types';
+import { ResourcePoolDefinition } from '../../ruleset/resourceTypes';
+import { defaultFantasyCombatHooks } from './combatHooks';
+import { defaultFantasyAbilityHooks } from './abilityHooks';
+import { defaultFantasyProgressionHooks } from './progressionHooks';
 
 // Constants reproducing the historical numeric tuning. Pool definitions read
 // these through the constants below so the magic numbers live in one place.

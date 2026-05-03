@@ -20,11 +20,11 @@ import {
   calculateSpellDamage,
   calculateUserDodgeChance,
   CRIT_DAMAGE_MULTIPLIER,
-} from '../combat/combatFormulas';
-import { getStat } from './safeAccess';
-import { CombatHooks } from './combatTypes';
-import { User } from '../types';
-import { NPC } from '../combat/npc';
+} from '../../combat/combatFormulas';
+import { getStat } from '../../ruleset/safeAccess';
+import { CombatHooks } from '../../ruleset/combatTypes';
+import { User } from '../../types';
+import { NPC } from '../../combat/npc';
 
 const NPC_AGGRO_HIT_CHANCE = 50;
 
