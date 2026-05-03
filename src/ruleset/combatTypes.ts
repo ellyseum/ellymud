@@ -37,6 +37,12 @@ export interface CombatContext {
    * attacks supply a synthetic range here.
    */
   weaponDamageRange: { min: number; max: number };
+  /**
+   * Defender's equipped armor items (resolved by the engine before the
+   * hook fires). Lets the AC/DR hooks read armor data without the
+   * ruleset having to know how the engine stores equipment.
+   */
+  defenderArmor?: GameItem[];
   isSpell?: boolean;
   /**
    * Optional discriminator for paths that today use distinct hit models

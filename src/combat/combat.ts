@@ -300,21 +300,25 @@ export class Combat {
     const targetLevel =
       target instanceof NPC ? Math.max(1, Math.floor(target.experienceValue / 50)) : 1;
     const targetDodge = this.calculateTargetDodge(target);
-    const targetDr = this.calculateTargetDR(target);
 
     // Build a hook context once and reuse for every per-attack decision so
     // the active ruleset can supply alternate math without the engine
-    // having to know about specific stat ids or coefficients.
+    // having to know about specific stat ids or coefficients. The engine
+    // resolves equipment to GameItem[] before the hook fires so the
+    // ruleset doesn't need to know how the engine stores equipment.
     const hooks = RulesetRegistry.getInstance().getCombatHooks();
+    const defenderArmor = this.resolveDefenderArmor(target);
     const ctx: CombatContext = {
       attacker: user,
       defender: target as unknown as CombatContext['defender'],
       attackerLevel: user.level,
       defenderLevel: targetLevel,
       weaponDamageRange: { min: weaponMinDamage, max: weaponMaxDamage },
+      defenderArmor,
       isSpell: false,
       attackKind: 'player-melee',
     };
+    const targetDr = hooks.damageReduction(ctx);
 
     // Calculate hit chance via the active ruleset's hook. The default
     // fantasy implementation reproduces calculateHitChance; alternative
@@ -440,25 +444,16 @@ export class Combat {
   }
 
   /**
-   * Calculate target's damage reduction
+   * Resolve equipped armor items for a defender so the ruleset's
+   * damageReduction hook can read them. Returns undefined for NPCs and
+   * unarmored players; the hook short-circuits to its own NPC fallback.
    */
-  private calculateTargetDR(target: CombatEntity): number {
-    if (target instanceof NPC) {
-      // NPCs don't have explicit armor, estimate DR from experience value
-      // Higher level NPCs have more natural armor
-      return Math.floor(target.experienceValue / 50);
-    }
-
-    // For player targets, calculate from equipped armor
-    if (target.isUser()) {
-      const targetUser = this.userManager.getUser(target.getName());
-      if (targetUser && targetUser.equipment) {
-        const equippedArmor = this.getEquippedArmorItems(targetUser.equipment);
-        return calculateDamageReduction(equippedArmor);
-      }
-    }
-
-    return 0;
+  private resolveDefenderArmor(target: CombatEntity): GameItem[] | undefined {
+    if (target instanceof NPC) return undefined;
+    if (!target.isUser()) return undefined;
+    const targetUser = this.userManager.getUser(target.getName());
+    if (!targetUser?.equipment) return undefined;
+    return this.getEquippedArmorItems(targetUser.equipment);
   }
 
   /**

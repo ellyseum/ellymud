@@ -19,6 +19,8 @@ import {
   calculatePhysicalDamage,
   calculateSpellDamage,
   calculateUserDodgeChance,
+  calculateArmorClass,
+  calculateDamageReduction,
   CRIT_DAMAGE_MULTIPLIER,
 } from '../../combat/combatFormulas';
 import { getStat } from '../../ruleset/safeAccess';
@@ -79,21 +81,25 @@ export const defaultFantasyCombatHooks: CombatHooks = {
     );
   },
 
-  armorClass(_ctx) {
-    // Engine still owns AC calculation via itemManager + calculateArmorClass
-    // because the formula consumes the player's equipped armor list, which
-    // isn't on the CombatContext today. Default fantasy returns the formula
-    // base (BASE_AC) so a ruleset that wires this hook into combat.ts gets
-    // a consistent floor; the engine bypasses it for player attacks.
-    return 10;
+  armorClass(ctx) {
+    // Defender armor is supplied by the engine via ctx.defenderArmor.
+    // Sums armor-class contributions from each piece using the historical
+    // calculateArmorClass formula; falls back to the formula base (10) when
+    // no armor is supplied (NPCs, unarmored players).
+    if (!isUser(ctx.defender) || !ctx.defenderArmor) return 10;
+    return calculateArmorClass(getStat(ctx.defender, 'agility'), ctx.defenderArmor, 0);
   },
 
-  damageReduction(_ctx) {
-    // Same shape: equipment-derived DR is computed by the engine; this hook
-    // returns the formula floor (0). Wiring DR fully through the hook
-    // requires putting equipped armor on the context, scheduled with the
-    // ability handler work in Phase D.
-    return 0;
+  damageReduction(ctx) {
+    // Player armor: sum DR from equipped pieces. NPCs use their experience
+    // value as a proxy for natural armor — matches the engine's historical
+    // npc-DR estimate.
+    if (isNpcLike(ctx.defender)) {
+      const xp = (ctx.defender as { experienceValue?: number }).experienceValue;
+      return typeof xp === 'number' ? Math.floor(xp / 50) : 0;
+    }
+    if (!ctx.defenderArmor) return 0;
+    return calculateDamageReduction(ctx.defenderArmor, 0, 0);
   },
 
   computeDamage(ctx) {
@@ -133,6 +139,10 @@ export const defaultFantasyCombatHooks: CombatHooks = {
 
 function isUser(p: User | NPC): p is User {
   return typeof (p as User).username === 'string' && !(p as NPC).templateId;
+}
+
+function isNpcLike(p: User | NPC): boolean {
+  return !isUser(p);
 }
 
 // Re-export for engine use elsewhere.
