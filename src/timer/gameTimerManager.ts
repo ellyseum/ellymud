@@ -353,14 +353,16 @@ export class GameTimerManager extends EventEmitter {
         client.user.health += hpGained;
       }
 
-      // Sub-regen MP while fully meditating (only for classes with mana).
-      // The amount comes from the active resource pool's subRegen rule.
+      // Sub-regen MP while fully meditating. Fall back to the mana pool when
+      // the class has no resource (matches historical "any user with maxMana
+      // regens" behavior).
       const userMana = client.user.mana ?? 0;
       const userMaxMana = client.user.maxMana ?? 0;
       if (isFullyMeditating && userMaxMana > 0 && userMana < userMaxMana) {
-        const subPool = RulesetRegistry.getInstance().getResourcePool(
-          this.resourceManager.getResourceType(client.user)
-        );
+        const reg = RulesetRegistry.getInstance();
+        const subPool =
+          reg.getResourcePool(this.resourceManager.getResourceType(client.user)) ??
+          reg.getResourcePool('mana');
         const subMpRegen = subPool
           ? this.resourceManager.applyRegen(client.user, subPool, 'subRegen')
           : 0;
@@ -404,10 +406,14 @@ export class GameTimerManager extends EventEmitter {
 
       // Resource pool MP regen reads its base from the active pool definition
       // so a ruleset can change the formula or even define a different pool.
+      // Falls back to the mana pool when the player's class has no resource —
+      // matches historical behavior where any user with maxMana > 0 regened
+      // mana via the same formula regardless of their class resource type.
       // The 4-tick gating and 2x rest/meditate scaling stay in the timer
       // because they're player-state semantics, not pool behavior.
+      const reg = RulesetRegistry.getInstance();
       const resourceTypeId = this.resourceManager.getResourceType(client.user);
-      const pool = RulesetRegistry.getInstance().getResourcePool(resourceTypeId);
+      const pool = reg.getResourcePool(resourceTypeId) ?? reg.getResourcePool('mana');
       const baseMpRegen = pool
         ? this.resourceManager.applyRegen(client.user, pool, 'fullRegen')
         : 0;

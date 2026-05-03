@@ -7,6 +7,8 @@ import { StateLoader } from './stateLoader';
 import { TestModeOptions, getDefaultTestModeOptions } from './testMode';
 import { NPC, NPCData } from '../combat/npc';
 import { RoomManager } from '../room/roomManager';
+import { RulesetRegistry } from '../ruleset/rulesetRegistry';
+import { defaultFantasyRulesetConfig } from '../ruleset/defaultFantasyRulesetConfig';
 
 /**
  * Player stats interface for test manipulation
@@ -122,6 +124,14 @@ export class TesterAgent {
     // Enable silent mode on logger BEFORE creating server
     if (testOptions.silent) {
       enableSilentMode();
+    }
+
+    // Load the active ruleset before constructing the server. The production
+    // entrypoint does this in server.ts; test paths bypass that, so the
+    // testerAgent ensures the registry is populated before any manager runs
+    // its load-time validation.
+    if (!RulesetRegistry.getInstance().isLoaded()) {
+      RulesetRegistry.getInstance().loadConfig(defaultFantasyRulesetConfig);
     }
 
     // Create server with test ports
