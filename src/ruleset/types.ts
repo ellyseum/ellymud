@@ -25,6 +25,7 @@ export interface StatDefinition {
 }
 
 import { ResourcePoolDefinition } from './resourceTypes';
+import { CombatHooks } from './combatTypes';
 
 export interface RulesetConfig {
   stats: StatDefinition[];
@@ -34,4 +35,10 @@ export interface RulesetConfig {
    * sentinel for classes with no resource pool and must NOT appear here.
    */
   resourcePools?: ResourcePoolDefinition[];
+  /**
+   * Combat hook bundle. Required when any class declares a non-`'none'`
+   * resource type (i.e., the engine will run combat); rulesets that
+   * don't run combat may omit it.
+   */
+  combatHooks?: CombatHooks;
 }

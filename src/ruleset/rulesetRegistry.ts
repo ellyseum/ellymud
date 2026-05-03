@@ -18,6 +18,7 @@
 import { RulesetConfig, StatDefinition } from './types';
 import { RESERVED_STAT_IDS } from './reservedStatIds';
 import { NO_RESOURCE, ResourcePoolDefinition } from './resourceTypes';
+import { CombatHooks } from './combatTypes';
 
 const STAT_ID_PATTERN = /^[a-z][a-z0-9_]*$/;
 const VALID_COST_CURVES = new Set(['linear', 'tier-10']);
@@ -40,6 +41,7 @@ export class RulesetRegistry {
   private startingAttributePoints = DEFAULT_STARTING_ATTRIBUTE_POINTS;
   private resourcePools: ResourcePoolDefinition[] = [];
   private resourcePoolById = new Map<string, ResourcePoolDefinition>();
+  private combatHooks: CombatHooks | null = null;
   private loaded = false;
 
   private constructor() {}
@@ -70,7 +72,27 @@ export class RulesetRegistry {
       config.startingAttributePoints ?? DEFAULT_STARTING_ATTRIBUTE_POINTS;
     this.resourcePools = [...(config.resourcePools ?? [])];
     this.resourcePoolById = new Map(this.resourcePools.map((p) => [p.id, p]));
+    this.combatHooks = config.combatHooks ?? null;
     this.loaded = true;
+  }
+
+  /**
+   * Returns the active combat hook bundle. Throws if the ruleset config
+   * didn't supply one and combat is being attempted; a non-combat ruleset
+   * (no resource pools / no class with a non-none resource) can run
+   * without ever calling this.
+   */
+  getCombatHooks(): CombatHooks {
+    if (!this.combatHooks) {
+      throw new Error(
+        'No combatHooks registered. The active ruleset must supply combatHooks for any combat-bearing flow.'
+      );
+    }
+    return this.combatHooks;
+  }
+
+  hasCombatHooks(): boolean {
+    return this.combatHooks !== null;
   }
 
   getResourcePools(): readonly ResourcePoolDefinition[] {
