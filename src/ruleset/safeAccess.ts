@@ -19,12 +19,13 @@ import { User } from '../types';
 import { RulesetRegistry } from './rulesetRegistry';
 
 /**
- * Until commit 5 introduces `User.stats`, callers reach the field through this
- * helper which tolerates both shapes:
- *   - new shape: `user.stats[id]` (Record<string, number>)
- *   - legacy shape: `user[id]` (flat field)
- * After commit 5, only the new shape exists. The dual lookup is a transitional
- * safety net so commit 1 can land independently.
+ * Tolerates two storage shapes for a stat value on User:
+ *   - canonical: `user.stats[id]` (Record<string, number>)
+ *   - legacy flat field: `user[id]` (e.g., `user.strength`)
+ *
+ * The dual lookup lets the engine convert call sites incrementally without
+ * breaking existing readers; the legacy fallback can be deleted once no live
+ * data still relies on the flat fields.
  */
 export function getStat(user: User, id: string): number {
   const userRec = user as unknown as Record<string, unknown>;

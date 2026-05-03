@@ -120,8 +120,8 @@ describe('RulesetRegistry', () => {
     });
 
     it('does NOT reserve the seven fantasy stat names', () => {
-      // This is the rev-4 round-6 fix: the default fantasy ruleset must be loadable.
-      // If RESERVED_STAT_IDS ever included these, the server would fail to boot.
+      // Regression guard: the default fantasy ruleset registers these ids, so
+      // including them in RESERVED_STAT_IDS would prevent the server from booting.
       for (const id of [
         'strength',
         'dexterity',

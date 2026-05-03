@@ -21,9 +21,9 @@ function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
 
 /**
  * Read a stat from the JSON `stats` column, falling back to the per-stat
- * legacy column. The JSON column is the source of truth post-C4; the
- * fallback exists for rows written before the bridge populated the JSON
- * (i.e., before the v1 schema migration ran on this DB).
+ * legacy column. The JSON column is the canonical storage; the fallback
+ * exists for rows written before the schema migration populated the JSON
+ * (rare but possible on databases mid-migration or restored from old backups).
  */
 function readStat(jsonStats: Record<string, number> | null, legacy: number, id: string): number {
   const v = jsonStats?.[id];
@@ -119,10 +119,10 @@ export function userToDbRow(user: User): UsersTable {
     wisdom: user.wisdom,
     intelligence: user.intelligence,
     charisma: user.charisma,
-    // Bridge writes: emit the JSON columns alongside the legacy per-stat
-    // columns. The stats record (populated and kept in sync via syncStats)
-    // is the source of truth for ruleset-declared stats; flat columns
-    // continue receiving the seven fantasy values for one transition phase.
+    // Write to both storage shapes: the new `stats` JSON column (canonical;
+    // supports ruleset-declared stats beyond the seven fantasy ids) AND the
+    // legacy per-stat columns (kept populated for rollback safety; will be
+    // dropped once they're confirmed unused).
     stats: JSON.stringify(
       user.stats ?? {
         strength: user.strength,
