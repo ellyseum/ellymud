@@ -1,6 +1,6 @@
 import { ensureStatsRecord, setStat, addToStat } from './syncStats';
 import { RulesetRegistry } from '../ruleset/rulesetRegistry';
-import { defaultFantasyRulesetConfig } from '../ruleset/defaultFantasyRulesetConfig';
+import { defaultFantasyRulesetConfig } from '../rulesets/fantasy';
 import { User } from '../types';
 
 function makeUser(overrides: Partial<User> = {}): User {
