@@ -17,6 +17,7 @@
 
 import { RulesetConfig, StatDefinition } from './types';
 import { RESERVED_STAT_IDS } from './reservedStatIds';
+import { NO_RESOURCE, ResourcePoolDefinition } from './resourceTypes';
 
 const STAT_ID_PATTERN = /^[a-z][a-z0-9_]*$/;
 const VALID_COST_CURVES = new Set(['linear', 'tier-10']);
@@ -37,6 +38,8 @@ export class RulesetRegistry {
   private stats: StatDefinition[] = [];
   private statById = new Map<string, StatDefinition>();
   private startingAttributePoints = DEFAULT_STARTING_ATTRIBUTE_POINTS;
+  private resourcePools: ResourcePoolDefinition[] = [];
+  private resourcePoolById = new Map<string, ResourcePoolDefinition>();
   private loaded = false;
 
   private constructor() {}
@@ -65,7 +68,21 @@ export class RulesetRegistry {
     this.statById = new Map(this.stats.map((s) => [s.id, s]));
     this.startingAttributePoints =
       config.startingAttributePoints ?? DEFAULT_STARTING_ATTRIBUTE_POINTS;
+    this.resourcePools = [...(config.resourcePools ?? [])];
+    this.resourcePoolById = new Map(this.resourcePools.map((p) => [p.id, p]));
     this.loaded = true;
+  }
+
+  getResourcePools(): readonly ResourcePoolDefinition[] {
+    return this.resourcePools;
+  }
+
+  getResourcePool(id: string): ResourcePoolDefinition | undefined {
+    return this.resourcePoolById.get(id);
+  }
+
+  hasResourcePool(id: string): boolean {
+    return id === NO_RESOURCE || this.resourcePoolById.has(id);
   }
 
   isLoaded(): boolean {
@@ -135,6 +152,31 @@ export class RulesetRegistry {
         config.startingAttributePoints < 0
       ) {
         violations.push('startingAttributePoints must be a non-negative finite number');
+      }
+    }
+
+    if (config.resourcePools) {
+      const poolIds = new Set<string>();
+      for (const pool of config.resourcePools) {
+        if (typeof pool.id !== 'string' || !STAT_ID_PATTERN.test(pool.id)) {
+          violations.push(`resource pool id "${String(pool.id)}" must match /^[a-z][a-z0-9_]*$/`);
+          continue;
+        }
+        if (pool.id === NO_RESOURCE) {
+          violations.push(
+            `resource pool id "${NO_RESOURCE}" is reserved as the no-resource sentinel`
+          );
+        }
+        if (poolIds.has(pool.id)) {
+          violations.push(`duplicate resource pool id "${pool.id}"`);
+        }
+        poolIds.add(pool.id);
+        if (typeof pool.displayName !== 'string' || pool.displayName.length === 0) {
+          violations.push(`resource pool "${pool.id}" displayName must be a non-empty string`);
+        }
+        if (typeof pool.abbreviation !== 'string' || pool.abbreviation.length === 0) {
+          violations.push(`resource pool "${pool.id}" abbreviation must be a non-empty string`);
+        }
       }
     }
 

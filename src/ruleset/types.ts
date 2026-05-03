@@ -24,7 +24,14 @@ export interface StatDefinition {
   costCurve?: 'linear' | 'tier-10';
 }
 
+import { ResourcePoolDefinition } from './resourceTypes';
+
 export interface RulesetConfig {
   stats: StatDefinition[];
   startingAttributePoints?: number;
+  /**
+   * Resource pools the ruleset declares. The reserved id `'none'` is a
+   * sentinel for classes with no resource pool and must NOT appear here.
+   */
+  resourcePools?: ResourcePoolDefinition[];
 }
