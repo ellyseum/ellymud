@@ -10,18 +10,40 @@ export type StateData = Record<string, any>;
 // ============================================================================
 
 /**
- * Resource types for different character classes.
- * Tier 0 Adventurer has NONE, other classes use specific resource types.
+ * Resource type identifier. Concrete ids are declared by the active ruleset's
+ * resource pool registry; the literal `'none'` (exported as `NO_RESOURCE`
+ * from `ruleset/resourceTypes`) is reserved for classes with no resource pool.
+ *
+ * The compile-time exhaustiveness an enum gave is unavoidably weakened by
+ * making this ruleset-driven; load-time validation against the registered
+ * pools (in ClassManager and AbilityManager) catches typos in class data
+ * and ability data, which are the two biggest sources of static refs.
  */
-export enum ResourceType {
-  NONE = 'none', // Tier 0 Adventurer - no resource
-  MANA = 'mana', // Mage, Healer - traditional caster pool
-  RAGE = 'rage', // Berserker - builds on damage, decays out of combat
-  ENERGY = 'energy', // Thief/Rogue - fixed 100, fast regen, combo system
-  KI = 'ki', // Monk - balanced martial arts pool
-  HOLY = 'holy', // Paladin/Cleric - prayer/devotion mechanics
-  NATURE = 'nature', // Druid/Ranger - nature attunement
-}
+export type ResourceTypeId = string;
+
+/**
+ * Compatibility re-export of the historical seven ids as a const object so
+ * the codebase can be migrated mechanically (`ResourceType.MANA` →
+ * `ResourceType.MANA` still resolves to `'mana'`). The default fantasy
+ * ruleset registers exactly these ids in its pool list. New code should
+ * prefer string literals or constants from the active ruleset.
+ */
+export const ResourceType = {
+  NONE: 'none',
+  MANA: 'mana',
+  RAGE: 'rage',
+  ENERGY: 'energy',
+  KI: 'ki',
+  HOLY: 'holy',
+  NATURE: 'nature',
+} as const;
+
+/**
+ * Backwards-compatible type alias. Existing call sites can keep
+ * `function f(t: ResourceType)`; the value is widened to `ResourceTypeId`
+ * (string) so a ruleset-declared id satisfies the same parameter.
+ */
+export type ResourceType = ResourceTypeId;
 
 /**
  * Configuration for resource-specific behaviors.
