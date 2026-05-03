@@ -9,6 +9,7 @@ import { AreaManager } from '../area/areaManager';
 import { ResourceManager } from '../resource/resourceManager';
 import { createContextLogger } from '../utils/logger';
 import { getStat } from '../ruleset/safeAccess';
+import { RulesetRegistry } from '../ruleset/rulesetRegistry';
 import { drawCommandPrompt } from '../utils/socketWriter';
 import { IAsyncGameTimerConfigRepository, GameTimerConfig } from '../persistence/interfaces';
 import { getGameTimerConfigRepository } from '../persistence/RepositoryFactory';
@@ -352,16 +353,21 @@ export class GameTimerManager extends EventEmitter {
         client.user.health += hpGained;
       }
 
-      // Sub-regen MP while fully meditating (only for classes with mana)
-      // Base: 4 MP, scaling with wisdom+intelligence (20-400 gives 1-20 bonus)
+      // Sub-regen MP while fully meditating (only for classes with mana).
+      // The amount comes from the active resource pool's subRegen rule.
       const userMana = client.user.mana ?? 0;
       const userMaxMana = client.user.maxMana ?? 0;
       if (isFullyMeditating && userMaxMana > 0 && userMana < userMaxMana) {
-        const wisdom = getStat(client.user, 'wisdom');
-        const intelligence = getStat(client.user, 'intelligence');
-        const subMpRegen = 4 + Math.floor((wisdom + intelligence) / 20);
-        mpGained = Math.min(subMpRegen, userMaxMana - userMana);
-        client.user.mana = userMana + mpGained;
+        const subPool = RulesetRegistry.getInstance().getResourcePool(
+          this.resourceManager.getResourceType(client.user)
+        );
+        const subMpRegen = subPool
+          ? this.resourceManager.applyRegen(client.user, subPool, 'subRegen')
+          : 0;
+        if (subMpRegen > 0) {
+          mpGained = Math.min(subMpRegen, userMaxMana - userMana);
+          client.user.mana = userMana + mpGained;
+        }
       }
 
       if (hpGained > 0 || mpGained > 0) {
@@ -396,10 +402,15 @@ export class GameTimerManager extends EventEmitter {
       const constitution = getStat(client.user, 'constitution');
       const baseHpRegen = 4 + Math.floor(constitution / 10);
 
-      // Base MP regen: 4 MP, scaling with wisdom+intelligence (20-400 gives 1-20 bonus)
-      const wisdom = getStat(client.user, 'wisdom');
-      const intelligence = getStat(client.user, 'intelligence');
-      const baseMpRegen = 4 + Math.floor((wisdom + intelligence) / 20);
+      // Resource pool MP regen reads its base from the active pool definition
+      // so a ruleset can change the formula or even define a different pool.
+      // The 4-tick gating and 2x rest/meditate scaling stay in the timer
+      // because they're player-state semantics, not pool behavior.
+      const resourceTypeId = this.resourceManager.getResourceType(client.user);
+      const pool = RulesetRegistry.getInstance().getResourcePool(resourceTypeId);
+      const baseMpRegen = pool
+        ? this.resourceManager.applyRegen(client.user, pool, 'fullRegen')
+        : 0;
 
       if (client.user.health < client.user.maxHealth) {
         let hpRegen = baseHpRegen;
@@ -414,7 +425,7 @@ export class GameTimerManager extends EventEmitter {
       // Only regen mana for classes that have it
       const currentMana = client.user.mana ?? 0;
       const maxMana = client.user.maxMana ?? 0;
-      if (maxMana > 0 && currentMana < maxMana) {
+      if (maxMana > 0 && currentMana < maxMana && baseMpRegen > 0) {
         let mpRegen = baseMpRegen;
         if (client.user.isMeditating && (client.user.meditatingTicks || 0) >= 4) {
           mpRegen = Math.floor(mpRegen * 2);

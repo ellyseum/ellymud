@@ -70,6 +70,8 @@ export class ResourceManager {
   private static instance: ResourceManager | null = null;
   /** Tracks holy charge progress per user (for charge-based resource system) */
   private holyChargeProgress: Map<string, number> = new Map();
+  /** Per-user, per-pool, per-cadence accumulator for `every_n_ticks` rules. */
+  private regenProgress: Map<string, number> = new Map();
 
   public static getInstance(): ResourceManager {
     if (!ResourceManager.instance) {
@@ -242,120 +244,70 @@ export class ResourceManager {
    */
   public processResourceTick(user: User, inCombat: boolean): number {
     const resourceType = this.getResourceType(user);
+    if (resourceType === NO_RESOURCE) return 0;
 
-    if (resourceType === ResourceType.NONE) {
-      return 0;
-    }
+    const pool = RulesetRegistry.getInstance().getResourcePool(resourceType);
+    if (!pool) return 0;
 
     let regenAmount = 0;
 
-    switch (resourceType) {
-      case ResourceType.MANA:
-        regenAmount = this.calculateManaRegen(user);
-        break;
+    // Out-of-combat decay (rage today): defined on the pool, not in regen.
+    if (!inCombat && typeof pool.decayPerTickOutOfCombat === 'number') {
+      const classDecay = this.getClassConfig(user)?.decayPerTick;
+      regenAmount = -(classDecay ?? pool.decayPerTickOutOfCombat);
+    }
 
-      case ResourceType.RAGE:
-        // Rage decays out of combat, does NOT regen
-        if (!inCombat) {
-          const decayRate =
-            this.getClassConfig(user)?.decayPerTick ?? RESOURCE_REGEN_RATES.RAGE_DECAY;
-          regenAmount = -decayRate;
-        }
-        break;
-
-      case ResourceType.ENERGY:
-        // Energy regens constantly at a fixed rate
-        regenAmount = RESOURCE_REGEN_RATES.ENERGY_REGEN;
-        break;
-
-      case ResourceType.KI:
-        regenAmount = this.calculateKiRegen(user);
-        break;
-
-      case ResourceType.HOLY:
-        // Holy uses charge system, handled separately
-        regenAmount = this.processHolyCharge(user);
-        break;
-
-      case ResourceType.NATURE:
-        regenAmount = this.calculateNatureRegen(user, inCombat);
-        break;
+    // Tick regen amount, if any. The pool's meditation multiplier scales the
+    // amount when the player is meditating (matches today's mana/ki behavior).
+    if (pool.regen.tickRegen) {
+      const tickAmount = this.evaluateTickRegen(user, pool);
+      regenAmount += tickAmount;
     }
 
     if (regenAmount !== 0) {
       const result = this.modifyResource(user, regenAmount, 'tick_regen');
       return result.amountChanged;
     }
-
     return 0;
   }
 
   /**
-   * Calculate mana regen amount for a tick
+   * Per-fire amount for a regen rule. Used by the tick path here and by the
+   * timer-driven sub/full regen path that hands us a specific schedule slot.
    */
-  private calculateManaRegen(user: User): number {
-    const baseRegen = RESOURCE_REGEN_RATES.MANA_BASE_REGEN;
-    const intBonus =
-      Math.floor(getStat(user, 'intelligence') / 10) * RESOURCE_REGEN_RATES.MANA_INT_BONUS;
-
-    let totalRegen = baseRegen + intBonus;
-
-    // Meditation doubles mana regen
-    if (user.isMeditating) {
-      totalRegen *= RESOURCE_REGEN_RATES.MANA_MEDITATION_MULTIPLIER;
-    }
-
-    return totalRegen;
+  public applyRegen(
+    user: User,
+    pool: ResourcePoolDefinition,
+    cadence: 'tickRegen' | 'subRegen' | 'fullRegen'
+  ): number {
+    const rule = pool.regen[cadence];
+    if (!rule) return 0;
+    return evaluateRegenRule(user, rule, this.cadenceProgressKey(user, pool, cadence));
   }
 
-  /**
-   * Calculate ki regen amount for a tick
-   */
-  private calculateKiRegen(user: User): number {
-    const baseRegen = RESOURCE_REGEN_RATES.KI_BASE_REGEN;
-    const wisBonus = Math.floor(getStat(user, 'wisdom') / 10) * RESOURCE_REGEN_RATES.KI_WIS_BONUS;
-
-    let totalRegen = baseRegen + wisBonus;
-
-    // Meditation triples ki regen
-    if (user.isMeditating) {
-      totalRegen *= RESOURCE_REGEN_RATES.KI_MEDITATION_MULTIPLIER;
+  private evaluateTickRegen(user: User, pool: ResourcePoolDefinition): number {
+    const base = evaluateRegenRule(
+      user,
+      pool.regen.tickRegen!,
+      this.cadenceProgressKey(user, pool, 'tickRegen')
+    );
+    if (user.isMeditating && typeof pool.meditationMultiplier === 'number') {
+      return base * pool.meditationMultiplier;
     }
-
-    return totalRegen;
+    return base;
   }
 
-  /**
-   * Calculate nature regen amount for a tick
-   * Nature has bonus regen in outdoor rooms (not implemented yet)
-   */
-  private calculateNatureRegen(user: User, _inCombat: boolean): number {
-    const baseRegen = RESOURCE_REGEN_RATES.NATURE_BASE_REGEN;
-    const wisBonus =
-      Math.floor(getStat(user, 'wisdom') / 10) * RESOURCE_REGEN_RATES.NATURE_WIS_BONUS;
-
-    // TODO: Add bonus for outdoor rooms when room flags are implemented
-    return baseRegen + wisBonus;
-  }
-
-  /**
-   * Process holy charge regeneration
-   * Holy power uses charges that regen over time
-   */
-  private processHolyCharge(user: User): number {
-    // Track partial charge progress using a Map to avoid type issues
-    const progress = this.holyChargeProgress.get(user.username) ?? 0;
-    const newProgress = progress + 1;
-
-    if (newProgress >= RESOURCE_REGEN_RATES.HOLY_TICKS_PER_CHARGE) {
-      // Reset progress and add a charge
-      this.holyChargeProgress.set(user.username, 0);
-      return 1;
-    } else {
-      // Increment progress
-      this.holyChargeProgress.set(user.username, newProgress);
-      return 0;
-    }
+  /** Per-user, per-pool, per-cadence progress key for `every_n_ticks` rules. */
+  private cadenceProgressKey(
+    user: User,
+    pool: ResourcePoolDefinition,
+    cadence: 'tickRegen' | 'subRegen' | 'fullRegen'
+  ): { get: () => number; set: (v: number) => void } {
+    const key = `${user.username}|${pool.id}|${cadence}`;
+    return {
+      get: () => this.regenProgress.get(key) ?? 0,
+      set: (v) => this.regenProgress.set(key, v),
+    };
   }
 
   /**
@@ -453,4 +405,45 @@ function computeMaxFromPool(user: User, pool: ResourcePoolDefinition): number {
     total += getStat(user, term.statId) * term.perPoint;
   }
   return total;
+}
+
+/**
+ * Compute the per-fire amount of a regen rule. `progress` is provided by the
+ * caller for `every_n_ticks` rules so the accumulator can be persisted per
+ * (user, pool, cadence) tuple. Other regen kinds ignore it.
+ */
+function evaluateRegenRule(
+  user: User,
+  rule: NonNullable<ResourcePoolDefinition['regen']['tickRegen']>,
+  progress: { get: () => number; set: (v: number) => void }
+): number {
+  if (rule.kind === 'none') return 0;
+
+  if (rule.kind === 'percent') {
+    // The pool max isn't known here without circular access; the caller is
+    // expected to scale by max separately if needed. For now `percent` returns
+    // the fractional rate and callers multiply by max — currently unused by
+    // the default fantasy ruleset.
+    return rule.perTickPct;
+  }
+
+  if (rule.kind === 'flat') {
+    let total = rule.perTick;
+    if (rule.statBonuses) {
+      for (const term of rule.statBonuses) {
+        const summed = term.statIds.reduce((s, id) => s + getStat(user, id), 0);
+        total += Math.floor(summed / term.divisor) * term.bonus;
+      }
+    }
+    return total;
+  }
+
+  // every_n_ticks
+  const next = progress.get() + 1;
+  if (next >= rule.ticksPerCharge) {
+    progress.set(0);
+    return rule.chargesPerInterval;
+  }
+  progress.set(next);
+  return 0;
 }
