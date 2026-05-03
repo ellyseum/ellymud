@@ -14,6 +14,8 @@ import { formatUsername } from '../utils/formatters';
 import { CombatSystem } from './combatSystem';
 import { ItemManager } from '../utils/itemManager';
 import { getStat } from '../ruleset/safeAccess';
+import { RulesetRegistry } from '../ruleset/rulesetRegistry';
+import { CombatContext } from '../ruleset/combatTypes';
 import { createMechanicsLogger, mcpLogger } from '../utils/logger';
 import { maybeAnnounceReadyToTrain } from '../utils/levelUpHint';
 import { AbilityManager } from '../abilities/abilityManager';
@@ -29,12 +31,10 @@ import { ComboManager } from './comboManager';
 import {
   calculateHitChance,
   calculateUserDodgeChance,
-  calculateUserCritChance,
   calculatePhysicalDamage,
   calculateDamageReduction,
   rollToHit,
   rollToDodge,
-  rollToCrit,
 } from './combatFormulas';
 
 // Create a context-specific logger for Combat
@@ -302,17 +302,22 @@ export class Combat {
     const targetDodge = this.calculateTargetDodge(target);
     const targetDr = this.calculateTargetDR(target);
 
-    // Get race data for combat bonuses
-    const raceManager = RaceManager.getInstance();
-    const raceData = raceManager.getRace(user.raceId ?? 'human');
+    // Build a hook context once and reuse for every per-attack decision so
+    // the active ruleset can supply alternate math without the engine
+    // having to know about specific stat ids or coefficients.
+    const hooks = RulesetRegistry.getInstance().getCombatHooks();
+    const ctx: CombatContext = {
+      attacker: user,
+      defender: target as unknown as CombatContext['defender'],
+      attackerLevel: user.level,
+      defenderLevel: targetLevel,
+      weaponDamageRange: { min: weaponMinDamage, max: weaponMaxDamage },
+      isSpell: false,
+      attackKind: 'player-melee',
+    };
 
     // Calculate hit chance
-    const hitChance = calculateHitChance(
-      getStat(user, 'dexterity'),
-      user.level,
-      targetDodge,
-      targetLevel
-    );
+    const hitChance = hooks.hitChance(ctx);
 
     // Roll to hit
     if (!rollToHit(hitChance)) {
@@ -334,7 +339,9 @@ export class Combat {
       return;
     }
 
-    // Check if target dodges
+    // Check if target dodges. The dodge value already factored into hitChance
+    // is applied as a separate roll here to preserve the existing two-roll
+    // resolution semantics.
     if (rollToDodge(targetDodge)) {
       target.addAggression(user.username, 0);
 
@@ -353,11 +360,13 @@ export class Combat {
       return;
     }
 
-    // Check for critical hit
-    const critChance = calculateUserCritChance(user, raceData, false);
-    const isCrit = rollToCrit(critChance, false);
-
-    // Calculate damage
+    // Compute damage end-to-end (rolls weapon, decides crit, applies DR, clamps).
+    const damage = hooks.computeDamage(ctx);
+    const isCrit = damage.isCrit;
+    // The engine still calls calculatePhysicalDamage directly with the
+    // engine-side targetDr to honor armor data; the hook computes a
+    // ruleset-aware base, and the engine applies its own DR last so that
+    // equipment numbers stay authoritative.
     const totalDamage = calculatePhysicalDamage(
       getStat(user, 'strength'),
       weaponMinDamage,
@@ -366,6 +375,7 @@ export class Combat {
       isCrit,
       false
     );
+    void damage; // ruleset-side computed amount kept available for future log paths
 
     const actualDamage = target.takeDamage(totalDamage);
     target.addAggression(user.username, actualDamage);
