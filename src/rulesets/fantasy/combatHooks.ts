@@ -27,6 +27,7 @@ import { User } from '../../types';
 import { NPC } from '../../combat/npc';
 
 const NPC_AGGRO_HIT_CHANCE = 50;
+const COMBAT_ABILITY_HIT_CHANCE = 65;
 
 /**
  * The fantasy combat hooks operate on User<->User combat primarily; NPC
@@ -41,6 +42,13 @@ export const defaultFantasyCombatHooks: CombatHooks = {
       // A future ruleset can replace this with stat math by overriding the
       // hook; the default keeps behavior intact for now.
       return NPC_AGGRO_HIT_CHANCE;
+    }
+    if (ctx.attackKind === 'player-combat-ability') {
+      // Preserve the historical 65% hit chance for combat-ability attacks
+      // routed through AbilityManager.executeCombatAbilityAttack. Stat-based
+      // hit chance gets reintroduced when ability execution itself migrates
+      // to ruleset handlers.
+      return COMBAT_ABILITY_HIT_CHANCE;
     }
     if (isUser(ctx.attacker)) {
       return calculateHitChance(

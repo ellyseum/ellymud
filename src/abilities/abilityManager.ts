@@ -17,6 +17,7 @@ import { colorize } from '../utils/colors';
 import { ItemManager } from '../utils/itemManager';
 import { getStat } from '../ruleset/safeAccess';
 import { RulesetRegistry } from '../ruleset/rulesetRegistry';
+import { CombatContext } from '../ruleset/combatTypes';
 import { clearRestingMeditating } from '../utils/stateInterruption';
 import { getAbilityRepository } from '../persistence/RepositoryFactory';
 import { IAsyncAbilityRepository } from '../persistence/interfaces';
@@ -365,7 +366,23 @@ export class AbilityManager extends EventEmitter {
       return { hit: false, damage: 0, message: 'No active combat ability' };
     }
 
-    const hit = Math.random() < 0.65;
+    // Hit chance comes from the active ruleset's combat hooks. The default
+    // fantasy hook returns 65 for the npc-counter attackKind to match the
+    // historical hardcoded probability; alternate rulesets can substitute
+    // their own math.
+    const hooksRegistry = RulesetRegistry.getInstance();
+    const ctx: CombatContext = {
+      attacker: client.user,
+      defender: client.user,
+      attackerLevel: client.user.level,
+      defenderLevel: client.user.level,
+      weaponDamageRange: { min: 0, max: 0 },
+      attackKind: 'player-combat-ability',
+    };
+    const hitChance = hooksRegistry.hasCombatHooks()
+      ? hooksRegistry.getCombatHooks().hitChance(ctx)
+      : 65;
+    const hit = Math.random() * 100 < hitChance;
 
     if (!hit) {
       return { hit: false, damage: 0, message: `Your ${ability.name} misses!` };

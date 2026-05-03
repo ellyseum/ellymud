@@ -44,7 +44,12 @@ export interface CombatContext {
    * The default fantasy hook can dispatch on this; rulesets that don't
    * care can ignore it.
    */
-  attackKind?: 'player-melee' | 'player-spell' | 'npc-aggro' | 'npc-counter';
+  attackKind?:
+    | 'player-melee'
+    | 'player-spell'
+    | 'player-combat-ability'
+    | 'npc-aggro'
+    | 'npc-counter';
 }
 
 export interface DamageBreakdown {
