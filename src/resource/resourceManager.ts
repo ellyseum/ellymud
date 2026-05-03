@@ -9,16 +9,11 @@
 
 import { User, ResourceType, CharacterClass } from '../types';
 import { ClassManager } from '../class/classManager';
-import {
-  calculateMaxMana,
-  calculateMaxKi,
-  calculateMaxNature,
-  getResourceDisplayAbbr,
-  RAGE_MAX,
-  ENERGY_MAX,
-} from '../utils/statCalculator';
+import { getResourceDisplayAbbr } from '../utils/statCalculator';
 import { createContextLogger } from '../utils/logger';
 import { getStat } from '../ruleset/safeAccess';
+import { RulesetRegistry } from '../ruleset/rulesetRegistry';
+import { NO_RESOURCE, ResourcePoolDefinition } from '../ruleset/resourceTypes';
 
 const resourceLogger = createContextLogger('ResourceManager');
 
@@ -118,38 +113,24 @@ export class ResourceManager {
   }
 
   /**
-   * Calculate the maximum resource value for a user
+   * Calculate the maximum resource value for a user. Reads the active
+   * ruleset's pool definition; per-class `resourceConfig.maxFixed` wins
+   * over the pool default so existing class-level overrides survive
+   * (e.g., a class can declare its own max for a shared pool).
    */
   public calculateMaxResource(user: User): number {
     const resourceType = this.getResourceType(user);
+    if (resourceType === NO_RESOURCE) return 0;
+
+    const pool = RulesetRegistry.getInstance().getResourcePool(resourceType);
+    if (!pool) return 0;
+
     const classId = user.classId ?? 'adventurer';
     const classData = this.classManager.getClass(classId);
+    const classOverride = classData?.resourceConfig?.maxFixed;
+    if (typeof classOverride === 'number') return classOverride;
 
-    switch (resourceType) {
-      case ResourceType.NONE:
-        return 0;
-
-      case ResourceType.MANA:
-        return calculateMaxMana(getStat(user, 'intelligence'), getStat(user, 'wisdom'));
-
-      case ResourceType.RAGE:
-        return classData?.resourceConfig?.maxFixed ?? RAGE_MAX;
-
-      case ResourceType.ENERGY:
-        return classData?.resourceConfig?.maxFixed ?? ENERGY_MAX;
-
-      case ResourceType.KI:
-        return calculateMaxKi(getStat(user, 'wisdom'));
-
-      case ResourceType.HOLY:
-        return classData?.resourceConfig?.maxFixed ?? 5;
-
-      case ResourceType.NATURE:
-        return calculateMaxNature(getStat(user, 'wisdom'));
-
-      default:
-        return 0;
-    }
+    return computeMaxFromPool(user, pool);
   }
 
   /**
@@ -461,4 +442,15 @@ export class ResourceManager {
     user.resource = maxResource;
     user.maxResource = maxResource;
   }
+}
+
+function computeMaxFromPool(user: User, pool: ResourcePoolDefinition): number {
+  const sizing = pool.sizing;
+  if (sizing.kind === 'fixed') return sizing.value;
+  // sizing.kind === 'derived'
+  let total = sizing.base;
+  for (const term of sizing.terms) {
+    total += getStat(user, term.statId) * term.perPoint;
+  }
+  return total;
 }
