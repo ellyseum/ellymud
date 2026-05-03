@@ -15,6 +15,7 @@
  */
 
 import { User, Race, CharacterClass, ResourceType, CombatLevel } from '../types';
+import { getStat } from '../ruleset/safeAccess';
 
 // ============================================================================
 // Constants
@@ -203,7 +204,7 @@ export function calculateUserMaxHP(
   const classHpBonus = classData?.hpBonus ?? 0;
   const racialHpBonus = raceData?.hpBonus ?? 0;
 
-  return calculateMaxHP(user.constitution, user.level, classHpBonus, racialHpBonus);
+  return calculateMaxHP(getStat(user, 'constitution'), user.level, classHpBonus, racialHpBonus);
 }
 
 // ============================================================================
@@ -265,7 +266,7 @@ export function calculateMaxResource(
       return 0;
 
     case ResourceType.MANA:
-      return calculateMaxMana(user.intelligence, user.wisdom);
+      return calculateMaxMana(getStat(user, 'intelligence'), getStat(user, 'wisdom'));
 
     case ResourceType.RAGE:
       // Rage has fixed max of 100, or from config
@@ -276,14 +277,14 @@ export function calculateMaxResource(
       return classData?.resourceConfig?.maxFixed ?? ENERGY_MAX;
 
     case ResourceType.KI:
-      return calculateMaxKi(user.wisdom);
+      return calculateMaxKi(getStat(user, 'wisdom'));
 
     case ResourceType.HOLY:
       // Holy uses charges, typically 3-5
       return classData?.resourceConfig?.maxFixed ?? 5;
 
     case ResourceType.NATURE:
-      return calculateMaxNature(user.wisdom);
+      return calculateMaxNature(getStat(user, 'wisdom'));
 
     default:
       return 0;
