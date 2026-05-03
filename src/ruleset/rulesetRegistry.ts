@@ -19,6 +19,7 @@ import { RulesetConfig, StatDefinition } from './types';
 import { RESERVED_STAT_IDS } from './reservedStatIds';
 import { NO_RESOURCE, ResourcePoolDefinition } from './resourceTypes';
 import { CombatHooks } from './combatTypes';
+import { AbilityHooks } from './abilityHandlerTypes';
 
 const STAT_ID_PATTERN = /^[a-z][a-z0-9_]*$/;
 const VALID_COST_CURVES = new Set(['linear', 'tier-10']);
@@ -42,6 +43,7 @@ export class RulesetRegistry {
   private resourcePools: ResourcePoolDefinition[] = [];
   private resourcePoolById = new Map<string, ResourcePoolDefinition>();
   private combatHooks: CombatHooks | null = null;
+  private abilityHooks: AbilityHooks | null = null;
   private loaded = false;
 
   private constructor() {}
@@ -73,7 +75,22 @@ export class RulesetRegistry {
     this.resourcePools = [...(config.resourcePools ?? [])];
     this.resourcePoolById = new Map(this.resourcePools.map((p) => [p.id, p]));
     this.combatHooks = config.combatHooks ?? null;
+    this.abilityHooks = config.abilityHooks ?? null;
     this.loaded = true;
+  }
+
+  /**
+   * Returns the active ability hook bundle, or undefined when the active
+   * ruleset doesn't supply one. Callers should treat undefined as "fall
+   * back to engine defaults" — the engine path is still authoritative
+   * until ability execution paths migrate through the registry.
+   */
+  getAbilityHooks(): AbilityHooks | undefined {
+    return this.abilityHooks ?? undefined;
+  }
+
+  hasAbilityHooks(): boolean {
+    return this.abilityHooks !== null;
   }
 
   /**

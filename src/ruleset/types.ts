@@ -26,6 +26,7 @@ export interface StatDefinition {
 
 import { ResourcePoolDefinition } from './resourceTypes';
 import { CombatHooks } from './combatTypes';
+import { AbilityHooks } from './abilityHandlerTypes';
 
 export interface RulesetConfig {
   stats: StatDefinition[];
@@ -41,4 +42,11 @@ export interface RulesetConfig {
    * don't run combat may omit it.
    */
   combatHooks?: CombatHooks;
+  /**
+   * Ability effect handler bundle. Surface-only in the current iteration:
+   * the engine doesn't yet dispatch through these handlers, but the slot
+   * exists so a future migration can wire ability execution paths through
+   * the registry without changing the config shape again.
+   */
+  abilityHooks?: AbilityHooks;
 }
