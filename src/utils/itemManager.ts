@@ -5,6 +5,7 @@ import { EquipmentSlot, GameItem, Item, ItemInstance, User } from '../types';
 import { parseAndValidateJson } from './jsonUtils';
 import { createContextLogger } from './logger';
 import { Room } from '../room/room';
+import { getStat } from '../ruleset/safeAccess';
 
 // Create a context-specific logger for ItemManager
 const itemLogger = createContextLogger('ItemManager');
@@ -947,7 +948,7 @@ export class ItemManager {
    */
   public calculateAttack(user: User): number {
     // Base attack value (could be derived from strength or other stats)
-    let attack = Math.floor(user.strength / 2);
+    let attack = Math.floor(getStat(user, 'strength') / 2);
 
     // Add bonuses from equipped items
     if (user.equipment) {
@@ -965,7 +966,7 @@ export class ItemManager {
   // Calculate a user's defense value based on their constitution and equipped items
   public calculateDefense(user: User): number {
     // Base defense value (could be derived from constitution or other stats)
-    let defense = Math.floor(user.constitution / 2);
+    let defense = Math.floor(getStat(user, 'constitution') / 2);
 
     // Add bonuses from equipped items
     if (user.equipment) {
