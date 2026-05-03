@@ -88,36 +88,23 @@ export class AuthenticatedState implements ClientState {
     // Initialize ItemManager for equipment calculations
     const itemManager = ItemManager.getInstance();
 
-    // Check for undefined character statistics and initialize them if needed
-    if (
-      client.user &&
-      (client.user.strength === undefined ||
-        client.user.dexterity === undefined ||
-        client.user.agility === undefined ||
-        client.user.constitution === undefined ||
-        client.user.wisdom === undefined ||
-        client.user.intelligence === undefined ||
-        client.user.charisma === undefined)
-    ) {
+    // Legacy users may have come off the wire without the stats record.
+    // ensureStatsRecord (called during load) will have hydrated it from any
+    // top-level fields the file still carried; here we just guarantee a
+    // record exists with the seven historical defaults so downstream code
+    // can rely on getStat() returning something for any of them.
+    if (client.user && !client.user.stats) {
       authStateLogger.info(`Initializing missing statistics for ${client.user.username}`);
-
-      // Create default stats object with only the missing properties
-      const defaultStats: Partial<User> = {};
-
-      if (client.user.strength === undefined) defaultStats.strength = 10;
-      if (client.user.dexterity === undefined) defaultStats.dexterity = 10;
-      if (client.user.agility === undefined) defaultStats.agility = 10;
-      if (client.user.constitution === undefined) defaultStats.constitution = 10;
-      if (client.user.wisdom === undefined) defaultStats.wisdom = 10;
-      if (client.user.intelligence === undefined) defaultStats.intelligence = 10;
-      if (client.user.charisma === undefined) defaultStats.charisma = 10;
-
-      // Update only the missing stats
-      Object.assign(client.user, defaultStats);
-
-      // Save the updated user stats to persistence
-      this.userManager.updateUserStats(client.user.username, defaultStats);
-
+      client.user.stats = {
+        strength: 10,
+        dexterity: 10,
+        agility: 10,
+        constitution: 10,
+        wisdom: 10,
+        intelligence: 10,
+        charisma: 10,
+      };
+      this.userManager.updateUserStats(client.user.username, { stats: client.user.stats });
       writeToClient(
         client,
         colorize(`Your character statistics have been initialized!\r\n`, 'green')

@@ -6,13 +6,17 @@
  */
 
 /**
- * During the engine refactor, the User type carries both flat per-stat fields
- * (`user.strength`, ...) and a `stats: Record<string, number>` record. These
- * helpers keep the two representations in sync so getStat() always sees the
- * latest value and the persistence layer continues to round-trip both shapes.
+ * Helpers for the canonical `User.stats` record.
  *
- * The flat fields will be removed in a follow-up phase. Once that lands, this
- * module can be deleted.
+ * Older user data on disk may carry the seven historical attribute fields
+ * (`strength`, `dexterity`, `agility`, `constitution`, `wisdom`,
+ * `intelligence`, `charisma`) at the top level instead of under `stats`.
+ * `ensureStatsRecord` hydrates the record from those legacy fields when it's
+ * absent so consumers can rely on `user.stats` being populated after load.
+ *
+ * `setStat` and `addToStat` are the canonical write paths for individual stat
+ * values; they only touch the record (the flat fields no longer exist on the
+ * `User` type).
  *
  * @module user/syncStats
  */
@@ -31,63 +35,46 @@ const LEGACY_FANTASY_IDS = [
 ] as const;
 
 /**
- * Build the stats record from the User's current flat fields. Used at user
- * creation and on read paths that don't populate stats themselves.
+ * Build a stats record from any legacy top-level attribute fields a raw user
+ * record might still carry. Returns an empty object if none are present.
  */
-export function buildStatsFromFlat(user: User): Record<string, number> {
-  return {
-    strength: user.strength,
-    dexterity: user.dexterity,
-    agility: user.agility,
-    constitution: user.constitution,
-    wisdom: user.wisdom,
-    intelligence: user.intelligence,
-    charisma: user.charisma,
-  };
+function buildStatsFromLegacy(raw: Record<string, unknown>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const id of LEGACY_FANTASY_IDS) {
+    const v = raw[id];
+    if (typeof v === 'number' && Number.isFinite(v)) out[id] = v;
+  }
+  return out;
 }
 
 /**
- * Ensure `user.stats` is populated. Idempotent. If already present, prefer
- * its values and propagate to flat fields (so a mapper-loaded user with stats
- * record but stale flat fields gets updated).
+ * Ensure `user.stats` is populated. If the record is missing, build it from
+ * any legacy top-level fields the raw record carried into the User object.
+ * Idempotent.
  */
 export function ensureStatsRecord(user: User): void {
-  if (!user.stats) {
-    user.stats = buildStatsFromFlat(user);
-    return;
-  }
-  // Backfill any legacy stat ids that weren't in the record (defensive).
-  for (const id of LEGACY_FANTASY_IDS) {
-    if (typeof user.stats[id] !== 'number' || !Number.isFinite(user.stats[id])) {
-      user.stats[id] = (user as unknown as Record<string, number>)[id];
-    }
-  }
-  // Push record values back onto the flat fields so getStat fallback agrees
-  // with direct property reads.
-  for (const id of LEGACY_FANTASY_IDS) {
-    (user as unknown as Record<string, number>)[id] = user.stats[id];
-  }
+  if (user.stats) return;
+  user.stats = buildStatsFromLegacy(user as unknown as Record<string, unknown>);
 }
 
 /**
- * Set a single stat. Updates both the record and the legacy flat field.
- * Use this in place of `user.strength = value` going forward.
+ * Set a single stat value. The canonical write path; callers should use this
+ * instead of mutating `user.stats[id]` directly so behavior stays consistent
+ * if the storage layout changes again.
  */
 export function setStat(user: User, id: string, value: number): void {
-  if (!user.stats) user.stats = buildStatsFromFlat(user);
+  if (!user.stats) user.stats = {};
   user.stats[id] = value;
-  if ((LEGACY_FANTASY_IDS as readonly string[]).includes(id)) {
-    (user as unknown as Record<string, number>)[id] = value;
-  }
 }
 
 /**
- * Add a delta to a single stat. Updates both the record and the legacy flat field.
+ * Add a delta to a single stat. Reads the current value through the registry
+ * fallback chain so an unknown id (e.g., a stat the active ruleset doesn't
+ * declare) still resolves to a sane starting value.
  */
 export function addToStat(user: User, id: string, delta: number): void {
   const reg = RulesetRegistry.getInstance();
   const def = reg.getStat(id);
-  const current =
-    user.stats?.[id] ?? (user as unknown as Record<string, number>)[id] ?? def?.baseValue ?? 0;
+  const current = user.stats?.[id] ?? def?.baseValue ?? 0;
   setStat(user, id, current + delta);
 }

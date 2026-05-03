@@ -290,13 +290,6 @@ const createMockUser = (overrides: Partial<User> = {}): User => ({
   maxMana: 50,
   experience: 0,
   level: 1,
-  strength: 10,
-  dexterity: 10,
-  agility: 10,
-  constitution: 10,
-  wisdom: 10,
-  intelligence: 10,
-  charisma: 10,
   stats: {
     strength: 10,
     dexterity: 10,

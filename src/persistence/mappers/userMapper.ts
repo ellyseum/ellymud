@@ -20,34 +20,29 @@ function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
 }
 
 /**
- * Read a stat from the JSON `stats` column, falling back to the per-stat
- * legacy column. The JSON column is the canonical storage; the fallback
- * exists for rows written before the schema migration populated the JSON
- * (rare but possible on databases mid-migration or restored from old backups).
- */
-function readStat(jsonStats: Record<string, number> | null, legacy: number, id: string): number {
-  const v = jsonStats?.[id];
-  return typeof v === 'number' && Number.isFinite(v) ? v : legacy;
-}
-
-/**
  * Convert a database row to a User domain object
  */
 export function dbRowToUser(row: UsersTable): User {
   const jsonStats = safeJsonParse<Record<string, number> | null>(row.stats, null);
   const jsonAllocated = safeJsonParse<Record<string, number> | null>(row.allocated_stats, null);
-  // Build the canonical stats record. Source of truth: the JSON column when
-  // populated; otherwise reconstructed from the legacy per-stat columns. This
-  // is what consumers should reach via getStat().
-  const statsRecord: Record<string, number> = jsonStats ?? {
-    strength: row.strength,
-    dexterity: row.dexterity,
-    agility: row.agility,
-    constitution: row.constitution,
-    wisdom: row.wisdom,
-    intelligence: row.intelligence,
-    charisma: row.charisma,
-  };
+  // Build the canonical stats record per-key: prefer JSON-column values, fall
+  // back to the legacy per-stat columns for the seven historical ids. This
+  // tolerates rows written before the schema migration backfilled the JSON
+  // column or when JSON is partial.
+  const statsRecord: Record<string, number> = { ...(jsonStats ?? {}) };
+  for (const [id, fallback] of [
+    ['strength', row.strength],
+    ['dexterity', row.dexterity],
+    ['agility', row.agility],
+    ['constitution', row.constitution],
+    ['wisdom', row.wisdom],
+    ['intelligence', row.intelligence],
+    ['charisma', row.charisma],
+  ] as const) {
+    if (typeof statsRecord[id] !== 'number' || !Number.isFinite(statsRecord[id])) {
+      statsRecord[id] = fallback;
+    }
+  }
   return {
     username: row.username,
     passwordHash: row.password_hash,
@@ -58,13 +53,6 @@ export function dbRowToUser(row: UsersTable): User {
     maxMana: row.max_mana,
     experience: row.experience,
     level: row.level,
-    strength: readStat(jsonStats, row.strength, 'strength'),
-    dexterity: readStat(jsonStats, row.dexterity, 'dexterity'),
-    agility: readStat(jsonStats, row.agility, 'agility'),
-    constitution: readStat(jsonStats, row.constitution, 'constitution'),
-    wisdom: readStat(jsonStats, row.wisdom, 'wisdom'),
-    intelligence: readStat(jsonStats, row.intelligence, 'intelligence'),
-    charisma: readStat(jsonStats, row.charisma, 'charisma'),
     stats: statsRecord,
     // Pass the JSON record through directly so ruleset-declared stats
     // beyond the seven fantasy attributes survive the round-trip.
@@ -102,38 +90,30 @@ export function dbRowToUser(row: UsersTable): User {
  * Convert a User domain object to a database row
  */
 export function userToDbRow(user: User): UsersTable {
+  // Pull the seven legacy column values from the canonical stats record so
+  // the columns stay populated for rollback safety even though they are no
+  // longer the source of truth. Defaults to 10 for any missing key (a
+  // ruleset that doesn't register a particular fantasy id can still satisfy
+  // the NOT NULL constraint on the legacy column).
+  const s = user.stats ?? {};
   return {
     username: user.username,
     password_hash: user.passwordHash ?? '',
     salt: user.salt ?? '',
     health: user.health,
     max_health: user.maxHealth,
-    mana: user.mana ?? 0, // Default to 0 for classes without mana
-    max_mana: user.maxMana ?? 0, // Default to 0 for classes without mana
+    mana: user.mana ?? 0,
+    max_mana: user.maxMana ?? 0,
     experience: user.experience,
     level: user.level,
-    strength: user.strength,
-    dexterity: user.dexterity,
-    agility: user.agility,
-    constitution: user.constitution,
-    wisdom: user.wisdom,
-    intelligence: user.intelligence,
-    charisma: user.charisma,
-    // Write to both storage shapes: the new `stats` JSON column (canonical;
-    // supports ruleset-declared stats beyond the seven fantasy ids) AND the
-    // legacy per-stat columns (kept populated for rollback safety; will be
-    // dropped once they're confirmed unused).
-    stats: JSON.stringify(
-      user.stats ?? {
-        strength: user.strength,
-        dexterity: user.dexterity,
-        agility: user.agility,
-        constitution: user.constitution,
-        wisdom: user.wisdom,
-        intelligence: user.intelligence,
-        charisma: user.charisma,
-      }
-    ),
+    strength: s.strength ?? 10,
+    dexterity: s.dexterity ?? 10,
+    agility: s.agility ?? 10,
+    constitution: s.constitution ?? 10,
+    wisdom: s.wisdom ?? 10,
+    intelligence: s.intelligence ?? 10,
+    charisma: s.charisma ?? 10,
+    stats: JSON.stringify(user.stats ?? {}),
     allocated_stats: user.allocatedStats ? JSON.stringify(user.allocatedStats) : null,
     equipment: user.equipment ? JSON.stringify(user.equipment) : null,
     join_date: user.joinDate.toISOString(),

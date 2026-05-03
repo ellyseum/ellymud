@@ -352,8 +352,8 @@ describe('Combat Formulas', () => {
     it('should calculate dodge for a basic user', () => {
       const user = {
         raceId: 'human',
-        agility: 25,
-      } as User;
+        stats: { agility: 25 },
+      } as unknown as User;
       const dodge = calculateUserDodgeChance(user);
       expect(dodge).toBe(5 + 5); // Base 5 + (25/5) AGI
     });
@@ -361,8 +361,8 @@ describe('Combat Formulas', () => {
     it('should include racial and class bonuses', () => {
       const user = {
         raceId: 'halfling',
-        agility: 0,
-      } as User;
+        stats: { agility: 0 },
+      } as unknown as User;
       const raceData = {
         id: 'halfling',
         name: 'Halfling',
@@ -392,18 +392,16 @@ describe('Combat Formulas', () => {
   describe('calculateUserCritChance', () => {
     it('should calculate crit for a basic user', () => {
       const user = {
-        dexterity: 30,
-        intelligence: 0,
-      } as User;
+        stats: { dexterity: 30, intelligence: 0 },
+      } as unknown as User;
       const crit = calculateUserCritChance(user, undefined, false);
       expect(crit).toBe(5 + 3); // Base 5 + (30/10) DEX
     });
 
     it('should include racial crit bonus', () => {
       const user = {
-        dexterity: 0,
-        intelligence: 0,
-      } as User;
+        stats: { dexterity: 0, intelligence: 0 },
+      } as unknown as User;
       const raceData = {
         id: 'halfling',
         name: 'Halfling',

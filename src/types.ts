@@ -386,24 +386,12 @@ export interface User {
   // Keyed by stat id so ruleset-declared stats beyond the seven fantasy
   // attributes flow through naturally.
   allocatedStats?: Record<string, number>;
-  // Add character statistics
-  // Per-stat fields are kept in sync with `stats` for backwards compatibility
-  // during the engine refactor; new code should read via getStat() and rulesets
-  // can declare stats beyond the seven via the `stats` record. They will be
-  // removed in a follow-up phase once all consumers have migrated.
-  strength: number;
-  dexterity: number;
-  agility: number;
-  constitution: number; // New stat for physical endurance
-  wisdom: number;
-  intelligence: number;
-  charisma: number;
-
   /**
-   * Ruleset-driven stat record. Source of truth for a ruleset that declares
-   * stats beyond the seven fantasy attributes. Populated by the mapper on read,
-   * by user creation paths, and by stat-modifier application. Kept in sync
-   * with the legacy flat fields above for one transition phase.
+   * Ruleset-driven stat record. The canonical storage for character attributes;
+   * keys are the stat ids declared by the active ruleset. Read via getStat()
+   * and write via setStat() / addToStat() so consumers stay decoupled from
+   * any specific stat list (the seven fantasy attributes are one valid
+   * configuration, not a hardcoded shape).
    */
   stats: Record<string, number>;
 

@@ -10,13 +10,15 @@ function makeUser(overrides: Partial<User> = {}): User {
     maxHealth: 100,
     experience: 0,
     level: 1,
-    strength: 14,
-    dexterity: 12,
-    agility: 11,
-    constitution: 13,
-    wisdom: 10,
-    intelligence: 9,
-    charisma: 8,
+    stats: {
+      strength: 14,
+      dexterity: 12,
+      agility: 11,
+      constitution: 13,
+      wisdom: 10,
+      intelligence: 9,
+      charisma: 8,
+    },
     joinDate: new Date('2026-01-01'),
     lastLogin: new Date('2026-01-02'),
     currentRoomId: 'town-square',
@@ -26,7 +28,7 @@ function makeUser(overrides: Partial<User> = {}): User {
 }
 
 describe('userMapper bridge writes (C3)', () => {
-  it('userToDbRow writes the new stats JSON column populated from flat fields', () => {
+  it('userToDbRow writes the new stats JSON column populated from the stats record', () => {
     const row = userToDbRow(makeUser());
     expect(row.stats).not.toBeNull();
     const parsed = JSON.parse(row.stats!) as Record<string, number>;
@@ -79,16 +81,16 @@ describe('userMapper bridge writes (C3)', () => {
   it('dbRowToUser reads stats from JSON column (C4 read path)', () => {
     const row = userToDbRow(makeUser());
     const user = dbRowToUser(row);
-    expect(user.strength).toBe(14);
-    expect(user.dexterity).toBe(12);
+    expect(user.stats.strength).toBe(14);
+    expect(user.stats.dexterity).toBe(12);
   });
 
   it('dbRowToUser falls back to legacy column when JSON column is null', () => {
     const row = userToDbRow(makeUser());
     row.stats = null; // simulate a row written before bridge/migration ran
     const user = dbRowToUser(row);
-    expect(user.strength).toBe(14);
-    expect(user.dexterity).toBe(12);
+    expect(user.stats.strength).toBe(14);
+    expect(user.stats.dexterity).toBe(12);
   });
 
   it('dbRowToUser prefers JSON column over legacy column when both populated', () => {
@@ -103,15 +105,15 @@ describe('userMapper bridge writes (C3)', () => {
       charisma: 99,
     });
     const user = dbRowToUser(row);
-    expect(user.strength).toBe(99);
+    expect(user.stats.strength).toBe(99);
   });
 
   it('dbRowToUser falls back per-stat for partial JSON', () => {
     const row = userToDbRow(makeUser());
     row.stats = JSON.stringify({ strength: 99 }); // only one key
     const user = dbRowToUser(row);
-    expect(user.strength).toBe(99);
-    expect(user.dexterity).toBe(12); // falls back to legacy column
+    expect(user.stats.strength).toBe(99);
+    expect(user.stats.dexterity).toBe(12); // falls back to legacy column
   });
 
   it('dbRowToUser populates allocatedStats from JSON column', () => {

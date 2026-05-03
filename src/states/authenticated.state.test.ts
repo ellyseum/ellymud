@@ -229,14 +229,15 @@ describe('AuthenticatedState', () => {
       const client = createMockClientWithUser({
         username: 'testuser',
         currentRoomId: 'town-square',
-        strength: undefined,
-        dexterity: undefined,
       });
+      // Drop the stats record entirely to simulate a legacy load that lacks it.
+      // The state should backfill the seven historical defaults.
+      (client.user as unknown as { stats?: unknown }).stats = undefined;
 
       authenticatedState.enter(client);
 
-      expect(client.user?.strength).toBe(10);
-      expect(client.user?.dexterity).toBe(10);
+      expect(client.user?.stats?.strength).toBe(10);
+      expect(client.user?.stats?.dexterity).toBe(10);
     });
 
     it('should initialize missing combat stats', () => {

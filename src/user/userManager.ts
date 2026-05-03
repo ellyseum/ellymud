@@ -738,16 +738,8 @@ export class UserManager {
       classHistory: ['adventurer'],
       questFlags: [],
       unspentAttributePoints: 100, // Starting attribute points for character customization
-      // Initialize character statistics (base stats - race modifiers applied during race selection)
-      strength: 10,
-      dexterity: 10,
-      agility: 10,
-      constitution: 10,
-      wisdom: 10,
-      intelligence: 10,
-      charisma: 10,
-      // Ruleset-driven stat record. Mirrors the flat fields above during the
-      // transition phase; new ruleset stats land here too.
+      // Ruleset-driven stat record. Race modifiers are applied during race
+      // selection; the seven historical fantasy ids are the default schema.
       stats: {
         strength: 10,
         dexterity: 10,
@@ -1252,17 +1244,7 @@ export class UserManager {
    * @param stat The stat to increase
    * @returns True if successful, false otherwise
    */
-  public spendAttributePoint(
-    username: string,
-    stat:
-      | 'strength'
-      | 'dexterity'
-      | 'agility'
-      | 'constitution'
-      | 'wisdom'
-      | 'intelligence'
-      | 'charisma'
-  ): boolean {
+  public spendAttributePoint(username: string, stat: string): boolean {
     const user = this.getUser(username);
     if (!user) return false;
 
@@ -1270,7 +1252,7 @@ export class UserManager {
       return false;
     }
 
-    user[stat] += 1;
+    addToStat(user, stat, 1);
     user.unspentAttributePoints = (user.unspentAttributePoints ?? 0) - 1;
     this.saveUsers();
     return true;

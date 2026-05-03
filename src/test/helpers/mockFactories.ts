@@ -66,15 +66,21 @@ export const createDefaultCurrency = (overrides: Partial<Currency> = {}): Curren
  * @param overrides - Partial user property overrides
  * @returns A User object
  */
-export const createMockUser = (overrides: Partial<User> = {}): User => {
-  const merged: User = {
-    username: 'testuser',
-    health: 100,
-    maxHealth: 100,
-    mana: 50,
-    maxMana: 50,
-    experience: 0,
-    level: 1,
+/**
+ * For ergonomics, tests may pass per-stat overrides at the top level
+ * (`createMockUser({ strength: 14 })`); they get folded into the canonical
+ * stats record. Explicit `stats: { ... }` overrides win over the per-key
+ * shorthands.
+ */
+type LegacyStatOverrides = Partial<
+  Record<
+    'strength' | 'dexterity' | 'agility' | 'constitution' | 'wisdom' | 'intelligence' | 'charisma',
+    number
+  >
+>;
+
+export const createMockUser = (overrides: Partial<User> & LegacyStatOverrides = {}): User => {
+  const baseStats: Record<string, number> = {
     strength: 10,
     dexterity: 10,
     agility: 10,
@@ -82,15 +88,47 @@ export const createMockUser = (overrides: Partial<User> = {}): User => {
     wisdom: 10,
     intelligence: 10,
     charisma: 10,
-    stats: {
-      strength: 10,
-      dexterity: 10,
-      agility: 10,
-      constitution: 10,
-      wisdom: 10,
-      intelligence: 10,
-      charisma: 10,
-    },
+  };
+  const legacyKeys: (keyof LegacyStatOverrides)[] = [
+    'strength',
+    'dexterity',
+    'agility',
+    'constitution',
+    'wisdom',
+    'intelligence',
+    'charisma',
+  ];
+  const legacyStatOverrides: Record<string, number> = {};
+  for (const k of legacyKeys) {
+    const v = (overrides as LegacyStatOverrides)[k];
+    if (typeof v === 'number') legacyStatOverrides[k] = v;
+  }
+  const stats = {
+    ...baseStats,
+    ...legacyStatOverrides,
+    ...(overrides.stats ?? {}),
+  };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const {
+    strength,
+    dexterity,
+    agility,
+    constitution,
+    wisdom,
+    intelligence,
+    charisma,
+    stats: _s,
+    ...rest
+  } = overrides as Partial<User> & LegacyStatOverrides;
+  return {
+    username: 'testuser',
+    health: 100,
+    maxHealth: 100,
+    mana: 50,
+    maxMana: 50,
+    experience: 0,
+    level: 1,
+    stats,
     joinDate: new Date(),
     lastLogin: new Date(),
     currentRoomId: 'town-square',
@@ -99,22 +137,8 @@ export const createMockUser = (overrides: Partial<User> = {}): User => {
       currency: createDefaultCurrency(),
     },
     inCombat: false,
-    ...overrides,
-  };
-  // Mirror per-stat overrides into the stats record so getStat() and direct
-  // flat reads agree. Tests can pass either shape; the helper reconciles.
-  merged.stats = {
-    ...merged.stats,
-    strength: merged.strength,
-    dexterity: merged.dexterity,
-    agility: merged.agility,
-    constitution: merged.constitution,
-    wisdom: merged.wisdom,
-    intelligence: merged.intelligence,
-    charisma: merged.charisma,
-    ...(overrides.stats ?? {}),
-  };
-  return merged;
+    ...rest,
+  } as User;
 };
 
 /**
