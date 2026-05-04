@@ -1,6 +1,6 @@
 /*
  * EllyMUD
- * Copyright (C) 2025 ellyseum
+ * Copyright (C) 2026 ellyseum
  * SPDX-License-Identifier: AGPL-3.0-or-later
  * Commercial licensing available via https://github.com/ellyseum
  */
@@ -15,5 +15,6 @@
 
 import { RulesetPlugin } from '../ruleset/plugin';
 import fantasyPlugin from './fantasy';
+import grimdarkPlugin from './grimdark';
 
-export const builtInRulesets: readonly RulesetPlugin[] = [fantasyPlugin];
+export const builtInRulesets: readonly RulesetPlugin[] = [fantasyPlugin, grimdarkPlugin];
