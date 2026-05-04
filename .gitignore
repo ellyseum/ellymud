@@ -111,3 +111,5 @@ pull_request_description.md
 data/quest-progress.json
 data/merchant-state.json
 .claude/scheduled_tasks.lock
+.claude/plans/
+.cordyceps/
