@@ -43,15 +43,12 @@ describe('userMapper bridge writes (C3)', () => {
     });
   });
 
-  it('userToDbRow continues writing legacy per-stat columns (bridge)', () => {
+  it('userToDbRow no longer writes the legacy per-stat columns', () => {
     const row = userToDbRow(makeUser());
-    expect(row.strength).toBe(14);
-    expect(row.dexterity).toBe(12);
-    expect(row.agility).toBe(11);
-    expect(row.constitution).toBe(13);
-    expect(row.wisdom).toBe(10);
-    expect(row.intelligence).toBe(9);
-    expect(row.charisma).toBe(8);
+    // The seven legacy columns were dropped after the JSON `stats` column
+    // became the canonical storage; row should only carry the new shape.
+    expect((row as unknown as Record<string, unknown>).strength).toBeUndefined();
+    expect((row as unknown as Record<string, unknown>).charisma).toBeUndefined();
   });
 
   it('userToDbRow writes allocated_stats when present', () => {
@@ -85,12 +82,14 @@ describe('userMapper bridge writes (C3)', () => {
     expect(user.stats.dexterity).toBe(12);
   });
 
-  it('dbRowToUser falls back to legacy column when JSON column is null', () => {
+  it('dbRowToUser returns an empty stats record when the JSON column is null', () => {
+    // The legacy per-stat columns are gone; with no JSON either, there's
+    // no fallback path. Engine downstream relies on getStat() falling
+    // back to the schema baseValue.
     const row = userToDbRow(makeUser());
-    row.stats = null; // simulate a row written before bridge/migration ran
+    row.stats = null;
     const user = dbRowToUser(row);
-    expect(user.stats.strength).toBe(14);
-    expect(user.stats.dexterity).toBe(12);
+    expect(user.stats).toEqual({});
   });
 
   it('dbRowToUser prefers JSON column over legacy column when both populated', () => {

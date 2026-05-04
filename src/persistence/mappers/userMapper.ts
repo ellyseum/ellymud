@@ -25,19 +25,11 @@ function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
 export function dbRowToUser(row: UsersTable): User {
   const jsonStats = safeJsonParse<Record<string, number> | null>(row.stats, null);
   const jsonAllocated = safeJsonParse<Record<string, number> | null>(row.allocated_stats, null);
-  // Prefer the canonical JSON column. Reconstruct from the legacy per-stat
-  // columns only when the JSON column is entirely absent (rows from databases
-  // that predate the schema migration). Per-key fallback would otherwise
-  // fabricate stats a ruleset deliberately omitted from its schema.
-  const statsRecord: Record<string, number> = jsonStats ?? {
-    strength: row.strength,
-    dexterity: row.dexterity,
-    agility: row.agility,
-    constitution: row.constitution,
-    wisdom: row.wisdom,
-    intelligence: row.intelligence,
-    charisma: row.charisma,
-  };
+  // The JSON column is canonical. Older rows that predate the v1 schema
+  // migration would have arrived here with `row.stats` null, but the v1
+  // backfill populates every existing row before the engine resumes
+  // normal operation, so the column is always present in practice.
+  const statsRecord: Record<string, number> = jsonStats ?? {};
   return {
     username: row.username,
     passwordHash: row.password_hash,
@@ -85,12 +77,6 @@ export function dbRowToUser(row: UsersTable): User {
  * Convert a User domain object to a database row
  */
 export function userToDbRow(user: User): UsersTable {
-  // Pull the seven legacy column values from the canonical stats record so
-  // the columns stay populated for rollback safety even though they are no
-  // longer the source of truth. Defaults to 10 for any missing key (a
-  // ruleset that doesn't register a particular fantasy id can still satisfy
-  // the NOT NULL constraint on the legacy column).
-  const s = user.stats ?? {};
   return {
     username: user.username,
     password_hash: user.passwordHash ?? '',
@@ -101,13 +87,6 @@ export function userToDbRow(user: User): UsersTable {
     max_mana: user.maxMana ?? 0,
     experience: user.experience,
     level: user.level,
-    strength: s.strength ?? 10,
-    dexterity: s.dexterity ?? 10,
-    agility: s.agility ?? 10,
-    constitution: s.constitution ?? 10,
-    wisdom: s.wisdom ?? 10,
-    intelligence: s.intelligence ?? 10,
-    charisma: s.charisma ?? 10,
     stats: JSON.stringify(user.stats ?? {}),
     allocated_stats: user.allocatedStats ? JSON.stringify(user.allocatedStats) : null,
     equipment: user.equipment ? JSON.stringify(user.equipment) : null,

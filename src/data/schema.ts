@@ -16,14 +16,7 @@ export interface UsersTable {
   max_mana: number;
   experience: number;
   level: number;
-  strength: number;
-  dexterity: number;
-  agility: number;
-  constitution: number;
-  wisdom: number;
-  intelligence: number;
-  charisma: number;
-  /** JSON: Record<string, number> — populated by schema migration v1. */
+  /** JSON: Record<string, number> — canonical stat storage. */
   stats: string | null;
   /** JSON: Record<string, number> — populated by schema migration v1. */
   allocated_stats: string | null;

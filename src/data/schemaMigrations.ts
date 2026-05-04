@@ -50,7 +50,11 @@ const v1: SchemaMigration = {
 
     // 2. Backfill: for every row, write a stats JSON object built from the
     //    seven legacy columns. allocated_stats stays NULL (current code has
-    //    no allocatedStats persistence; populated when users save going forward).
+    //    no allocatedStats persistence; populated when users save going
+    //    forward). Uses raw SQL because the typed schema no longer
+    //    declares the legacy columns — they exist on disk for any DB
+    //    predating the v2 drop, and v1 reads them once before v2 removes
+    //    them.
     type LegacyStatRow = {
       username: string;
       strength: number | null;
@@ -62,20 +66,19 @@ const v1: SchemaMigration = {
       charisma: number | null;
     };
 
-    const rows: LegacyStatRow[] = await db
-      .selectFrom('users')
-      .select([
-        'username',
-        'strength',
-        'dexterity',
-        'agility',
-        'constitution',
-        'wisdom',
-        'intelligence',
-        'charisma',
-      ])
-      .where('stats', 'is', null)
-      .execute();
+    // Skip the legacy backfill on databases that never had the legacy
+    // columns (fresh installs created after the columns were dropped from
+    // initializeDatabase). Detection is one-and-done — checking any of
+    // the seven indicates whether the whole legacy block is present.
+    const hasLegacyColumns = await columnExists(db, 'users', 'strength');
+    if (!hasLegacyColumns) return;
+
+    const result = await sql<LegacyStatRow>`
+      SELECT username, strength, dexterity, agility, constitution, wisdom, intelligence, charisma
+      FROM users
+      WHERE stats IS NULL
+    `.execute(db);
+    const rows = result.rows;
 
     for (const row of rows) {
       const stats: Record<string, number> = {};
@@ -86,11 +89,8 @@ const v1: SchemaMigration = {
       if (typeof row.wisdom === 'number') stats.wisdom = row.wisdom;
       if (typeof row.intelligence === 'number') stats.intelligence = row.intelligence;
       if (typeof row.charisma === 'number') stats.charisma = row.charisma;
-      await db
-        .updateTable('users')
-        .set({ stats: JSON.stringify(stats) })
-        .where('username', '=', row.username)
-        .execute();
+      const json = JSON.stringify(stats);
+      await sql`UPDATE users SET stats = ${json} WHERE username = ${row.username}`.execute(db);
     }
 
     // 3. Relax NOT NULL on the seven stat columns so future inserts may omit them.
@@ -117,10 +117,41 @@ const v1: SchemaMigration = {
 };
 
 /**
+ * Migration v2 — drop the seven legacy stat columns now that the JSON
+ * `stats` column has been the canonical storage for a release.
+ *
+ * SQLite supports `DROP COLUMN` since 3.35 (2021). better-sqlite3 ships
+ * a recent enough SQLite that the native command works directly; no
+ * table-rebuild dance needed for the dialects this project supports.
+ */
+const v2: SchemaMigration = {
+  version: 2,
+  name: 'drop-legacy-stat-columns',
+  async up(db) {
+    const legacyCols = [
+      'strength',
+      'dexterity',
+      'agility',
+      'constitution',
+      'wisdom',
+      'intelligence',
+      'charisma',
+    ];
+    for (const col of legacyCols) {
+      // ALTER TABLE ... DROP COLUMN works on Postgres and on SQLite 3.35+.
+      // Skip if the column is already gone (idempotent).
+      if (await columnExists(db, 'users', col)) {
+        await sql`ALTER TABLE users DROP COLUMN ${sql.ref(col)}`.execute(db);
+      }
+    }
+  },
+};
+
+/**
  * Ordered migration list. Append new versions to the end; never edit or
  * reorder past entries.
  */
-export const SCHEMA_MIGRATIONS: readonly SchemaMigration[] = [v1];
+export const SCHEMA_MIGRATIONS: readonly SchemaMigration[] = [v1, v2];
 
 const TRACKING_TABLE = '_schema_migrations';
 
