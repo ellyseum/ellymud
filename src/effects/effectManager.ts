@@ -7,6 +7,7 @@ import { NPC } from '../combat/npc';
 import { RoomManager } from '../room/roomManager';
 import { ConnectedClient } from '../types';
 import { ActiveEffect, StackingBehavior, effectStackingRules } from '../types/effects';
+import { RulesetRegistry } from '../ruleset/rulesetRegistry';
 import { UserManager } from '../user/userManager';
 import { ItemManager } from '../utils/itemManager';
 import { createMechanicsLogger } from '../utils/logger';
@@ -116,10 +117,24 @@ export class EffectManager extends EventEmitter {
     const targetMap = isPlayer ? this.playerEffects : this.npcEffects;
     const existingEffects = targetMap.get(targetId) || [];
 
-    // Use the effect's specified stacking behavior or the default for its type
+    // Use the effect's specified stacking behavior or the default for its type.
+    // The active ruleset's effect-metadata bundle is consulted first so a
+    // non-fantasy ruleset can declare its own effect ids; the legacy
+    // `effectStackingRules` constant remains as a backstop for the fantasy
+    // built-ins when a ruleset config doesn't supply metadata.
+    const metadata = RulesetRegistry.getInstance()
+      .getEffectMetadataHooks()
+      ?.getMetadata(effectData.type);
+    const fallback = effectStackingRules[effectData.type];
+    if (!metadata && fallback === undefined) {
+      effectLogger.warn(
+        `[EffectManager] Effect type "${effectData.type}" has no metadata or legacy stacking rule; defaulting to REFRESH.`
+      );
+    }
     const stackingBehavior =
       effectData.stackingBehavior ??
-      effectStackingRules[effectData.type] ??
+      metadata?.defaultStacking ??
+      fallback ??
       StackingBehavior.REFRESH;
 
     const isInstantEffect = this.isInstantEffect(effectData);

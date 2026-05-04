@@ -19,6 +19,7 @@
 import { RulesetConfig } from '../../ruleset/types';
 import { ResourcePoolDefinition } from '../../ruleset/resourceTypes';
 import { defaultFantasyAbilityHooks } from '../fantasy/abilityHooks';
+import { defaultFantasyEffectMetadataHooks } from '../fantasy/effectMetadata';
 import { grimdarkCombatHooks } from './combatHooks';
 import { grimdarkProgressionHooks } from './progressionHooks';
 
@@ -183,4 +184,5 @@ export const grimdarkRulesetConfig: RulesetConfig = {
   combatHooks: grimdarkCombatHooks,
   abilityHooks: defaultFantasyAbilityHooks,
   progressionHooks: grimdarkProgressionHooks,
+  effectMetadataHooks: defaultFantasyEffectMetadataHooks,
 };

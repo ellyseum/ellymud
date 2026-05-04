@@ -28,6 +28,7 @@ import { ResourcePoolDefinition } from './resourceTypes';
 import { CombatHooks } from './combatTypes';
 import { AbilityHooks } from './abilityHandlerTypes';
 import { ProgressionHooks } from './progressionTypes';
+import { EffectMetadataHooks } from './effectMetadata';
 
 export interface RulesetConfig {
   stats: StatDefinition[];
@@ -56,4 +57,12 @@ export interface RulesetConfig {
    * to provide one if they don't change progression math.
    */
   progressionHooks?: ProgressionHooks;
+  /**
+   * Effect type metadata: default stacking behavior and tick-message
+   * templates for each effect kind the ruleset declares. Engine looks up
+   * stacking and message text via this bundle, falling back to its
+   * historical constants when the bundle is absent or doesn't list a
+   * given id.
+   */
+  effectMetadataHooks?: EffectMetadataHooks;
 }

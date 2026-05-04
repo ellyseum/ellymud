@@ -21,6 +21,7 @@ import { NO_RESOURCE, ResourcePoolDefinition } from './resourceTypes';
 import { CombatHooks } from './combatTypes';
 import { AbilityHooks } from './abilityHandlerTypes';
 import { ProgressionHooks } from './progressionTypes';
+import { EffectMetadataHooks } from './effectMetadata';
 
 const STAT_ID_PATTERN = /^[a-z][a-z0-9_]*$/;
 const VALID_COST_CURVES = new Set(['linear', 'tier-10']);
@@ -46,6 +47,7 @@ export class RulesetRegistry {
   private combatHooks: CombatHooks | null = null;
   private abilityHooks: AbilityHooks | null = null;
   private progressionHooks: ProgressionHooks | null = null;
+  private effectMetadataHooks: EffectMetadataHooks | null = null;
   private loaded = false;
 
   private constructor() {}
@@ -79,7 +81,17 @@ export class RulesetRegistry {
     this.combatHooks = config.combatHooks ?? null;
     this.abilityHooks = config.abilityHooks ?? null;
     this.progressionHooks = config.progressionHooks ?? null;
+    this.effectMetadataHooks = config.effectMetadataHooks ?? null;
     this.loaded = true;
+  }
+
+  /**
+   * Returns the active effect metadata bundle, or undefined when none
+   * is loaded. Engine code falls back to its historical constants in
+   * that case.
+   */
+  getEffectMetadataHooks(): EffectMetadataHooks | undefined {
+    return this.effectMetadataHooks ?? undefined;
   }
 
   /**

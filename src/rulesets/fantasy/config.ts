@@ -19,6 +19,7 @@ import { ResourcePoolDefinition } from '../../ruleset/resourceTypes';
 import { defaultFantasyCombatHooks } from './combatHooks';
 import { defaultFantasyAbilityHooks } from './abilityHooks';
 import { defaultFantasyProgressionHooks } from './progressionHooks';
+import { defaultFantasyEffectMetadataHooks } from './effectMetadata';
 
 // Constants reproducing the historical numeric tuning. Pool definitions read
 // these through the constants below so the magic numbers live in one place.
@@ -200,4 +201,5 @@ export const defaultFantasyRulesetConfig: RulesetConfig = {
   combatHooks: defaultFantasyCombatHooks,
   abilityHooks: defaultFantasyAbilityHooks,
   progressionHooks: defaultFantasyProgressionHooks,
+  effectMetadataHooks: defaultFantasyEffectMetadataHooks,
 };
